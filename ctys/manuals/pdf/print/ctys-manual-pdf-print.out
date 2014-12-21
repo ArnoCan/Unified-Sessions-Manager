@@ -1,0 +1,375 @@
+\BOOKMARK [-1][]{part.1}{I Common Basics}{}
+\BOOKMARK [0][]{chapter.1}{Preface}{part.1}
+\BOOKMARK [1][]{section.1.1}{History}{chapter.1}
+\BOOKMARK [1][]{section.1.2}{Contact}{chapter.1}
+\BOOKMARK [1][]{section.1.3}{Some General Remarks}{chapter.1}
+\BOOKMARK [1][]{section.1.4}{Legal}{chapter.1}
+\BOOKMARK [1][]{section.1.5}{Acknowledgements}{chapter.1}
+\BOOKMARK [0][]{chapter.2}{Abstract}{part.1}
+\BOOKMARK [0][]{chapter.3}{Feature Specification}{part.1}
+\BOOKMARK [1][]{section.3.1}{Feature Introduction}{chapter.3}
+\BOOKMARK [1][]{section.3.2}{Feature-Sum-Up}{chapter.3}
+\BOOKMARK [0][]{chapter.4}{Claimed Inventions}{part.1}
+\BOOKMARK [1][]{section.4.1}{First set - 2008.02.11}{chapter.4}
+\BOOKMARK [1][]{section.4.2}{Second set - 2008.07.10}{chapter.4}
+\BOOKMARK [0][]{chapter.5}{Secure Sessions}{part.1}
+\BOOKMARK [1][]{section.5.1}{Security and Authorization}{chapter.5}
+\BOOKMARK [1][]{section.5.2}{Xinerama Screen Layouts}{chapter.5}
+\BOOKMARK [2][]{subsection.5.2.1}{Physical Layout-1}{section.5.2}
+\BOOKMARK [2][]{subsection.5.2.2}{Physical Layout-2}{section.5.2}
+\BOOKMARK [1][]{section.5.3}{Client-Session Windows}{chapter.5}
+\BOOKMARK [1][]{section.5.4}{Bulk Access}{chapter.5}
+\BOOKMARK [1][]{section.5.5}{Encryption and Tunneling with SSH}{chapter.5}
+\BOOKMARK [2][]{subsection.5.5.1}{DISPLAYFORWARDING}{section.5.5}
+\BOOKMARK [2][]{subsection.5.5.2}{CONNECTIONFORWARDING}{section.5.5}
+\BOOKMARK [2][]{subsection.5.5.3}{Execution-Locations}{section.5.5}
+\BOOKMARK [0][]{chapter.6}{Advanced Features}{part.1}
+\BOOKMARK [1][]{section.6.1}{Bulk Access}{chapter.6}
+\BOOKMARK [1][]{section.6.2}{CLI-MACROS}{chapter.6}
+\BOOKMARK [1][]{section.6.3}{Generic Custom Tables}{chapter.6}
+\BOOKMARK [1][]{section.6.4}{Parallel and Background Operations}{chapter.6}
+\BOOKMARK [0][]{chapter.7}{HOSTs - The Native Access to OS}{part.1}
+\BOOKMARK [1][]{section.7.1}{Command Line Access - CLI}{chapter.7}
+\BOOKMARK [1][]{section.7.2}{Start a GUI application - X11}{chapter.7}
+\BOOKMARK [1][]{section.7.3}{Open a complete remote Desktop - VNC}{chapter.7}
+\BOOKMARK [0][]{chapter.8}{PMs and VMs - The Stacked-Sessions}{part.1}
+\BOOKMARK [1][]{section.8.1}{Session-Types}{chapter.8}
+\BOOKMARK [1][]{section.8.2}{VM-Stacks - Nested VMs}{chapter.8}
+\BOOKMARK [2][]{subsection.8.2.1}{Stacked-Operations}{section.8.2}
+\BOOKMARK [2][]{subsection.8.2.2}{Specification of VM Stacks}{section.8.2}
+\BOOKMARK [2][]{subsection.8.2.3}{Bulk-Core CPUs}{section.8.2}
+\BOOKMARK [2][]{subsection.8.2.4}{Almost Seamless Addressing}{section.8.2}
+\BOOKMARK [1][]{section.8.3}{Stacked Networking}{chapter.8}
+\BOOKMARK [1][]{section.8.4}{Stacked Functional Interworking}{chapter.8}
+\BOOKMARK [2][]{subsection.8.4.1}{Stack-Address Evaluation}{section.8.4}
+\BOOKMARK [2][]{subsection.8.4.2}{Startup}{section.8.4}
+\BOOKMARK [2][]{subsection.8.4.3}{Shutdown}{section.8.4}
+\BOOKMARK [2][]{subsection.8.4.4}{State-Propagation Basics}{section.8.4}
+\BOOKMARK [0][]{chapter.9}{CTYS-Nameservices}{part.1}
+\BOOKMARK [1][]{section.9.1}{Basics}{chapter.9}
+\BOOKMARK [1][]{section.9.2}{Runtime Components}{chapter.9}
+\BOOKMARK [2][]{subsection.9.2.1}{Distributed Nameservice - CacheDB}{section.9.2}
+\BOOKMARK [2][]{subsection.9.2.2}{Network LDAP-Access}{section.9.2}
+\BOOKMARK [2][]{subsection.9.2.3}{Application Range and Limits}{section.9.2}
+\BOOKMARK [1][]{section.9.3}{Required Namebinding}{chapter.9}
+\BOOKMARK [2][]{subsection.9.3.1}{Integration of PMs, VMs, and HOSTs}{section.9.3}
+\BOOKMARK [2][]{subsection.9.3.2}{Basics of Name Bindings}{section.9.3}
+\BOOKMARK [1][]{section.9.4}{Group-Targets}{chapter.9}
+\BOOKMARK [-1][]{part.2}{II Software Design}{}
+\BOOKMARK [0][]{chapter.10}{Software Architecture}{part.2}
+\BOOKMARK [1][]{section.10.1}{Basic Modular Design}{chapter.10}
+\BOOKMARK [1][]{section.10.2}{Development Environment}{chapter.10}
+\BOOKMARK [2][]{subsection.10.2.1}{Some basics on "bash"}{section.10.2}
+\BOOKMARK [2][]{subsection.10.2.2}{Component Framework}{section.10.2}
+\BOOKMARK [1][]{section.10.3}{All about bash-Plugins and bash-Libraries}{chapter.10}
+\BOOKMARK [2][]{subsection.10.3.1}{The Differences}{section.10.3}
+\BOOKMARK [2][]{subsection.10.3.2}{Libraries}{section.10.3}
+\BOOKMARK [2][]{subsection.10.3.3}{Plugins}{section.10.3}
+\BOOKMARK [1][]{section.10.4}{ctys Control and Data Flow}{chapter.10}
+\BOOKMARK [2][]{subsection.10.4.1}{Distributed Controller}{section.10.4}
+\BOOKMARK [2][]{subsection.10.4.2}{Task Data}{section.10.4}
+\BOOKMARK [2][]{subsection.10.4.3}{Stack Interworking}{section.10.4}
+\BOOKMARK [0][]{chapter.11}{Interface Design}{part.2}
+\BOOKMARK [1][]{section.11.1}{Target-Platforms}{chapter.11}
+\BOOKMARK [1][]{section.11.2}{Feature-Design}{chapter.11}
+\BOOKMARK [2][]{subsection.11.2.1}{Communications Modes}{section.11.2}
+\BOOKMARK [1][]{section.11.3}{Command-Sets}{chapter.11}
+\BOOKMARK [1][]{section.11.4}{Plugins}{chapter.11}
+\BOOKMARK [2][]{subsection.11.4.1}{Main Dispatcher}{section.11.4}
+\BOOKMARK [2][]{subsection.11.4.2}{Standard Plugins}{section.11.4}
+\BOOKMARK [2][]{subsection.11.4.3}{Extensions}{section.11.4}
+\BOOKMARK [2][]{subsection.11.4.4}{Subdispatcher}{section.11.4}
+\BOOKMARK [1][]{section.11.5}{Security Design}{chapter.11}
+\BOOKMARK [2][]{subsection.11.5.1}{Accounts Impersonation}{section.11.5}
+\BOOKMARK [2][]{subsection.11.5.2}{Access Location}{section.11.5}
+\BOOKMARK [2][]{subsection.11.5.3}{System Resources}{section.11.5}
+\BOOKMARK [0][]{chapter.12}{CTYS-Nameservices}{part.2}
+\BOOKMARK [1][]{section.12.1}{Runtime Components}{chapter.12}
+\BOOKMARK [-1][]{part.3}{III User Interface}{}
+\BOOKMARK [0][]{chapter.13}{Common Syntax and Semantics}{part.3}
+\BOOKMARK [1][]{section.13.1}{General CLI processing}{chapter.13}
+\BOOKMARK [1][]{section.13.2}{Options Scanners - Reserved Characters}{chapter.13}
+\BOOKMARK [1][]{section.13.3}{Hosts, Groups, VMStacks and Sub-Tasks}{chapter.13}
+\BOOKMARK [2][]{subsection.13.3.1}{Common Concepts}{section.13.3}
+\BOOKMARK [2][]{subsection.13.3.2}{Flat Execution-Groups by Include}{section.13.3}
+\BOOKMARK [2][]{subsection.13.3.3}{Structured Execution-Groups by Sub-Tasks}{section.13.3}
+\BOOKMARK [2][]{subsection.13.3.4}{Stacks as Vertical-Subgroups}{section.13.3}
+\BOOKMARK [2][]{subsection.13.3.5}{VCircuits as Sequentially-Chained-Subgroups}{section.13.3}
+\BOOKMARK [1][]{section.13.4}{CLI macros}{chapter.13}
+\BOOKMARK [1][]{section.13.5}{Shell Interworking}{chapter.13}
+\BOOKMARK [2][]{subsection.13.5.1}{ctys as Sub-Call}{section.13.5}
+\BOOKMARK [2][]{subsection.13.5.2}{ctys as Master-Call}{section.13.5}
+\BOOKMARK [2][]{subsection.13.5.3}{Generic Remote Execution}{section.13.5}
+\BOOKMARK [2][]{subsection.13.5.4}{Access to ctys Functions}{section.13.5}
+\BOOKMARK [1][]{section.13.6}{Common Options}{chapter.13}
+\BOOKMARK [0][]{chapter.14}{Core Data}{part.3}
+\BOOKMARK [1][]{section.14.1}{Overview}{chapter.14}
+\BOOKMARK [1][]{section.14.2}{Standard Configuration Files}{chapter.14}
+\BOOKMARK [1][]{section.14.3}{Common Data Fields}{chapter.14}
+\BOOKMARK [1][]{section.14.4}{Common Processing Options}{chapter.14}
+\BOOKMARK [1][]{section.14.5}{Specific Variations}{chapter.14}
+\BOOKMARK [1][]{section.14.6}{Generic Tables}{chapter.14}
+\BOOKMARK [0][]{chapter.15}{Address Syntax}{part.3}
+\BOOKMARK [1][]{section.15.1}{Basic Elements}{chapter.15}
+\BOOKMARK [1][]{section.15.2}{Syntax Elements}{chapter.15}
+\BOOKMARK [1][]{section.15.3}{Stack Addresses}{chapter.15}
+\BOOKMARK [1][]{section.15.4}{Groups of Stack Addresses}{chapter.15}
+\BOOKMARK [0][]{chapter.16}{CTYS Call interface}{part.3}
+\BOOKMARK [1][]{section.16.1}{Common Elements and Behaviour}{chapter.16}
+\BOOKMARK [2][]{subsection.16.1.1}{Sessions Namebinding}{section.16.1}
+\BOOKMARK [2][]{subsection.16.1.2}{Cache for Permormance and Collections}{section.16.1}
+\BOOKMARK [2][]{subsection.16.1.3}{Access VM Stacks}{section.16.1}
+\BOOKMARK [1][]{section.16.2}{ctys Actions}{chapter.16}
+\BOOKMARK [1][]{section.16.3}{ctys Generic Options}{chapter.16}
+\BOOKMARK [1][]{section.16.4}{ctys Arguments}{chapter.16}
+\BOOKMARK [1][]{section.16.5}{ctys-plugins}{chapter.16}
+\BOOKMARK [0][]{chapter.17}{Plugins - Feature Extensions}{part.3}
+\BOOKMARK [1][]{section.17.1}{Prerequisites}{chapter.17}
+\BOOKMARK [1][]{section.17.2}{Category HOSTs}{chapter.17}
+\BOOKMARK [2][]{subsection.17.2.1}{CLI - Command Line Interface}{section.17.2}
+\BOOKMARK [2][]{subsection.17.2.2}{X11 Interface}{section.17.2}
+\BOOKMARK [2][]{subsection.17.2.3}{VNC - Virtual Network Console Interface}{section.17.2}
+\BOOKMARK [1][]{section.17.3}{Category PMs}{chapter.17}
+\BOOKMARK [2][]{subsection.17.3.1}{PM - Linux and BSD Hosts}{section.17.3}
+\BOOKMARK [1][]{section.17.4}{Category VMs}{chapter.17}
+\BOOKMARK [2][]{subsection.17.4.1}{QEMU - QEMU Emulator}{section.17.4}
+\BOOKMARK [2][]{subsection.17.4.2}{VMW - VMware}{section.17.4}
+\BOOKMARK [2][]{subsection.17.4.3}{XEN - Xen}{section.17.4}
+\BOOKMARK [1][]{section.17.5}{Category GENERIC}{chapter.17}
+\BOOKMARK [2][]{subsection.17.5.1}{LIST Plugin-Collector}{section.17.5}
+\BOOKMARK [2][]{subsection.17.5.2}{ENUMERATE Plugin-Collector}{section.17.5}
+\BOOKMARK [2][]{subsection.17.5.3}{SHOW Plugin-Collector}{section.17.5}
+\BOOKMARK [2][]{subsection.17.5.4}{INFO Plugin-Collector}{section.17.5}
+\BOOKMARK [1][]{section.17.6}{Category Internal}{chapter.17}
+\BOOKMARK [2][]{subsection.17.6.1}{DIGGER - Forwarding Encrypted Connections}{section.17.6}
+\BOOKMARK [0][]{chapter.18}{Support Tools}{part.3}
+\BOOKMARK [1][]{section.18.1}{ctys-dnsutil}{chapter.18}
+\BOOKMARK [1][]{section.18.2}{ctys-extractAPRlst}{chapter.18}
+\BOOKMARK [1][]{section.18.3}{ctys-extractMAClst}{chapter.18}
+\BOOKMARK [1][]{section.18.4}{ctys-genmconf}{chapter.18}
+\BOOKMARK [1][]{section.18.5}{ctys-groups}{chapter.18}
+\BOOKMARK [1][]{section.18.6}{ctys-macros}{chapter.18}
+\BOOKMARK [1][]{section.18.7}{ctys-macmap}{chapter.18}
+\BOOKMARK [1][]{section.18.8}{ctys-plugins}{chapter.18}
+\BOOKMARK [1][]{section.18.9}{ctys-setupVDE}{chapter.18}
+\BOOKMARK [1][]{section.18.10}{ctys-smbutil}{chapter.18}
+\BOOKMARK [1][]{section.18.11}{ctys-vdbgen}{chapter.18}
+\BOOKMARK [1][]{section.18.12}{ctys-vhost}{chapter.18}
+\BOOKMARK [1][]{section.18.13}{ctys-vping}{chapter.18}
+\BOOKMARK [1][]{section.18.14}{ctys-wakeup}{chapter.18}
+\BOOKMARK [1][]{section.18.15}{ctys-xen-network-bridge}{chapter.18}
+\BOOKMARK [1][]{section.18.16}{ctys-utilities}{chapter.18}
+\BOOKMARK [2][]{subsection.18.16.1}{ctys-install}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.2}{ctys-install1}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.3}{getCurOS}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.4}{getCurOSRelease}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.5}{getCurDistribution}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.6}{getCurRelease}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.7}{pathlist}{section.18.16}
+\BOOKMARK [2][]{subsection.18.16.8}{ctys-getMasterPid}{section.18.16}
+\BOOKMARK [-1][]{part.4}{IV Examples}{}
+\BOOKMARK [0][]{chapter.19}{General Remarks}{part.4}
+\BOOKMARK [0][]{chapter.20}{ctys Setup}{part.4}
+\BOOKMARK [1][]{section.20.1}{Installation}{chapter.20}
+\BOOKMARK [2][]{subsection.20.1.1}{Basic Install}{section.20.1}
+\BOOKMARK [2][]{subsection.20.1.2}{Security Environment}{section.20.1}
+\BOOKMARK [2][]{subsection.20.1.3}{ctys-Software Installation}{section.20.1}
+\BOOKMARK [2][]{subsection.20.1.4}{Setup Access Permissions}{section.20.1}
+\BOOKMARK [2][]{subsection.20.1.5}{Intstall User-Local}{section.20.1}
+\BOOKMARK [1][]{section.20.2}{Configuration}{chapter.20}
+\BOOKMARK [2][]{subsection.20.2.1}{Plugins}{section.20.2}
+\BOOKMARK [0][]{chapter.21}{HOSTs - Sessions}{part.4}
+\BOOKMARK [1][]{section.21.1}{CLI Examples}{chapter.21}
+\BOOKMARK [2][]{subsection.21.1.1}{Single Local Interactive Session}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.2}{Single Remote Interactive Session}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.3}{Execute a Remote Command}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.4}{Execute Multiple Remote Commands}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.5}{Chained Logins by Relays}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.6}{Xterm with tcsh}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.7}{gnome-terminal}{section.21.1}
+\BOOKMARK [2][]{subsection.21.1.8}{Call ctys functions}{section.21.1}
+\BOOKMARK [1][]{section.21.2}{X11 Examples}{chapter.21}
+\BOOKMARK [2][]{subsection.21.2.1}{Xterm with Interactive bash}{section.21.2}
+\BOOKMARK [2][]{subsection.21.2.2}{Gnome-Terminal with Interactive bash}{section.21.2}
+\BOOKMARK [2][]{subsection.21.2.3}{Emacs Session in shell-mode}{section.21.2}
+\BOOKMARK [2][]{subsection.21.2.4}{Single XClock}{section.21.2}
+\BOOKMARK [1][]{section.21.3}{VNC Examples}{chapter.21}
+\BOOKMARK [2][]{subsection.21.3.1}{Single Local Desktop Session}{section.21.3}
+\BOOKMARK [2][]{subsection.21.3.2}{Single Remote Desktop Session}{section.21.3}
+\BOOKMARK [2][]{subsection.21.3.3}{Bulk Desktop Sessions}{section.21.3}
+\BOOKMARK [2][]{subsection.21.3.4}{Remote Desktop with Local Client}{section.21.3}
+\BOOKMARK [2][]{subsection.21.3.5}{Shared-Mode vs. Non-Shared-Mode}{section.21.3}
+\BOOKMARK [2][]{subsection.21.3.6}{Reconnect Suboption}{section.21.3}
+\BOOKMARK [0][]{chapter.22}{VMs - Sessions}{part.4}
+\BOOKMARK [1][]{section.22.1}{QEMU Examples}{chapter.22}
+\BOOKMARK [2][]{subsection.22.1.1}{Installation of QEMU}{section.22.1}
+\BOOKMARK [2][]{Item.123}{Installation of Guests}{section.22.1}
+\BOOKMARK [2][]{Item.132}{CREATE a session}{section.22.1}
+\BOOKMARK [2][]{Item.133}{CANCEL a session}{section.22.1}
+\BOOKMARK [2][]{Item.134}{LIST sessions}{section.22.1}
+\BOOKMARK [2][]{Item.135}{ENUMERATE sessions}{section.22.1}
+\BOOKMARK [2][]{Item.136}{SHOW}{section.22.1}
+\BOOKMARK [2][]{Item.137}{INFO}{section.22.1}
+\BOOKMARK [2][]{Item.138}{Example Appliances}{section.22.1}
+\BOOKMARK [1][]{Item.139}{VMW Examples}{chapter.22}
+\BOOKMARK [2][]{Item.140}{Installation of VMware}{Item.139}
+\BOOKMARK [2][]{Item.141}{Installation of Guests}{Item.139}
+\BOOKMARK [2][]{Item.150}{Display of Available Sessions}{Item.139}
+\BOOKMARK [2][]{Item.151}{CREATE a session}{Item.139}
+\BOOKMARK [2][]{Item.152}{CANCEL a session}{Item.139}
+\BOOKMARK [2][]{Item.153}{LIST sessions}{Item.139}
+\BOOKMARK [2][]{Item.154}{ENUMERATE sessions}{Item.139}
+\BOOKMARK [2][]{Item.155}{SHOW}{Item.139}
+\BOOKMARK [2][]{Item.156}{INFO}{Item.139}
+\BOOKMARK [2][]{Item.157}{Example Appliances}{Item.139}
+\BOOKMARK [1][]{Item.158}{Xen Examples}{chapter.22}
+\BOOKMARK [2][]{Item.159}{Installation of Xen/Dom0}{Item.158}
+\BOOKMARK [2][]{Item.160}{Installation of Guests/DomU}{Item.158}
+\BOOKMARK [2][]{Item.169}{CREATE a session}{Item.158}
+\BOOKMARK [2][]{Item.170}{CANCEL a session}{Item.158}
+\BOOKMARK [2][]{Item.171}{LIST sessions}{Item.158}
+\BOOKMARK [2][]{Item.172}{ENUMERATE sessions}{Item.158}
+\BOOKMARK [2][]{Item.173}{SHOW}{Item.158}
+\BOOKMARK [2][]{Item.174}{INFO}{Item.158}
+\BOOKMARK [2][]{Item.175}{Example Appliances}{Item.158}
+\BOOKMARK [0][]{Item.176}{PMs - Sessions}{part.4}
+\BOOKMARK [1][]{Item.177}{PM Examples}{Item.176}
+\BOOKMARK [2][]{Item.178}{Configuration of Access Permissions}{Item.177}
+\BOOKMARK [2][]{Item.179}{CREATE a PM Session}{Item.177}
+\BOOKMARK [2][]{Item.180}{CANCEL a PM Session}{Item.177}
+\BOOKMARK [2][]{Item.181}{PM - Using Wake-On-Lan - WoL}{Item.177}
+\BOOKMARK [2][]{Item.191}{Wake-On-Lan - Complete Reboot-Cycles}{Item.177}
+\BOOKMARK [0][]{Item.192}{Common Session Options}{part.4}
+\BOOKMARK [1][]{Item.193}{Opening multiple ctyss}{Item.192}
+\BOOKMARK [2][]{Item.194}{Multiple Calls}{Item.193}
+\BOOKMARK [2][]{Item.195}{One call}{Item.193}
+\BOOKMARK [1][]{Item.196}{Different resolution on client and server}{Item.192}
+\BOOKMARK [1][]{Item.197}{Dynamic move of sessions window}{Item.192}
+\BOOKMARK [1][]{Item.198}{Spanning Multiple Physical Screens}{Item.192}
+\BOOKMARK [1][]{Item.199}{CREATE with tree-search for unique IDs}{Item.192}
+\BOOKMARK [1][]{Item.200}{Some session related calls}{Item.192}
+\BOOKMARK [2][]{Item.201}{ENUMERATE}{Item.200}
+\BOOKMARK [2][]{Item.202}{LIST}{Item.200}
+\BOOKMARK [2][]{Item.203}{SHOW}{Item.200}
+\BOOKMARK [2][]{Item.204}{INFO}{Item.200}
+\BOOKMARK [1][]{Item.205}{Some ctys related calls}{Item.192}
+\BOOKMARK [2][]{Item.206}{Display Version and available plugin}{Item.205}
+\BOOKMARK [0][]{Item.207}{Custom CLI}{part.4}
+\BOOKMARK [1][]{Item.208}{Groups}{Item.207}
+\BOOKMARK [1][]{Item.209}{Macros}{Item.207}
+\BOOKMARK [1][]{Item.210}{Tables}{Item.207}
+\BOOKMARK [2][]{Item.211}{Common Tables for ENUMERATE and LIST}{Item.210}
+\BOOKMARK [2][]{Item.212}{RAW Tables by MACHINE}{Item.210}
+\BOOKMARK [2][]{Item.213}{Combined MACROS and Tables}{Item.210}
+\BOOKMARK [0][]{Item.214}{Pre-Configured Desktops}{part.4}
+\BOOKMARK [1][]{Item.215}{Admin RAID-Info}{Item.214}
+\BOOKMARK [1][]{Item.216}{Tax-Calculation and Longterm-Storage}{Item.214}
+\BOOKMARK [1][]{Item.217}{QEMU Test-Environment for VDE}{Item.214}
+\BOOKMARK [0][]{chapter.27}{Performance Measures}{part.4}
+\BOOKMARK [1][]{section.27.1}{Background, Parallel and Cached Operations}{chapter.27}
+\BOOKMARK [1][]{section.27.2}{Caching of Data}{chapter.27}
+\BOOKMARK [1][]{section.27.3}{Combined Operations}{chapter.27}
+\BOOKMARK [0][]{chapter.28}{VM Stacks}{part.4}
+\BOOKMARK [1][]{section.28.1}{Setup of the Stack Environment}{chapter.28}
+\BOOKMARK [1][]{section.28.2}{Single-Upper-Layer VMStack Basics}{chapter.28}
+\BOOKMARK [2][]{subsection.28.2.1}{CREATE a PM Session}{section.28.2}
+\BOOKMARK [2][]{subsection.28.2.2}{CREATE a VM Session with initial PM Session}{section.28.2}
+\BOOKMARK [2][]{subsection.28.2.3}{CREATE a HOST Session with initial VM and PM Session}{section.28.2}
+\BOOKMARK [2][]{subsection.28.2.4}{CANCEL a VM Session containing VM-Stack-Sessions}{section.28.2}
+\BOOKMARK [2][]{subsection.28.2.5}{CANCEL a PM Session containing VM-Stack-Sessions}{section.28.2}
+\BOOKMARK [1][]{section.28.3}{Multi-Layer VMStacks}{chapter.28}
+\BOOKMARK [2][]{subsection.28.3.1}{MACRO Definition Basics}{section.28.3}
+\BOOKMARK [2][]{subsection.28.3.2}{CREATE a VMStack}{section.28.3}
+\BOOKMARK [2][]{subsection.28.3.3}{CANCEL a VMStack}{section.28.3}
+\BOOKMARK [2][]{subsection.28.3.4}{Prepare a PM for Restart by WoL}{section.28.3}
+\BOOKMARK [2][]{subsection.28.3.5}{Xen with upper QEMU-VMs}{section.28.3}
+\BOOKMARK [2][]{subsection.28.3.6}{VMWare with upper QEMU-VMs}{section.28.3}
+\BOOKMARK [2][]{subsection.28.3.7}{QEMU with upper QEMU-VMs}{section.28.3}
+\BOOKMARK [0][]{chapter.29}{User Access - Secure permissions}{part.4}
+\BOOKMARK [1][]{section.29.1}{SSH, SSL, IPsec, and VPNs}{chapter.29}
+\BOOKMARK [1][]{section.29.2}{VM-Stacks, SSO, and Kerberos}{chapter.29}
+\BOOKMARK [1][]{section.29.3}{Network Filesystems}{chapter.29}
+\BOOKMARK [1][]{section.29.4}{Authentication - ksu and sudo}{chapter.29}
+\BOOKMARK [2][]{subsection.29.4.1}{Basics}{section.29.4}
+\BOOKMARK [2][]{subsection.29.4.2}{sudoers}{section.29.4}
+\BOOKMARK [2][]{subsection.29.4.3}{k5users}{section.29.4}
+\BOOKMARK [2][]{subsection.29.4.4}{Secure root Access}{section.29.4}
+\BOOKMARK [1][]{section.29.5}{Firewall}{chapter.29}
+\BOOKMARK [1][]{section.29.6}{SELinux}{chapter.29}
+\BOOKMARK [0][]{chapter.30}{System Resources}{part.4}
+\BOOKMARK [1][]{section.30.1}{TAP/TUN by VDE}{chapter.30}
+\BOOKMARK [2][]{subsection.30.1.1}{VDE within Xen Dom0}{section.30.1}
+\BOOKMARK [2][]{subsection.30.1.2}{VDE within Xen DomU}{section.30.1}
+\BOOKMARK [2][]{subsection.30.1.3}{VDE within VMware}{section.30.1}
+\BOOKMARK [2][]{subsection.30.1.4}{VDE within Native Unix}{section.30.1}
+\BOOKMARK [2][]{subsection.30.1.5}{VDE Remote Configuration}{section.30.1}
+\BOOKMARK [2][]{subsection.30.1.6}{VDE-Setup with Micro-VMSTACK}{section.30.1}
+\BOOKMARK [1][]{section.30.2}{DomU Management}{chapter.30}
+\BOOKMARK [1][]{section.30.3}{Mount an ISO-Image}{chapter.30}
+\BOOKMARK [0][]{chapter.31}{Applications of ctys-vhost}{part.4}
+\BOOKMARK [1][]{section.31.1}{Database Generation ctys-vdbgen and companions}{chapter.31}
+\BOOKMARK [2][]{subsection.31.1.1}{Initial Database}{section.31.1}
+\BOOKMARK [2][]{subsection.31.1.2}{Append Data to present Database}{section.31.1}
+\BOOKMARK [2][]{subsection.31.1.3}{vm.conf Coallocated with Hypervisor}{section.31.1}
+\BOOKMARK [1][]{section.31.2}{LDAP based VM-Stack Nameservices}{chapter.31}
+\BOOKMARK [1][]{section.31.3}{Group Addressing}{chapter.31}
+\BOOKMARK [2][]{subsection.31.3.1}{Group Caches - The Performance Clue}{section.31.3}
+\BOOKMARK [2][]{subsection.31.3.2}{Preconfigured Task-Groups}{section.31.3}
+\BOOKMARK [1][]{section.31.4}{Stack Addressing}{chapter.31}
+\BOOKMARK [1][]{section.31.5}{DHCP Poll}{chapter.31}
+\BOOKMARK [1][]{section.31.6}{PXELinux - Address Translation}{chapter.31}
+\BOOKMARK [1][]{section.31.7}{Formatted output by Generic Tables}{chapter.31}
+\BOOKMARK [1][]{section.31.8}{Filter by awk-Regular Expressions}{chapter.31}
+\BOOKMARK [2][]{subsection.31.8.1}{Datastreams and Match Conditions}{section.31.8}
+\BOOKMARK [2][]{subsection.31.8.2}{Wildcards and Ambiguity}{section.31.8}
+\BOOKMARK [-1][]{part.5}{V Appendices}{}
+\BOOKMARK [0][]{chapter.32}{Current Loaded Plugins}{part.5}
+\BOOKMARK [0][]{chapter.33}{File Formats}{part.5}
+\BOOKMARK [1][]{section.33.1}{Common Tools and Formats}{chapter.33}
+\BOOKMARK [1][]{section.33.2}{Groups}{chapter.33}
+\BOOKMARK [1][]{section.33.3}{Macros}{chapter.33}
+\BOOKMARK [1][]{section.33.4}{Static Import File Databases - fdb}{chapter.33}
+\BOOKMARK [2][]{subsection.33.4.1}{macmap.fdb}{section.33.4}
+\BOOKMARK [2][]{subsection.33.4.2}{enum.fdb}{section.33.4}
+\BOOKMARK [1][]{section.33.5}{Static Pre-Fetch Cache Databases - cdb}{chapter.33}
+\BOOKMARK [2][]{subsection.33.5.1}{grpscache.cdb}{section.33.5}
+\BOOKMARK [2][]{subsection.33.5.2}{statcache.cdb}{section.33.5}
+\BOOKMARK [1][]{section.33.6}{Dynamic Runtime Cache Databases}{chapter.33}
+\BOOKMARK [1][]{section.33.7}{Configuration Entries for ctys}{chapter.33}
+\BOOKMARK [2][]{subsection.33.7.1}{Actual Processing vs. Administrative Display}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.2}{Configuration File Variants}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.3}{Keywords}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.4}{Interface Keywords}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.5}{MAGICID}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.6}{VMSTATE}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.7}{Virtual Hardware-Platform}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.8}{Stacking Entries}{section.33.7}
+\BOOKMARK [2][]{subsection.33.7.9}{Execution Location and Relocation}{section.33.7}
+\BOOKMARK [0][]{chapter.34}{LDAP Formats}{part.5}
+\BOOKMARK [0][]{chapter.35}{Call Input-Output Formats}{part.5}
+\BOOKMARK [1][]{section.35.1}{Common Data Import/Export Options}{chapter.35}
+\BOOKMARK [1][]{section.35.2}{ENUMERATE}{chapter.35}
+\BOOKMARK [1][]{section.35.3}{LIST}{chapter.35}
+\BOOKMARK [1][]{section.35.4}{INFO}{chapter.35}
+\BOOKMARK [1][]{section.35.5}{SHOW}{chapter.35}
+\BOOKMARK [0][]{chapter.36}{Miscellaneous}{part.5}
+\BOOKMARK [1][]{section.36.1}{Basic EXEC principle}{chapter.36}
+\BOOKMARK [1][]{section.36.2}{PATH}{chapter.36}
+\BOOKMARK [1][]{section.36.3}{Configuration files}{chapter.36}
+\BOOKMARK [1][]{section.36.4}{Media Access Control\(MAC\) Addresses - VM-NICs}{chapter.36}
+\BOOKMARK [0][]{chapter.37}{GNU GENERAL PUBLIC LICENSE - Version 3}{part.5}
+\BOOKMARK [0][]{chapter*.143}{Bibliography}{part.5}
+\BOOKMARK [1][]{section*.144}{Books}{chapter*.143}
+\BOOKMARK [2][]{section*.145}{UNIX}{section*.144}
+\BOOKMARK [2][]{section*.146}{Security}{section*.144}
+\BOOKMARK [2][]{section*.147}{Networks}{section*.144}
+\BOOKMARK [2][]{section*.148}{Embedded Systems}{section*.144}
+\BOOKMARK [1][]{section*.149}{Online References}{chapter*.143}
+\BOOKMARK [2][]{section*.150}{OSs}{section*.149}
+\BOOKMARK [2][]{section*.151}{Hypervisors/Emulators}{section*.149}
+\BOOKMARK [2][]{section*.157}{Security}{section*.149}
+\BOOKMARK [2][]{section*.158}{Specials}{section*.149}
+\BOOKMARK [2][]{section*.165}{Miscellanuous}{section*.149}
+\BOOKMARK [2][]{section*.166}{UnfiedSessionsManager Versions}{section*.149}
+\BOOKMARK [1][]{section*.167}{Sponsored OpenSource Projects}{chapter*.143}
+\BOOKMARK [1][]{section*.168}{Commercial Support}{chapter*.143}

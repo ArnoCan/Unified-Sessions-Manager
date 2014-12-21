@@ -1,0 +1,71 @@
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {3.1}{\ignorespaces Tested OS support for Stacked-VMs on PC-Platform}}{34}{table.3.1}
+\contentsline {table}{\numberline {3.2}{\ignorespaces Tested Hypervisor Versions}}{35}{table.3.2}
+\contentsline {table}{\numberline {3.3}{\ignorespaces Tested Native Plugins vs. OS-Distribution}}{36}{table.3.3}
+\contentsline {table}{\numberline {3.4}{\ignorespaces Planned roadmap for new features(N:next vers.)}}{37}{table.3.4}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {5.1}{\ignorespaces Mapping schema of labels to screens}}{51}{table.5.1}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {8.1}{\ignorespaces List of Standard Plugins}}{72}{table.8.1}
+\contentsline {table}{\numberline {8.2}{\ignorespaces Targets for state propagation of CANCEL action}}{86}{table.8.2}
+\contentsline {table}{\numberline {8.3}{\ignorespaces State-Propagation for the first version}}{88}{table.8.3}
+\contentsline {table}{\numberline {8.4}{\ignorespaces Application of Propagation Scopes}}{88}{table.8.4}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {11.1}{\ignorespaces ENUMERATE-Input-Format from Plugins}}{125}{table.11.1}
+\contentsline {table}{\numberline {11.2}{\ignorespaces ENUMERATE-Output-Format of Sub-Dispatcher}}{126}{table.11.2}
+\contentsline {table}{\numberline {11.3}{\ignorespaces LIST-Input-Format from Plugins}}{127}{table.11.3}
+\contentsline {table}{\numberline {11.4}{\ignorespaces LIST-Output-Format of Sub-Dispatcher}}{127}{table.11.4}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {14.1}{\ignorespaces Supported File-Extensions}}{155}{table.14.1}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {16.1}{\ignorespaces Supported Boot-Modes for XEN}}{191}{table.16.1}
+\contentsline {table}{\numberline {16.2}{\ignorespaces Supported Boot-Modes}}{192}{table.16.2}
+\contentsline {table}{\numberline {16.3}{\ignorespaces Supported Console-Types}}{194}{table.16.3}
+\contentsline {table}{\numberline {16.4}{\ignorespaces Supported Command-Execution}}{195}{table.16.4}
+\contentsline {table}{\numberline {16.5}{\ignorespaces Supported Debugger}}{195}{table.16.5}
+\contentsline {table}{\numberline {16.6}{\ignorespaces Processing suboptions}}{200}{table.16.6}
+\contentsline {table}{\numberline {16.7}{\ignorespaces Output Record-Format for MACHINE suboption}}{201}{table.16.7}
+\contentsline {table}{\numberline {16.8}{\ignorespaces Output-Format for MACHINE suboption}}{206}{table.16.8}
+\contentsline {table}{\numberline {16.9}{\ignorespaces Processing suboptions}}{207}{table.16.9}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {17.1}{\ignorespaces Prerequisites and applicability of plugins}}{231}{table.17.1}
+\contentsline {table}{\numberline {17.2}{\ignorespaces Utilized QEMU-Monitor-Commands}}{264}{table.17.2}
+\contentsline {table}{\numberline {17.3}{\ignorespaces Supported Configuration files for QEMU}}{267}{table.17.3}
+\contentsline {table}{\numberline {17.4}{\ignorespaces Forwarding modes and call locations for VMW versions}}{275}{table.17.4}
+\contentsline {table}{\numberline {17.5}{\ignorespaces Applicable forwarding modes and call locations for XEN}}{279}{table.17.5}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {22.1}{\ignorespaces Overview of Installed-QEMU-VMs}}{411}{table.22.1}
+\contentsline {table}{\numberline {22.2}{\ignorespaces Overview of Intsalled-VMs}}{425}{table.22.2}
+\contentsline {table}{\numberline {22.3}{\ignorespaces Overview of Intsalled-Xen-VMs}}{438}{table.22.3}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {26.1}{\ignorespaces QEMU Base Tests for "ctys-setupVDE"}}{505}{table.26.1}
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {27.1}{\ignorespaces Performance effects of "-b" option}}{511}{table.27.1}
+\contentsline {table}{\numberline {27.2}{\ignorespaces Performance effects of "-b" option}}{512}{table.27.2}
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
