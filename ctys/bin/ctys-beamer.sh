@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -53,7 +53,7 @@ LICENCE=GPL3
 #  sh-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_005
 #DESCRIPTION:
 #  Remote execution script.
 #
@@ -384,23 +384,25 @@ function beamMeUp0 () {
     fi
     _RARGS=$(echo ${_RARGS}|sed 's/^  *//;s/  *$//')
 
-        printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-    _RARGS=${_RARGS//\%/\%\%}
-    _RARGS=${_RARGS//,/,,}
-    _RARGS=${_RARGS//:/::}
-    _RARGS=${_RARGS//  / }
-    _RARGS=${_RARGS//  / }
-    _RARGS=${_RARGS// /\%}
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
     _MYLBL=${MYCALLNAME}-${MYUID}-${DATETIME}
 
     if [ "$C_TERSE" != 1 ];then
 	printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_rh}"
     fi
-    _ARGS="${_ARGS:+ --%--$_ARGS}"
-    _ARGS="${_ARGS// /%}"
 
-    _call="ctys ${C_DARGS} -t cli ${_BYPASSARGS} -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS}${_ARGS}"
+    _ARGS="${_ARGS:+ --%--$_ARGS}"
+
+    local _TRANSFORM="${_RARGS}${_ARGS}"
+    _TRANSFORM=${_TRANSFORM//\%/\%\%}
+    _TRANSFORM=${_TRANSFORM//,/,,}
+    _TRANSFORM=${_TRANSFORM//:/::}
+    _TRANSFORM=${_TRANSFORM//  / }
+    _TRANSFORM=${_TRANSFORM//  / }
+    _TRANSFORM=${_TRANSFORM// /\%}
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_TRANSFORM=<$_TRANSFORM>"
+
+    _call="ctys ${C_DARGS} -t cli ${_BYPASSARGS} -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_TRANSFORM:+%$_TRANSFORM}"
     _call="${_call} ${_AGENTFORW:+-Y} ${_RUSER0:+-l $_RUSER0} ${_rh}"
     _call="${_call}${_HOPHOLD:+&&sleep $_HOPHOLD} "
 
@@ -614,7 +616,7 @@ function setupTunnels () {
     local tun=;
 
     for _h in ${_tlst//,/ };do
-	tun="$tun ssh -f -X ${_TRM:+-t} ${_RUSER0:+-l $_RUSER0} "
+	tun="$tun ssh -f ${_X11} ${_TRM:+-t} ${_RUSER0:+-l $_RUSER0} "
 
 	_lport=${_h#*:}
 	_lport=${_lport%%\%*}
@@ -635,7 +637,7 @@ function setupTunnels () {
 
 	local _hi=;
 	local sshaccess=;
-	echo -n "Search free ports"
+	echo -n "Search free ports "
 	for _hi in ${_h//%/ };do
 	    _hnam=${_hi%:*}
 	    _port=${_hi#*:}
@@ -652,7 +654,7 @@ function setupTunnels () {
 	    fi
 
 	    if [ -n "$_nport" -a "$_hnam${_port:+:$_port}" != "${_h##*\%}" ];then
-		tun="${tun} ${_AGENTFORW:+-A} -L $_lport:localhost:$_nport $_hnam ssh  -X ${_TRM:+-t} ${_RUSER0:+-l $_RUSER0} "
+		tun="${tun} ${_AGENTFORW:+-A} -L $_lport:localhost:$_nport $_hnam ssh ${_X11} ${_TRM:+-t} ${_RUSER0:+-l $_RUSER0} "
 		_lport=$_nport
 	    fi
 	done
@@ -665,7 +667,7 @@ function setupTunnels () {
 	_h=${_h//_-_/ }
 	_h=${_h## }
 	if [ -z "$_NOXEC" ];then
-	    echo "establish circuit:"
+	    echo "...establish circuit"
 	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_h}"
 	    eval $_h
 	fi
@@ -691,11 +693,14 @@ _AGENTFORW=;
 _MODE=0;
 argLst=;
 
+_X11=;
 while [ -n "$1" ];do
     if [ -z "${_ARGS}" ];then
 	case $1 in
+ 	    '--x11'*)_X11=" -X ";;
  	    '--ssh-hop-holdtime='*)_HOPHOLD=${1#*=};;
  	    '--ssh-tunnel-holdtime='*)_TUNHOLD=${1#*=};;
+ 	    '--ctys-predetach-holdtime='*)CTYS_PREDETACH_TIMEOUT=${1#*=};;
 	    '--mode='*)_MODE=${1#*=};;
 	    '--getfreeport')netGetFirstFreePort;exit;;
 	    '--ignore-err')_IGERR=1;;
@@ -712,7 +717,8 @@ while [ -n "$1" ];do
 	    '-h'|'--help'|'-help')_showToolHelp=1;;
 	    '-V')_printVersion=1;;
 	    '-X')C_TERSE=1;;
-            '--')_ARGS=" ";;
+            '--%--')_ARGS=" ";;
+            '--'|'--beam-this')_ARGS=" ";;
 	    '-'*)
 		_BYPASSARGS="${_BYPASSARGS} $1";
 		case $1 in
@@ -740,7 +746,13 @@ _ARGS=${_ARGS## };
 _ARGS=${_ARGS%% };
 _RARGS=${_ARGSCALL//$_ARGS/}
 _RARGS=${_RARGS%% };
-_RARGS=${_RARGS%%--};
+
+if [ "$_RARGS" != "${_RARGS%%--beam-this}" ];then
+    _RARGS=${_RARGS%%--beam-this*};
+else
+    _RARGS=${_RARGS%%--\%--};
+fi
+
 _RARGS=${_RARGS//$_RHOSTS0/}
 _RARGS=${_RARGS//-R/}
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
@@ -764,7 +776,6 @@ if [ -n "${_RUSER0}" -a "${_RHOSTS0//@}" != "${_RHOSTS0}" ];then
 fi
 
 
-echo "4TEST:$MYHOST:_ARGS=<${_ARGS}>"
 if [ -z "${_ARGS}" ];then
     echo "ERROR:Missing remote call">&2
     echo "  _ARGSCALL     = <${_ARGSCALL}>">&2
@@ -790,13 +801,17 @@ if [ -n "$_printVersion" ];then
 fi
 
 
+_MODE=$(echo "$_MODE"|tr 'a-z' 'A-Z')
 case $_MODE in
 
     CTYS-HOPS|CH|0)
 	beamMeUp
+	_ARGS=$(echo ${_ARGS}|sed 's/--beam-this / /g;')
 	_ARGS=$(echo ${_ARGS}|sed 's/--[% ]/ /g;')
+	_ARGS=$(echo ${_ARGS}|sed 's/--%--/ /g;')
 	printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_ARGS}"
-	eval ${_ARGS}
+	eval ${_ARGS} 
+	sleep ${CTYS_PREDETACH_TIMEOUT:-10} 
 	exit
 	;;
 
@@ -812,8 +827,13 @@ case $_MODE in
 	CONNECT_DELAY=${CONNECT_DELAY:-5}
 	sleep ${CONNECT_DELAY}
 	for((i=0;i<APIDX;i++));do
-	    echo "$i:${AP[$i]}"
-	    _call="ssh -p ${AP[$i]} ${_AGENTFORW:+-A} localhost ${_ARGSx}"
+	    if [ -z "${_RUSER0}" ];then
+		_RUSER0x=${_RHOSTS0%@*}
+		if [ "$_RUSER0x" != "${_RHOSTS0}" ];then
+		    _RUSER0=${_RUSER0x##*\%}
+		fi
+	    fi
+	    _call="ssh  ${_X11:+ -f -X} -p ${AP[$i]} ${_AGENTFORW:+-A} ${_RUSER0:+-l $_RUSER0} localhost ${_ARGSx}"
 	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
 	    eval ${_call}
 	done

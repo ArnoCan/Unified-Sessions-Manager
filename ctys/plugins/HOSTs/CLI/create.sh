@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_005
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_CLI_CREATE="${BASH_SOURCE}"
-_myPKGVERS_CLI_CREATE="01.01.001a01"
+_myPKGVERS_CLI_CREATE="01.11.005"
 hookInfoAdd $_myPKGNAME_CLI_CREATE $_myPKGVERS_CLI_CREATE
 _myPKGBASE_CLI_CREATE="`dirname ${_myPKGNAME_CLI_CREATE}`"
 
@@ -121,7 +121,6 @@ function createConnectCLI () {
 				let _unambig+=1;
 				;;
 
-
 			    *)
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown sub-opts for CLI:${KEY}"
@@ -138,13 +137,13 @@ function createConnectCLI () {
 		    fi
 		done
 	    fi
-            #Eas later procesing by simple key, else not really required.
+            #Ease later procesing by simple key, else not really required.
 	    if [ -z "${_label}" ];then
 		ABORT=1;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory parameter:\"LABEL\""
  		gotoHell ${ABORT}               
 	    fi
-	    if [ -z "${_cmd}" ];then
+	    if [ -z "${_cmd}" -a $C_ASYNC -ne 1 ];then
 		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Interactive call, force: \"-b 0,2\""
  		printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "Interactive call, force:"
  		printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "C_PARALLEL=0"

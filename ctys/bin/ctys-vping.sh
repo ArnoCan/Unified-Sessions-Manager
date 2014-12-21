@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_005
 #DESCRIPTION:
 #  Ping by cts-address.
 #
@@ -449,6 +449,9 @@ sortKey='-n';
 outform=TCP;
 _machine=1;
 
+_trials=;
+_timeout=;
+
 _RUSER0=;
 _RHOSTS0=;
 
@@ -461,6 +464,13 @@ for i in $*;do
 	'-r')_recurse=1;shift;;
 	'-s')_ssh=1;shift;;
 	'-t')outform=TCP;_machine=0;shift;;
+
+	'--ping-trials='*)_pingTrials=${1#*=};shift;;
+	'--ping-timeout='*)_pingTimeout=${1#*=};shift;;
+
+	'--ssh-trials='*)_sshTrials=${1#*=};shift;;
+	'--ssh-timeout='*)_sshTimeout=${1#*=};shift;;
+
 
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";shift;;
 	'-h'|'--help'|'-help')_showToolHelp=1;shift;;
@@ -563,7 +573,7 @@ if [ "${C_TERSE}" != 1 ];then
 	echo "<<-------------"
 	echo
     fi
-    printf "${_FRM1}" "idx" "lvl" "" "TCP/IP"  "ping"  "ssh"  " <machine-address> (ctys-vhost.sh first-match!)"
+    printf "${_FRM1}" "idx" "lvl" "" "TCP/IP"  "ping"  "ssh"  " DB entry"
     echo "------------------------------------------------------------------------------------------"
 fi
 
@@ -580,6 +590,10 @@ function processHostList () {
 
     if((CTYS_MAXRECURSE<_currec544));then
 	return 1
+    fi
+
+    if [ -z "${_ssh}" ];then
+	hlst=$(for _ia in ${hlst};do echo "${_ia#*@}";done|sort -u)
     fi
 
     for _ia in ${hlst};do
@@ -612,6 +626,8 @@ function processHostList () {
             #clear multi-IP e.g. vbridges with XEN
 	    for mm in $M;do M=$mm;done
 	fi
+	M=${M:--}
+
 	if [ -n "${_nocheck}" ];then
 	    if [ "${C_TERSE}" != 1 ];then
 		printf "${_FRM1}"  "${pidx}" "${_currec544}" " "  "${_ia}" "-"  "?"  "${M}"
@@ -622,11 +638,19 @@ function processHostList () {
 		esac
 	    fi
 	else
-	    ${CTYS_PING} -c ${PCNT:-1} -w ${PTIME:-1} ${_h} 2>/dev/null >/dev/null
+	    if [ -n "${_pingTrials}" -o -n "${_pingTimeout}" ];then
+		netWaitForPing "${_h}" "${_pingTrials:-1}" "${_pingTimeout:-1}"
+	    else
+		${CTYS_PING} -c ${PCNT:-1} -w ${PTIME:-1} ${_h} 2>/dev/null >/dev/null
+	    fi
 	    if [ $? -eq 0 ];then
 		if [ -n "${_ssh}" ];then
 		    _mtx=${_u:-$_user}@${_h}
-		    ssh ${_mtx} echo 2>/dev/null >/dev/null
+		    if [ -n "${_sshTrials}" -o -n "${_sshTimeout}" ];then
+			netWaitForSSH "${_h}" "${_sshTrials:-1}" "${_sshTimeout:-1}" "${_u:-$_user}"
+		    else
+			ssh ${_mtx} echo 2>/dev/null >/dev/null
+		    fi
 		    if [ $? -eq 0 ];then
 			if [ "${C_TERSE}" != 1 ];then
 			    printf "${_FRM1}" "${pidx}" "${_currec544}" " " "${_mtx}" "+"  "+"  "${M}"

@@ -291,7 +291,8 @@ function enumerateMySessionsVMW () {
 			A[4]=${i3%%\%*};i3=${i3#*\%};
 			A[5]=${i3%%\%*};
 
-			local _macCheck=$(${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} "${A[0]}")
+#4TEST:01.11.005			local _macCheck=$(${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} "${A[0]}")
+			local _macCheck=$(${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} "${A[0]}\\;")
 			local _ipCheck=${_macCheck##*;}
 			_macCheck=${_macCheck#*;};_macCheck=${_macCheck%;*};_macCheck=$(echo $_macCheck|tr 'a-z' 'A-Z');
 

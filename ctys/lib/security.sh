@@ -367,11 +367,15 @@ function checkedSetSUaccess () {
         #check native permissions
         if((_ret!=0));then
 	    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "CHECK:${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}"
-	    eval "${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}"
-            _ret=$?
-	    if [ $_ret -eq 0 ];then
-		local _useNATIVE=1;
-		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "permission-detected:NATIVE"
+
+	    if [ -n "${_suCalleeContent}" ];then
+#		eval "${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}"
+		eval callErrOutWrapper $LINENO $BASH_SOURCE ${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}
+		_ret=$?
+		if [ $_ret -eq 0 ];then
+		    local _useNATIVE=1;
+		    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "permission-detected:NATIVE"
+		fi
 	    fi
 	fi
 

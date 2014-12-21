@@ -9,7 +9,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -60,7 +60,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_005
 #DESCRIPTION:
 #  See manual.
 #
@@ -465,6 +465,11 @@ if [ -n "${_RUSER}" ];then
     exit $?
 fi
 
+if [ -n "${TREELEVEL}" -a \( -z "$_filetree" -a -z "$_dirtree" \) ];then
+    printERR $LINENO $BASH_SOURCE 1 "Option \"-D\" requires either \"-F\" or \"-S\""
+    exit $?
+fi
+
 
 if [ "$_dirtree" == "1" -o "$_filetree" == "1" ];then
     if [ -z "${argLst}" ];then
@@ -506,7 +511,8 @@ fi
 
 if [ -z "$_listcached" -a -z "$_listmembers" ];then
     echo "----------------------------------------"
-    echo "Groups Sources:"
+    echo "Groups Sources:(<size-kbytes> <#records>/<#includes> <internal> <group-filename>)
+"
     echo "----------------------------------------"
     if [ -n "${argLst// /}" ];then
 	argLst=":${argLst}"

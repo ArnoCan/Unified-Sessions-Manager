@@ -818,6 +818,9 @@ case ${MYDIST} in
     Ubuntu)
 	VNCCONFINST="${LIBS}/conf/vnc-Ubuntu"
 	;;
+    OpenBSD)
+	VNCCONFINST="${LIBS}/conf/vnc-OpenBSD"
+	;;
     *)
 	VNCCONFINST="${LIBS}/conf/vnc"
 	;;

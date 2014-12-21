@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_009
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -26,7 +26,7 @@ VMW_PREREQ=;
 VMW_PRODVERS=;
 
 _myPKGNAME_VMW="${BASH_SOURCE}"
-_myPKGVERS_VMW="01.10.009"
+_myPKGVERS_VMW="01.11.005"
 hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
 
 _myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
@@ -400,6 +400,7 @@ function setVersionVMW () {
 	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Limited options support, e.g. no \"-g <geometry>\" for:\"${_verstrg}\""
 	    _ret=0;
 	    ;;
+
 	"VMware Player 2."*)
 	    VMW_MAGIC=VMW_P2;
 	    VMW_PRODVERS="P-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
@@ -412,6 +413,7 @@ function setVersionVMW () {
 	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Limited options support, e.g. no \"-g <geometry>\" for:\"${_verstrg}\""
 	    _ret=0;
 	    ;;
+
 	"VMware Player 3."*)
 	    VMW_MAGIC=VMW_P3;
 	    VMW_PRODVERS="P-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
@@ -424,6 +426,7 @@ function setVersionVMW () {
 	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Limited options support, e.g. no \"-g <geometry>\" for:\"${_verstrg}\""
 	    _ret=0;
 	    ;;
+
 	"VMware Server 1.0."*)
 	    VMW_MAGIC=VMW_S104;
 	    VMW_PRODVERS="S-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
@@ -437,6 +440,7 @@ function setVersionVMW () {
             #check for "register", but is not required mandatory.
             checkedSetSUaccess  "${MYCONFPATH}/vmw/vmw.conf-${MYOS}.sh" VMWCALL VMWMGR -l
 	    ;;
+
 	"VMware Server 2.0."*)
 	    VMW_MAGIC=VMW_S20;
 	    VMW_PRODVERS="S-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
@@ -449,13 +453,43 @@ function setVersionVMW () {
 
             #switch to VMRUN
 	    VMWMGR=`getPathName $LINENO $BASH_SOURCE ERROR vmrun /usr/bin`
-	    VMWMGR="${VMWMGR} -T server -h ${CTYS_VMW_S2_ACCESS_HOST} "
-
-            #check for "register", but is not required mandatory.
-            checkedSetSUaccess  "${MYCONFPATH}/vmw/vmw.conf-${MYOS}.sh" VMWCALL VMWMGR -l
-
-	    . ${MYLIBPATH}/lib/libVMWserver2.sh
+	    if [ $? -eq 0 ];then
+		VMWMGR="${VMWMGR} -T server -h ${CTYS_VMW_S2_ACCESS_HOST} "
+                #check for "register", but is not required mandatory.
+		checkedSetSUaccess  "${MYCONFPATH}/vmw/vmw.conf-${MYOS}.sh" VMWCALL VMWMGR -l
+		. ${MYLIBPATH}/lib/libVMWserver2.sh
+	    else
+		VMW_STATE=DISABLED
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing vmrun for detected Server Version-2.x"
+	    fi
 	    ;;
+
+	"VMware Remote Console Plug-in 2."*)
+	    VMW_MAGIC=VMW_S20;
+	    VMW_PRODVERS="S-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
+	    VMW_STATE=ENABLED
+	    VMW_DEFAULTOPTS="-x -q -l";
+            local _buf1="${_verstrg#VMware Server }"
+            _buf1="${_buf1% build*}"
+            _cap="${_cap}%vmw/server-${_buf1}-`getExecArch /usr/bin/vmware`"
+	    _ret=0;
+
+            #switch to VMRUN
+	    VMWMGR=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vmrun /usr/bin`
+	    if [ $? -eq 0 ];then
+		VMWMGR="${VMWMGR} -T server -h ${CTYS_VMW_S2_ACCESS_HOST} "
+                #check for "register", but is not required mandatory.
+		checkedSetSUaccess  "${MYCONFPATH}/vmw/vmw.conf-${MYOS}.sh" VMWCALL VMWMGR -l
+
+		. ${MYLIBPATH}/lib/libVMWserver2.sh
+	    else
+		#reminder: VMW_STATE=RELAY
+		VMW_STATE=DISABLED
+		printWNG 2 $LINENO $BASH_SOURCE 0 "'Remote Console' plugin is present without Server installation."
+		printWNG 2 $LINENO $BASH_SOURCE 0 "For now console is supported in DISPLAYFORWARDING only."
+	    fi
+	    ;;
+
 	"VMware Workstation 6"*)
 	    VMW_MAGIC=VMW_WS6;
 	    VMW_PRODVERS="W-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
@@ -467,6 +501,7 @@ function setVersionVMW () {
             VMW_PREREQ="${VMW_PREREQ} vmware,vncviewer"
 	    _ret=0;
 	    ;;
+
 	"VMware Workstation 7"*)
 	    VMW_MAGIC=VMW_WS7;
 	    VMW_PRODVERS="W-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
@@ -478,6 +513,7 @@ function setVersionVMW () {
             VMW_PREREQ="${VMW_PREREQ} vmware,vncviewer"
 	    _ret=0;
 	    ;;
+
         *)
 	    printWNG 2 $LINENO $BASH_SOURCE 0 "Unsupported or misconfigured local version:"
 	    printWNG 2 $LINENO $BASH_SOURCE 0 "  ctys    :<${VERSION}>"

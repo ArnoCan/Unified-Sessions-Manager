@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -23,7 +23,7 @@
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWMAClst
+#  getVBOXMAClst
 #
 #TYPE:
 #  bash-function
@@ -39,7 +39,7 @@
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWMAClst () {
+function getVBOXMAClst () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
 #	    _IP=`sed -n 's/\t//g;/^#/d;s/ethernet\([0-9]*\).address *= *"\([^"]*\)"/\1=\2/p' "${i}"`;
@@ -54,7 +54,7 @@ function getVMWMAClst () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWUUID
+#  getVBOXUUID
 #
 #TYPE:
 #  bash-function
@@ -70,7 +70,7 @@ function getVMWMAClst () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWUUID () {
+function getVBOXUUID () {
     local _IP=;
     if [ -z "${1}" ];then
 	gwhich dmidecode 2>/dev/null >/dev/null
@@ -90,7 +90,7 @@ function getVMWUUID () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWLABEL
+#  getVBOXLABEL
 #
 #TYPE:
 #  bash-function
@@ -106,7 +106,7 @@ function getVMWUUID () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWLABEL () {
+function getVBOXLABEL () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
 	_IP=`cat  "${i}"|getConfValueOf "displayName"`
@@ -121,7 +121,7 @@ function getVMWLABEL () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWGUESTVCPU
+#  getVBOXGUESTVCPU
 #
 #TYPE:
 #  bash-function
@@ -137,7 +137,7 @@ function getVMWLABEL () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWGUESTVCPU () {
+function getVBOXGUESTVCPU () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
 	_IP=`cat  "${i}"|getConfValueOf "numvcpus"`
@@ -152,7 +152,7 @@ function getVMWGUESTVCPU () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWOS
+#  getVBOXOS
 #
 #TYPE:
 #  bash-function
@@ -168,7 +168,7 @@ function getVMWGUESTVCPU () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWOS () {
+function getVBOXOS () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
 	_IP=`sed -n 's/^[^#]*guestOS *= *"\([^"]*\)"/\1/p' "${i}"|\
@@ -182,7 +182,7 @@ function getVMWOS () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWVNCACCESSPORT
+#  getVBOXVNCACCESSPORT
 #
 #TYPE:
 #  bash-function
@@ -198,7 +198,7 @@ function getVMWOS () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWVNCACCESSPORT () {
+function getVBOXVNCACCESSPORT () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
  	_IP=`cat "${i}"|getConfValueOf "RemoteDisplay.vnc.port"`
@@ -208,7 +208,7 @@ function getVMWVNCACCESSPORT () {
 	fi
     done
     if [ -n "${_IP// /}" ];then
-	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
+	printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
 	echo ${_IP##* }
         return
     fi
@@ -220,7 +220,7 @@ function getVMWVNCACCESSPORT () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getVMWGUESTVRAM
+#  getVBOXGUESTVRAM
 #
 #TYPE:
 #  bash-function
@@ -236,7 +236,7 @@ function getVMWVNCACCESSPORT () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getVMWGUESTVRAM () {
+function getVBOXGUESTVRAM () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
 	_IP=`cat  "${i}"|getConfValueOf "memsize"`
@@ -246,7 +246,7 @@ function getVMWGUESTVRAM () {
 	fi
     done
     if [ -n "${_IP// /}" ];then
-	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
+	printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
 	echo ${_IP##* }
         return
     fi

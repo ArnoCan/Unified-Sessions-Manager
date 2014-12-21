@@ -397,6 +397,9 @@ for i in $*;do
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unkown option:\"$1\""
 	    gotoHell ${ABORT}
 	    ;;
+        *)
+	    _ARGS="${_ARGS} $1";
+	    ;;
     esac
     shift;
 done
@@ -414,9 +417,8 @@ if [ -n "$_printVersion" ];then
     exit 0;
 fi
 
-
-if [ -n "$1" ];then
-    infile=$*
+if [ -n "$_ARGS" ];then
+    infile=$_ARGS
 else
     infile=/etc/dhcpd.conf
 fi
@@ -441,7 +443,6 @@ if [ "$_dbfilepath" == "$infile" ];then
     printERR $LINENO $BASH_SOURCE ${ABORT} "  infile     =${infile}"
     gotoHell ${ABORT}
 fi
-
 
 
 cat $infile|\

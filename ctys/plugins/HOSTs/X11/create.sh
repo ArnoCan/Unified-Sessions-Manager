@@ -53,6 +53,7 @@ function createConnectX11 () {
     local KEY;
     local ARG;
     local i;
+    local _notitle=1;
 
     case ${OPMODE} in
 	CHECKPARAM)
@@ -285,11 +286,12 @@ function createConnectX11 () {
 				;;
 
 			    NOTITLE)
-				local _notitle=1;
+				_notitle=1;
 				;;
 
 			    TITLEKEY)
 				local _titlekey="${ARG}";
+				_notitle=;
 				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "_titlekey=${ARG}"
 				;;
 
@@ -384,7 +386,8 @@ function createConnectX11 () {
 	    _xp=${_xp:-$X11_WM_OPTPRE}
 	    printDBG $S_X11 ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_xp=\"${_xp}\" _sh=\"${_sh}\" _dh=\"${_dh}\""
 
-            if [ -n "${_notitle}" ];then
+#4TEST:20100618:
+            if [ -n "${_notitle}" -a -z "${_titlekey}" ];then
 		_label=NOTITLE
 	    fi
 
