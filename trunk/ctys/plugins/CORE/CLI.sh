@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_CLI="${BASH_SOURCE}"
-_myPKGVERS_CLI="01.07.001b06"
+_myPKGVERS_CLI="01.11.005"
 hookInfoAdd "$_myPKGNAME_CLI" "$_myPKGVERS_CLI"
 
 
@@ -833,8 +833,7 @@ function fetchOptions () {
 		    if [ "${PACKAGES_KNOWNTYPES//$C_SESSIONTYPE}" == "${PACKAGES_KNOWNTYPES}" ];then
 			ABORT=1;
 			printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous session type:${C_SESSIONTYPE}"
-			printERR $LINENO $BASH_SOURCE ${ABORT} "Available types are:"
-			printERR $LINENO $BASH_SOURCE ${ABORT} "  ${PACKAGES_KNOWNTYPES}"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Check available types with:ctys -a info ..."
 		    fi
 		fi
 		;;

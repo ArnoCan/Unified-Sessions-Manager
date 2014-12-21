@@ -253,7 +253,7 @@ SSH_ONESHOT_TIMEOUT=${SSH_ONESHOT_TIMEOUT:-120}
 #Common: Defines the timeout to delay the start of a client after server
 #
 #APPLY:Increment this value when clients do not connect.
-R_CLIENT_DELAY=${R_CLIENT_DELAY:-1}
+R_CLIENT_DELAY=${R_CLIENT_DELAY:-2}
 
 
 
@@ -328,13 +328,18 @@ CTYS_MAXRECURSEBASECALLS=${CTYS_MAXRECURSEBASECALLS:-200};
 #If not, sometimes the client tries to attach too fast, before the server is ready.
 #This leads to immediate termination of the client only with "BadAccess" Error, an 
 #following connect will succeed. 
-VNCVIEWER_DELAY=${VNCVIEWER_DELAY:-1}
+VNCVIEWER_DELAY=${VNCVIEWER_DELAY:-3}
 
 #######wrapper for vncviewer
 VNCVIEWER="${MYLIBEXECPATH}/ctys-callVncviewer.sh "
 
 #######wrapper for vncserver
 VNCSERVER="${MYLIBEXECPATH}/ctys-callVncserver.sh "
+
+
+
+#######wrapper for vncviewer
+RDPVIEWER="${MYLIBEXECPATH}/ctys-callRDPviewer.sh "
 
 
 ################################################################
@@ -634,14 +639,14 @@ DEFAULT_STACKMODE=${DEFAULT_STACKMODE:-CONTROLLER}
 #the overall repetition is limited by CTYS_MAXRECURSE
 #
 CTYS_PRE_FETCHPID_WAIT=${CTYS_PRE_FETCHPID_WAIT:-2}
-CTYS_PRE_FETCHPID_REPEAT=${CTYS_PRE_FETCHPID_REPEAT:-7}
+CTYS_PRE_FETCHPID_REPEAT=${CTYS_PRE_FETCHPID_REPEAT:-30}
 
 
 #
 #Timeout for polling the base IP stack mainly after initial start.
 #WAIT unit is seconds, REPEAT unit is #nr.
 #
-CTYS_PING_ONE_MAXTRIAL=${CTYS_PING_ONE_MAXTRIAL:-20};
+CTYS_PING_ONE_MAXTRIAL=${CTYS_PING_ONE_MAXTRIAL:-30};
 CTYS_PING_ONE_WAIT=${CTYS_PING_ONE_WAIT:-2};
 
 
@@ -649,7 +654,7 @@ CTYS_PING_ONE_WAIT=${CTYS_PING_ONE_WAIT:-2};
 #Timeout for polling the base SSH access, requires preconfigured permissions.
 #WAIT unit is seconds, REPEAT unit is #nr.
 #
-CTYS_SSHPING_ONE_MAXTRIAL=${CTYS_SSHPING_ONE_MAXTRIAL:-20};
+CTYS_SSHPING_ONE_MAXTRIAL=${CTYS_SSHPING_ONE_MAXTRIAL:-30};
 CTYS_SSHPING_ONE_WAIT=${CTYS_SSHPING_ONE_WAIT:-2};
 
 

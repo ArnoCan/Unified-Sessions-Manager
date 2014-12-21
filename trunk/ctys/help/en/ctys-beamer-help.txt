@@ -11,26 +11,29 @@ ctys-beamer
 
 
 
-   [--ssh-hop-holdtime]
-   [--ssh-tunnel-holdtime]
+   [--ctys-predetach-holdtime=<timeout-secs>]
+   [--display-only]   [-d <debug-options>]
+   [--getfreeport}
+   [-h]
+   [-H <help-options>]
+   [-L <remote-login>]
    [--mode=(
         (CTYS-HOPS|CH|0)
        |(SSH-CHAIN|SC|1)
        )
    ]
-   [--getfreeport}
-   [--display-only]
-   [-d <debug-options>]
-   [-h]
-   [-H <help-options>]
-   [-L <remote-login>]
-   [-R <remote-host-list>:=<relay-chain>[,<remote-host-list>]]
+   [-R <remote-host-list>]
+   [--ssh-hop-holdtime]
+   [--ssh-tunnel-holdtime]
    [-V]
+   [--x11]
    [-X]
    [<bypassed-ctys-options>]
    [--]
    <remote-command>
 
+
+   <remote-host-list>:=<relay-chain>[,<remote-host-list>]
 
    <relay-chain>:=<relay-host>[%<relay-chain>]
 

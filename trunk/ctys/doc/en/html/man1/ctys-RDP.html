@@ -1,0 +1,318 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#efefef ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-RDP</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-RDP</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-RDP - Remote Desktop Protocol Interface</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>ctys-RDP</B> 
+</P>
+<P>
+<PRE>
+
+   ctys -t RDP -a action[=&lt;suboptions&gt;] ...
+   ctys -T RDP -a action[=&lt;suboptions&gt;] ...
+   ctys -T ALL -a action[=&lt;suboptions&gt;] ...
+
+</PRE>
+</P>
+<H1>DESCRIPTION</H1>
+<P>
+<B>ATTENTION:</B>
+This plugin is actually in <B>alpha-release</B>, thus might have some drawbacks.
+The interface and integration of tools is going to be extended, currently
+<B>rdesktop</B> is the only supported client.
+</P>
+<P>
+This plugin manages RDP sessions to LINUX/UNIX OS.
+Due to the intention of the RDP protocol this plugin has only a client component and
+utilizes any server providing RDP client attachement.
+The RDP plugin encapsulates and handles the complete interaction with the local and remote
+components provided by means of the client <B>rdesktop</B>.
+</P>
+<P>
+SSH based connections are the only one supported, thus the only actual connections allowed
+are to 'localhost'.
+In case of servers not offering the local-only attachement the user should setup additional
+security measures e.g. by activating packetfilter rules.
+</P>
+<P>
+The sessions are generally categorized into two basic configurations, the coallocation of the 
+client with the targeted server - <B>DISPLAYFORWARDING</B> - and the distributed client and server
+location on different hosts - <B>CONNECTIONFORWARDING</B>.
+In the latter case an intermediary SSH tunnel is created.
+</P>
+<H1>OPTIONS</H1>
+<DL>
+<DT><B>-a action[=&lt;suboptions&gt;]</B></DT><DD>
+<P></P>
+<DT><B>CANCEL</B></DT><DD>
+<PRE>
+  
+  CANCEL=(&lt;machine-address&gt;)\{1,n\}
+    |ALL
+    (
+      [FORCE|STACK][,]
+      [SELF][,]
+      [
+        RESET|REBOOT
+        |(INIT:&lt;init-state&gt;)
+        |(PAUSE|S3)|(SUSPEND|S4)
+        |((POWEROFF|S5)[:&lt;timeoutBeforeKillVM&gt;]
+      ][,]
+    [CLIENT|SERVER|BOTH]
+    )
+  
+</PRE>
+<P></P>
+<DT></DT><DD>
+<B>&lt;machine-address&gt;</B>
+For VNC the following parts of a &lt;machine-address&gt; are applicable:
+ID|I, LABEL|L
+<P></P>
+When the VNCviewer/VNCserver is used in the default shared-mode,
+the address applies to all sharing VNCclients/vncviewer are handled
+as one logical unit and CANCEL is applied to all at once.
+<P></P>
+The address could be supported with multiple instances.
+<P></P>
+<DT></DT><DD>
+<B>ALL|BOTH|CLIENT|SERVER</B>
+<P></P>
+ALL and BOTH kill clients and servers on local machine.
+Remote clients by CONNECTIONFORWARDING might be exiting
+when server-loss is detected.
+ <UL>
+ <LI>The <B>SERVER</B> scope 
+is actually for VNC the same as ALL or
+BOTH, this is due to the default (non-server) behaviour
+of attached clients, which exit when detecting a
+server-loss.
+ <LI>The <B>CLIENT</B> scope 
+just kills all client processes by
+means of OS, which is simply calling kill on their
+PID. The server processes remain untouched.
+ <P></P>
+ </UL>
+<DT></DT><DD>
+<B>REBOOT|RESET|INIT|SUSPEND</B>
+These methods just behave as a "soft-kill" which is a
+more or less soft shutdown, for VNC only! Application
+shutdown is not supported.
+So in this case first all clients are killed, following
+a call to "vncserver -kill :&lt;id&gt;"
+for all matched. No additional action is performed in case of a
+failure.
+<P></P>
+<DT></DT><DD>
+<B>POWEROFF</B>
+These method could be seen as a "hard-kill" which is a
+trial to "soft-kill" and an immediate following process
+kill by means of native OS. Thus there might be
+definetly no difference to a controlled shutdown of VNC
+managing unprepared applications.
+<P></P>
+The session(s) are basically just killed, so the caller
+is resposible for appropriate handling of contained jobs.
+<P></P>
+<DT><B>CREATE</B></DT><DD>
+<PRE>
+  CREATE=[&lt;machine-address&gt;]
+     [REUSE|CONNECT|RECONNECT|RESUME]
+     [CONSOLE:&lt;rdesktop&gt;]
+     [(CALLOPTS|C):&lt;callopts&gt;]
+     [(XOPTS|X):&lt;xopts&gt;]
+     [(SHELL|S):&lt;shell&gt;]
+     [(CMD):&lt;cmd&gt;]
+     [(INSECURE):&lt;ext-host&gt;]
+</PRE>
+</DL>
+
+<UL>
+<LI><B>&lt;machine-address&gt;</B>
+For VNC the following parts of a \mbox{&lt;machine-address&gt;} are applicable:
+LABEL|L
+<P></P>
+When the VNCviewer/VNCserver is used in shared-mode, the
+address applies to all sharing VNCclients/vncviewers.
+The LABEL suboption is here mandatory.
+<P></P>
+<LI><B>BOOTMODE</B>
+    Not applicable.
+<P></P>
+<LI><B>CONNECT</B>
+Almost the same as \mbox{REUSE}, but no new server will be
+started if missing.
+<P></P>
+<LI><B>CONSOLE</B>
+    Current version supports <B>rdesktop</B>.
+<P></P>
+<LI><B>INSECURE &lt;ext-host&gt;</B>
+    The external(!=localhost) host to be accessed by remotely attached RDP
+    client.
+    This is foreseen for blackboxes and access to MS-Windows(TM) based 
+    hosts.
+    It should not be forced for UNIX/Linux based boxes.
+<P></P>
+<LI><B>PING</B>
+    Not applicable.
+<P></P>
+<LI><B>RECONNECT</B>
+    Similiar to REUSE, with the difference, that any
+    previous active client will be killed before attaching
+    ONE new client. Therefore in shared mode, when multiple
+    clients could simultaneously share one server, all
+    sharing clients are handled as one logical unit and will
+    be thus killed together.
+    Specific exchange of a single client is not supported.
+<P></P>
+<LI><B>RESUME</B>
+    Not applicable.
+<P></P>
+<LI><B>REUSE</B>
+When a server process with matching ID or LABEL is
+already running it will be used, else a new one will be
+started.
+In case of non-shared-mode operations of VNC any running
+vncviewer will be killed by disconnecting through the
+VNCserver. This is almost the same behaviour as for
+RECONNECT.
+When running in shared-mode, just an additional
+vncviewer will be attached to the server.
+<P></P>
+<LI><B>SSHPING</B>
+    Not applicable.
+<P></P>
+<LI><B>USER</B>
+    Not applicable.
+</UL>
+
+ <UL>
+ <LI><B>VNCPORT</B>
+Port to be used literally, required for several VMs with
+fixed Server-Ports.
+ <P></P>
+ <LI><B>WAITC:&lt;delay-after-viewer-call&gt;</B>
+Delay after start of vncviewer, internally used as delay before
+check of PID for JOBDATA.
+Might not be really required to be varied, but provided for
+completeness.
+ <P></P>
+ <LI><B>WAITS:&lt;delay-before-viewer-call&gt;</B>
+Delay for start of vncviewer, required when the
+execution is too fast for the \mbox{VNCserver} to finish it's init.
+ <P></P>
+The practical application could be the usage within a GROUP and/or
+MACRO, where for security reasons a password based access to
+multiple &lt;exec-targets&gt; is provided, e.g. for root accounts within
+a admin group.
+With setting of this parameter the initial output of VNCviewer is
+delayed due to it's own delay, thus a series of password requests
+occur without beeing poisoned by trace messages of the parallel
+executed VNCviewer.
+ </UL>
+
+<DL>
+<DT><B>ENUMERATE</B></DT><DD>
+Not applicable.
+<P></P>
+<DT><B>LIST</B></DT><DD>
+Almost the same output as common standard, with following
+changes in semantics.
+<P></P>
+<B>id</B>: The DISPLAY used by the vncviewer and/or vncserver.
+For the actual display of the server two cases has to be
+distinguished:
+<P></P>
+  <UL>
+  <LI><B>DISPLAYFORWARDING</B>
+The DISPLAY of vncviewer and vncserver are identical.
+  <LI><B>CONNECTIONFORWARDING</B>
+The DISPLAY of vncviewer and vncserver are different, this is due to
+the intermediate tunnel, which handles the port-forwarfing and an has
+to do a remapping due to ambiguity within the network scope.
+The following values are not applicable:
+<PRE>
+  uuid, mac, tcp
+</PRE>
+  </UL>
+</DL>
+
+<H1>SEE ALSO</H1>
+<P>
+<I>ctys(1)</I>, <I>ctys-uc-VNC(7)</I>, <I>ctys-plugins(1)</I>, <I>vncpasswd(1)</I>, <I>vncviewer(1)</I>, <I>vncserver(1)</I>
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<img src="../../images/60px-Official-gnu.png" />  
+<br />
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-RDP.t2t -o /tmpn/0/ctys/bld/01.11.005/doc-tmp/BASE/en/html/man1/ctys-RDP.html -->
+</BODY></HTML>

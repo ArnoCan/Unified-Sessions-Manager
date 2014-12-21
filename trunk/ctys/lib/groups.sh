@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_013
+#VERSION:      01_11_015
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_GROUPS="${BASH_SOURCE}"
-_myPKGVERS_GROUPS="01.11.003"
+_myPKGVERS_GROUPS="01.11.005"
 libManInfoAdd "$_myPKGNAME_GROUPS" "$_myPKGVERS_GROUPS"
 
 
@@ -181,18 +181,26 @@ function fetchGroupMembers () {
 	    x="${x} "`awk '
 		/^#.*$/          {next;} 
 		/^[[:space:]]*$/ {next;} 
-                {printf(",,%s",$0);}
+#4TEST:20100618:                {printf(",,%s",$0);}
+                {printf("°°%s",$0);}
 		' ${i}`
 	else
-	    x="${x},,${i}"
+#4TEST:20100618:	    x="${x},,${i}"
+	    x="${x}°°${i}"
 	fi
     done
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:trial as group:\"${x}\""
     x=${x//\"}
     x=`echo ${x}|sed 's/  */ /g'`
-    x=${x## };x=${x%% };x=${x#,,}
+#4TEST:20100618:    x=${x## };x=${x%% };x=${x#,,}
+#4TEST:20100618:
+#echo "4TEST:$LINENO:x=$x">&2
+    x=${x## };x=${x%% };x=${x##°};x=${x%%°}
+#echo "4TEST:$LINENO:x=$x">&2
     if [ -n "${x// /}" -a "${x%)}" == "${x}" ];then
-	x="${x},,"
+#4TEST:20100618:	x="${x},,"
+#4TEST:20100618:
+	x="${x}°°"
     fi
 
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "x=<${x}>"
@@ -233,13 +241,17 @@ function fetchGroupMembers () {
 		    gsub("  "," ",result);
 		    gsub("^ *","",result);
 		    gsub(" *$","",result);
-		    gsub(",,","(),,",result);
+#4TEST:20100618:		    gsub(",,","(),,",result);
+#4TEST:20100618:
+		    gsub("°°","()°°",result);
 		    gsub(")()",")",result);
 		    gsub(",$","",result);
 		    gsub("[(]","("c,result);
 		    gsub("%,%"," ",result);
 		    gsub("-_-_"," ",result);
-		    gsub(",,"," ",result);
+#4TEST:20100618:    gsub(",,"," ",result);
+#4TEST:20100618:
+		    gsub("°°"," ",result);
  		}
 		END{
 		    print result;
@@ -250,8 +262,21 @@ function fetchGroupMembers () {
     fi
 
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "Eliminate braces of chained context-options"
-    x=`echo $x|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/)(/ /g;s/,,/,/g;s/, *$//;s/^ *,//;'`
+#4TEST:01.11.005:
+    x="${x%%°}";x="${x##°}"
+#4TEST:01.11.005:    x="${x%,,}"
+#4TEST:01.11.005:
+#echo "4TEST:$BASH_SOURCE:$LINENO:x=<${x}>">&2
+#4TEST:01.11.005
+#    x=`echo $x|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/)(/ /g;s/,,/,/g;s/, *$//;s/^ *,//;'`
+#4TEST:20100618:    x=`echo $x|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/)(/ /g;s/,,/ /g;s/, *$//;s/^ *,//;'`
+#    x=`echo $x|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/)(/ /g;s/[^,],,[^,]/ /g;s/, *$//;s/^ *,//;'`
+#    x=`echo $x|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/, *$//;s/^ *,//;'`
+    x=`echo $x|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/)(/ /g;s/°°*/ /g;s/ *//;s/ *$//;s/^,*//;s/,*$//;'`
+#echo "4TEST:$LINENO:x=<$x>">&2
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:found group:\"${x}\""
+
+#4TEST:01.11.005:echo "4TEST:$BASH_SOURCE:$LINENO:x=<${x}>">&2
 
     if [ "${x//,/}" != "${x}" ];then 
 	echo "{${x}}"
@@ -473,13 +498,14 @@ function expandGroups () {
 #echo "4TEST:01.11.003:$FUNCNAME:_port=<${_port}>">&2
 #4TEST:01.11.003
         _curglst=`fetchGroupMembers $i7`;
+#echo "4TEST:$BASH_SOURCE:$LINENO:i7=<${i7}>">&2
 
-        if [ -n "$_curglst" ];then
+        if [ -n "${_curglst## }" ];then
             #replace members as shell expansion list
 	    local _gx="${_curglst}"
 
 	    if [ -n "$_port" ];then
-		_gx=$(echo " $_gx "|sed 's/"(/:'"$_port"'&/g;s/(/:'"$_port"'(/g;'|sed "s/'(/:"$_port"&/g;s/\(,[^ ]\),/\1:"$_port",/g;"  )
+		_gx=$(echo " $_gx "|sed 's/"(/:'"$_port"'&/g;s/(/:'"$_port"'(/g;'|sed "s/'(/:"$_port"&/g;s/\(,[^ ]\),/\1:"$_port",/g;")
 		_gx=$(echo " $_gx "|sed 's/\(:[0-9]\+\)\(:[0-9]\+\)/\1/g;')
 	    fi
 
@@ -503,6 +529,7 @@ function expandGroups () {
 		    }
 		}
 		gsub("  "," ",result);
+#4TEST:20100618:
 		gsub(" ",",",result);
 		gsub("^,","",result);
 		gsub(",$","",result);
@@ -517,15 +544,23 @@ function expandGroups () {
 	    if [ "${_gx//[^\\],/}" != "${_gx}" ];then
 		_hostlst=`echo ${_hostlst}|sed 's|'"${i7}"'|'"${_gx}"'|'`
 	    else
+                #Handle single-elem-lists
+		_gx="${_gx#\{}";_gx="${_gx%\}}"
 		_hostlst=`echo "${_hostlst}"|sed 's|'"${i7}"'|'"${_gx}"'|'`
 	    fi
 	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_hostlst=<${_hostlst}>"
 	fi
     done
+#echo "4TEST:$LINENO:<${_hostlst}>">&2
     _hostlst=`echo $_hostlst|sed 's/["'\''](/(/g;s/)["'\'']/)/g;s/(/"(/g;s/)/)"/g;'`
+#echo "4TEST:$LINENO:<${_hostlst}>">&2
     _hostlst=`eval echo -e ${_hostlst}`
+#echo "4TEST:$LINENO:<${_hostlst}>">&2
     _hostlst="${_hostlst//-_-_/ }";
+#    _hostlst=`echo $_hostlst|sed 's/\([^\\]\),/\1 /g;'`
+#echo "4TEST:$LINENO:<${_hostlst}>">&2
     _hostlst="${_hostlst//\\,/,}";
+#echo "4TEST:$LINENO:<${_hostlst}>">&2
     _hostlst="${_hostlst//\\\//\/}";
     _hostlst="${_hostlst//)(/ }";
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_hostlst=<${_hostlst}>"
@@ -536,6 +571,7 @@ function expandGroups () {
     if [ -n "${_hostlst// /}" ];then
 	echo ${_hostlst}
     fi
+#echo "4TEST:$LINENO:<${_hostlst}>">&2
 }
 
 
@@ -642,6 +678,7 @@ function listGroupMembers () {
 	    i8=${i8//:/\/}
 
 	    _curglst=`fetchGroupMembers $_cur`;
+#echo "4TEST:$BASH_SOURCE:$LINENO:_cur=<${_cur}>">&2
 	    if [ "${_curglst#\(}" != "${_curglst}" ];then
 		if [ "${_curglst#\{}" != "${_curglst}" ];then
 		    _curglst=${_curglst#\{};
@@ -1000,7 +1037,7 @@ function listGroups () {
 #FUNCEND###############################################################
 function checkAndSetIsHostOrGroup () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
-    if [ -z "${1}" ];then
+    if [ -z "${1## }" ];then
 	return 1
     fi
     local _ret=0;
@@ -1024,8 +1061,10 @@ function checkAndSetIsHostOrGroup () {
     if [ "${_ret}" -ne 0 ]; then
         #check for subtask
         local _delayedGroup1=`fetchGroupMembers ${1}`
+#echo "4TEST:$BASH_SOURCE:$LINENO:_delayedGroup1=<${_delayedGroup1}>">&2
         if [ -z "${_delayedGroup1}" ];then
             local _delayedGroup1=`fetchGroupMembers ${_myTarget}`
+#echo "4TEST:$BASH_SOURCE:$LINENO:_delayedGroup1=<${_delayedGroup1}>">&2
             if [ -z "${_delayedGroup1}" ];then
 		ABORT=2;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown host and/or group='${1}'"
@@ -1041,6 +1080,9 @@ function checkAndSetIsHostOrGroup () {
 	printINFO 2 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:sub-context:SUB-TASK=<${_myTarget}>"
 	printINFO 2 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:${_myTarget}=<${_delayedGroup1}>"
 	local _strbuf=${1};
+
+#echo "4TEST:$BASH_SOURCE:$LINENO:_strbuf=<${_strbuf}>">&2
+
 	case ${_strbuf##*.} in
 	    SUBGROUP|SUBTASK)
 		echo -n -e "SUBGROUP{${1}}"
@@ -1063,7 +1105,7 @@ function checkAndSetIsHostOrGroup () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  fetchGroupMembers
+#  fetchGroupMemberHosts
 #
 #TYPE:
 #  bash-function
@@ -1084,11 +1126,14 @@ function checkAndSetIsHostOrGroup () {
 function fetchGroupMemberHosts () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
     local hostlist=$(expandGroups ${*})
-    hostlist=$(echo " ${hostlist} "|sed 's/([^)]*)/ /g')
-    hostlist="${hostlist//,/ }"
-    hostlist="${hostlist//  / }"
-    hostlist="${hostlist//  / }"
-    if [ -n "${hostlist// /}" ];then
-	echo -n -e "${hostlist}"
+
+    if [ -n "${hostlist}" ];then
+	hostlist=$(echo " ${hostlist} "|sed 's/([^)]*)/ /g')
+	hostlist="${hostlist//,/ }"
+	hostlist="${hostlist//  / }"
+	hostlist="${hostlist//  / }"
+	if [ -n "${hostlist// /}" ];then
+	    echo -n -e "${hostlist}"
+	fi
     fi
 }

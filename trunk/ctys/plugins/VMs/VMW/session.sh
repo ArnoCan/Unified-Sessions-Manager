@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VMW_SESSION="01.10.013"
+_myPKGVERS_VMW_SESSION="01.11.005"
 hookInfoAdd $_myPKGNAME_VMW_SESSION $_myPKGVERS_VMW_SESSION
 _myPKGBASE_VMW_SESSION="`dirname ${_myPKGNAME_VMW_SESSION}`"
 
@@ -347,8 +347,8 @@ function startSessionVMW () {
 		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:add to inventory:<$_pname>"
 		    local _mycall="${VMWCALL} ${VMWMGR} -s register '${_pname}'"
 		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
-		    eval "$_mycall"
-		    if [ $? -ne 0 ];then
+		    callErrOutWrapper $LINENO $BASH_SOURCE $_mycall
+		    if [ $? -ne 0 -a $? -ne 20  ];then
                         ABORT=1;
 			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Check inventory entry:<$_pname>"
 			printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:failed to add inventory:<$_pname>"

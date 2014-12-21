@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -58,7 +58,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_005
 #DESCRIPTION:
 #  Utility of project ctys for generation of PM data supporting 
 #  ENUMERATE. This is seperated, due to some of the data requires
@@ -456,7 +456,8 @@ LD_PLUGIN_PATH=${LD_PLUGIN_PATH}:${PLUGINPATHS}
 MYROOTHOOK=${MYINSTALLPATH}/plugins/hook.sh
 if [ ! -f "${MYROOTHOOK}" ];then 
     ABORT=2
-    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing packages hook: hook=${MYROOTHOOK}"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing p
+    ackages hook: hook=${MYROOTHOOK}"
     gotoHell ${ABORT}
 fi
 . ${MYROOTHOOK}
@@ -766,8 +767,15 @@ function getValues () {
 		    echo -n "${_prefix1}""VMX-FILE  = "
 		    setSeverityColor ERR "${IDDIR}/${LABEL}.vmx"
 		    echo
-		    [ -n "${AUTO_WITH_DEFAULTS_ALL}" ]&&exit 1;
- 		    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[7A\033[2K\033[1A";
+
+
+		    echo  -n "${_prefix1}"
+		    setSeverityColor INF "TIP:"
+		    echo  " Try as a 'work-around' the creation of a segmented virtual disk"
+		    echo  "${_prefix1}""- at least as a dummy - before creating an actual disk."
+
+		    [ -n "${AUTO_WITH_DEFAULTS_ALL}" ]&&echo&&exit 1;
+ 		    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[9A\033[2K\033[1A";
 		fi
 		echo
 	    done
