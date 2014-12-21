@@ -1,0 +1,259 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a09
+#
+########################################################################
+#
+# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getCPUinfo
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists the basic CPU information with dominant flags for 
+#  virtualization.
+#  Currently numerical form only.
+#
+#PARAMETERS:
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getCPUinfo () {
+    cat /proc/cpuinfo|\
+    sed -n 's/\t//g;s/^\([^[:space:]]*[[:space:]]\{0,2\}[^[:space:]]*\)[[:space:]]*: *\(.*\)$/\1:\2/gp'|\
+    awk -F':' '
+     BEGIN{
+       cpuinfo="";
+
+       cputype=".";
+       vendor=".";
+       family=".";
+       model=".";
+       stepping=".";
+       speed=".";
+       cache=".";
+       flags="";
+
+     }
+     $1~/processor/   {processor++;}
+
+     $1~/vendor_id/&&$2~/Intel/   {vendor="Intel";}
+     $1~/vendor_id/&&$2~/AMD/   {vendor="AMD";}
+     $1~/vendor_id/&&$2~/VIA/   {vendor="VIA";}
+
+     $1~/family/      {family=$2;}
+     $1~/model name/  {next;}
+     $1~/model/       {model=$2;}
+     $1~/stepping/    {stepping=$2;}
+     $1~/cpu MHz/     {gsub("[.,][0-9]*$","",$2);speed=$2"MHz";}
+     $1~/cache size/  {gsub(" ","",$2);cache=$2;}
+     $2~/vmx/&&_flagsVMX!=1         {_flagsVMX=1;flags=flags"-VMX"}
+     $2~/svm/&&_flagsSVM!=1         {_flagsSVM=1;flags=flags"-SVM"}
+     $2~/pae/&&_flagsPAE!=1         {_flagsPAE=1;flags=flags"-PAE"}
+
+     END{
+       cputype=vendor"-"family"-"model"-"stepping"-"cache"-"speed;
+       if(flags==""){flags="-.";}
+       cpuinfo="CPU:"processor"x"cputype""flags;
+       printf("%s",cpuinfo);
+     }
+     '
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMEMinfo
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists the RAM size and the SWAP space.
+#
+#PARAMETERS:
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMEMinfo () {
+    cat /proc/meminfo|\
+    sed -n 's/^\([^[:space:]]*[[:space:]]\{0,2\}[^[:space:]]*\)[[:space:]]*:[^0-9]*\([0-9]*\).*$/\1:\2/gp'|\
+    awk -F':' '
+     BEGIN{
+       _meminfo="";
+     }
+     $1~/MemTotal/    {_meminfo="RAM:"$2/1000"M";}
+     $1~/SwapTotal/   {_swpinfo="SWAP:"$2/1000"M";}
+     END{
+       gsub("[.,][0-9]*M","M",_meminfo);
+       gsub("[,.][0-9]*M","M",_swpinfo);
+       printf("%s,%s",_meminfo,_swpinfo);
+     }
+     '
+}
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getHDDinfo
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists the HDDs available.
+#
+#PARAMETERS:
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getHDDinfo () {
+    local _hdd=`cat /proc/diskstats|\
+    awk '
+     BEGIN{
+       _hddinfo="";
+     }
+     $3~/^[sh]d[a-z]$/&&$4!="0"{_hddinfo=_hddinfo"%"$3}
+     END{
+       gsub("^%","",_hddinfo);
+       printf("%s",_hddinfo);
+     }
+     '`
+     [ -n "${_hdd}" ]&&echo -n "HDD:${_hdd}"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getFSinfo
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists the filesystem size of "/home"(if a on it's own partition) and
+#  "/home[0-9]*" HDDs available.
+#
+#PARAMETERS:
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getFSinfo () {
+     local _fs=`df -hlP /home /home[0-9]*|awk 'BEGIN{fs="";}/home/{fs=fs"%"$NF"-"$2;}END{gsub("^%","",fs);printf("%s",fs);}'`
+     [ -n "${_fs}" ]&&echo -n "FS:${_fs}"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getPLATFORMinfo
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Currently experimental.
+#
+#PARAMETERS:
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getPLATFORMinfo () {
+    local _hw=;
+    
+    local _buf0=;
+    local _buf1=;
+
+    if [ -n "${CTYS_LSPCI}" ];then
+	_buf0=`${CTYS_LSPCI} -m |awk '
+               BEGIN{pc=0;}
+               $0~/Intel/&&$0~/Host bridge/{pc+=2;next;}
+               $0~/Intel/&&$0~/ISA bridge/{pc+=2;next;}
+               $0~/Intel/&&$0~/ICH[0-9] Family/{pc+=4;next;}
+
+               $0~/VIA Technologies/&&$0~/Host bridge/{pc+=2;next;}
+               $0~/VIA Technologies/&&$0~/ISA bridge/{pc+=2;next;}
+               $0~/VIA Technologies/&&$0~/PCI bridge/{pc+=2;next;}
+
+               $0~/Host bridge/{pc+=1;next;}
+               $0~/ISA bridge/{pc+=1;next;}
+               $0~/PCI bridge/{pc+=1;next;}
+
+               END{printf("%d",pc);}
+              '`
+    fi
+
+    local if=/proc/interrupts;
+    if [ -e "${if}" ];then
+	_buf1=`cat ${if}|awk '
+	BEGIN{pc=0;}
+	$1=="1:"&&$NF=="i8042"{pc++;next;}
+	$1=="2:"&&$NF=="cascade"{pc=10;next;}
+	$1=="8:"&&$NF=="rtc"{pc+=2;next;}
+	$1=="12:"&&$NF=="i8042"{pc++;next;}
+	END{printf("%d",pc);}
+	'`
+    fi
+    #
+    #>4. PC
+    #
+    case $((_buf0+_buf1)) in
+        [01234])_hw="UNKNOWN";;
+	*)_hw="PC";;
+    esac
+
+    printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "PLATFORM=${_hw}"
+    echo -n "${_hw}"
+    return
+}
