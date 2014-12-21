@@ -1,0 +1,216 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myLIBNAME_security="${BASH_SOURCE}"
+_myLIBVERS_security="01.02.002c01"
+libManInfoAdd "${_myLIBNAME_security}" "${_myLIBVERS_security}"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkedSetSUaccess
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Due to required root permissions for some calls impersonation aproach
+#  either by sudo or ksu should be used for restricted calls. These calls 
+#  might be released for call with root permissions selectively by local 
+#  impersonation as root or an preconfigured execution-account.
+#  The ctys-tools should be executed as a different user without enhanced
+#  privileges.
+#
+#  When using the root account natively no additional permissions are 
+#  required of course.
+#
+#  For ordinary users without enhnaced privileges one of the following two 
+#  approaches could be applied:
+#
+#  - ksu
+#    The preferred approach should be the seamless usage of kerberos, 
+#    therefore "ksu" with the configuration file ".k5users" should be used.
+#
+#    For each user the following entry is required:
+#
+#     "<users-pricipal> /usr/bin/which /usr/sbin/xm /usr/bin/virsh"
+#
+#    Where the paths may vary.
+#
+#    Due to the required few calls to which, xm and/or virsh only ".k5login" 
+#    is not required.
+#
+#  - sudo
+#    Basically the same, but to be handled by local configurations on any 
+#    machine.
+#
+#  REMARKS: The given variables will be set "eval" call, even though could
+#           be initially set here, no "export" is applied. 
+#           So preferably they should be pre-set, just re-/assigned here.
+#
+#  
+#EXAMPLE:
+#
+#  XENCALL="${XENCALL:-ksu -e }"
+#  XENCALL="${XENCALL:-sudo }"
+#
+#  VIRSHCALL="${VIRSHCALL:-ksu -e }"
+#  VIRSHCALL="${VIRSHCALL:-sudo }"
+#
+#PARAMETERS:
+#  $1: SU-PREFIX-VAR
+#  $2: SU-CALLEE-VAR
+#
+#
+#OUTPUT:
+#  RETURN:
+#    0: Success
+#    1: Failure
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkedSetSUaccess () {
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _suPrefix=$1;shift
+    if [ -z "${_suPrefix// /}" ];then
+	printERR $LINENO $BASH_SOURCE 1  "$FUNCNAME:Internal error, missing parameter"
+	gotoHell 1
+    fi
+
+    local _suPrefixContent=`eval echo \\\${${_suPrefix}}`
+
+    local _suCallee=$1;shift
+    if [ -z "${_suCallee// /}" ];then
+	printERR $LINENO $BASH_SOURCE 1  "$FUNCNAME:Internal error, missing parameter"
+	gotoHell 1
+    fi
+    local _suCalleeContent=`eval echo \\\${${_suCallee}}`
+    if [ -z "${_suCalleeContent// /}" ];then
+	printERR $LINENO $BASH_SOURCE 1  "$FUNCNAME:Internal error, missing content for ${_suCallee}"
+	gotoHell 1
+    fi
+
+    local _confFile=$1;shift
+    local _ret=1;
+
+    #if I am root, permissions might not be the question, particularly
+    #no entries in k5users and sudoers will be applied.
+    #No ID or group membership checked, usage for root-permissions will not be supported.
+    if [ "${USER}" == "root" ];then
+	eval ${_suPrefix}=;
+	printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "permission-detected:USER==root"
+	printWNGEXT $LINENO $BASH_SOURCE 1  "No ksu/sudo required, USER==root"
+	return 0;
+    fi
+
+
+
+    #
+    #Evaluate permissions actually to use, valid for passwd request too!
+    #
+    if [ -n "${_suPrefixContent}" ];then
+        #check predefined
+	${_suPrefixContent} echo -n 2>/dev/null 
+	if [ $? -eq 0 ];then
+	    local _useGIVEN=2;
+	    ${_suCalleeContent} info 2>/dev/null >/dev/null
+	    if [ $? -eq 0 ];then
+		_useGIVEN=1;
+		${_suPrefixContent} ${_suCalleeContent} info 2>/dev/null >/dev/null
+		if [ $? -eq 0 ];then
+		    _useGIVEN=0;
+		    printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "permission-detected:GIVEN"
+		    _ret=0;
+		fi
+	    fi
+	fi
+    else
+        #check native permissions, could be by impersonation, thus delay final decision
+	${_suCalleeContent} info 2>/dev/null >/dev/null
+	if [ $? -eq 0 ];then
+	    local _useNATIVE=1;
+	    printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "permission-detected:NATIVE"
+	    _ret=0;
+	fi
+
+        #check kerberos
+	ksu -e echo -n 2>/dev/null 
+	if [ $? -eq 0 ];then
+	    local _useKSU=2;
+	    ksu -e ${_suCalleeContent} info 2>/dev/null >/dev/null 
+	    if [ $? -eq 0 ];then
+		eval ${_suPrefix}="\"${_suPrefixContent:-ksu -e }\""
+		_useKSU=0;
+		_ret=0;
+		printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "permission-detected:KERBEROS"
+	    fi
+	else
+            #check sudoers
+	    sudo echo -n 2>/dev/null 
+	    if [ $? -eq 0 ];then
+		local _useSU=2;
+		sudo ${_suCalleeContent} info 2>/dev/null >/dev/null
+		if [ $? -eq 0 ];then
+		    eval ${_suPrefix}="\"${_suPrefixContent:-sudo }\""
+  		    _useSU=0;
+		    _ret=0;
+		    printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "permission-detected:SUDOERS"
+		fi
+	    fi
+	fi    
+    fi
+
+    #just for safety, inform of own impersonation capability
+    if [ $_ret -eq 0 ];then
+        if [ -z "${_suPrefix}" ];then
+	    if [ "$USER" != root ];then
+		printERR $LINENO $BASH_SOURCE 1  "Oh,..."
+		printERR $LINENO $BASH_SOURCE 1  " USER  =${USER}"
+		printERR $LINENO $BASH_SOURCE 1  " ${_suCallee}    =${_suCalleeContent}"
+		printERR $LINENO $BASH_SOURCE 1  "...you have native root permission as non-root!"
+		printERR $LINENO $BASH_SOURCE 1  "Be careful with that axe Eugene!"
+		printERR $LINENO $BASH_SOURCE 1  "Anyhow, continue despite assuming that THIS IS an ERROR!"
+	    fi
+	fi
+	return ${_ret}
+    fi
+
+
+    printWNG $LINENO $BASH_SOURCE 1  "NO-ACCESS-GRANTED to USER=$USER for root-permisson to \"${_suCallee}\" call"
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  " -> Set ksu/sudo by editing \"/root/.k5users\" and/or \"etc/sudoers\", "
+    printWNG $LINENO $BASH_SOURCE 1  "    will be probe-ed and utilized properly."
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  "    The general access permission by \"/root/.k5login\" MUST NOT be used!!!"
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  " or"
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  " -> Set ${_suPrefix} to \"ksu -e \" or \"sudo \" and export it(SPACES!!!)."
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  " or"
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  " -> Configure it in this file"
+    printWNG $LINENO $BASH_SOURCE 1  "    \"${_confFile}\""
+    printWNG $LINENO $BASH_SOURCE 1  "."
+    printWNG $LINENO $BASH_SOURCE 1  "Refer to ctys-manual for help and references."
+    printWNG $LINENO $BASH_SOURCE 1  "."
+
+    return ${_ret}
+}
+

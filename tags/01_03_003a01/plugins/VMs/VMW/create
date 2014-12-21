@@ -1,0 +1,759 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_VMW_CREATE="${BASH_SOURCE}"
+_myPKGVERS_VMW_CREATE="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VMW_CREATE
+_myPKGBASE_VMW_CREATE="`dirname ${_myPKGNAME_VMW_CREATE}`"
+
+_VMW_CREATE="${_myPKGNAME_VMW_CREATE}"
+
+#FUNCBEG###############################################################
+#NAME:
+#  createConnectVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Creates a session and/or connects to the server.
+#  
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function createConnectVMW () {
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
+
+    function getVNCport () {
+	local  _IP=`sed -n 's/\t//g;/^#/d;s/RemoteDisplay.vnc.port *= *"\([^"]*\)"/\1/p' "${1}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+	echo $_IP
+    }
+
+
+    case ${OPMODE} in
+	CHECKPARAM)
+          #
+          #Just check syntax drafts, the expansion of labels etc. could just be
+          #expanded on target machine.
+          #
+
+            if [ -n "$CTRL_MODE_ARGS" ];then
+		A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "WMW($A)"
+
+              #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		local _unambig=0;
+		local _unambigCON=0;
+		for i in $A;do
+		    KEY=`echo ${i}|awk -F':' '{print $1}'|tr '[:lower:]' '[:upper:]'`
+		    ARG=`echo ${i}|awk -F':' '{print $2}'`
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "KEY=${KEY}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "ARG=${ARG}"
+                  #handle keywords
+                    if [ -n "${ARG}" \
+			-o -z "${ARG}" -a "${KEY}" == "REUSE" \
+			-o -z "${ARG}" -a "${KEY}" == "RESUME" \
+			-o -z "${ARG}" -a "${KEY}" == "CONNECT" \
+			-o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
+			-o -z "${ARG}" -a "${KEY}" == "NOCACHE" \
+			-o -z "${ARG}" -a "${KEY}" == "NOPOLL" \
+			];then
+			case $KEY in
+
+			    CONNECT)
+				let _unambigCON+=1;
+				local _reuse=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CONNECT=>connect only if present"
+				;;
+
+			    REUSE)
+				let _unambigCON+=1;
+				local _reuse=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "REUSE=>connect or create"
+				;;
+
+			    RECONNECT)
+                              #check for VMPlayer has to be performed on <execution-target>
+				local _reuse=1;
+				local _reconnect=1;
+				let _unambigCON+=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "RECONNECT=>CANCEL running clients first"
+				;;
+
+			    RESUME)
+                              #check for VMPlayer has to be performed on <execution-target>
+				local _resume=1;
+				let _unambigCON+=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "RESUME=>Applicable for state SUSPENDED"
+				;;
+
+
+                     #####################
+                     # <machine-address> #
+                     #####################
+			    NOCACHE)
+				local _cache=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOCACHE not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				;;
+			    NOPOLL)
+				local _poll=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOPOLL not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				;;
+
+
+			    BASEPATH|BASE|B)
+				local _base="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "BASE=${_base}"
+				;;
+			    TCP|T)
+				local _tcp="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "TCP=${_tcp}"
+				let _unambig+=1;
+				;;
+			    MAC|M)
+				local _mac="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "MAC=${_mac}"
+				let _unambig+=1;
+				;;
+			    UUID|U)
+                              #has to be checked later
+				local _uuid="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "UUID=${_uuid}"
+				let _unambig+=1;
+				;;
+			    LABEL|L)
+                              #has to be checked later
+				local _label="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "LABEL=${_label}"
+				let _unambig+=1;
+				;;
+			    FILENAME|FNAME|F)
+                              #has to be checked later
+				local _fname="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "FILENAME=${_fname}"
+				let _unambig++;
+				;;
+			    ID|I|PATHNAME|PNAME|P)
+                              #can (partly for relative names) be checked now
+				if [ -n "${ARG##/*}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $_VMW_CREATE ${ABORT} "PNAME has to be an absolute path, use fname else."
+				    printERR $LINENO $_VMW_CREATE ${ABORT} " PNAME=${ARG}"
+ 				    gotoHell ${ABORT}
+				fi
+				local _idgiven=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "PATHNAME=${ARG}"
+				;;
+
+
+                     #######################
+                     # Specific attributes #  
+                     #######################
+			    CALLOPTS|C)
+                              #trust the user for now, and let the target call check it
+				local _callopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CALLOPTS=${_callopts}"
+				;;
+			    XOPTS|X)
+                              #trust the user for now, and let the target call check it
+				local _xopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "XTOOLKITOPTS=${_xopts}"
+				;;
+
+
+                        ###########
+			    CONSOLE)
+				local _conty="`echo ${ARG}|tr '[:lower:]' '[:upper:]'`";
+				case ${_conty} in
+				    VMW)
+					;;
+
+				    VNCVIEWER|VNC)
+					printWNG $LINENO $BASH_SOURCE ${ABORT} "Requires support on destination for ${_conty}"
+					local _vnc=1;
+					printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "VNCviewer"
+					;;
+
+				    *)
+					ABORT=1;
+					printERR $LINENO $BASH_SOURCE ${ABORT} "UNKNOWN ARG=${ARG}"
+ 					gotoHell ${ABORT}
+					;;				  
+				esac
+				if [ -n "${_console}" ];then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "CONSOLE has to be unique."
+ 				    gotoHell ${ABORT}
+				fi
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONSOLE=${ARG}"
+				local _console=$_conty;
+				;;
+
+			    *)
+				ABORT=1;
+				printERR $LINENO $_VMW_CREATE ${ABORT} "Unknown sub-opts for VMW:${KEY}"
+ 				gotoHell ${ABORT}
+				;;
+			esac
+                    else
+			ABORT=1;
+			printERR $LINENO $_VMW_CREATE ${ABORT} "Erroneous KEY:<${KEY}>"
+ 			printERR $LINENO $_VMW_CREATE ${ABORT} "  Required syntax :<KEY>:<ARG>";
+ 			printERR $LINENO $_VMW_CREATE ${ABORT} "  Given systax    :<${KEY}>:<${ARG}>";
+ 			gotoHell ${ABORT}               
+		    fi
+		done
+
+              #
+              #handle remote options for actual execution...
+              #
+              #...trust the correctness, or better the checks of actual final tool,
+              #these options are destined for, thus nothing to do her.
+              #
+
+
+              #0. validate ambiguity
+		if [ "${_unambig}" -gt 1 ];then
+		    ABORT=1;
+		    printERR $LINENO $_VMW_CREATE ${ABORT} "The following sub-opts are EXOR applicable only:"
+		    printERR $LINENO $_VMW_CREATE ${ABORT} "  (label|l) EXOR (fname|f) EXOR (pname|p) EXOR (uuid|u)"
+ 		    gotoHell ${ABORT}
+		fi
+
+
+              #1. validate ambiguity
+		if [ "${_unambigCON}" -gt 1 ];then
+		    ABORT=1;
+		    printERR $LINENO $_VMW_CREATE ${ABORT} "The following sub-opts are EXOR applicable only:"
+		    printERR $LINENO $_VMW_CREATE ${ABORT} "  (CONNECT|REUSE) EXOR (RECONNECT|REPLACE)"
+ 		    gotoHell ${ABORT}
+		fi
+
+              #2. validate VNCviewer
+		if [ -n "${_vnc}" -a "${ACTION}" != CONNECT ];then
+		    ABORT=1;
+		    printERR $LINENO $_VMW_CREATE ${ABORT} "VNCviewer could only be used for CONNECT."
+		    printERR $LINENO $_VMW_CREATE ${ABORT} "Anything else requires Workstation-Frontend."
+ 		    gotoHell ${ABORT}
+		fi
+            fi
+
+          #3. Least required parameters
+            if((_unambig!=1&&_idgiven!=1));then
+		ABORT=1;
+		printERR $LINENO $_VMW_CREATE ${ABORT} "Missing parameter, exactly one of the following is required:"
+		printERR $LINENO $_VMW_CREATE ${ABORT} "  (label|l|dname|d) EXOR (fname|f) EXOR (pname|p)EXOR (uuid|u)"
+ 		gotoHell ${ABORT}
+            fi
+
+
+          #OK, anything seems to be fine now. So no additional syntactic checks required on 
+          #server site.
+          #The semantics, particularly results of locally filesystem or label expansion are still
+          #to be checked of course.
+	    ;;
+
+	ACTION)
+	    if [ -n "${R_TEXT}" ];then
+		echo "${R_TEXT}"
+	    fi
+	    if [ -z "${CTRL_EXECLOCAL}" ];then
+		assembleExeccall
+	    else
+                #
+                #Doing local semantical correctness evaluation now.
+                #
+		if [ -n "$CTRL_MODE_ARGS" ];then
+		    A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "WMW($A)"
+
+                    #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		    local _unambig=0;
+		    for i in $A;do
+			KEY=`echo ${i}|awk -F':' '{print $1}'|tr '[:lower:]' '[:upper:]'`
+			ARG=`echo ${i}|awk -F':' '{print $2}'`
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "KEY=${KEY}";
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "ARG=${ARG}";
+                        #handle keywords
+			if [ -n "${ARG}" \
+			    -o -z "${ARG}" -a "${KEY}" == "REUSE" \
+			    -o -z "${ARG}" -a "${KEY}" == "RESUME" \
+			    -o -z "${ARG}" -a "${KEY}" == "CONNECT" \
+			    -o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
+			    -o -z "${ARG}" -a "${KEY}" == "NOCACHE" \
+			    -o -z "${ARG}" -a "${KEY}" == "NOPOLL" \
+			    ];then
+			    case $KEY in
+
+				CONNECT|REUSE)
+				    case ${VMW_MAGIC} in
+					VMW_P105)
+					    ABORT=1;
+					    printERR $LINENO $_VMW_CREATE ${ABORT} "VMplayer does not support ${ACTION}=${KEY},..."
+ 					    gotoHell ${ABORT};
+					    ;;
+				    esac
+                                    local _reuse=1;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "REUSE=>try CONNECT before CREATE"
+				    ;;
+
+				RECONNECT|REPLACE)
+                                    local _reuse=1;
+                                    local _reconnect=1;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "RECONNECT=>CANCEL running clients first"
+				    ;;
+
+
+                     #####################
+                     # <machine-address> #
+                     #####################
+				NOCACHE)
+				    local _cache=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				    ;;
+				NOPOLL)
+				    local _poll=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				    ;;
+
+
+
+				BASEPATH|BASE|B)
+                                    #can be checked now
+                                    local _base="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "BASE=${_base}"
+                                    for i in ${_base//\%/ };do
+					if [ ! -d "${i}" ];then
+					    ABORT=1;
+					    printERR $LINENO $_VMW_CREATE ${ABORT} "Missing given base-path";
+					    printERR $LINENO $_VMW_CREATE ${ABORT} "  i  = ${i}";
+					    printERR $LINENO $_VMW_CREATE ${ABORT} "  PWD= ${PWD}";
+					    printERR $LINENO $_VMW_CREATE ${ABORT} "Check your actual PWD when providing a relative base-path";
+ 					    gotoHell ${ABORT};
+					fi
+				    done
+				    ;;
+
+				TCP|T)
+				    local _tcp="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "TCP=${_tcp}"
+				    ;;
+
+				MAC|M)
+				    local _mac="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "MAC=${_mac}"
+
+				    ;;
+				UUID|U)
+                                    #has to be checked later
+				    local _uuid="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "UUID=${_uuid}"
+				    ;;
+
+				LABEL|L)
+                                    #has to be checked later due to probable following base-prefix
+                                    local _label="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "LABEL=${_label}"
+				    ;;
+
+				FILENAME|FNAME|F)
+                                    #has to be checked later due to probable following base-prefix
+                                    local _fname="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "FILENAME=${_fname}"
+				    ;;
+
+				ID|PATHNAME|PNAME|P)
+                                    #can be checked now, no additional combination check required 
+                                    #due to previous CHECKPARAM.
+                                    if [ -n "${_pname}" ];then
+					ABORT=1;
+					printERR $LINENO $_VMW_CREATE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+					printERR $LINENO $_VMW_CREATE ${ABORT} "  ID(1)=${_pname}"
+					printERR $LINENO $_VMW_CREATE ${ABORT} "  ID(2)=${ARG}"
+					printERR $LINENO $_VMW_CREATE ${ABORT} "Will be extended soon."
+ 					gotoHell ${ABORT}
+                                    fi
+                                    if [ ! -f "${ARG}" ];then
+					ABORT=1;
+					printERR $LINENO $_VMW_CREATE ${ABORT} "Missing given file or access permission for ID/PNAME"
+					printERR $LINENO $_VMW_CREATE ${ABORT} "  ID=${ARG}"
+ 					gotoHell ${ABORT}
+                                    fi
+                                    local _pname="${_pname:+$_pname|}${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "RANGE:PATHNAME=${_pname}"
+				    ;;
+
+
+                     #####################
+				CALLOPTS|C)
+                                    #trust the user for now, and let the target call check it
+				    local _callopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CALLOPTS=${_callopts}"
+                                    CTRL_SESSIONIDARGS="${_callopts}"
+				    ;;
+
+				XOPTS|X)
+                                    #trust the user for now, and let the target call check it
+				    local _xopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "XTOOLKITOPTS=${_xopts}"
+                                    CTRL_XTOOLKITOPTS="${_xopts}"
+				    ;;
+
+
+
+				CONSOLE)
+				    local _conty="`echo ${ARG}|tr '[:lower:]' '[:upper:]'`";
+				    case ${_conty} in
+					VMW)
+					    ;;
+
+					VNCVIEWER|VNC)
+					    if [ -z "`hookInfoCheckPKG VNC`" ];then
+						ABORT=1;
+						printERR $LINENO $_VMW_CREATE ${ABORT} "This feature reuqires VNC plugin ${ACTION}=${KEY}"
+						printERR $LINENO $_VMW_CREATE ${ABORT} "-> Set the option \"-T\" for client and server"
+						printERR $LINENO $_VMW_CREATE ${ABORT} "-> Check actually loaded plugins with option \"-V\""
+ 						gotoHell ${ABORT};
+					    fi
+					    case ${VMW_MAGIC} in
+						VMW_WS6);;
+						*)
+						    ABORT=1;
+						    printERR $LINENO $_VMW_CREATE ${ABORT} "WS>=6.x required for ${ACTION}=${KEY}"
+ 						    gotoHell ${ABORT};
+						    ;;
+					    esac
+					    local _vnc=1;
+					    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "VNCviewer"
+					    ;;
+
+					*)
+					    ABORT=1;
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "UNKNOWN ARG=${ARG}"
+ 					    gotoHell ${ABORT}
+					    ;;				  
+				    esac
+				    if [ -n "${_console}" ];then
+					ABORT=1;
+					printERR $LINENO $BASH_SOURCE ${ABORT} "CONSOLE has to be unique."
+ 					gotoHell ${ABORT}
+				    fi
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONSOLE=${ARG}"
+				    local _console=$_conty;
+				    ;;
+
+
+                     #####################
+				*)
+				    ABORT=1;
+				    printERR $LINENO $_VMW_CREATE ${ABORT} "Unexpected sub-opts for VMW:${KEY}"
+ 				    gotoHell ${ABORT}
+				    ;;
+			    esac
+			fi
+		    done
+
+
+                    if [ -z "${_pname}" ];then
+                        #no pathname is given, so it has to be assembled.
+			printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "fetch _pname"
+
+			local _rem=${CTRL_TERSE}
+			CTRL_TERSE=1
+			local _pname=;
+			local _dbg1="${CTRL_VERBOSE:+ -d $CTRL_VERBOSE}"
+ 			local _VHOST0="${MYCALLPATH}/ctys-vhost $_dbg1 -p ${DBPATHLST} "
+ 			local _VHOST="${_VHOST0} -o IDS "
+			local _vexe=;
+
+                        #
+                        #1. Try CACHE
+                        #   will perform AND search for all given parameters, take first
+                        #   so uniqueness could be almost in any case enforced
+                        #
+			if [ -n "${base}" ];then
+			    local _i9=;
+			    for _i9 in ${base//%/ };do
+				_vexe="${_VHOST} ${_i9} ${_uuid} ${_label} ${_tcp} ${_mac} ${_fname}"
+				printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_vexe=${_vexe}"
+				_pname=`${_vexe}`
+				if [ -n "${_pname}" ];then
+				    if [ -z "${_label}"];then
+					_label="${_VHOST0} -o LABEL ${_i9} ${_uuid} ${_label} ${_tcp} ${_mac} ${_fname}"
+				    fi
+				    break;
+				fi
+			    done
+			else
+			    _vexe="${_VHOST} ${_uuid} ${_label} ${_tcp} ${_mac} ${_fname}"
+			    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_vexe=${_vexe}"
+			    _pname=`${_vexe}`
+			    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_pname=${_pname}"
+			    if [ -z "${_label}"];then
+				_label="${_VHOST0} -o LABEL ${_uuid} ${_label} ${_tcp} ${_mac} ${_fname}"
+			    fi
+			fi
+
+
+                        #
+                        #2. Use filesystem
+                        #   This does an OR match and takes first.
+                        #
+			if [ -z "${_pname}" ];then
+			    printWNG $LINENO $_VMW_CREATE ${ABORT} "No CACHE hit by \"ctys-vhost\" searching filesystem"
+
+			    if [ -n "${_uuid}" ];then
+                                #UUID to be "grepped" from vmx-files
+				_pname=`enumerateMySessionsVMW MACHINE,${_base}|awk -F';' -v d="${_uuid}" '
+                                        BEGIN{firstX="";};$4~d{if(!firstX)firstX=$4;};END{print firstX}'`
+				printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_pname=${_pname}"
+			    else
+				if [ -n "${_label}" ];then
+                                    #displayName to be "grepped" from vmx-files
+				    _pname=`enumerateMySessionsVMW MACHINE,${_base}|awk -F';' -v d="${_label}" '
+                                            BEGIN{firstX="";};$2~d{if(!firstX)firstX=$4;};END{print firstX}'`
+				    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_pname=${_pname}"
+				else
+				    if [ -n "${_tcp}" ];then
+                                        #displayName to be "grepped" from vmx-files
+					_pname=`enumerateMySessionsVMW MACHINE,${_base}|awk -F';' -v d="${_tcp}" '
+                                                BEGIN{firstX="";};$6~d{if(!firstX)firstX=$4;};END{print firstX}'`
+					printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_pname=${_pname}"
+				    else
+	 				if [ -n "${_mac}" ];then
+                                            #displayName to be "grepped" from vmx-files
+					    _pname=`enumerateMySessionsVMW MACHINE,${_base}|awk -F';' -v d="${_mac}" '
+                                                    BEGIN{firstX="";};$5~d{if(!firstX)firstX=$4;};END{print firstX}'`
+					    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_pname=${_pname}"
+
+					else
+                                            #has to be a relative vmx-file name, the absolute path has to be found
+					    _pname=`enumerateMySessionsVMW MACHINE,${_base}|awk -F';' -v d="${_fname}" '
+                                                    BEGIN{firstX="";};$3~d{if(!firstX)firstX=$4;};END{print firstX}'`
+					    _label=${_pname//:*}
+					    _pname=${_pname//*:}
+					    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_pname=${_pname}"
+					fi
+				    fi
+				fi
+			    fi
+			fi
+			CTRL_TERSE=${_rem}
+                    else
+                        #pathname is given
+			printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "use _pname=${_pname}"
+
+			if [ -z "${_label}"  ];then
+                            #first trial, local access
+                            _label=`sed -n 's/\t//g;/^#/d;s/displayName *= *"\([^"]*\)"/\1/p' ${_pname}`;
+			    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "_label=${_label}"
+			fi 
+
+                        #second trial enumerate remote sessions a.k.a. vmx-files,
+                        #this is currently not implicitly supported, do it manually and use the label.
+			if [ -z "${_label}" ];then
+			    ABORT=1;
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "Can not get displayName from pname:\"${_pname}\""
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "  This is almost only possible "
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "  -> when you cannot access the vmx-file"
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "  -> for local client with \"-L ConnectionForwarding\""
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "  -> because it's accessible remote-only."
+			    printERR $LINENO $_VMW_CREATE ${ABORT} ""
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "The internal remote access to sessions a.k.a. vmx-files is not yet supported."
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "Use \"-a ENUMERATE\" for evaluation of <label>, which is foreseen for internal remote access."
+ 			    gotoHell ${ABORT}
+			fi
+		    fi
+
+                    #Make it absolute, if not yet.
+                    #If relative, it could just result from a "find $HOME ..."
+                    if [ -n "${_pname##/*}" ]; then
+			_pname=${HOME}/${_pname}
+
+		    fi
+
+                    #check for VNC client
+                    if [ "${VMW_MAGIC}" == VMW_WS6 -a -n "${_vnc}" ];then
+			_VNC_CLIENT_MODE=`getVNCport "${_pname}"`
+		    fi
+
+
+                    #I guess we have a valid _pname and a _label now.
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "Start session:"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  LABEL       = ${_label}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  VNCPORT     = ${_VNC_CLIENT_MODE} ($_vnc)"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  UUID        = ${_uuid}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  MAC         = ${_mac}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  TCP         = ${_tcp}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  PATHNAME    = ${_pname}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "  CALLOPTS    = \"${_callopts}\""
+
+                  ###########################
+                   #    So, ... let's go!    #
+                  ###########################
+
+                    #check whether a mediating wormhole is required. 
+                    #In any case find the entry for peer.
+		    if [ "${CTRL_CLIENTLOCATION}" !=  "-L ConnectionForwarding" \
+			-a "${CTRL_CLIENTLOCATION}" !=  "-L LocalOnly" \
+ 			];then
+
+                        #Seems to be executed on remote host, not the calling station
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+
+                        #check for running local server...
+                        #...remember, this part is actually running local-on-remote site!
+ 			local _IDx=`fetchID4Label ${_label}`
+			_pname=${_pname:-$_IDx}
+                    else
+
+                        #Is executed on the calling station
+                        #so is to be executed completely locally or a local client to be tunneled.
+                        #
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+
+                        #find local entry for SSH-tunnel with generic LABEL as marker for proxying to remote server.
+ 			local _IDx=`digGetLocalPort ${_label}`
+			_pname=${_pname:-`fetchID4Label ${_label}`}
+
+			if [ "$_vnc" == 1 -a -n "$_IDx" ];then
+			    _VNC_CLIENT_MODE=$_IDx
+			fi
+		    fi
+		    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE " Session-Identifier: ${_label} ->${_IDx}"
+
+
+# ##########################################
+#   echo "------------------------------"   #
+#   echo "_label    = ${_label}"             #
+#   echo "_uuid     = ${_uuid}"               #
+#   echo "_pname    = ${_pname}"               #
+#   echo "_tcp      = ${_tcp}"                  #
+#   echo "_mac      = ${_mac}"                 #
+#   echo "_callopts = \"${_callopts}\""       #
+#   echo "------------------------------"    #
+#   exit 0                                  #
+# ##########################################
+
+
+                    #check whether server is already running(local or remote)
+                    #therfore a peer must be present
+		    if [ -n "${_IDx}" ];then
+                        #Server is already running, so it is a potential CONNECT.
+
+                        #perform only if REUSE is present
+                        #so practically this could only be LocalOnly or DisplayForwarding,
+                        #ConnectionForwarding is normally impossible, due to timeout of connection(One-Shot-Mode)
+#		      if [ -n "${_reuse}" -a "${CTRL_CLIENTLOCATION}" !=  "-L ServerOnly" ];then
+			if [ -n "${_reuse}" ];then
+                            #only something to do when anything else than the server is running
+                            #server is defined not to be reused
+			    if [ "${CTRL_CLIENTLOCATION}" !=  "-L ServerOnly" ];then
+                                #if to be reused
+				printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "REUSE: \"${_pname}\" \"${_label}\" \"${_IDx}\""
+
+                                #check now for reconnect, if so kill whole competition
+				if [ -n "${_reconnect}" ];then
+                                    #So it is all to be killed: ID might be available here.
+				    _history=`listMySessions CLIENT,FULLPATH,TERSE,LABEL,ID,UUID,PID,SITE|\
+                                              awk -F';' -v i="${_IDx}" '$2~i{print $1 ";" $2 ";" $4 ";" $5}'`
+
+                                    #kill clients, guess the caller knows what he is doing, particularly
+                                    #has assured a stateless server!!!
+  				    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "MODE=RECONNECT($_history)"
+				    for _i in ${_history};do
+					[ "${_i##*;}" != CLIENT ]&&continue; #OK, not really required, but for safety
+					printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "kill:${_i}"
+					local _pid=${_i%;*}
+					_pid=${_pid##*;}
+					echo -n "Session:\"${_i%%;*}\":PID=$_pid"
+					kill $_pid
+					echo
+				    done
+				fi
+
+                                #trust for now - any garbage is removed
+				connectSessionVMW "${_pname}" "${_label}" "${_VNC_CLIENT_MODE}" 
+			    fi
+			else
+			    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_CREATE "Session already exists ID=${_IDx} - LABEL=${_label}"
+			    ABORT=1
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "Session already exists ID=${_IDx} - LABEL=${_label}"
+			    printERR $LINENO $_VMW_CREATE ${ABORT} "  Choose \"REUSE\" if you want connect-only when existing"
+			    gotoHell ${ABORT}
+			fi
+
+		    else
+                        #Server not yet running, so it is a CREATE, or a remote connection has to be established,
+                        #which must be a server-split of an ConnectionForwarding.
+
+
+			if [ "${CTRL_CLIENTLOCATION}" !=  "-L ConnectionForwarding" ];then
+                            #
+                            #So, this is executed on server site, it is a DisplayForwarding
+                            #
+ 			    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+			    startSessionVMW "${_label}" "${_pname}"
+			else
+                            #
+                            #So, this is executed on the client site, different from server site,
+                            #it is ConnectionForwarding to a remote server.
+                            #So, dig the tunnel and connect myself.
+                            #
+ 			    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+                            digLocalPort VMW $R_HOSTS $_label $_pname
+
+ 			    local _lport=`digGetLocalPort ${_label}`
+                            if [ -z "$_lport" ];then
+                                #Something went wrong!!!???                                      
+				ABORT=1
+				printERR $LINENO $_VMW_CREATE ${ABORT} "Cannot allocate ConnectionForwarding"
+				printERR $LINENO $_VMW_CREATE ${ABORT} "  digLocalPort <VMW> <$RHOSTS> <$i>"
+				gotoHell ${ABORT}
+			    fi
+
+ 			    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_CREATE "_lport=${_lport} i=${i}"
+			    if [ -n "${_vnc}" ];then
+				_VNC_CLIENT_MODE=${_lport}
+			    fi
+			    connectSessionVMW "${_pname}" "${_label}" "${_lport}" 
+			fi
+		    fi
+		    gotoHell 0
+		fi
+	    fi
+	    ;;
+    esac
+
+}
+

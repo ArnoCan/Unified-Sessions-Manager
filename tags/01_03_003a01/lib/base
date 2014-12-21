@@ -1,0 +1,761 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+_myLIBNAME_base="${BASH_SOURCE}"
+_myLIBVERS_base="01.03.001b01"
+
+#The only comprimese for bootstrap, calling it explicit 
+#from anywhere. 
+function baseRegisterLib () {
+  libManInfoAdd "${_myLIBNAME_base}" "${_myLIBVERS_base}"
+}
+
+################################################################
+#               Default definitions - 1/2                      #
+################################################################
+MYCALLPATH=${MYCALLPATH:-`direname $0`}
+
+#Basic OS info for variant decisions.
+MYOS=${MYOS:-`$MYCALLPATH/getCurOS`}
+MYOSREL=${MYOSREL:-`$MYCALLPATH/getCurOSRel`}
+MYDIST=${MYDIST:-`$MYCALLPATH/getCurDistribution`}
+MYREL=${MYREL:-`$MYCALLPATH/getCurRelease`}
+
+
+DATE=`date +"%Y.%m.%d"`
+TIME=`date +"%H:%M:%S"`
+DATETIME=`date +"%Y%m%d%H%M%S"`
+DAYOFWEEK=`date +"%u"`
+
+
+#Debugging
+#For description refer to "-d" option of CLI.
+#
+#The value of '0' switches the debugging off,
+#which could be usefull for exclusion of spacific 
+#machines within a group.
+#
+export DBG_LVL_UI=${DBG_LVL_UI:-1}
+export DBG_LVL_UIE=${DBG_LVL_UIE:-2}
+export DBG_LVL_UID=${DBG_LVL_UID:-3} 
+export DBG_LVL_SUPPORT=${DBG_LVL_SUPPORT:-4}
+export DBG_LVL_MAINT=${DBG_LVL_MAINT:-5}
+export DBG_LVL_OVERKILL=${DBG_LVL_OVERKILL:-6}
+export DBG_LVL_HAYSTACK=${DBG_LVL_HAYSTACK:-10}
+
+export DBG_RANGE_MIN=0;
+export DBG_RANGE_MAX=99999;
+
+#Debugging
+unset CTRL_VERBOSE;
+#Handling bootstrap-debugging by ...
+#External variable: _SUPRESSVERBOSESTARTUP
+
+
+###############################################################
+#                    Base definitions                          #
+################################################################
+
+#Handling bootstrap-debugging by ...
+if [ -z "${_SUPRESSVERBOSESTARTUP}" ];then
+
+  #... "-d <#debug-level>"
+  #Does not match at EOL, but this seem not to be occuring! So ignore it! If requires use 1 SPACE at least.
+  if [ -n "`echo $*| sed -n 's/([^)]*)//g;s/-d /1/p'`" ];then
+      _DLVL=`echo $*| sed -n 's/^.*-d *\([0-9]*\)[ )].*$/\1/p'`
+      #Honestly, yes sometimes I patchwork-it...it's too late in the "morning" now!!!!
+      [ -z "${_DLVL}" ]&&_DLVL=`echo $*| sed -n 's/^.*-d *\([0-9]*\)$/\1/p'`
+      if [ -n "${_DLVL}" ];then
+	  CTRL_VERBOSE=${_DLVL};
+	  if [ "${_DLVL}" -ge "${DBG_LVL_OVERKILL}" ];then
+	      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:Setting verbose bootstrap until \"-d ${_DLVL}\" eval." >&2;
+	      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:  => HOSTNAME     = ${HOSTNAME};" >&2;
+	      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:  => CTRL_VERBOSE = ${CTRL_VERBOSE};" >&2;
+	  fi
+      else
+	  echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:ERROR:Debugging option \"-d\" detected, but missing level" >&2;
+	  echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:ERROR: \$*=<$*>" >&2;
+	  exit 1;  
+      fi
+  fi
+  #... "-w" add extended warning
+  if [ -z "`echo $*| sed -n 's/-w/1/p'`" ];then
+      unset CTRL_WARNINGEXT;
+  else
+      export CTRL_WARNINGEXT="1";
+  fi
+
+  #... "-W" suppress warning
+  if [ -n "`echo $*| sed -n 's/-W/1/p'`" ];then
+      unset CTRL_WARNING;
+  else
+      export CTRL_WARNING="1";
+  fi
+fi
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkBASHversion
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkBASHversion () {
+  #Check some debug features, for runtime basically,
+  #for technical part of development, could be ignored for application, if really neccessary!
+  if [ ${BASH_VERSINFO[0]} -lt 3 ];then
+    echo "${MYCALLNAME}@${MYHOST}:$LINENO $BASH_SOURCE:WARNING:Version of BASH should be newer than 3.0 required:${BASH_VERSINFO[*]};" >&2;
+    if [ -z "`echo $*| sed -n 's/-f/1/p'`" ];then
+      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:INFO:An appropriate version might be installed." >&2;
+      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:INFO:For now the mismatch is regarded as minor, though try temporarily the  \"-f\" option." >&2;
+      exit 1  
+    fi
+  fi
+
+  #Some mandatory features like almost full scope of arrays and
+  #correct line numbering for debugging is seen as mandatory prerequisite!
+  if [ \
+       ${BASH_VERSINFO[0]} -lt 2 \
+       -o ${BASH_VERSINFO[0]} -lt 2 -a ${BASH_VERSINFO[1]} -lt 6 \
+  ];then
+    echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:ERROR:Version of BASH newer than 2.05 required, current=${BASH_VERSINFO[*]};" >&2;
+    exit 1  
+  fi
+}
+
+
+checkBASHversion $*
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  doDebug
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns wheter debug level matches. If some specific
+#  actions to be done. E.g. evaluating time-intensive
+#  debug actions for tests.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: Debug it.
+#    1: No debug.
+#  VALUES:
+#
+#FUNCEND###############################################################
+function doDebug () {
+  local level=$1;shift
+  local linenr=$1;shift
+  local filename=${1##/*/};shift
+  if [ -n "${CTRL_VERBOSE}" ]; then
+    if((CTRL_VERBOSE>=level&&linenr>=DBG_RANGE_MIN&&linenr<=DBG_RANGE_MAX));then
+      printf "%s@%s:$$:%s:%s:%s" ${MYCALLNAME} ${MYHOST} $filename $linenr $level >&2;
+      echo ":Debug it!" >&2;
+      return 0;
+    fi
+  fi
+  return 1;
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  printVerboseDebug
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Prints only when called with more than one option and matches defined 
+#  number.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printVerboseDebug () {
+  local level=$1;shift
+  local linenr=$1;shift
+  local filename=${1##/*/};shift
+  if [ -n "${CTRL_VERBOSE}" ];then
+    if((CTRL_VERBOSE>=level&&linenr>=DBG_RANGE_MIN&&linenr<=DBG_RANGE_MAX));then
+      printf "%s@%s:$$:%s:%s:%s" ${MYCALLNAME} ${MYHOST} $filename $linenr $level >&2;
+      echo ":$*" >&2;
+    fi
+  fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  printVerbose
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Prints only when called with debug.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printVerbose () {
+  printVerboseDebug 0 $*
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  printERR
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Prints errors
+#   -> printERR <line> <code> <message>
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printERR () {
+  local linenr=$1;shift
+  local filename=${1##/*/};shift
+  echo -n "${MYCALLNAME}@${MYHOST}:$$:$filename:$linenr" >&2;
+  echo -n ":ERROR" >&2;
+  echo -n ":CODE=$1" >&2;shift;
+  echo ":$*" >&2;
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  printWNG
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Prints warnings
+#   -> printWNG <line> <code> <message>
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printWNG () {
+  if [ -n "${CTRL_WARNING}" ];then
+    local linenr=$1;shift
+    local filename=${1##/*/};shift
+    echo -n "${MYCALLNAME}@${MYHOST}:$$:$filename:$linenr" >&2;
+    echo -n ":WARNING" >&2;
+    echo -n ":CODE=$1" >&2;shift;
+    echo ":$*" >&2;
+  fi
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  printWNGEXT
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Prints warnings with extended severity, mostly not required.
+#  Will be controled by a seperate option "-w".
+#
+#   -> printWNGEXT <line> <code> <message>
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printWNGEXT () {
+  if [ -n "${CTRL_WARNINGEXT}" ];then
+    local linenr=$1;shift
+    local filename=${1##/*/};shift
+    echo -n "${MYCALLNAME}@${MYHOST}:$$:$filename:$linenr" >&2;
+    echo -n ":WARNING" >&2;
+    echo -n ":CODE=$1" >&2;shift;
+    echo ":$*" >&2;
+  fi
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  callErrOutWrapper
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Fetched the User-ID and Group-UID of primary group,
+#  as string in the format:
+#
+#    <uid>;<guid>
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1:    LINENO of caller
+#  $2:    BASH_SOURCE of caller
+#  $3-*:  The call to be wrapped
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function callErrOutWrapper () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:<${@}>"
+    printWNGEXT $LINENO $BASH_SOURCE 0 "$FUNCNAME:<${@}>"
+    local _originLine=$1;shift
+    local _originFile=$1;shift
+    local _cli=$*
+    local _res=0
+    printWNGEXT $_originLine "$_originFile" 0 "$FUNCNAME:<${@}>"
+
+    exec 3>&1
+    exec 4>&2
+    local _buf=`${_cli} 2>&1 1>&3`
+    #basically risky workaround!!!
+    [ -n "$_buf" ]&&_res=1;
+    #_res=$?;
+    #_res fails here, but not in pattern ???
+
+    exec 3>&-
+    exec 4>&-
+    printWNGEXT $_originLine "$_originFile" 0 "$FUNCNAME:_res=<${_res}> _buf=<${_buf}>"
+    return $_res
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  splitPath
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists long search paths(e.g. PATH, LD_LIBRARY_PATH) as one entry 
+#  on each line spanning multiple lines.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1:  number of coluns to be indented
+# $2:  Name of variable
+# $3:  colon-seperated path variable
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function splitPath () {
+  local _indent=$1;shift
+  echo "${1}:${2}"|awk -F":" -v inde=${_indent} '
+    { 
+      printf("%-"inde-1"s= %s\n",$1,$2);
+      for(i=3;i<=NF;i++){
+        printf("%"inde+2"s%s\n",":",$i);
+      }
+    }
+  '
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkPathElements
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks for dengling path elements in search paths seperated by ":"
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkPathElements () {
+  local PNAME=$1;shift
+  local P
+  for i in `echo ${*}|awk -F':' '{for(i=1;i<=NF;i++)print $i;}'`;do 
+    if [ ! -d "${i}" ];then
+       RET=1;
+       [ -z "$P" ]&&P=1&&printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Invalid search path element in \"${PNAME}\":"
+       printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}: ->${i}"
+    fi
+  done
+  return ${RET}
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkFileListElements
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks for existenz and type of a list of files.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $@: A list of files-paths with one of the seperators "[: ]"
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkFileListElements () {
+  local PNAME=$1;shift
+  local P
+  for i in `echo ${*}|awk -F'[:]' '{for(i=1;i<=NF;i++)print $i;}'`;do 
+    if [ ! -f "${i}" ];then
+       RET=1;
+       [ -z "$P" ]&&P=1&&printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Invalid search file list element in \"${PNAME}\":"
+       printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}: ->${i}"
+    fi
+  done
+  return ${RET}
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getRealPathname
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns real target for sysmbolic links, else the pathname itself.
+#
+#  Hardlink is not treated specially.
+#
+#   $1: Argument is checked for beeing a sysmbolic link, and
+#       if so the target will be evaluated and returned,
+#       else input is echoed.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getRealPathname () {
+    local _maxCnt=20;
+    local _realPath=${1}
+    local _cnt=0
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_realPath=${_realPath}"
+    while((_cnt<_maxCnt)) ;do    
+	if [ -h "${_realPath}" ];then
+            _realPath=`ls -l ${1}|awk '{print $NF}'`
+        else
+	    break;
+	fi
+	let cnt++;
+    done
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_realPath=${_realPath}"
+    if((_maxCnt==0));then
+        ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Path could not be evaluated:${1}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "INFO: Seems to be a circular-chained sysmbolic link"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "INFO: Aborted recursion level: ${_maxCnt}"
+	gotoHell ${ABORT}
+    fi
+    echo -n "$_realPath"
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  gotoHell
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Exit with ignore-check
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function gotoHell () {
+  printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Controlled exit($1)"
+  [ -n "${CTRL_PRINTINFO}" -a "${CTRL_PRINTINFO}"  != 0 ]&&printLegal;
+  [ -z "${IGNORE}" ]&&exit $1
+  printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Ignoring exit"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getUserGroup
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getUserGroup () {
+   id $1|sed -n 's/.*gid=[0-9]*(\([^)]*\)).*/\1/p'
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initPackages
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Helper for shift 1 of an ordinary string
+#
+#  spaces not removed
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initPackages () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
+    local _ret=1;
+    local _myRootHook=${MYINSTALLPATH}/plugins/hook
+
+    if [ -n "${MYINSTALLPATH}" -a -f ${_myRootHook} ];then 
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Packages: hook=${_myRootHook}"
+	. ${_myRootHook}
+        _ret=0;
+    fi
+
+    #set it up
+    if((_ret==0));then
+        for n in 1 2 3 4 5;do
+  	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Packages: entering init(${n})..."
+            initPACKAGES $n
+        done
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Packages: ...init finished."
+    else
+	printWNG $LINENO $BASH_SOURCE 1 "Packages: NOT LOADED"
+	printWNG $LINENO $BASH_SOURCE 1 "INFO:Check for \"hook\""
+	printWNG $LINENO $BASH_SOURCE 1 "INFO:  LD_PLUGIN_PATH =\"${LD_PLUGIN_PATH}\""
+	printWNG $LINENO $BASH_SOURCE 1 "INFO:  DEFAULT        :\"${_myRootHook}\""
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMyMAC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMyMAC () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
+    local _mac=;
+    case ${MYOS} in
+	Linux)
+	    _mac=`ifconfig |awk '/Link encap:Ethernet/{if(p==0){p=1;print $NF}}'`;
+	    ;;
+	OpenBSD)
+	    _mac=`ifconfig |awk '
+            /flags=/&&$1!~/lo0/ {if(p==0){p=1;}}
+            /lladdr /&&p==1      {print $2;p=2;}
+            '`;
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_mac=$_mac"
+    echo -n $_mac
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMyIP
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMyIP () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
+    local _ip=;
+    case ${MYOS} in
+	Linux)
+	    _ip=`ifconfig |awk '/inet /{if(p==0){p=1;print $2}}'|awk -F':' '{print $2}'`;
+
+	    ;;
+	OpenBSD)
+	    _ip=`ifconfig |awk '
+            /flags=/&&$1!~/lo0/ {if(p==0){p=1;}}
+            /inet /&&p==1        {print $2;p=2;}
+            '`;
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ip=$_ip"
+    echo -n $_ip
+}
+
+
+MYINSTALLPATH=`getRealPathname ${MYCALLPATHNAME}`
+MYINSTALLPATH=${MYINSTALLPATH%/*/*}
+printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "MYINSTALLPATH=${MYINSTALLPATH}"
+

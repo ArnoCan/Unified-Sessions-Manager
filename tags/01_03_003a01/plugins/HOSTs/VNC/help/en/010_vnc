@@ -1,0 +1,285 @@
+   9.2.2. VNC - Virtual Network Console
+   ====================================
+
+   9.2.2.1. Description
+    -------------------
+
+     This package just starts a VNC session on the native OS running on
+     the target target host. Therefore a vncserver is started and
+     managed on the target server, whereas a vncviewer could be started
+     on the target host or a any client/current client by "Display
+     Forwarding" or "Connection Forwarding".
+
+     The intermixed usage of VNC, where the vncviewer is connected to a
+     VM, which supports a vncserver as it's User-Device, is handled
+     within the specific VM-package.
+
+     Currently the VNC variants RealVNC (main target) and TightVNC are
+     supported. 
+ 
+
+     Sessions Name binding:
+     =====================
+
+      The standard namebinding is extended with the following attributes 
+      for VNC plugin as given. This is particularly handy for testing
+      purposes, but helpfuly for a number of daily tasks too.
+
+      The reason for providing the opportunity of openning multiple
+      sessions at once is particularly useful for DisplayForwarding,
+      beacuse in this case all sessions, which will be dissassembled
+      to multiple calls on servers site, are forwarded through one
+      common SSH tunnnel. This is because all vncviewer "subdesktops"
+      are displayed on the "one and only remote" desktop, which itself
+      is forwarded. So it is not neccessary to MuxDemux multiple
+      DISPLAY ids with multiple IP ports through one tunnel, which is
+      not supported for "ControlMaster" in current version of OpenSSH.
+
+      When using ConnectionForwarding, business is as usual.
+
+
+
+
+          <host-address>=(
+                           (id):(<id>)
+                           |
+                           (label|l):<label>
+                           |
+                           (bulk:[0-9]{1,3}),(label|l):<label>
+                         )
+
+
+            bulk:[0-9]{1,3}
+              This is a bulk counter for automatic handling of given
+              number of sessions. Mainly used for test purposes.
+
+              It extends automatically the supported standard <label>
+              with a three leading-zero-digits, for each instance. 
+              Which could be DEFAULT.
+
+              The default limiting maximum is set to 20.
+
+              <bulk> could be used for CREATE only.
+
+
+
+     ACCESS-GUESTOS:
+     ===============
+
+      The VNC plugin itself could be used to access the GuestOS running
+      in any VM as a remote desktop.
+
+
+
+     VNC port offset:
+     ================
+
+      The basic port offsets for calculations of display numbers are
+      currently implemented as an environment variable, thus could be
+      defined individually within the scope of each USER on each HOST.
+
+
+
+   9.2.2.2. Options
+    ---------------
+
+     -a action[=<suboptions>]
+ 
+ 
+         CANCEL=<machine-address>
+               [,REBOOT|RESET|INIT|POWEROFF|SUSPEND]
+               [,ALL|BOTH|(CLIENT|SERVER)]
+ 
+
+            <machine-address>
+
+              For VNC the following parts of a <machine-address> are
+              applicable:
+
+                ID|I, LABEL|L
+
+              When the VNCviewer/VNCserver is used in shared-mode, the
+              address applies to all sharing VNCclients/vncviewer are
+              handled as one logical unit and CANCEL is applied to all
+              at once.
+
+
+            REBOOT|RESET|INIT|SUSPEND
+
+              These methods just behave as a "soft-kill" which is a
+              more or less soft shutdown, for VNC only! Application
+              shutdown is not supported.
+
+              So in this case first all clients are killed, following
+              a call to "vncserver -kill :<id>" for all matched. No
+              additional action is performed in case of a failure.
+
+
+            POWEROFF
+
+              These methods could be seen as a "hard-kill" which is a
+              trial to "soft-kill" and an immediate following process
+              kill by means of native OS. Thus there might be
+              definetly no chance for a controlled shutdown of
+              unprepared applications.
+
+
+
+
+            ALL|BOTH|(CLIENT|SERVER)
+
+              These define the range, where ALL and BOTH kill clients
+              and servers on local machine. Remote clients by
+              ConnectionForwarding might be exiting when server-loss
+              is detected.
+
+              The SERVER scope is actually for VNC the same as ALL or
+              BOTH, this is due to the default (non-server) behaviour
+              of attached clients, which should exit when detecting a
+              server-loss.
+
+              The CLIENT scope just kills all client processes by
+              means of OS, which is simply calling kill on their
+              PID. The server processes remain untouched.
+
+
+          The session(s) will be basically just killed, so the caller
+          is resposible for appropriate handling of contained jobs.
+ 
+
+
+
+         CREATE=<machine-address>
+               [,REUSE|CONNECT|RECONNECT]
+               [,(VNCBASE|VBASE):<base-port>]
+               [,(VNC|V):<literal-port>]
+               [,(VIEWERDELAY):<delay-before-viewer-call>]
+
+            <machine-address>
+
+              The address of the machine to be activated, varied as
+              defined by <host-address>
+
+
+            REUSE
+
+              When a server process with matching ID or LABEL is
+              already running it will be used, else a new one will be
+              started. 
+
+              In case of non-shared-mode operations of VNC any running
+	      vncviewer will be killed by disconnecting through the
+	      VNCserver. This is almost the same behaviour as for
+	      RECONNECT.
+
+              When running in shared-mode, just an additional
+	      vncviewer will be attached to the server. 
+
+
+            CONNECT
+
+              Almost the same as REUSE, but no new server will be
+              started if missing.
+
+
+            RECONNECT
+
+              Similiar to REUSE, with the difference, that any
+              previous active client will be killed before attachin
+              ONE new client. Therefore in shared mode, when multiple
+              clients could simultaneously share one server, all
+              sharing clients are handled as one logical unit and will
+              be thus killed together.
+
+              Specific exchange of a single client is not supported.
+
+
+            (VNCBASE|VBASE):<base-port>
+
+              Base port as new offset for port calculations from the
+              DISPLAY number. Standard value is 5900.
+ 
+
+            (VNC|V):<literal-port>
+
+              Port to be used literally, required for several VMs with
+              fixed Server-Ports.
+
+              REMARK: Frequently fails to attach a viewer to a started
+                      server ONCE only, when started first time. After
+                      this seems to be stable.
+
+                      So a following CONNECT or REUSE will attach a
+                      vncviewer.
+
+                      Solution, ... (would be deeply welcome!).
+
+
+            (VIEWERDELAY):<delay-before-viewer-call>
+ 
+              Delay for start of vncviewer, required when the
+              execution is too fast for the VNCserver to finish it's
+              init.
+
+              Lead othewise on fast machines sometimes to:
+
+               "X Error of failed request:  \
+                BadAccess (attempt to access private resource denied)"
+ 
+
+
+         ENUMERATE
+ 
+            Not applicable to VNC.
+ 
+
+         LIST
+
+           Almost the same output as common standard, with following
+           changes in semantics.
+
+
+             [id]
+
+               The display ID without the port offset as provided by
+               VNCserver.
+
+
+           Exactly the same semantics as common standard:
+
+
+             label, type, pid, gid, user, group, host, 
+             cs, cp, dsp
+
+
+           The following values are not applicable:
+
+             uuid, mac, sp
+
+           
+
+           List-Output-Format for MACHINE option:
+            -------------------------------------
+
+             +-----------------------------+
+               0 - h:    host              |
+               1 - t:    type
+               2 - l:    label             | Structure is 
+               3 - i:    id                | identical to ENUMERATE
+               4 - uu:   uuid              | action
+               5 - mac:  mac               |
+             +-----------------------------+
+               6 - dsp:  display
+               7 - cp:   client access port
+               8 - sp:   server access port
+               9 - p:    pid
+              10 - u:    uid
+              11 - g:    gid
+              12 - cs:   client|server
+
+
+               6. Display to be used for X11.
+               7. TCP/IP-port for client connect.
+               8. Port for server managemetn, e.g. as supported by
+                  Xen.
+

@@ -1,0 +1,723 @@
+
+  3. PMs and VMs - Physical and Virtual-Machine-Sessions
+  ======================================================
+ 
+     The previous aspect of creating generic remote sessions to local
+     and remote hosts is closely related to remote start of virtual
+     machines.
+ 
+     In nowadays the distinction between physical and virtual machines
+     is getting lost. OSs like OpenBSD could be even installed in a VM
+     running in a Linux environment, customized and tailored as
+     required, burned on a DVD or stored to Flash-Memory, and boot
+     seemlessly with only minor previous changes, running on almost
+     any hardware.
+ 
+     The management of logical sessions to running OSs, either on a
+     "Physical Machine" - PM or a "Virtual Machine" - VM is the main
+     task of this tool.
+ 
+     Therefore the startup and shutdown as well as a reconnect to
+     various OS running on various virtual machines is implemented. 
+     The access interface is almost - with some minor unavoidable
+     divergences - unified, and suports required mandatory features
+     for daily business. The focus for application is small to medium
+     sized workenvironments for systems administration and development
+     of  distributed systems.
+ 
+     The handling of the virtual machines is supported mainly by the
+     parameters "-t", "-T" and "-a". Where "-t" defines the type of virtual
+     and/or physical machine to be addressed, "-T" the lists the
+     plugins to be loaded, which could be reauired additionally as
+     subcalls or focus of operations for generic collectors. 
+
+     Due to a dynamic load environment for bash plugins, only required
+     plugins are loaded, which could load required submodule for the
+     main ACTION module on demand. Refer to development documents for
+     additional information. 
+
+
+        -t  one type of session
+        -T  list of session types
+
+ 
+           DEFAULT: VNC
+
+           CLI:  Command Line Interface.
+
+           X11:  X11 caller.
+
+           VNC:  Native or virtual running OS accessed with RealVNC or
+                 TightVNC. 
+
+           QEMU: With VNC, X11, or CLI modules as remote
+                 console. Aditionally the SDL console is supported.
+
+           XEN:  With VNC, X11, or CLI modules as remote console.
+
+           VMW:  VMware workstation, server, and player. With it's own
+                 proprietary console or VNC client.
+
+           PM:   Physical machine access, supports Wake-On-LAN.
+
+ 
+           For additional plugins refer to specific help of
+           generic loaded modules.
+
+
+           
+      The "-a" parameter defines the action to be performed on the
+      defined session type.
+ 
+
+        -a - mode of action or access
+           For additional information refer to following options
+           descriptions.
+
+
+     The handling of the sessions is splitted into a client and into a
+     server part.  Thererfore ctys will be executed locally and
+     remotely, with specific context. The executable itself has to be
+     literally the same due to compatibility issues, this will be
+     assured by exchange version infomation. 
+
+     Therefore ctys has to be installed in compatible version on all
+     participating peers. When using a network account with a central
+     HOME directory auto-mounted on each target, the tool does not
+     need to be copied.
+
+
+ 
+   3.1. Session-Types and Common-Features
+   ======================================
+
+     The various session types, including all categories, have the
+     same basic interface. The interfaces vary by their suboptions,
+     which is required due to specific differences.
+
+     Thus all support the actions CREATE and CANCEL as their own
+     exclusive top-level methods. The exception here is the CANCEL
+     method, which is not supported for CLI and X11 types as pure
+     "console" applications without a Client-Server component.
+
+
+     Additionally the generic actions are supported, which have
+     sub-dispatchers for calling sets of session types for display
+     purposes, and generic methods for retrival of information for
+     specific target, which includes basic information about the type
+     of sessions plugin itself.
+
+     The generic sessions LIST and ENUMERATE work as collectors for a
+     given set of sessions, which could be displayed intermixed when
+     requested by the user. LIST shows the current actual runtime
+     instances, whereas ENUMERATE collects information for stored
+     sessions from their configuration files - a.k.a. VMs.
+
+     The exception here is the exclusion of the HOSTs plugins from the
+     ENUMERATE results, this is because they have more or less dynamic
+     data only, no configuration is stored. Even though some
+     parameters - such as base-ports for VNC connections, or mapping
+     of "tunnel-only" ports for "ConnectionForwarding" has to be
+     preconfigured.
+
+     The handling of usage of VNC as console client only for XEN,
+     QEMU, and VMware is controlled by the offered usage-variant only,
+     not within the VNC plugin.
+
+     The actions INFO and SHOW display common data for the addressed
+     target itself, thus the data shown for session types -
+     a.k.a. plugins - is the information of the operabitlity of the
+     plugin itself, not the managed sessions.
+
+     INFO displays static data, such as version information and
+     installed features. This includes the runtime basis, which is the
+     base OS and the HW. Therefore for example the virtualisation
+     capabilities of the CPU (vmx, svm, and pae) are listed in
+     companion with the RAM, and some selected management applications
+     like lm_sensors, hddtemp, and gkrellm.
+
+     SHOW displays the dynamic data, which e.g. includes a one-shot
+     display of top output. The health and by default present alarms
+     as given by sensors are displayed too.
+
+
+
+   3.2. Stacked-Operations
+   =======================
+
+     As will be detailed within the following chapters, the whole
+     operational environment is focused on usage of stacked, which is
+     nested VMs. Therefore the provided plugins support silently
+     iterated operations on running entities for actions where
+     appropriate.
+
+     This means, that if the PM, which is the host anything is
+     physical located on and therefore "could be said depends on",
+     will be CANCELed, the stack of VMs and HOSTs sessions will be
+     handeled by forward - here upward - propagation of the CANCEL
+     call. This will be handeled properely for any intermix, and of
+     course has to be supported for custom made plugins too. But a
+     single and simple call interface is all to be used.
+
+     Basically the same propagation, whereas forward means virtually
+     downward here, is provided for CREATE action.
+
+     This could be controlled by the common sub-options FORCE and
+     STACK.
+
+     For details refer to the following chapters and the related
+     options.
+
+     It should be mentioned here, that some specifics occur for
+     generic actions in combination with stacked operations.
+
+     The ENUMERATE method, which is a static collector, does not
+     support stacked operations. This is due to the requirement of a
+     running instance to be ENUMERATE of it's contained
+     sub-instances. Thus the ENUMERATE method has to activate the
+     whole upper stack -permutated of course - when would be applied
+     with automatic stack resolution. This seems not to be a practical
+     applicable behaviour.
+
+     Whereas the LIST method perfectly fits to a stacked operation as
+     real gain of usability and transparency for nested VM stacks,
+     which are "perfectly" encapsulated by definition.
+
+     Thus it could be said as a rule of thumb, that static methods are
+     not applicable to implicit stackresolution for real sytems due to
+     the resulting bulk-activation. Whereas the dynamic actions
+     support essential benefit to the user.
+
+
+   3.3. Nested VMs
+   ===============
+
+   3.3.1. VM-Stacks
+    ---------------
+
+     One very basic idea behind the usage of virtual machines - VMs
+     and physical machines - PMs in a unified environment is the
+     stacking of multiple instances. "Stacking" in this context is
+     more a nested execution, though the each layer is contained and 
+     hidden by it's downstream VM as it's execution environment.
+
+     Therefore two views are defined in order to depict the layers and
+     define their dependency. The functional dependency is crucial for
+     recovery functionality such as startup and shutdown.
+
+     The primary model visualization is similiar to the B-ISDN model
+     description by usage of panes. In the context of VM stacks the
+     definition is given as:
+
+       - vertical front view: depicts PMs and VMs only
+
+       - vertical side view:  depicts the stack of OSs
+
+       - top pane:            depicts for each layer it's contents
+
+
+
+     The following figure shows the pane view as a "3-dimensional"
+     blueprint. 
+
+
+     sl-0: The front-view lists the stack as netsted containment
+           hierarchy. Where on a PC-Base - the PM-plugin - the OS
+           Linux is operated, as depicted on teh side-view. In this
+           case the Dom0 of Xen. 
+
+     sl-1: The next layer is the an arbitrary DomU operating the OS
+           Linux as depicted on the side-view.
+
+     sl-2: The following layer is an "in VM" operated VM, which is a
+           User-Space process emuating an ARM-CPU.
+
+
+
+     The top-pane, which is the only visible, here shows the running
+     entities os the topmost VM and it's operated OS. In this case it
+     is an arbitrary application based on test packages of QEMU-0.9.1
+     - "arm-test". I is executed on two layers of CentOS-5.0 in an
+     Xen-3.0.3 environment. 
+
+     Just for completeness, the compilation of the QEMU version, due
+     it's gcc-3x requirement, was performed within a SuSE-9.3 linux
+     installed in a VMware-WS-6 version as a 32bit machine on a 64bit
+     CentOS running on a dual Opteron Server. The "make install" does
+     not require a gcc-3x, and could be performed with the standard
+     gcc-4 installation on CentOS-5.0.
+
+
+     The arm-test version with ARM-Linux works from the box, but
+     requires some network configuration. The main pre-requisite is the
+     configuration of TAP devices for sl-1, which is described in the
+     examples chapter. Additionally the eth0 device within the
+     arm-test layer sl-2 has to be configured by ifconfig only, which
+     is sufficient.
+
+
+
+
+
+                                       +------------------------+
+                                      /                        /|
+                                     /                        /t+
+                                    /                        /s/|
+                                   /                        /e/ +
+                                  /                        /t/ /|
+                                 / HOST=Embedded-App      /-/S/ +
+                                /                        /m/O/ / 
+                               /                        /r/t/S/
+                              +------------------------+a/n/O/
+                    sl-2      | VM1  = QEMU-ARM        |/e/t/
+                              +------------------------+C/n/
+                    sl-1      | VM0  = Xen-DomU        |/e/
+                              +------------------------+C/
+                    sl-0      | PM   = HW+Linux-Dom0   |/
+                              +------------------------+
+
+                          Example-1: Pane-View
+
+
+     The following "2-Dimensional" ISO-like stack blueprint shows the
+     dependency in a more close view to peer-to-peer dependencies,
+     required, when implementing protocols for stack-management, which
+     is very similar to implementation of an communications protocol.
+
+     This view is for example particularly helpful, when any kind of
+     propagation has to be implemented, as in case of a
+     stack-shutdown.
+
+
+                  stack-layer
+                              +------------------------------+
+                    sl-3      | HOST = Application           |
+                              +------------------------------+
+                    sl-2      | VM1  = QEMU-ARM7 - arm-linux |
+                              +------------------------------+
+                    sl-1      | VM0  = DomU - Linux          |
+                              +------------------------------+
+                    sl-0      | PM   = Dom0 - HW+Linux       |
+                              +------------------------------+
+
+
+                          Example-2: stack-view
+
+
+     This is tested with the provided test-cases of QEMU and
+     additional configuration scripts as provided within the templates
+     directory. The cases coldfire, small, linux, and sparc are tested
+     too. In order to inteconnect that cases it is required to set
+     install and configure VDE and setup appropriate TAN deviced with
+     their interconnecting vde_switch. The IP addresses of the eth0
+     device within the GuestOSs has to be set appropriately.
+
+     For additional information refer to teh plugins chapter and the
+     examples list.
+
+     The following case depicts the more commen case for nowadays,
+     where just one layer of VMs is operated on a host -
+     e.g. Linux. Multiple instances are operated within the only layer
+     primarily for server consolidation an supply of centralized
+     services, e.g. for license sharing.
+
+
+                                     +------------------------+
+                                    /                        /|
+                                   /                        / +
+                                  / HOST=SMB-applications  / /|
+                                 / HOST=Office            / / +
+                                / HOST=EDwin             /K/X/
+                               /                        /2/U/ 
+                              +------------------------+W/N/
+                    sl-1      | VM0  = VMware          |/I/
+                              +------------------------+L/
+                    sl-0      | PM   = HW+Linux-Dom0   |/
+                              +------------------------+
+
+                          Example-3: Pane-View
+
+
+
+     The related stack-view shows the communications dependencies for
+     inter-layer management.
+
+
+                  stack-layer
+                              +------------------------+
+                    sl-3      | HOST = SMB Application |
+                              +------------------------+
+                    sl-2      | VM1  = W2K             |
+                              +------------------------+
+                    sl-1      | VM0  = VMware          |
+                              +------------------------+
+                    sl-0      | PM   = HW+Linux        |
+                              +------------------------+
+
+                          Example-4: stack-view
+
+
+
+     It should be recognized, that there are for now 3 models and more
+     or less compeletely different inetrfaces for the listed VMs.
+
+     Whereas Xen almost has no direct view from the Dom0 to the DomU,
+     just by specific tools, the VMware-VMs and QEMU-VMs could be
+     listed by the ordinary "ps" command. 
+
+     One particular advantage, which has some performance drawback, is
+     the complete CPU emulation of QEMU. This makes it to the perfect
+     entity for a stacked application. The kqemu module is for mixed
+     CPU types not usable anyhow. This is e.g. one another difference,
+     that QEMU could be used within user space only for a complete
+     emulation, the performance issue might be solved within the next
+     generations of CPUs.
+
+     The next difference is the CONSOLE access, which is proprietary
+     with it's own dispatcher for VMware(or a static VNC port for
+     WS6), whereas for XEN seperated VNC ports accessible by
+     independent "binds" exist.
+
+     But all of them fit into the model perfectly and are almost
+     unified for their access by "ctys".
+
+     The previous figure as shown depicts the basic constellation for
+     an nowadays common configuration, where a single layer of VM on a
+     PM supports a Cross-Platform functionality.
+
+     The Nested execution of VMs is officially "almost" not supported,
+     by any VM, just by some, providing their own hypervisor as base
+     only.
+
+     The following figure depicts a constellation which successfully
+     executed in lab. Even though the performance was more than
+     limited, the innermost boot finished after real-longer-while. But
+     anyhow, a successful login on the whole stack was performed.
+
+
+                  stack-layer
+
+                                     +------------------------+
+                                    /                        /|
+                                   / HOST=Application1      / +
+                                  /                        /X/|
+                                 /                        /U/ +
+                                /                        /N/ /|
+                               /                        /I/ / +
+                              +------------------------+L/K/X/
+                    sl-2      | VM1  = VirtualPC       |/2/U/
+                              +------------------------+W/N/
+                    sl-1      | VM0  = VMware          |/I/
+                              +------------------------+L/
+                    sl-0      | PM   = i386            |/
+                              +------------------------+
+
+
+                          Example-5: Pane-View
+
+
+
+                  stack-layer
+                              +------------------------+
+                    sl-3-->   | HOST = Application     |
+                              +------------------------+
+                        +->   | OS   = SuSE-Linux      |
+                    sl-2|     +------------------------+
+                        +->   | VM1  = MS-VirtualPC    |
+                              +------------------------+
+                        +->   | OS   = W2K             |
+                    sl-1|     +------------------------+
+                        +->   | VM0  = VMwareWS        |
+                              +------------------------+
+                    sl-0      | PM   = HW+Linux        |
+                              +------------------------+
+
+                  Example-6: Handling of first successfull VM-Nesting
+
+
+     Another wide area of application for nested VMs is the so called
+     Embedded segment where controller based applications
+     dominate. Much of the applications are based on raw, but meanwile
+     on full-scale but lean Embedded-OSs. Some examples for this are
+     the eCos and the uCLinux project. OpenBSD for example could be
+     used for ROM/DVD based applications perfectly too, as many other
+     variants.
+
+     The supported standard integration of QEMU offers ARM, MIPS,
+     Coldfire, PPC, and SPARC CPUs. Additionally some specific
+     Evaluation Boards are modeled. For further information refer to
+     QEMU documentation.
+
+     So this might give an idea of what is upcoming within a not too
+     long of period for shure.
+
+     Once someone is getting familiar to the idea of stacked VMs as a
+     common SW-component, something similiar to a deamon service, the
+     opportunities for resulting SW architecture and design might be
+     almost unlimited.
+
+     One trivial aspect is the encapsulation of services by a more
+     than clear message interface, which might be  a simple TCP/IP
+     message protocol. This will be optimized for local access by
+     almost any available TCP/IP-stack.
+
+     But the first real benefit for modularization now arises from the
+     widely support of physical online-relocation of VMs by almost any
+     current known Vendor and OpenSource-Project.
+
+
+     In difference to an ordinary daemon supporting non-relocatable
+     services for example as DNS/Bind, DHCP, LDAP, or a DB-server, a
+     VM offers now a framework, which could be utilized for online
+     relocation of any contained service, which even will not
+     recognize it's relocation.
+
+     For a service provider supporting services with SLAs this will
+     be the what is required. Almost ANY proprietary service could be
+     configured redundant and relocatable with an almost 100%
+     availability. 
+
+     The scalability and online reconfiguration capabilities, as well
+     as energy saving seamless activation and deactivation of parts of
+     physical equipment with on demand redistribution of worker
+     instances is just another example. This will be supported for the
+     whole scope of ctys-stack-addressing with partial
+     addressing. Confusing, yes, but this is what ctys silently
+     provides behind the scenes - NOW. So just a simple path address
+     in a very natural syntax for a VM or HOST within a layered stack
+     is all the user actually has to provide.
+
+     Therefore the network itself and it's services now seems to
+     become a much closer application "component" for not highly
+     sophisticated user, than before.
+
+
+
+
+   3.3.1.1. VM as an ordinary SW-Component
+    --------------------------------------
+
+     As mentioned in the previous chapter, the target of ctys is to
+     support and ease the usage of virtual appliances as common
+     software components. 
+
+     Therefore the interactive sessions management for user access is
+     one of the important parts, but the scheduled reconfguration of a
+     heterogeneous environment is of same priority.
+
+
+   3.3.1.2. Utilization of Bulk-Core-CPUs
+    -------------------------------------
+
+     One important fact for the design is the expectation of upcoming
+     for CPUs with much more cores than available now, though offering
+     partitioning capabilities even not available on mainframes of
+     nowadays. The timeline could be 5 or more years, but the QuadCore
+     CPUs for now already perfectly offer required perfomance benefits
+     for first stages of design.
+
+     The current available test and development environment with some
+     outdated multi-cpu-single-core CPUs match the requirements even
+     when using some PIII-800MHz-Coppermine for basic tasks. E.g. as a
+     "driver encapsulation" for an undocumented, non-disclosed, and
+     outdated PABX-Monitor.
+
+
+
+   3.3.2. Advanced Requirements
+    ---------------------------
+
+     Resulting from the foreseen interworking and state propagation
+     within the VM stack some additional features are required. This
+     particularly includes the location and containment knowledge of
+     the encapsulated entities. This has to be provided for the
+     controlle entity managing the access and states of the
+     containment hierarchy at least.
+
+     Another aspect which will be affected deeeply will arise quickly
+     when coming to online relocation of VMs from within a VM
+     stack. The handling of contained entities and their sessions has
+     to be supported.
+
+     The most obvious result of this is the requirement of an
+     intermixed database, which includes thorougly maintained static
+     data for initial location and relocation handling, combined with
+     dynamic-only data, monitoring and representing the actual runtime
+     data.
+
+
+   3.3.2.1. Namebinding - Seamless Addressing
+    -----------------------------------------
+
+     When using the currently available hypervisors and so called
+     HOSTs sessions for interconnecting, almost any used component
+     requires it's very own style of addressing connections and
+     components.
+
+     Additionally the managemenent of the states of an VM and of
+     course a PM requires it's individual set of tools, each of which
+     has it's own philosophy. Some provide very specific and
+     additionaly multiple versions and variants with different command
+     sets and features.
+
+     So a common namenbinding is more a daily user benefit than an
+     academic discussion here. Therefore a generic namebinding was
+     defined, which supports all supported components with only and
+     one uified namebinding schema.
+
+     For the seamless and integrated management of VMs, PMs, and
+     contained OSs, which are by definition not aware of the virtual
+     environment, and of course not the containing OS for the VMs
+     hypervisor, a multi-level addressing mechanism with a complete
+     set of required toolset is defined.
+
+     The current process is ongoing to file the addressing schema as
+     a standard, with an open final state for now of course.
+
+     One specific benefit of the defined name-binding is the eas of
+     management and addressing of stack elements. This is valuable for
+     the communications within an operational and enabled system as
+     well as for recovery procedures such as boot and shutdown,
+     a.k.a. Startup and Shutdown.
+
+
+
+   3.3.2.2. Operational Stack-Interworking
+    --------------------------------------
+
+     ffs.
+
+
+
+   3.3.2.2.1. Startup
+    -----------------
+
+     The startup of entries within a stack of VMs will open - once
+     handeled completely - a variety of advantages. One of the most
+     obvious might be the implicit creation of all intermediate
+     sessions below the targeted stack entry, which includes
+     consequently the PM itself if not yet booted.
+
+     So the handling of complete stacks by just addressing a higher
+     level entry could not just open some smart advantages in a
+     variety of scenarios, but also help to save energy by enabling
+     machines on demand only, and therefore openening an easy to use
+     facility for making temporarily shutting them down less
+     complicated.
+
+     Support for load distribution and therefore concentrating and
+     tailoring appropriate loads will become by stack-aware addressing
+     an daily task for ordinary users too.
+
+     Even though this is seen as an important feature, the automatic
+     and implicit start of stacks is for now shifted to one of the
+     next versions. This is due to several reasons, one is the
+     intermixed call interface of the provided VMs, another is the
+     current priority of stabilizing UnifiedSessionsManager first and
+     bringing it to the audience "now".
+
+     Thus this versions supports teh creation of VM stacks only
+     manually step by step with iterative calls, what might for now
+     not be a real drawback, due to the average of 3-4 layers.
+
+     The support of handling of VMs within a stack is in this version
+     already that much supported, that is could be called smart anyhow.
+
+
+   3.3.2.2.2. Shutdown
+    ------------------
+
+     When handling stacks of nested PMs and VMs, the CANCEL action on
+     a base level will force contained instances to teminate too. Thus
+     a behaviour has to be defined, whether a top-down soft shutdown
+     has to be perfomed, or a "bottom-up" behaviour of instances, by
+     killing the assigned level without recognition of contained
+     instances. This might be appropriate e.g. in emergency cases.
+
+     The handling of embedded instances with their own state might
+     seem to be managed via SUSPEND conveniently, but frequently leads
+     to some RESUME problems due to invalidated network sessions and
+     related transient data.
+
+     Another issue is the mandatory remapping of commands when walking
+     on the stack. One obvious example is the REBOOT of the following
+     PM containment stack, where each layer might contain several
+     native applications. Almost the same is true in principle, when
+     dealing with some higher level VMs intermediate layers.
+
+
+                  stack-layer
+                              +------------------------+
+                    sl-3      | HOST = SMB Application |
+                              +------------------------+
+                    sl-2      | VM1  = W2K             |
+                              +------------------------+
+                    sl-1      | VM0  = Xen(Linux)      |
+                              +------------------------+
+                    sl-0      | PM   = HW+Linux        |
+                              +------------------------+
+
+                  Example-1: Handling of NT logins on SMB shares.
+
+
+     When doing a REBOOT on the stack layer "sl-0" a simple forward
+     propagation through the stack in bottom-up direction might not
+     lead to the result expected.
+
+     Thus a previous action for disabling the upper layer is required.
+
+     The appropriate action stil have to be decided between one of the
+     possible "persistently disabling operations". 
+
+     This could be a stateless or a statefull deactivation.
+
+     Even though the upper layers might be in physical and logical
+     state without any reason for termination, and just an unrelated
+     reson on the lower layer might have triggered the required
+     REBOOT, once changed to the offline state, any session to
+     networked peer might lead to protocol timeouts of the involved
+     applications. Thus even a simple SUSPEND, e.g. in case of a
+     Samba, LDAP, Kerberos, and Automount based SSO with an open W2K
+     session within a VM, will not restore completely and requires at
+     least a new login of the user.
+
+     As a result some advanced strategies are required in order to end
+     up in a state with previous unrestricted operations mode after
+     accomplishing the REBOOT.
+
+     The same will apply to almost any networked protocol with dynamic
+     and non-persistent sessions, where the applications peer is not
+     prepared to continue after a "longer unexpected disconnect". The
+     whole involved communications protocol stack has to support the
+     interrupt of the service. This is particularly true, when a
+     server application connected to mutiple clients is located on the
+     local machine. E.g. DHCP, DNS/Bind, or a DB-Server.
+
+     The solution choosen for now is somewhat limited but a good base
+     for extension and easy to implement and to apply.
+
+     In current implementation the basic philosophy is not to use any
+     persistent system services for runtime-state-management, such as
+     a splitted-reset for upper-layer instances, when rebooting their
+     container. This is targeted to be part of one of the future releases.
+
+
+     Two basic directions are defined:
+
+      - FORCE
+
+        Forces the selected instance to be canceled as selected, no
+        previous shutdown of contained instances will be performed. 
+        The instance itself may have some shutdown behaviour,
+        e.g. init-scripts, which will be performed unattended.
+
+      - STACK[:<user-defined-action-type-list>]
+
+        Uses a chained approach for shutting down by an top-down
+        behaviour. Therefore the VM-stack will be first walked up and
+        marked by repetitive sub-calls with defined specific CANCEL
+        suboptions. These suboptions will be applied top-down in a
+        roll-back-chain once reaching the top of the stack.
+
+        Partial definitions could be applied, where the topmost
+        definition will be applied for the remaining stack.

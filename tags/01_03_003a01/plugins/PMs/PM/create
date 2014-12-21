@@ -1,0 +1,657 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_PM_CREATE="${BASH_SOURCE}"
+_myPKGVERS_PM_CREATE="01.01.001a00"
+hookInfoAdd $_myPKGNAME_PM_CREATE $_myPKGVERS_PM_CREATE
+
+#The call for wake up of peer by WoL.
+CONSOLE_WOL=${CTYS_WOL}
+
+#The timout for a wait loop, when a console is defined.
+#This applies to "Soft-Consoles" only, which are to be executed on the target 
+#itself.
+#When an IP based "Remote-IP-Console" or a Serial-Console is used, a timeout is not 
+#required of course.
+#
+#The value is the sleep-value between failing ping and ssh-requests until success.
+CONSOLE_WOL_WAIT=${CONSOLE_WOL_WAIT:-10}
+
+#This is the maximum number of repetition perionds for attachment trials to the PM.
+CONSOLE_WOL_MAXTRIAL=${CONSOLE_WOL_MAXTRIAL:-24}
+
+#Call for Remote-IP-Console.
+CONSOLE_IPC=
+
+#Call for Serial attached console.
+CONSOLE_SERIAL=
+
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  createConnectPM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Creates a session and/or connects to the server.
+#  This works on a single server only, thus a bulk split has to be done 
+#  within the level above.
+#  
+#  Due to the handling of a single server, this is the level of performing
+#  a WAIT for synchronous mode.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function createConnectPM () {
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
+
+    local _myMAC=;
+    local _myIP=;
+    local _consoleType=;
+
+    function waitForPing () {
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CONSOLE_WOL_WAIT    =$CONSOLE_WOL_WAIT"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CONSOLE_WOL_MAXTRIAL=$CONSOLE_WOL_MAXTRIAL"
+	local i1=0;
+	while ((CONSOLE_WOL_MAXTRIAL>i1));do
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:trial-ping:$i1"
+            ping -c 1 ${_myIP} 2>&1 >/dev/null
+	    [ $? -eq 0 ]&&break;
+	    sleep ${CONSOLE_WOL_WAIT};
+	    ((i1++));
+	done
+	if((i1<CONSOLE_WOL_MAXTRIAL));then local _ret=0;else local _ret=1;fi
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:result:$_ret"
+	return $_ret
+    }
+
+    function waitForSSH () {
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CONSOLE_WOL_WAIT    =$CONSOLE_WOL_WAIT"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CONSOLE_WOL_MAXTRIAL=$CONSOLE_WOL_MAXTRIAL"
+	local i1=0;
+	if [ -n "$_sshaccess" ];then
+	    while ((CONSOLE_WOL_MAXTRIAL>i1)) ;do
+		printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:trial-ssh:$i1"
+		ssh ${_sshuser:+ -l $_sshuser}${_myIP} echo 2>&1 >/dev/null
+		[ $? -eq 0 ]&&break;
+		sleep ${CONSOLE_WOL_WAIT};
+		((i1++));
+	    done
+	fi
+	if((i1<CONSOLE_WOL_MAXTRIAL));then local _ret=0;else local _ret=1;fi
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:result:$_ret"
+	return $_ret
+    }
+
+
+    case ${OPMODE} in
+	CHECKPARAM)
+            if [ -n "$CTRL_MODE_ARGS" ];then
+		A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "WMW($A)"
+
+                #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		local _unambig=0;
+		local _unambigCON=0;
+		for i in $A;do
+		    KEY=`echo ${i%%:*}|tr '[:lower:]' '[:upper:]'`
+		    ARG=${i#*:}
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "KEY=${KEY}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "ARG=${ARG}"
+                    #handle keywords
+                    if [ -n "${ARG}" \
+			-o -z "${ARG}" -a "${KEY}" == "REUSE" \
+			-o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
+			-o -z "${ARG}" -a "${KEY}" == "CONNECT" \
+			-o -z "${ARG}" -a "${KEY}" == "RESUME" \
+			-o -z "${ARG}" -a "${KEY}" == "NOCACHE" \
+			-o -z "${ARG}" -a "${KEY}" == "NOPOLL" \
+			-o -z "${ARG}" -a "${KEY}" == "SSHACCESS" \
+			-o -z "${ARG}" -a "${KEY}" == "SSH" \
+			-o -z "${ARG}" -a "${KEY}" == "WOL" \
+			];then
+			case $KEY in
+
+
+
+			    CONNECT)
+				let _unambigCON+=1;
+				local _reuse=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONNECT=>connect only if present"
+				;;
+
+
+			    REUSE)
+				let _unambigCON+=1;
+				local _reuse=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONNECT or CREATE"
+				;;
+
+			    RECONNECT)
+				local _reuse=1;
+				local _reconnect=1;
+				let _unambigCON+=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "RECONNECT=>CANCEL running clients first"
+				;;
+
+
+			    WOL|RESUME)
+				if [ "${KEY}" == "RESUME" ];then
+				    printWNG $LINENO $BASH_SOURCE 0 "The Resume will be implicitly mapped to WOL for ${CTRL_SESSIONTYPE}!"
+				fi
+
+				local _wol=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "WOL"
+				;;
+
+
+
+                          #####################
+                          # <machine-address> #
+                          #####################
+			    NOCACHE)
+				local _cache=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOCACHE not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				;;
+			    NOPOLL)
+				local _poll=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOPOLL not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				;;
+
+
+			    BASEPATH|BASE|B)
+				local _base="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "BASE=${_base}"
+				;;
+			    TCP|T)
+				local _tcp="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "TCP=${_tcp}"
+				let _unambig+=1;
+				;;
+			    MAC|M)
+				local _mac="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "MAC=${_mac}"
+				let _unambig+=1;
+				;;
+			    UUID|U)
+                                #has to be checked later
+				local _uuid="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "UUID=${_uuid}"
+				let _unambig+=1;
+				;;
+			    LABEL|L)
+                                #has to be checked later
+				local _label="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "LABEL=${_label}"
+				let _unambig+=1;
+				;;
+			    FILENAME|FNAME|F)
+                                #has to be checked later
+				local _fname="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "FILENAME=${_fname}"
+				let _unambig++;
+				;;
+			    ID|I|PATHNAME|PNAME|P)
+                                #can (partly for relative names) be checked now
+				if [ -n "${ARG##/*}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
+				    printERR $LINENO $BASH_SOURCE ${ABORT} " PNAME=${ARG}"
+ 				    gotoHell ${ABORT}
+				fi
+				local _idgiven=1;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "PATHNAME=${ARG}"
+				;;
+
+
+
+                     #######################
+                     # Specific attributes #  
+                     #######################
+			    CALLOPTS|C)
+                                #trust the user for now, and let the target call check it
+				local _callopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CALLOPTS=${_callopts}"
+				;;
+			    XOPTS|X)
+                                #trust the user for now, and let the target call check it
+				local _xopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "XTOOLKITOPTS=${_xopts}"
+				;;
+
+
+                         ##############
+
+
+			    SSHACCESS|SSH)
+				local _sshaccess=1;
+				if [ -n "${ARG}" ];then
+				    local _sshuser="${ARG}"
+				fi
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "SSHACCESS ${_sshuser:+ =$_sshuser}"
+				;;
+
+			    CONSOLE)
+				case "`echo ${ARG}|tr '[:lower:]' '[:upper:]'`" in
+				    CLI)
+					;;
+				    XTERM|GTERM)
+					;;
+				    VNC)
+					;;
+				    *)
+					ABORT=1;
+					printERR $LINENO $BASH_SOURCE ${ABORT} "UNKNOWN ARG=${ARG}"
+ 					gotoHell ${ABORT}
+					;;
+				esac
+
+				if((_console==1));then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "CONSOLE has to be unique."
+ 				    gotoHell ${ABORT}
+				fi
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONSOLE=${ARG}"
+				local _console=1;
+				;;
+
+			    *)
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown sub-opts for PM:${KEY}"
+ 				gotoHell ${ABORT}
+				;;
+			esac
+                    else
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous KEY:<${KEY}>"
+ 			printERR $LINENO $BASH_SOURCE ${ABORT} "  Required syntax :<KEY>:<ARG>";
+ 			printERR $LINENO $BASH_SOURCE ${ABORT} "  Given systax    :<${KEY}>:<${ARG}>";
+ 			gotoHell ${ABORT}               
+		    fi
+		done
+
+              #
+              #handle remote options for actual execution...
+              #
+              #...trust the correctness, or better the checks of actual final tool,
+              #these options are destined for, thus nothing to do her.
+              #
+
+
+              #0. validate ambiguity
+		if [ "${_unambig}" -gt 1 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "The following sub-opts are EXOR applicable only:"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  TCP|MAC|UUID|LABEL|ID|PNAME|FILENAME"
+ 		    gotoHell ${ABORT}
+		fi
+
+
+              #1. validate ambiguity
+		if [ "${_unambigCON}" -gt 1 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "ambiguous sub-opts have to be EXOR"
+ 		    gotoHell ${ABORT}
+		fi
+
+
+              #Least required parameters
+		if((_unambig!=1&&_idgiven!=1));then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing parameter, exactly one of the following is required:"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  TCP|MAC|UUID|LABEL|ID|PNAME|FILENAME"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
+	    ;;
+
+	ACTION)
+	    if [ -n "${R_TEXT}" ];then
+		echo "${R_TEXT}"
+	    fi
+
+	    if [ -z "${CTRL_EXECLOCAL}" ];then
+		assembleExeccall
+	    else
+              #
+              #Doing local semantical correctness evaluation now.
+              #
+		if [ -n "$CTRL_MODE_ARGS" ];then
+		    A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "WMW($A)"
+
+                  #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		    local _unambig=0;
+		    for i in $A;do
+			KEY=`echo ${i%%:*}|tr '[:lower:]' '[:upper:]'`
+			ARG=${i#*:}
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "KEY=${KEY}";
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "ARG=${ARG}";
+                        #handle keywords
+			if [ -n "${ARG}" \
+			    -o -z "${ARG}" -a "${KEY}" == "REUSE" \
+			    -o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
+  			    -o -z "${ARG}" -a "${KEY}" == "CONNECT" \
+			    -o -z "${ARG}" -a "${KEY}" == "RESUME" \
+			    -o -z "${ARG}" -a "${KEY}" == "NOCACHE" \
+			    -o -z "${ARG}" -a "${KEY}" == "NOPOLL" \
+			    -o -z "${ARG}" -a "${KEY}" == "SSH" \
+			    -o -z "${ARG}" -a "${KEY}" == "SSHACCESS" \
+			    -o -z "${ARG}" -a "${KEY}" == "WOL" \
+			    ];then
+			    case $KEY in
+
+				CONNECT)
+                                    local _reuse=1;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONNECT"
+				    ;;
+
+				REUSE)
+                                    local _reuse=1;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "REUSE=>try CONNECT before CREATE"
+				    ;;
+
+				RECONNECT)
+                                    local _reuse=1;
+                                    local _reconnect=1;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "RECONNECT=>CANCEL running clients first"
+				    ;;
+
+
+
+
+
+                             #####################
+                             # <machine-address> #
+                             #####################
+				NOCACHE)
+				    local _cache=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				    ;;
+				NOPOLL)
+				    local _poll=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				    ;;
+
+
+				BASEPATH|BASE|B)
+                                    #can be checked now
+                                    local _base="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "BASE=${_base}"
+                                    for i in ${_base//\%/ };do
+					if [ ! -d "${i}" ];then
+					    ABORT=1;
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given base-path";
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  i  = ${i}";
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  PWD= ${PWD}";
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your actual PWD when providing a relative base-path";
+ 					    gotoHell ${ABORT};
+					fi
+				    done
+				    ;;
+				TCP|T)
+				    local _tcp="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "TCP=${_tcp}"
+				    let _unambig+=1;
+				    ;;
+				MAC|M)
+				    local _mac="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "MAC=${_mac}"
+				    let _unambig+=1;
+				    ;;
+				UUID|U)
+                                    #has to be checked later
+				    local _uuid="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "UUID=${_uuid}"
+				    ;;
+
+				LABEL|L)
+                                    #has to be checked later due to probable following base-prefix
+                                    local _label="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "LABEL=${_label}"
+				    ;;
+				FILENAME|FNAME|F)
+                                    #has to be checked later due to probable following base-prefix
+                                    local _fname="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "FILENAME=${_fname}"
+				    ;;
+				ID|PATHNAME|PNAME|P)
+                                    #can be checked now, no additional combination check required 
+                                    #due to previous CHECKPARAM.
+                                    if [ -n "${_pname}" ];then
+					ABORT=1;
+					printERR $LINENO $BASH_SOURCE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+					printERR $LINENO $BASH_SOURCE ${ABORT} "  ID(1)=${_pname}"
+					printERR $LINENO $BASH_SOURCE ${ABORT} "  ID(2)=${ARG}"
+					printERR $LINENO $BASH_SOURCE ${ABORT} "Will be extended soon."
+ 					gotoHell ${ABORT}
+                                    fi
+                                    if [ ! -f "${ARG}" ];then
+					ABORT=1;
+					printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given file or access permission for ID/PNAME"
+					printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${ARG}"
+ 					gotoHell ${ABORT}
+                                    fi
+                                    local _pname="${_pname:+$_pname|}${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "RANGE:PATHNAME=${_pname}"
+				    ;;
+
+
+
+                             ##################
+                             # remote options #
+                             ##################
+				CALLOPTS|C)
+                                    #trust the user for now, and let the target call check it
+				    local _callopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CALLOPTS=${_callopts}"
+                                    CTRL_SESSIONIDARGS="${_callopts}"
+				    ;;
+				XOPTS|X)
+                                    #trust the user for now, and let the target call check it
+				    local _xopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "XTOOLKITOPTS=${_xopts}"
+                                    CTRL_XTOOLKITOPTS="${_xopts}"
+				    ;;
+
+
+				SSHACCESS|SSH)
+				    local _sshaccess=1;
+				    if [ -n "${ARG}" ];then
+					local _sshuser="${ARG}"
+				    fi
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "SSHACCESS ${_sshuser:+ =$_sshuser}"
+				    ;;
+				WOL)
+				    local _wol=1;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "WOL"
+				    ;;
+				CONSOLE)
+				    case "`echo ${ARG}|tr '[:lower:]' '[:upper:]'`" in
+					CLI)_consoleType=CLI;;
+					GTERM)_consoleType=GTERM;;
+					XTERM)_consoleType=XTERM;;
+					VNC)_consoleType=VNC;;
+					*)
+					    ABORT=1;
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "UNKNOWN ARG=${ARG}"
+ 					    gotoHell ${ABORT}
+					    ;;
+				    esac
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CONSOLE=${ARG}"
+				    local _console=1;
+				    ;;
+
+
+				*)
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected sub-opts for PM:${KEY}"
+ 				    gotoHell ${ABORT}
+				    ;;
+			    esac
+			fi
+		    done
+
+
+                    local _dbg1=${CTRL_VERBOSE:+ -d $CTRL_VERBOSE}
+		    local _VHOST="${MYCALLPATH}/ctys-vhost $_dbg1 -C MACMAP -o MAC -p ${DBPATHLST} "
+                    if [ -n "${_pname}" ];then
+			_myMAC=`${_VHOST} "${_pname}"`
+		    else
+			if [ -n "${_uuid}" ];then
+			    _myMAC=`${_VHOST} "${_uuid}"`
+			else
+			    if [ -n "${_label}" ];then
+				_myMAC=`${_VHOST} "${_label}"`
+			    else
+				if [ -n "${_fname}" ];then
+				    _myMAC=`${_VHOST} "${_fname}"`
+				else
+				    if [ -n "${_tcp}" ];then
+					_myMAC=`${_VHOST} "${_tcp}"`
+				    else
+					if [ -n "${_mac}" ];then
+					    _myMAC=$_mac
+					else
+					    ABORT=1;
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing a valid identifier, transformation may have failed."
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  PNAME =${_pname}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  UUID  =${_uuid}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  LABEL =${_label}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  FNAME =${_fname}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  TCP   =${_tcp}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "  MAC   =${_mac}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "Verify your nameservice database with \"ctys-vhost\""
+ 					    gotoHell ${ABORT}
+					fi
+				    fi
+				fi
+			    fi
+			fi
+		    fi
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_myIP=${_myIP}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_myMAC=${_myMAC}"
+
+                    if [ -n "${_myMAC}" ];then
+			_myIP=`${MYCALLPATH}/ctys-vhost $_dbg1 -C MACMAP -o TCP -p ${DBPATHLST} "${_myMAC}"`
+			if [ -z "${_myIP}" ];then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing IP address for MAC-address in database:"
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Verify your nameservice database with \"ctys-vhost\""
+ 			    gotoHell ${ABORT}
+			fi
+		    fi
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_myIP=${_myIP}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_myMAC=${_myMAC}"
+
+                    #wake-up remote PM
+                    ${CONSOLE_WOL} ${_myMAC}
+                    if [ $? != 0 ];then
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Error when excuting:"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  ${CONSOLE_WOL} ${_myMAC}"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "."
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Normally you require root access for execution of ${CONSOLE_WOL}"
+ 			gotoHell ${ABORT}
+		    fi
+
+                    #wait for basic network stack - not yet sufficient!!!
+		    waitForPing
+                    if [ $? != 0 ];then
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "Start timed out:waitForPing"
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "  IP =${_myIP}"
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
+			gotoHell 0
+                    fi
+
+		    if [ -n "${_sshaccess}" ];then
+			waitForSSH
+			if [ $? != 0 ];then
+			    printWNG $LINENO $BASH_SOURCE ${ABORT} "Start timed out:waitForSSH"
+			    printWNG $LINENO $BASH_SOURCE ${ABORT} "  IP =${_myIP}"
+			    printWNG $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
+			    gotoHell 0
+			fi
+		    fi
+
+                    #OK, PM seems to be running and accessible soon, now establish connection 
+                    #when requested.
+                    if [ -n "${_console}" ];then
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CONSOLE_WOL_WAIT    =$CONSOLE_WOL_WAIT"
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CONSOLE_WOL_MAXTRIAL=$CONSOLE_WOL_MAXTRIAL"
+			local i1=0;
+                        #once more for sshd to start after network
+			sleep ${CONSOLE_WOL_WAIT};
+			while ((CONSOLE_WOL_MAXTRIAL>i1)) ;do
+			    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:trial-ssh:$i1"
+			    case ${_consoleType} in
+				CLI)
+				    ${MYCALLPATH}/ctys -t CLI -a create=l:CONSOLE,PTTY -b 0 $_dbg1 ${_myIP}${_dbg1:+"($_dbg1)"}
+				    ;;
+				GTERM)
+				    ${MYCALLPATH}/ctys -t X11 -a create=l:CONSOLE -b 1 $_dbg1 $_myIP${_dbg1:+"($_dbg1)"}
+				    ;;
+				XTERM)
+#				    ${MYCALLPATH}/ctys -t CLI -a create=l:CONSOLE,cmd:xterm -b 1 $_dbg1 $_myIP${_dbg1:+"($_dbg1)"}
+				    ${MYCALLPATH}/ctys -t X11 -a create=l:CONSOLE,cmd:xterm,sh -b 1 $_dbg1 $_myIP${_dbg1:+"($_dbg1)"}
+				    ;;
+				VNC)
+				    ${MYCALLPATH}/ctys -t VNC -a create=l:CONSOLE,viewerdelay:5 -b 1 $_dbg1 $_myIP${_dbg1:+"($_dbg1)"}
+				    ;;
+				*)
+				    ${MYCALLPATH}/ctys -t ${_consoleType} -a create=l:CONSOLE $_dbg1 $_myIP${_dbg1:+"($_dbg1)"}
+				    ;;
+			    esac
+			    [ $? -eq 0 ]&&break;
+			    sleep ${CONSOLE_WOL_WAIT};
+			    ((i1++));
+			done
+			if((i1<CONSOLE_WOL_MAXTRIAL));then gotoHell 0;else gotoHell 1;fi
+		    fi
+		    gotoHell 0
+		fi
+	    fi
+	    ;;
+    esac
+
+}
+

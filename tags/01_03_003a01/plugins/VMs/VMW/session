@@ -1,0 +1,563 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_VMW_SESSION="${BASH_SOURCE}"
+_myPKGVERS_VMW_SESSION="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VMW_SESSION $_myPKGVERS_VMW_SESSION
+_myPKGBASE_VMW_SESSION="`dirname ${_myPKGNAME_VMW_SESSION}`"
+
+_VMW_SESSION="${_myPKGNAME_VMW_SESSION}"
+
+_VNC_CLIENT_MODE=;
+
+#FUNCBEG###############################################################
+#NAME:
+#  noClientServerSplitSupportedMessageVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function noClientServerSplitSupportedMessageVMW () {
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:Current version supports ConnectionForwarding with CONSOLE for WMware-Server only"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:Following options are available:"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:  Client and Server on different machines: ConnectionForwarding"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:    -> Workstation 6+ with VNC client"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:    -> Server with CONSOLE"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:  Client and Server on same machine: DisplayForwarding"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:    -> Workstation 6+ with CONSOLE"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:    -> Workstation 6+ with VNC client"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "INFO:    -> Server with CONSOLE"
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  expandSessionIDVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function expandSessionIDVMW () {
+  echo $1
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getClientTPVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+# GENERIC-IF-DESCRIPTION:
+#  Gives the termination points port number, to which a client could be 
+#  attachhed. This port is forseen to be used in port-forwarding e.g.
+#  by OpenSSH.
+#
+#  The port is the local port number, which in general has to be mapped 
+#  on remote site, when already in use. Therefore the application has
+#  to provide a port-number-independent client access protocol in order 
+#  to be used by connection forwarding. In any other case display 
+#  forwarding has to be choosen.
+#
+#  Some applications support only one port for access by multiple 
+#  sessions, dispatching and bundling the communications channels
+#  by their own protocol. 
+#
+#  While others require for each channel a seperate litenning port.
+#
+#  So it is up to the specific package to support a function returning 
+#  the required port number which could be used to attach an forwarded 
+#  port. 
+#  
+#  The applications client has to support a remapped port number.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <label>
+#       The <label> to which the client will be attached.
+#
+#  $2: <pname>
+#      The pname of the configuration file, this is required for 
+#      VNC-sessions, and given to avoid scanning for labels
+#
+#OUTPUT:
+#  RETURN:
+#    0: If OK
+#    1: else
+#
+#  VALUES:
+#    <TP-port>
+#      The TP port, to which a client could be attached.
+#
+#FUNCEND###############################################################
+function getClientTPVMW () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "$FUNCNAME:\$@=$@"
+    local _port=;
+
+    #for ws>6 only
+    if [ -n "$2" -a "${VMW_MAGIC}" == "VMW_WS6" ];then
+	_port=`cat $2|sed -n 's/\t//g;/^#/d;s/RemoteDisplay.vnc.port *= *"\([^"]*\)"/\1/p'`
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "$FUNCNAME:_port=$_port"
+    fi
+
+    #for ws and server
+    if [ -z "$_port" ];then
+	_port=`cat /etc/vmware/config |sed -n 's/authd.client.port *= *"\([0-9]*\)"/\1/p'`
+    fi
+
+    #for player not an error!
+    if [ -z "${_port}" ];then
+	if [ "${VMW_MAGIC}" == "VMW_S104" ];then
+	    ABORT=2
+	    printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:Error, can not get port number for label:${1}"
+	    gotoHell ${ABORT}
+	else
+	    _port="NO-CPORT"
+	fi
+    fi
+    local _ret=$_port;  
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "$FUNCNAME port number=$_ret from ID=_port"
+    echo ${_ret}
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  startSessionVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: label
+# $2: ID/pname
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function startSessionVMW () {
+  local _label=$1
+  local _pname=$2
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "${FUNCNAME}:LABEL=$_label"
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "${FUNCNAME}:PNAME=$_pname"
+
+  #should not happen, anyhow, once again, check it
+  if [ -z "${_label}" ];then
+      ABORT=1
+      printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:Missing LABEL"
+      gotoHell ${ABORT}
+  fi
+
+  #should not happen, anyhow, once again, check it
+  if [ -z "${_pname}" ];then
+      ABORT=1
+      printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:Missing PNAME"
+      gotoHell ${ABORT}
+  fi
+
+  local CALLER="${_CALLEXE} "
+  case ${VMW_MAGIC} in
+      VMW_P105)
+	  CALLER="${CALLER}  ${CTRL_SESSIONIDARGS:-$VMW_DEFAULTOPTS} \"${_pname}\""
+	  printWNG $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME} No additional arguments supported for ${_CALLEXE}"
+	  ;;
+      *)
+	  CALLER="${CALLER}  -s displayName=\"${_label}\" ${CTRL_SESSIONIDARGS:-$VMW_DEFAULTOPTS} \"${_pname}\""
+	  if [ -n "${CTRL_GEOMETRY}" -o -n "${CTRL_XTOOLKITOPTS}" ];then
+	      CALLER="${CALLER} -- ${CTRL_GEOMETRY:+-geometry $CTRL_GEOMETRY} ${CTRL_XTOOLKITOPTS} "
+	  fi
+	  ;;
+  esac
+
+  #check for backgound execution when locally called, without ssh.
+  if [ "${CTRL_ASYNC}" == 1 ];then
+      if [ "${CTRL_CLIENTLOCATION}" ==  "-L ConnectionForwarding" \
+          -o "${CTRL_CLIENTLOCATION}" ==  "-L LocalOnly" \
+ 	  ];then
+	  CALLER="${CALLER} &"
+      fi
+  fi
+
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_SESSION "${CALLER}"
+  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER} 
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  connectSessionVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function is the plugins local connection wrapper.
+#  The basic decisions from where the connection is established and 
+#  to which peer it has to be connected is done before calling this.
+#  But some knowledge of the connection itself is still required here.
+#
+#  So "the wrapper is in close relation to the controller", it is his  
+#  masters not so stupid paladin.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <session-id>
+#      This is the absolute pathname to the vmx-file.
+#
+#  $2: <session-label>
+#      This will be used for the title of the client window.
+#
+#  $3: <actual-access-id>
+#      This will be used for actual connection. 
+#
+#      REMARKS: The design idea for intoduction of this param is:
+#
+#        1. This is an plugin-internal function, though 
+#           developer-level experience is assumed.
+#
+#        2. Despite this, parameter structure for this common task 
+#           has to be kept common, at least similiar, even though 
+#           some partial enhancement opportunity may remain.
+#
+#           So analogous to ...
+#
+#             VNC-plugin,
+#               where <session-id> is the display ID and so
+#               in an algoritmic relation to the TCP-PORT. Which 
+#               is true due to design-standard for local server  
+#               port as well, as for the entry-port of remote-tunnel.
+#             WMWVNC
+#               where basically an intermix of VMW and VNC is 
+#               implemented, requiring an bridging addressing schema
+#               between VM-ID and TCP-accessport.
+#             XEN
+#               very close to VMWVNC.
+#
+#           The design assumption, where the <session-id> could be
+#           mathematically calculated from the server's TCP accessport 
+#           and vice versa is not true for VMW with it's propriatery 
+#           CONSOLE.
+#
+#       So, now:
+#
+#         <actual-access-id> is
+#           1. if 
+#                 [ <actual-access-id> == <session-id> ]
+#              or
+#                 [ <actual-access-id> == "" ]
+#
+#              to be replaced by <pname> for local access by native call
+#
+#           2. if [ <actual-access-id> != <session-id> ]
+#
+#              to be used as TCP-port for remote access by tunnel to 
+#              remote server where assumed:
+#
+#                 <actual-access-id> == <tunnel-entry TCP-port> 
+#
+#              Generally could be assumed
+#
+#                 <actual-access-id> == <ANY local single TCP-port-entry to ANYWHERE> 
+#
+#              Basically it is transparent to where the connection leads.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function connectSessionVMW () {
+  local _id=${1}
+  local _label=${2}
+  local _actaccessID=${3}
+
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "$FUNCNAME ${_id} ${_label} ${_actaccessID}"
+
+  if [ -z "${_id}" -o -z "${_label}" ];then
+      ABORT=1
+      printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:At least one parameter required:<session-id> or <session-label>"
+      gotoHell ${ABORT}
+  fi
+
+  if [ -z "${_actaccessID}" -o "${_actaccessID}" == "${_id}" ];then
+      #
+      #local native access: same as DisplayForwarding or LocalOnly
+      #
+      local _labelX=`fetchLabel4ID ${_id}`;
+      if [ "${_label}" != "${_labelX}" ];then
+	  ABORT=1
+	  printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:LABEL and ID are not consistent:"
+	  printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:  LABEL = ${_label}"
+	  printERR $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}:  ID    = ${_id}   => ${_labelX}"
+	  gotoHell ${ABORT}
+      fi
+      case ${VMW_MAGIC} in
+	  VMW_S103|VMW_S104)
+              #Yes, the connect-call for a session which is - as PRE-REQUIRED - in 
+              #background-continue-mode - is identical to the create-call.
+              #=> CONNECT-CLI-IF of vmware is identical to CREATE-CLI-IF
+	      startSessionVMW "${_label}" "${_id}"
+ 	      ;;
+
+      #	VMW_S103|WMW_WS6|VMW_GENERIC)
+	  *)  #For now seems to be common, but let it beeee....
+
+              #Yes, the connect-call for a session which is - as PRE-REQUIRED - in 
+              #background-continue-mode - is identical to the create-call.
+              #=> CONNECT-CLI-IF of vmware is identical to CREATE-CLI-IF
+	      startSessionVMW "${_label}" "${_id}"
+ 	      ;;
+      esac
+  else
+      #
+      #remote access through local wormhole
+      #
+      #Now _accessID should be the port for local wormhole entry
+      #and of course, this process is executing on callers machine.
+      #
+      #And of course, hopefully the local client - with its VMW_MAGIC -
+      #is compatible to the remote callee or in case of VNC the server 
+      #site should be a ws6+.
+      #
+
+      #
+      #Tests are performed from a workstation with VMW_S103 to 
+      #servers and workstations with VMW_S103 and WMW_WS6,
+      #and installed RealVNC.
+
+      if [ -n "${_VNC_CLIENT_MODE}" ];then
+          #Let client "beeee a WS6+", let's go
+	  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "$FUNCNAME:VNCviewer"
+	  connectSessionVMWVNC "${_VNC_CLIENT_MODE}" "${_label}" 
+      else
+	  case ${VMW_MAGIC} in
+	      VMW_S103|VMW_S104)
+
+              #Yes, the connect for a session which is - as PRE-REQUIRED - in 
+              #background-continue-mode - CONNECT-CLI-IF of vmware is identical 
+              #to CREATE-CLI-IF
+
+		  VMW_DEFAULTOPTS="${VMW_DEFAULTOPTS} -h localhost -P ${_actaccessID}"
+		  startSessionVMW "${_label}" "${_id}"
+ 		  ;;
+
+      #	VMW_S103|VMW_WS6|VMW_GENERIC)
+	      *)  #For now seems to be common, but let it beeee....
+		  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_SESSION "$FUNCNAME "
+		  ABORT=2
+		  noClientServerSplitSupportedMessageVMW
+		  gotoHell ${ABORT}
+ 		  ;;
+	  esac
+      fi
+
+  fi
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  vmMgrVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Encapsulates the vmrun command with unified calls.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1:                 $2       $3
+#---------------------------------------------------------------------
+# START|CREATE|RESUME <id>              => START
+# STOP|CANCEL         <id>              => STOP
+# SUSPEND             <id>              => SUSPEND
+# RESET               <id>              => RESET
+# POWEROFF            <id> <timeout> <vm-pid>
+#                                       => STOP \
+#                                           &&sleep <timeout>  \
+#                                           &&kill -9 <vm-pid>
+#
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function vmMgrVMW () {
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_SESSION "${FUNCNAME} $*"
+    local _cmd=$1;shift
+    local _id=$1;shift
+
+    case $_cmd in
+	START|CREATE|RESUME)
+            [ -z "${CTRL_NOEXEC}" ]&&vmrun start $_id
+	    ;;
+	STOP|CANCEL)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_SESSION "${FUNCNAME} Call:SHUTDOWN/STOP"
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_SESSION "  ID = ${_id}"
+		vmrun stop $_id
+	    fi
+	    ;;
+	SUSPEND)
+            [ -z "${CTRL_NOEXEC}" ]&&vmrun suspend $_id
+	    ;;
+	RESET)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_SESSION "${FUNCNAME} Call:RESET"
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_SESSION "  ID = ${_id}"
+		vmrun reset $_id
+	    fi
+	    ;;
+	POWEROFF)
+            local _timeout=${1:-$DEFAULT_KILL_DELAY_POWEROFF};shift
+            local _pid=$1;shift
+            ABORT=1;
+            if [ -z "${CTRL_NOEXEC}" ];then
+		printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME} Call:POWEROFF"
+		vmrun stop $_id
+		printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME} Delay forced kill:${_timeout} seconds"
+		sleep $_timeout
+		printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME} Check whether:"
+		printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME}   1.Still running:     pid(${_pid})"
+		printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME}   2.Still what is was: id(${_id})"
+                if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
+		    printWNG $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME} Can not avoid to kill:${_pid}==${_id}"
+                    kill $_pid
+		    printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME} Delay forced kill -9:${_timeout} seconds"
+		    sleep $_timeout
+                    if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
+			printWNG $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME} Have to use -9 now:${_pid}==${_id}"
+			kill -9 $_pid
+		    fi
+		    printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME} Done what to have..."
+		    printWNG $LINENO $_VMW_SESSION $ABORT "${FUNCNAME} ...do not forget \"fsck\""
+                else
+		    printWNG $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME} Can not apply kill, target changed:"
+		    printWNG $LINENO $_VMW_SESSION ${ABORT} "${FUNCNAME}   ${_pid} != ${_id}"
+		fi
+	    fi
+            ;;
+    esac
+}
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  connectSessionVMWVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <display-id>|<display-port>
+#      This is calculated from the port, and is the offset to that.
+#      The base-value is normally 5900 for RealVNC+TIghtVNC.
+#      TightVNC might allow the selection of another port.
+#
+#  $2: <session-label>
+#      This will be used for the title of the client window.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function connectSessionVMWVNC () {
+  local _id=${1}
+  local _label=${2}
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "$FUNCNAME ${_id} ${_label}"
+
+
+  #even though this condition might be impossible now, let it beeeee ...
+  if [ -z "${_label}" -a -z "${_id}" ];then
+    ABORT=1
+    printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:Fetch of peer entry failed:_id=${_id} - _label=${_label}"
+    gotoHell ${ABORT}
+  fi
+
+  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $_VNC_SESSION "OK:_id=${_id} - _label=${_label}"
+  #
+  #Now shows name+id in title, id could not be set for server as default.
+  local _vieweropt="-name ${_label}:${_id} ${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry=$CTRL_GEOMETRY} "
+
+  #old version with server-default label in title
+  #  local _vieweropt="${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry=$CTRL_GEOMETRY} "
+  local CALLER="${VNCVIEWER} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} ${_vieweropt} :${_id}"
+  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $_VNC_SESSION "${CALLER}"
+  export CTRL_ASYNC;
+  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER}
+}
+
+
+
+

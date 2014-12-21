@@ -1,0 +1,358 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_GENERIC_LIST="${BASH_SOURCE}"
+_myPKGVERS_GENERIC_LIST="01.02.001b01"
+hookInfoAdd "$_myPKGNAME_GENERIC_LIST" "$_myPKGVERS_GENERIC_LIST"
+_myPKGBASE_GENERIC_LIST="`dirname ${_myPKGNAME_GENERIC_LIST}`"
+
+_GENERIC_LIST="${_myPKGBASE_GENERIC_LIST}list"
+
+#Cache for current running sessions on local host
+#normally(almost never) not as big as becoming criticall
+CACHE1=""
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listProcesses
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: <ID>
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function listProcesses () {
+     local ntop=$1;shift
+
+     CTRL_SCOPE_ARGS=`echo ${CTRL_SCOPE_ARGS}|tr '[:lower:]' '[:upper:]'`
+
+     doDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST
+     if [ "$?" -eq "0" -a -z "$ntop" ];then
+       printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "Check for raw process-list on `uname -n`:=>`echo;listProcesses STOP|sed 's/^/      /';echo`<="
+     fi
+
+     case ${CTRL_SCOPE} in 
+	 USER)    
+	     printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "PS-CALL:\"ps ${PSU} ${USER} ${PSF} \""
+	     ps ${PSU} ${USER} ${PSF} 
+	     ;;
+	 GROUP)
+             case ${MYOS} in
+	         Linux)
+		     printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "PS-CALL:\"ps ${PSG} `getUserGroup ${USER}` ${PSF}\""
+  	             ps ${PSG} `getUserGroup ${USER}` ${PSF}
+ 	             ;;
+             esac
+             ;;
+
+	 USRLST)  
+	     if [ "${CTRL_SCOPE_ARGS}" == "ALL" ];then
+		     printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "PS-CALL:\"ps ${PSEF}\""
+                 ps ${PSEF} ;
+             else
+		 printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "PS-CALL:\"ps ${PSU} ${CTRL_SCOPE_ARGS} ${PSF}\""
+                 ps ${PSU} ${CTRL_SCOPE_ARGS} ${PSF} ;
+             fi
+             ;;
+	 GRPLST)  
+	     if [ "${CTRL_SCOPE_ARGS}" == "ALL" ];then
+		 printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "PS-CALL:\"ps ${PSEF}\""
+		 ps ${PSEF};
+             else
+		 printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "PS-CALL:\"ps ${PSG} ${CTRL_SCOPE_ARGS} ${PSF}\""
+		 ps ${PSG} ${CTRL_SCOPE_ARGS} ${PSF} ;
+             fi
+             ;;
+     esac
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessions
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists current active sessions.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $(1-*): <list attributes>
+#           SERVER|CLIENTS|BOTH,
+#           NONE,ALL,FULLPATH,TERSE
+#           LABEL,HOST,ID,PID,USER,GROUP,TYPE,UUID,SITE,IP,MAC,CPORT,SPORT,DISPLAY
+#
+#format: host:label:id:uuid:mac:disp:cport:sport:pid:uid:gid:sessionType:clientServer
+#         1    2     3   4   5   6     7     8    9  10  11      12           13       
+#         1    2     3   4                        5  6   7       8            9
+#
+# awk -F':' -v h=$_H -v l=$_L -v i=$_I -v p=$_P -v u=$_U -v g=$_G -v t=$_T -v uu=$_UU -v cs=$_S 
+#           -v mac=$_MAC -v dsp=_DSP -v cp=_CP -v sp=_SP  '
+#
+#         Internal calls, example:
+#           BOTH,FULLPATH,TERSE,LABEL,ID,SITE
+#
+#         For additional semantic information refer to online help.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#
+#    List-Output-Format:
+#    ===================
+#
+#    +-----------------------------+
+#      0 - h:    host              |
+#      1 - t:    type
+#      2 - l:    label             |
+#      3 - i:    id                | Identical to ENUMERATE
+#      4 - uu:   uuid              |
+#      5 - mac:  mac               |
+#    +-----------------------------+
+#      6 - dsp:  display
+#      7 - cp:   client access port
+#      8 - sp:   server access port
+#      9 - p:    pid
+#     10 - u:    uid
+#     11 - g:    gid
+#     12 - cs:   client|server
+#
+#
+#FUNCEND###############################################################
+function listMySessions () {
+  local _args=${1:-$DEFAULT_LIST_CONTENT}
+  local _site="";
+  local _P=0;local _U=0;local _G=0;local _L=0;local _I=0;local _F=0;local _T=0;local _S=0;
+  local _H=0;local _UU=0;
+  local _MAC=0;local _DSP=0;local _CP=0;local _SP=0;
+
+  local _title=0;
+  local _terse=${CTRL_TERSE:-0};
+  local _Fx=;
+  local _Ux=;
+
+  if [ -z "$_args" ];then
+    _args=${CTRL_MODE_ARGS}
+  fi
+
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $_GENERIC_LIST "\$@=<${@}>"
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $_GENERIC_LIST "MODE=${CTRL_MODE}"
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $_GENERIC_LIST "MODE_ARGS=${_args}"
+
+  for i in `echo $_args|sed 's/,/ /g'`;do
+      case $i in
+	  SERVER)     
+	      if [ -n "${_site}" ];then 
+		  ABORT=2
+		  printERR $LINENO $_GENERIC_LIST ${ABORT} "following must be EXOR: SERVER | CLIENT | BOTH"
+		  gotoHell ${ABORT}
+
+	      fi;
+	      _site=S;
+	      ;;
+	  CLIENT)     
+	      if [ -n "${_site}" ];then 
+		  ABORT=2
+		  printERR $LINENO $_GENERIC_LIST ${ABORT} "following must be EXOR: SERVER | CLIENT | BOTH"
+		  gotoHell ${ABORT}
+
+	      fi;
+	      _site=C;
+	      ;;
+	  BOTH)       
+	      if [ -n "${_site}" ];then 
+		  ABORT=2
+		  printERR $LINENO $_GENERIC_LIST ${ABORT} "following must be EXOR: SERVER | CLIENT | BOTH"
+		  gotoHell ${ABORT}
+
+	      fi;
+	      _site=B;
+	      ;;
+	  NONE)       _L=0;_P=0;_U=0;_G=0;_T=0;_H=0;_S=0;_I=0;_UU=0;_MAC=0;_CP=0;_SP=0;_DSP=0;;
+	  ALL)        _L=1;_P=1;_U=1;_G=1;_T=1;_H=1;_S=1;_I=1;_UU=0;_MAC=0;_CP=0;_SP=0;_DSP=0;;
+
+	  MACHINE)    _L=1;_P=1;_U=1;_G=1;_T=1;_H=1;_S=1;_I=1;_UU=1;_MAC=1;_CP=1;_SP=1;_DSP=1;_F=1;_terse=1;;
+	  MAXKEY)     _terse=1;_F=1;
+                      _H=1;_T=1;_L=1;_I=1;_UU=1;_MAC=1;
+                      _P=0;_U=0;_G=0;_S=0;_CP=0;_SP=0;_DSP=0;;
+
+	  TITLE)      _title=1;;
+
+	  HOST)       _H=1;;
+	  TYPE)       _T=1;;
+	  LABEL)      _L=1;;
+	  ID)         _I=1;;
+	  UUID)       _UU=1;;
+ 	  MAC)        _MAC=1;;
+
+	  PID)        _P=1;;
+	  USER)       _U=1;;
+	  GROUP)      _G=1;;
+	  SITE)       _S=1;;
+	  FULLPATH)   _F=1;;
+	  CPORT)      _CP=1;;
+	  SPORT)      _SP=1;;
+	  DISPLAY)    _DSP=1;;
+
+	  TERSE)   _terse=1;;
+      esac
+  done
+
+  #default lists sessions only, which are defined to be the server(-sessions),
+  #due to the roaming feature of almost all clients, and partly broadcast support.
+  if [ -z "${_site}" ];then
+      _site=S;
+  fi
+
+  #set content default
+  if [ $_L == 0 -a $_H == 0 -a $_I == 0 -a $_P == 0 -a $_U == 0 -a $_G == 0 -a $_T == 0 -a $_UU == 0 -a $_S == 0 \
+       -a $_MAC == 0 -a $_CP == 0 -a $_SP == 0 -a $_DSP == 0 ];then
+      printVerboseDebug ${DBG_LVL_UI} $LINENO $_GENERIC_LIST "Force of ID"
+      _I=1;
+  fi
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $_GENERIC_LIST "_L=$_L _H=$_H _I=$_I _P=$_P _U=$_U  _G=$_G _F=$_F _T=$_T _UU=$_UU "
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $_GENERIC_LIST "_S=$_S _MAC=$_MAC _CP=$_CP _SP=$_SP _DSP=$_DSP"
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $_GENERIC_LIST "CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+  local SESLST=
+
+  for y in ${PACKAGES_KNOWNTYPES};do
+      if [ "${CTRL_SESSIONTYPE}" == $y -o "${CTRL_SESSIONTYPE}" == "ALL" -o "${CTRL_SESSIONTYPE}" == DEFAULT ];then
+          _matched=1;
+          [ "$_U" == 1 ]&&_Ux=UUID
+          [ "$_F" == 1 ]&&_Fx=FULLPATH
+	  SESLST="${SESLST} `listMySessions${y} ${_site} ${_terse} ${_Fx} ${_Ux}`"
+      fi
+  done
+  if [ -z "$_matched" ];then
+      ABORT=2
+      printERR $LINENO $_GENERIC_LIST ${ABORT} "System Error, unexpected CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+      printERR $LINENO $_GENERIC_LIST ${ABORT} "  PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+      gotoHell ${ABORT}
+  fi
+  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_GENERIC_LIST "SESLST=${SESLST}"
+
+  
+  _site=${_site:+1}
+
+  if [ -z "${_terse}" ];then
+      echo
+      echo "${CTRL_SESSIONTYPE} sessions of SCOPE=${CTRL_SCOPE} -  ${CTRL_SCOPE_ARGS:-$USER}@`uname -n`:"
+  fi
+  if [ -n "${SESLST}" -a "${SESLST}" != " " ];then
+      local _first=${_title};
+      for i in ${SESLST};do
+          printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_GENERIC_LIST "CURSES=${i}"
+	  if [ -z "${_terse}" ];then
+	      echo -n "+->";
+	  fi
+          #
+          #Input-format: host:label:id:uuid:mac:disp:cport:sport:pid:uid:gid:sessionType:clientServer
+          # host:label:id:uuid:mac:disp:cport:sport:pid:uid:gid:sessionType:clientServer
+          # 1    2     3  4    5   6    7     8     9   10  11  12          13       
+          #
+          #
+          #Output-format: host:label:id:uuid:mac:disp:cport:sport:pid:uid:gid:sessionType:clientServer
+          # host:sessionType:label:id:uuid:mac:disp:cport:sport:pid:uid:gid:clientServer
+          # 1    2           3     4  5    6   7    8     9     10  11  12  13       
+          #
+          echo "${i}"|\
+              awk -F';' -v h=$_H -v l=$_L -v i=$_I -v p=$_P -v u=$_U -v g=$_G -v t=$_T -v uu=$_UU -v cs=$_S \
+                -v mac=$_MAC -v dsp=$_DSP -v cp=$_CP -v sp=$_SP \
+                -v title=${_first} \
+                -f ${_myPKGBASE_GENERIC_LIST}/format01.awk
+	  _first=0;
+      done|sort
+  else
+      if [ -z "${_terse}" ];then
+	  echo "NONE"
+      fi
+  fi
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listCheckParam
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function listCheckParam () {
+    if [ "${CTRL_SCOPE}" == "DEFAULT"  ];then
+        CTRL_SCOPE=USRLST
+        CTRL_SCOPE_ARGS=ALL
+    fi
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:${CTRL_SESSIONTYPE} - ${CTRL_EXECLOCAL}"
+    if [ "${CTRL_SESSIONTYPE}" == "DEFAULT" -a -n "${CTRL_EXECLOCAL}" ];then
+        CTRL_SESSIONTYPE=ALL
+    fi
+
+    if [ -n "$CTRL_MODE_ARGS" ];then
+	CTRL_MODE_ARGS=`echo ${CTRL_MODE_ARGS}|tr '[:lower:]' '[:upper:]'`
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+        for i in `echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`;do
+            case $i in
+                TITLE);;
+                TERSE|MACHINE|MAXKEY);;
+                NONE|FULLPATH|BOTH|ALL);;
+                ID|UUID|LABEL|TYPE|HOST|PID|USER|GROUP|CLIENT|SERVER|BOTH|IP|MAC|CPORT|SPORT|DISPLAY|SITE);;
+                *)
+                    ABORT=1;
+                    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown sub-opts for LIST:${i}"
+                    ;;
+            esac
+        done
+    fi
+}
+

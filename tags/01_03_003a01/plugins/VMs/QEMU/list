@@ -1,0 +1,122 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_QEMU_LIST="${BASH_SOURCE}"
+_myPKGVERS_QEMU_LIST="01.00.001a00pre"
+hookInfoAdd $_myPKGNAME_QEMU_LIST $_myPKGVERS_QEMU_LIST
+_myPKGBASE_QEMU_LIST="`dirname ${_myPKGNAME_QEMU_LIST}`"
+
+_QEMU_LIST="${_myPKGNAME_QEMU_LIST}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessionsQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists all QEMU sessions.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: C|S|B
+#     determines the filter to be applied.
+#     C: clients
+#     S: servers
+#     B: both
+# $2: 1=MACHINE|0=HUMAN
+# $3: 'FULLPATH'
+# $4: 'UUID'
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function listMySessionsQEMU () {
+    local _site=$1;shift
+    local _machine=$1;shift
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "QEMU_MAGIC  =${QEMU_MAGIC}"
+    local CLIENTLST=;
+    local SERVERLST=;
+
+    #controls debugging for awk-scripts
+    doDebug ${DBG_LVL_MAINT} $LINENO $_QEMU_LIST
+    local D=$?
+
+    local _ugid=;
+    _ugid=${_ugid:-;}
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "${_site} ${_site}"
+
+    case ${QEMU_MAGIC} in
+	QEMU_*)
+
+            #get-call for LABEL
+	    local _call1="sed -n 's/\t//g;/^#[^@]/d;s/#@#LABEL *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+
+
+            #get-call for UUID
+	    if [ -n "$_U" ];then
+		local _call2="sed -n 's/[ -]//g;s/#@#UUID *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+	    fi
+	    if [ "${_site}" == S -o "${_site}" == B ];then
+		SERVERLST=`listProcesses|awk '$8!=""&&$8~/vdeq/{print}'|awk -v _c1="$_call1" -v _c2="$_call2" -v f=$_F -v d=$D -v s=$SUBTYPE -v machine="$_machine" -f ${_myPKGBASE_QEMU}/qemulst01.awk`
+
+	    fi
+
+ 	    if [ "${_site}" == C -o "${_site}" == B ];then
+		printWNG $LINENO $_QEMU_LIST 0 "Sorry, LIST for clients is not supported, these are managed"
+		printWNG $LINENO $_QEMU_LIST 0 "by their specific plugin:VNC|X11|CLI"
+ 		CLIENTLST=;
+ 	    fi
+  	    ;;
+	*)  #ooooops!!!!!!
+	    ABORT=2
+	    printERR $LINENO $_QEMU_LIST ${ABORT} "mismatch:QEMU_MAGIC=${QEMU_MAGIC}"
+	    gotoHell ${ABORT}
+	    ;;
+    esac
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "SERVERLST(RAW)=<${SERVERLST}>"
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "CLIENTLST(RAW)=<${CLIENTLST}>"
+
+    if [ -z "${SERVERLST}" -a -z "${CLIENTLST}" ];then
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "No sessions yet."
+	return
+    fi
+
+    export -f getClientTPQEMU
+    export -f printVerboseDebug
+    export -f printERR
+    export -f gotoHell
+    export QEMU_MAGIC
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_QEMU_LIST "SERVERLST(PROCESSED)=\"${SERVERLST}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_QEMU_LIST "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+    for i in ${SERVERLST} ${CLIENTLST};do
+        i="${MYHOST};${i}"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $_QEMU_LIST "CURSES=${i}"
+	echo "${i}"
+    done
+}

@@ -1,0 +1,436 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-genmconf
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="Unified Sessions Manager"
+#
+#CALLFULLNAME:
+CALLFULLNAME="Generate PM configuration"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_01_001a02
+#DESCRIPTION:
+#  Utility of project ctys for generation of PM data supporting 
+#  ENUMERATE. This is seperated, due to some of the data requires
+#  root privileges for read operations.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+#path for various loads: libs, help, macros, plugins
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux: CentOS/RHEL(5+), SuSE-Professional 9.3"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work for any dist.):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome + fvwm"
+
+#to be tested - coming soon
+TARGET_WM_SOON="xfce"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+
+if [ "${*}" != "${*//-X/}" ];then
+    CTRL_TERSE=1
+fi
+if [ "${*}" != "${*//-V/}" ];then
+    if [ -n "${CTRL_TERSE}" ];then
+	echo -n ${VERSION}
+    else
+	echo "$0: VERSION=${VERSION}"
+    fi
+    exit 0
+fi
+
+
+. ${MYLIBPATH}/lib/misc
+. ${MYLIBPATH}/lib/help/help
+
+#path to directory containing the default mapping db
+if [ -d "${HOME}/.ctys/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/.ctys/db/default}
+fi
+
+#path to directory containing the default mapping db
+if [ -d "${MYCONFPATH}/conf/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
+fi
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+  . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+CATEGORY=PM;
+
+while [ -n "$1" ];do
+    case $1 in
+	'-h')showToolHelp;exit 0;;
+	'-V')printVersion;exit 0;;
+	'-P')
+	    CTYSDIR=/etc/ctys.d
+	    if [ ! -d "${CTYSDIR}" ];then
+		mkdir "${CTYSDIR}"
+	    fi
+
+	    if [ ! -d "${CTYSDIR}" ];then
+		echo "ERROR:Cannot create missing directory:\"${CTYSDIR}\""
+		exit 1;
+	    fi
+	    fileout=1;
+	    ;;
+	'-k')shift;key=$1;;
+	'-I')shift;ip=$1;;
+	'-u')uuidg=1;;
+	'-U')shift;uuid=$1;;
+	'-M')shift;mac=$1;;
+	[vV][mM])
+            CATEGORY=VM;
+	    MCONF=${CTYSDIR}/vm.conf
+	    break;
+	    ;;
+	[pP][mM])
+            CATEGORY=PM;
+	    MCONF=${CTYSDIR}/pm.conf
+	    break;
+	    ;;
+	*)
+	    echo "ERROR:Unknown machine type:\"$1\""
+            exit 1;
+	    ;;
+    esac
+    shift
+done
+
+
+if [ -n "${uuidg}" ];then
+    UUID=`uuidgen|sed 's/-//g'`;
+else
+    UUID=`dmidecode |awk '/UUID/{if(NF==2)print "\"" $2 "\"";}'|sed 's/-//g'`;
+fi
+
+
+if [ -n "${key}" ];then
+    if [ -n "${mac}" ];then
+	MAC="${mac}"
+    else
+	MAC=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C macmaponly -o MAC $key`;
+    fi
+    if [ -n "${ip}" ];then
+	IP="${ip}"
+    else
+	IP=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C macmaponly -o TCP $key`;
+    fi
+    if [ -z "${uuid}" -a -z "${uuidg}" ];then
+	UUID=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C macmap -o UUID $key`;
+    fi
+    _HOST=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C macmap -o DNS $key`;
+    _ID=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C macmap -o IDS $key`;
+    OS=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C macmap -o OS $key`;
+else
+    #local PM
+    if [ -n "${mac}" ];then
+	MAC="${mac}"
+    else
+	MAC=`getMyMAC`;
+    fi
+    if [ -n "${ip}" ];then
+	IP="${ip}"
+    else
+	IP=`getMyIP`;
+    fi
+    _HOST=${MYHOST}
+    ID=${MCONF};
+    OS=${MYOS};
+fi
+
+
+
+
+{
+
+    printf "#@#-----------------------------------------------------------\n";
+    printf "#@#Created by      = $0\n";
+    printf "#@#VERSION         = $VERSION\n";
+    printf "#@#DATE            = $DATETIME\n";
+    printf "#@#-----------------------------------------------------------\n";
+    printf "\n";
+    printf "#@#The next entry is required as literally \"#@#MAGICID-<plugin>\"\n";
+    printf "#@#where <plugin> is the enumerating plugin name.\n";
+    printf "#@#MAGICID-${MYOS}\n";
+    printf "#@#HOST            = \"${_HOST}\"\n";
+    printf "#@#LABEL           = \"${_HOST%%.*}\"\n";
+    printf "#@#ID              = \"${ID}\"\n";
+    printf "#@#UUID            = \"${UUID}\"\n";
+    printf "#@#MAC             = \"${MAC}\"\n";
+    printf "#@#IP              = \"${IP}\"\n";
+    printf "#@#VNCPORT         = \n";
+    printf "#@#VNCBASE         = \n";
+    printf "#@#VNCDISPLAY      = \n";
+    _ugid=`getMyUGID`
+    printf "#@#UID             = \"${_ugid%;*}\"\n";
+    printf "#@#GID             = \"${_ugid#*;}\"\n";
+    printf "#@#DISTRO          = \"${MYDIST}\"\n";
+    printf "#@#OS              = \"${OS}\"\n";
+    printf "#@#VERNO           = \"${MYREL}\"\n";
+    printf "#@#SERNO           = \n";
+    printf "#@#CATEGORY        = \"${CATEGORY}\"\n";
+    printf "\n";
+    printf "#@#This value represents the KVM port\n";
+    printf "#@#CONSOLE_KVM     = \n";
+    printf "\n";
+    printf "#@#This value represents the serial port\n";
+    printf "#@#CONSOLE_COM     = \n";
+}|\
+    {
+    if [ -n "${fileout}" ];then
+	cat >"${MCONF}"
+	if [ ! -f "${MCONF}" ];then
+	    echo "Creation of ${MCONF} failed."
+	    exit 1
+	fi
+    else 
+	cat
+    fi
+}
+
+
+
+

@@ -1,0 +1,119 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+
+#Extend this when required, 
+#e.g. PATH=${PATH}:/usr/sbin
+
+
+#
+#Base path, where the qemu packages for initial tests are stored
+QEMU_BASE=${QEMU_BASE:-$HOME/qemu}
+
+
+
+#
+#Can do this with any user, so sould be the same for the following
+#access-permissions too.
+#
+QEMU=`which qemu 2>/dev/null`
+if [ $? -ne 0 ];then
+    QEMU=`which /usr/local/bin/qemu 2>/dev/null`
+    if [ $? -ne 0 ];then
+	printWNGEXT $LINENO $BASH_SOURCE 0  "Can not find \"qemu\", check your PATH."
+    fi
+fi
+
+
+VDE_TUNCTL=`which vde_tunctl 2>/dev/null`
+if [ $? -ne 0 ];then
+    VDE_TUNCTL=`which /usr/local/sbin/vde_tunctl 2>/dev/null`
+    if [ $? -ne 0 ];then
+	printWNGEXT $LINENO $BASH_SOURCE 0  "Can not find \"vde_tunctl\", check your PATH."
+    fi
+fi
+
+VDE_SWITCH=`which vde_switch 2>/dev/null`
+if [ $? -ne 0 ];then
+    VDE_SWITCH=`which /usr/local/bin/vde_switch 2>/dev/null`
+    if [ $? -ne 0 ];then
+	printWNGEXT $LINENO $BASH_SOURCE 0  "Can not find \"vde_switch\", check your PATH."
+    fi
+fi
+
+
+
+
+#
+#Due to required root permissions for most of the calls to xm/virsh the 
+#impersonation aproach either by sudo or ksu should be used for restricted
+#calls. These calls might be released for call with root permissions 
+#selectively by local impersonation as root or an execution-account, instead 
+#of releasing the whole set of ctys. The ctys-tools should be executed as a 
+#different user without enhanced privileges.
+#
+#When using the root account natively no additional permissions are required
+#of course.
+#
+#
+#For ordinary users without enhnaced privileges one of the following two 
+#approaches could be applied:
+#
+# - ksu
+#   The preferred approach should be the seamless usage of kerberos, therefore
+#   "ksu" with the configuration file ".k5users" should be used.
+#
+#   For each user the following entry is required:
+#
+#     "<users-pricipal> /usr/bin/which /usr/sbin/xm /usr/bin/virsh"
+#
+#   Where the paths may vary.
+#
+#   Due to the required few calls to which, xm and/or virsh only ".k5login" 
+#   is not required.
+#
+# - sudo
+#   Basically the same, but to be handled by local configurations on any machine.
+#
+#
+#QEMUCALL="${XENCALL:-ksu -e }"
+#VDECALL="${VDECALL:-ksu -e }"
+
+
+#
+#Timeout for first attempt to connect to a DomU after create call.
+QEMU_CONSOLE_DOMU_INIT_WAIT=${QEMU_CONSOLE_DOMU_INIT_WAIT:-5}
+
+
+#
+#Default behaviour for CANCEL
+QEMU_CANCEL_DEFAULT=${QEMU_CANCEL_DEFAULT:-POWEROFF}
+
+
+
+#
+#Sets the virtual switch for interconnection of QEMU-VMs with the
+#external NIC of current container, which could be VM itself.
+QEMUSOCK=${QEMUSOCK:-/var/tmp/vde_switch0.$USER}
+
+
+#
+#Sets the virtual switch for interconnection of QEMU-VMs with the
+#external NIC of current container, which could be VM itself.
+QEMUBIOS=${QEMUBIOS:-$QEMU_BASE/pc-bios}

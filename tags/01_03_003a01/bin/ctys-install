@@ -1,0 +1,277 @@
+#FUNCEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-install
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="Unified Sessions Manager - CLI-Installer - Stage-0"
+#
+#CALLFULLNAME:
+CALLFULLNAME="ctys-install"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  sh-script
+#
+#VERSION:
+VERSION=01_01_001b04
+#DESCRIPTION:
+#  Install script for ctys. Generic shell script for bootstrap, 
+#  should work on almost any bourne-like shell.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: keyword=value pairs.
+#       [libdir=<libdir>]
+#         DEFAULT=$HOME/lib
+#         The root path for the physical install.
+#
+#       [bindir=<bindir>]
+#         DEFAULT=$HOME/bin
+#         Path to:
+#           Symbolic link:  $bindir/ctys -> $libdir/ctys.<version>/bin/ctys
+#           Bootstrap file: $bindir/bootstrap/bootstrap.<version>
+#
+#       [force]
+#         DEFAULT:unset
+#         Checks "ctys -V -X" alphebetically/literally, normally
+#         only updates are allowed, but force installs in any case.
+#
+#       [remove<default=unset>]
+#
+#       [force<default=unset>]
+#
+#       [help|--help|-help|-h]
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+
+if [ "${*}" != "`echo ${*}|sed 's/-h//'`" ];then
+    dn=`dirname $0`
+    ${dn}/ctys-install1 -h
+    exit 0
+fi
+
+if [ "${*}" != "`echo ${*}|sed 's/-X//'`" ];then
+    CTRL_TERSE=1
+fi
+if [ "${*}" != "`echo ${*}|sed 's/-V//'`" ];then
+    if [ -n "${CTRL_TERSE}" ];then
+	echo -n ${VERSION}
+    else
+	echo "$0: VERSION=${VERSION}"
+    fi
+    exit 0
+fi
+
+echo
+echo "ctys-install"
+echo
+echo "First stage - #0"
+
+######################################################################
+echo
+echo "  - Generic environment pre-checks for basics."
+echo
+echo "    Check accesibility of some \"very basic\" mandatory utilities"
+echo
+######################################################################
+
+#mandatory-0
+MANDATORY="which bash dirname basename find grep awk sleep "
+echo "Check for level-0==absolutely-mandatory - else almost nothing might work."
+for i in $MANDATORY;do
+    CHK=`which $i 2>&1 >/dev/null`
+    if [ $? != 0 ];then
+	echo "Oh, ...."
+	echo "....missing level-0==absolutely-mandatory:\"$i\", so check your basic shell evironment."
+	exit 1
+    else
+	echo "      $i - OK"
+    fi
+done
+echo
+
+#mandatory-1
+MANDATORY="ps"
+echo "Check fof level-1==mandatory - else (for now too!) almost nothing might work."
+for i in $MANDATORY;do
+    CHK=`which $i 2>&1 >/dev/null`
+    if [ $? != 0 ];then
+	echo "Oh, ...."
+	echo "....missing level-1==mandatory:\"$i\", so check your basic shell evironment."
+	echo "....you might be probably operating within a restricted-shell."
+	exit 1
+    else
+	echo "      $i - OK"
+    fi
+done
+echo
+
+#mandatory-2
+MANDATORY="vncserver vncviewer"
+echo "Check fof level-2==mandatory - else (for now too!) no remote-desktops."
+for i in $MANDATORY;do
+    CHK=`which $i 2>&1 >/dev/null`
+    if [ $? != 0 ];then
+	echo "Oh, ...."
+	echo "....missing level-1==mandatory:\"$i\", so check your basic shell evironment."
+	echo "....you do at least require \"vncserver\" for \"ConnectionForwarding\"."
+	echo "....\"TightVNC\" or \"RealVNC\""
+	exit 1
+    else
+	echo "      $i - OK"
+    fi
+done
+echo
+
+
+#by convention: CURCALLDIR=$CURINSTTREE/bin
+CURCALLDIR=`dirname $0`
+CURINSTTREE=`dirname ${CURCALLDIR}`
+CURINSTCONF=${CURINSTTREE}/conf/ctys
+
+MANDATORY="${CURCALLDIR}/ctys-install1"
+for i in $MANDATORY;do
+    CHK=`which $i 2>&1 >/dev/null`
+    if [ $? != 0 ];then
+	echo "Oh, ...."
+	echo "....missing \"$i\", so check your basic shell evironment."
+	exit 1
+    else
+	echo "      $i - OK"
+    fi
+done
+
+
+echo
+echo "Setting distribution."
+echo
+CUROS=`${CURCALLDIR}/getCurOS`;
+echo "   CUROS   = ${CUROS}"
+
+CURREL=`${CURCALLDIR}/getCurRelease`;
+echo "   CURREL  = ${CURREL}"
+
+CURDIST=`${CURCALLDIR}/getCurDistribution`;
+echo "   CURDIST = ${CURDIST}"
+
+
+echo
+######################################################################
+echo
+echo "  - Switch \"systools.conf\""
+echo
+######################################################################
+echo
+echo "    Current OS-REL=${CUROS}-${CURREL}"
+echo "     =>${CURINSTCONF}/systools.conf.${CURDIST}"
+echo
+if [ ! -f "${CURINSTCONF}/systools.conf.${CURDIST}" ];then
+   echo "Missing: ${CURINSTCONF}/systools.conf.${CURDIST}"
+   exit 1
+fi
+
+###########
+#REMARK:
+#  Do this for a short migration time of legacy only, threafter
+#  use seamlessly the pre-typeID-postfix-approach.
+cp ${CURINSTCONF}/systools.conf.${CURDIST} ${CURINSTCONF}/systools.conf
+###########
+
+
+######################################################################
+echo
+echo "  - Preparation of script headers for bash-path."
+echo
+echo "    Check accesibility of ctys scripts by their standard shells."
+echo
+######################################################################
+STDPATH="/bin/bash"
+CURPATH=`which bash`
+if [ "${CURPATH}" == "${STDPATH}" ];then
+    echo "      CURRENT(#!${CURPATH}) == ORIGINAL(#!${STDPATH})"
+    echo 
+    echo "      => No headers to be modified!"
+    echo 
+    echo "So, armed now."
+    echo 
+    echo "Second stage:"
+    echo 
+    echo "  Begin to install..."
+    echo 
+    echo "###################"
+    ${CURCALLDIR}/ctys-install1 $*
+    exit $?
+fi
+
+
+echo "  Adapt script-default shells "
+echo 
+echo "    from:    \"${STDPATH}\""
+echo "    to:      \"${CURPATH}\""
+echo 
+echo "  For"
+echo 
+echo "    subtree: \"${CURINSTTREE}\""
+echo 
+
+
+{
+    find ${CURINSTTREE} -type f -name '*[!~]'  -exec grep  -l '#!/bin/bash' {} \;
+}|\
+while read CX;do
+    echo "       $CX"
+
+    awk -v cp=${CURPATH} '
+          BEGIN   {
+             line=0;
+          }
+          line==0&&$1~/^#!\/bin\/bash/ {
+             printf("#!%s\n",cp);
+             next;
+          }
+          {
+             print $0
+             line++;
+          }
+    ' ${CX} > ${CX}.$$
+
+    if [ $? == 0 ];then
+	cp ${CX}.$$ ${CX}
+        rm -f ${CX}.$$
+    fi
+
+done
+
+
+
+
+
+echo 
+echo "So, armed now."
+echo 
+echo "Second stage - #1"
+echo 
+echo "  Begin to actually install..."
+echo 
+echo "###################"
+echo 
+${CURCALLDIR}/ctys-install1 $*
+
+
+
+

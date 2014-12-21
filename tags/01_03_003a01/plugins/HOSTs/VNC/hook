@@ -1,0 +1,505 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_03_001b01
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+VNC_MAGIC=VNC_GENERIC;
+VNC_VERSTRING=;
+VNC_STATE=DISABLED;
+VNCSERVER_OPT=;
+VNCVIEWER_OPT=;
+VNC_PREREQ="vncserver,vncviewer";
+
+
+export VNC_BASEPORT=${VNC_BASEPORT:-5900}
+
+_myPKGNAME_VNC="${BASH_SOURCE}"
+_myPKGVERS_VNC="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VNC $_myPKGVERS_VNC
+_myPKGBASE_VNC="${_myPKGNAME_VNC%/hook}"
+_VNC="${_myPKGBASE_VNC}hook"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  serverRequireVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a server component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function serverRequireVNC () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=${*};
+    _CS_SPLIT=${_CS_SPLIT//ConnectionForwarding/ServerOnly}
+    _CS_SPLIT=${_CS_SPLIT//*LocalOnly*/}
+    _CS_SPLIT=${_CS_SPLIT//*ClientOnly*/}
+
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+    if [ -n "${_CS_SPLIT}" ];then
+	_res="${_CS_SPLIT}";_ret=0;
+    fi
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientRequireVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a client component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function clientRequireVNC () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=${*};
+    _CS_SPLIT=${_CS_SPLIT//*DisplayForwarding*/}
+    _CS_SPLIT=${_CS_SPLIT//*ServerOnly*/}
+
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+    if [ -n "${_CS_SPLIT}" ];then
+	_res="${_CS_SPLIT}";_ret=0;
+    fi
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setVersionVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets defaults and MAGIC-ID for local vmware version.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  GLOBALS:
+#    VNC_MAGIC:  {VNC_REAL412|VNC_TIGHT129|...}
+#      Value to be checked.
+#
+#    VMW_DEFAULTOPTS
+#      Appropriate defaults.
+#
+#      -RealVNC  - 4.1.2 
+#      -TightVNC - 1.2.9
+#
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setVersionVNC () {
+    local _checkonly=;
+    if [ "$1" == "NOEXIT" ];then
+	local _checkonly=1;        
+    fi
+
+    local _verstrg=;
+    _CALLEXE=`which vncserver`;
+    if [ -z "${_CALLEXE}" ];then
+	ABORT=2
+	printERR $LINENO $_VNC ${ABORT} "Missing executable for VNCserver"
+	printERR $LINENO $_VNC ${ABORT} "can not find:"
+	printERR $LINENO $_VNC ${ABORT} " -> vncserv"
+	printERR $LINENO $_VNC ${ABORT} ""
+	printERR $LINENO $_VNC ${ABORT} "Check your PATH"
+	printERR $LINENO $_VNC ${ABORT} " -> PATH=${PATH}"
+	printERR $LINENO $_VNC ${ABORT} ""
+	if [ "${CTRL_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+    fi
+
+    _CALLEXE=`which vncviewer`;
+    if [ -z "${_CALLEXE}" ];then
+	ABORT=2
+	printERR $LINENO $_VNC ${ABORT} "Missing executable for VNCviewer"
+	printERR $LINENO $_VNC ${ABORT} "can not find:"
+	printERR $LINENO $_VNC ${ABORT} " -> vncviewer"
+	printERR $LINENO $_VNC ${ABORT} ""
+	printERR $LINENO $_VNC ${ABORT} "Check your PATH"
+	printERR $LINENO $_VNC ${ABORT} " -> PATH=${PATH}"
+	printERR $LINENO $_VNC ${ABORT} ""
+	if [ "${CTRL_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+    fi
+
+
+    if [ -n "`vncviewer --help 2>&1|egrep '(RealVNC)'`" ];then
+	_verstrg=`vncviewer --help 2>&1|egrep '(VNC Viewer)'|awk -v a=${_allign} '{printf("%s\n",$5);}'`
+        _verstrg="RealVNC-${_verstrg}"
+    else
+	if [ -n "`vncviewer --help 2>&1|egrep '(TightVNC)'`" ];then
+	    _verstrg=`vncviewer --help 2>&1|egrep '(viewer version)'|awk -v a=${_allign} '{printf("%s\n",$4);}'`
+            _verstrg="TightVNC-${_verstrg}"
+	else
+	    printWNG $LINENO $_VNC 0  "USO - Unidentified Software Object - VNCx..."
+	    printWNG $LINENO $_VNC 0  "."
+	    printWNG $LINENO $_VNC 0  "Can not evaluate version for \"which-ed vncviewer\"."
+	    printWNG $LINENO $_VNC 0  "."
+	    printWNG $LINENO $_VNC 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
+	    printWNG $LINENO $_VNC 0  "    option. Even for the utilized check by \"vncviewer --help\" "
+	    printWNG $LINENO $_VNC 0  "    option a display is required."
+	    printWNG $LINENO $_VNC 0  " 2. Another common cause for the initial usage is the missing "
+	    printWNG $LINENO $_VNC 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
+
+  	    _verstrg=GENERIC
+	fi
+    fi
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "VNC"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "  _verstrg=${_verstrg}"
+
+
+    #currently somewhat restrictive to specific versions.
+    case ${_verstrg} in
+	"TightVNC"*)
+	    VNC_MAGIC=VNCT;
+	    VNC_VERSTRING=${_verstrg};
+	    VNC_STATE=ENABLED;
+	    VNC_PREREQ="vncserver,vncviewer";
+	    VNCSERVER_OPT="${VNCSERVER_OPT_TightVNC}";
+	    VNCVIEWER_OPT="${VNCVIEWER_OPT_TightVNC}";
+	    ;;
+
+	"RealVNC"*)
+	    VNC_MAGIC=VNCR;
+	    VNC_VERSTRING=${_verstrg};
+	    VNC_STATE=ENABLED;
+	    VNC_PREREQ="vncserver,vncviewer";
+            VNCSERVER_OPT="${VNCSERVER_OPT_RealVNC}";
+            VNCVIEWER_OPT="${VNCVIEWER_OPT_RealVNC}";
+	    ;;
+
+         *)
+	    VNC_MAGIC=VNCG;
+            VNCSERVER_OPT="${VNCSERVER_OPT_GENERIC}";
+            VNCVIEWER_OPT="${VNCVIEWER_OPT_GENERIC}";
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_MAGIC       = ${VNC_MAGIC}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_VERSTRING   = ${VNC_VERSTRING}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_STATE       = ${VNC_STATE}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_PREREQ      = ${VNC_PREREQ}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNCSERVER_OPT   = ${VNCSERVER_OPT}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNCVIEWER_OPT   = ${VNCVIEWER_OPT}"
+}
+
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  noClientServerSplitSupportedMessageVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function noClientServerSplitSupportedMessageVNC () {
+    printERR $LINENO $_VMW_SESSION ${ABORT} "Unexpected ERROR!!!"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "VNC perfectly supports ClientServerSplit!!!"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientServerSplitSupportedVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether the split of client and server is supported.
+#  This is just a hardcoded attribute.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: If supported
+#    1: else
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function clientServerSplitSupportedVNC () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC "$FUNCNAME $1"
+    case $1 in
+	CREATE)return 0;;
+	CANCEL)return 0;;
+    esac
+    return 1;
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  enumerateMySessionsVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Not supported.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function enumerateMySessionsVNC () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "$FUNCNAME:\$@=${@}"
+}
+
+
+#
+#Managed load of sub-packages which are required in almost any case.
+#On-demand-loads will be performed within requesting action.
+#
+hookPackage "${_myPKGBASE_VNC}/session"
+hookPackage "${_myPKGBASE_VNC}/list"
+hookPackage "${_myPKGBASE_VNC}/info"
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vnc" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/vnc/vnc.conf" ];then
+	. "${HOME}/.ctys/vnc/vnc.conf"
+    fi
+
+    #Source pre-set environment from installation 
+    if [ -f "${MYCONFPATH}/vnc/vnc/cli.conf" ];then
+	. "${MYCONFPATH}/conf/vnc/vnc.conf"
+    fi
+fi
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  handleVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <OPMODE>
+#  $2: <ACTION>
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function handleVNC () {
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "${FUNCNAME}:$*"
+  local OPMODE=$1;shift
+  local ACTION=$1;shift
+
+  case ${ACTION} in
+
+      CREATE) 
+          hookPackage "${_myPKGBASE_VNC}/create"
+          createConnectVNC ${OPMODE} ${ACTION} 
+          ;;
+
+      CANCEL)
+          hookPackage "${_myPKGBASE_VNC}/cancel"
+          cutCancelSessionVNC ${OPMODE} ${ACTION} 
+          ;;
+
+
+      GETCLIENTPORT)
+	  case ${OPMODE} in
+              CHECKPARAM)
+		  if [ -n "$CTRL_MODE_ARGS" ];then
+                      printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+                      _CTRL_GETCLIENTPORT=$CTRL_MODE_ARGS
+		  else
+		      ABORT=1
+		      printERR $LINENO $_VNC ${ABORT} "Missing <session-label>|<session-id>"
+		      gotoHell ${ABORT}
+		  fi
+
+                      ;;
+	      ACTION)
+		  if [ -z "${CTRL_EXECLOCAL}" ];then
+		      assembleExeccall
+		  else
+		      printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC "Remote command:CTRL_MODE_ARGS=${CTRL_MODE_ARGS}"
+  		      echo "CLIENTPORT(VNC,${MYHOST},${_CTRL_GETCLIENTPORT})=`getClientTPVNC ${_CTRL_GETCLIENTPORT}`"
+		      gotoHell 0
+		  fi
+
+          esac
+	  ;;
+
+      *)
+          #SUSPEND|RESUME|RESET
+          ABORT=1;
+          printERR $LINENO $_VNC ${ABORT} "System Error, unsupported ACTION for VNC:ACTION=${ACTION} OPMODE=${OPMODE}"
+          ;;
+  esac
+
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initVNC () {
+  local _curInit=$1;shift
+  local _initConsequences=$1
+  local ret=0;
+
+  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $_VNC "$FUNCNAME ${_curInit}"
+
+
+  case $_curInit in
+      0);;#NOP - Done by shell
+      1)  #add own help to searchlist for options
+	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/HOSTs/VNC/help/${MYLANG}/010_vnc"
+          setVersionVNC $_initConsequences
+
+          ret=$?
+	  ;;
+      2);;#Curently nothing todo.
+      3);;#Curently nothing todo.
+      4);;#Curently nothing todo.
+      5);;#Curently nothing todo.
+  esac
+
+  return $ret
+}

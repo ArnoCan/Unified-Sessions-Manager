@@ -1,0 +1,4 @@
+TARGET_OS        = Linux:CentOS/RHEL - BSD:OpenBSD
+TARGET_VM        = VMware, Xen, QEMU
+TARGET_WM        = X11, Gnome, fvwm
+GUEST_OS         = ANY(some with limited native-acces support)

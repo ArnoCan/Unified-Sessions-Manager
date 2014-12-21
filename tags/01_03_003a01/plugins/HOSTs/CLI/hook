@@ -1,0 +1,436 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+CLI_MAGIC=CLI_GENERIC;
+CLI_VERSTRING=;
+CLI_STATE=DISABLED;
+CLISERVER_OPT=;
+CLIVIEWER_OPT=;
+CLI_PREREQ="bash";
+
+
+
+_myPKGNAME_CLI="${BASH_SOURCE}"
+_myPKGVERS_CLI="01.01.001a02"
+hookInfoAdd $_myPKGNAME_CLI $_myPKGVERS_CLI
+_myPKGBASE_CLI="${_myPKGNAME_CLI%/hook}"
+_CLI="${_myPKGBASE_CLI}hook"
+
+CTRL_CLI_DEFAULT="${CTRL_CLI_DEFAULT:-bash -l -i}"
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/cli" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/cli/cli.conf" ];then
+	. "${HOME}/.ctys/cli/cli.conf"
+    fi
+
+    #Source pre-set environment from installation 
+    if [ -f "${MYCONFPATH}/conf/cli/cli.conf" ];then
+	. "${MYCONFPATH}/conf/cli/cli.conf"
+    fi
+fi
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  serverRequireCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a server component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function serverRequireCLI () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/ServerOnly/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "The console type CLI doe not support ConnectionForwariding"
+	gotoHell ${ABORT}
+    else
+ 	_res="${*}";_ret=0;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientRequireCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a client component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function clientRequireCLI () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/1/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "The console type CLI doe not support ConnectionForwarding"
+	gotoHell ${ABORT}
+    else
+ 	_res=;_ret=1;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setVersionCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets defaults and MAGIC-ID for local cli version.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  GLOBALS:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setVersionCLI () {
+    local _checkonly=;
+    if [ "$1" == "NOEXIT" ];then
+	local _checkonly=1;        
+    fi
+
+    local _verstrg=;
+    _CALLEXE=`which bash`;
+    if [ -z "${_CALLEXE}" ];then
+	ABORT=2
+	printERR $LINENO $_CLI ${ABORT} "Missing executable for bash"
+	printERR $LINENO $_CLI ${ABORT} "can not find:"
+	printERR $LINENO $_CLI ${ABORT} " -> bash"
+	printERR $LINENO $_CLI ${ABORT} ""
+	printERR $LINENO $_CLI ${ABORT} "Check your PATH"
+	printERR $LINENO $_CLI ${ABORT} " -> PATH=${PATH}"
+	printERR $LINENO $_CLI ${ABORT} ""
+	if [ "${CTRL_SESSIONTYPE}" == "CLI" -a -z "${_checkonly}" ];then
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+    fi
+
+
+
+    #faulty on OpenBSD:${BASH_VERSION}
+    if [ -n "`bash --version 2>&1|egrep '(GNU bash)'`" ];then
+	_verstrg=bash-`bash --version 2>&1|egrep '(GNU bash)'|awk '{printf("%s %s\n",$4,$5);}'`
+    else
+	printWNG $LINENO $_CLI 0  "Unidentified Software Object - CLIx"
+	printWNG $LINENO $_CLI 0  "Scully is on the road..."
+  	_verstrg=GENERIC
+    fi
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI "CLI"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI "  _verstrg=${_verstrg}"
+
+
+    #currently somewhat restrictive to specific versions.
+    case ${_verstrg} in
+	"bash"*)
+	    CLI_MAGIC=CLIBASH;
+	    CLI_VERSTRING=${_verstrg};
+	    CLI_STATE=ENABLED;
+	    CLI_PREREQ="bash";
+	    CLISERVER_OPT=;
+	    CLIVIEWER_OPT=;
+	    ;;
+
+
+         *)
+	    CLI_MAGIC=CLIG;
+	    CLISERVER_OPT=;
+	    CLIVIEWER_OPT=;
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_CLI "CLI_MAGIC       = ${CLI_MAGIC}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_CLI "CLI_VERSTRING   = ${CLI_VERSTRING}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_CLI "CLI_STATE       = ${CLI_STATE}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_CLI "CLI_PREREQ      = ${CLI_PREREQ}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_CLI "CLISERVER_OPT   = ${CLISERVER_OPT}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_CLI "CLIVIEWER_OPT   = ${CLIVIEWER_OPT}"
+}
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  noClientServerSplitSupportedMessageCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function noClientServerSplitSupportedMessageCLI () {
+    printERR $LINENO $_VMW_SESSION ${ABORT} "Unexpected ERROR!!!"
+    printERR $LINENO $_VMW_SESSION ${ABORT} "CLI perfectly supports ClientServerSplit!!!"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientServerSplitSupportedCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether the split of client and server is supported.
+#  This is just a hardcoded attribute.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: If supported
+#    1: else
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function clientServerSplitSupportedCLI () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_CLI "$FUNCNAME $1"
+    case $1 in
+	CREATE)return 0;;
+#	CONNECT)return 0;;
+#	CANCEL)return 0;;
+#	SUSPEND)return 0;;
+#	RESUME)return 0;;
+#	SHIFT)return 0;;
+    esac
+    return 1;
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  enumerateMySessionsCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Not supported.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function enumerateMySessionsCLI () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI "$FUNCNAME:\$@=${@}"
+}
+
+
+
+
+#
+#Managed load of sub-packages which are required in almost any case.
+#On-demand-loads will be performed within requesting action.
+#
+hookPackage "${_myPKGBASE_CLI}/session"
+#hookPackage "${_myPKGBASE_CLI}/enumerate"
+hookPackage "${_myPKGBASE_CLI}/list"
+hookPackage "${_myPKGBASE_CLI}/info"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  handleCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <OPMODE>
+#  $2: <ACTION>
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function handleCLI () {
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI "${FUNCNAME}:$*"
+  local OPMODE=$1;shift
+  local ACTION=$1;shift
+
+  case ${ACTION} in
+
+      CREATE) 
+          hookPackage "${_myPKGBASE_CLI}/create"
+          createConnectCLI ${OPMODE} ${ACTION} 
+          ;;
+
+      *)
+          #unknown
+          ABORT=1;
+          printERR $LINENO $_CLI ${ABORT} "System Error, unsupported ACTION for CLI:ACTION=${ACTION} OPMODE=${OPMODE}"
+          ;;
+  esac
+
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initCLI () {
+  local _curInit=$1;shift
+  local _initConsequences=$1
+  local ret=0;
+
+  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $_CLI "$FUNCNAME ${_curInit}"
+
+  case $_curInit in
+      0);;#NOP - Done by shell
+      1)  #add own help to searchlist for options
+	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/HOSTs/CLI/help/${MYLANG}/010_cli"
+          setVersionCLI ${_initConsequences}
+          ret=$?
+	  ;;
+      2);;#Curently nothing todo.
+      3);;#Curently nothing todo.
+      4);;#Curently nothing todo.
+      5);;#Curently nothing todo.
+  esac
+
+  return $ret
+}

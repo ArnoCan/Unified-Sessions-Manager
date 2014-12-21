@@ -1,0 +1,253 @@
+
+ CONTENTS:
+ =========
+
+  0.         Preface
+  0.1.        Some General Remarks
+  0.2.        Legal
+  0.3.        Some personal AD
+  0.3.1.       Motivation
+  0.3.2.       Professional Services
+  0.3.3.       Community-Projects
+  0.3.4.       Source-Distribution Policies
+  0.3.5.       Contact
+  0.4.        Acknowledgements
+
+  1.         Introduction
+  1.1.        The Big Picture 
+  1.1.1.        Motivation
+  1.1.2.        Abstract
+  1.1.3.        Feature-Sum-Up
+  1.1.4.        The Vision
+  1.2         Claimed Inventions
+  1.3         Basic Terminology
+
+  2.         Desktop Sessions - Secure User Interface
+  2.1.        Security and authorization assumptions
+  2.2.        Reference X11-ServerLayouts
+  2.2.1.       Physical Layout-1
+  2.2.1.1.      Logical Layout-1a - standard X11-mapping
+  2.2.1.2.      Logical Layout-1b - Gnome + vmctrl
+  2.2.2.       Physical Layout-2
+  2.3.        Handling of Client-Session-Windows
+  2.4.        Bulk access
+  2.4.1.       Multiple targets and desktops
+  2.4.2.       Group Concept
+  2.5.        SSH encryption and tunneling - Basics
+  2.5.1.       DisplayForwarding
+  2.5.2.       ConnectionForwarding
+  2.6         Summary
+
+  3.         PMs and VMs - Physical and Virtual-Machine-Sessions
+  3.1.        Session-Types
+  3.2.        Common-Features
+  3.3.        Nested VMs
+  3.3.1.       VM-Stacks
+  3.3.1.1.      VM as an ordinary SW-Component
+  3.3.1.1.      Utilization of Bulk-Core-CPUs
+  3.3.2.       Advanced Requirements
+  3.3.2.1.      Namebinding - Seamless Addressing
+  3.3.2.2.      Operational Stack-Interworking
+  3.3.2.2.1      Startup
+  3.3.2.2.2      Shutdown
+
+  4.         HOSTs-Sessions - Native Access to running OSs
+  4.1.        Command Line Access - CLI
+  4.2.        Start a GUI application - X11
+  4.3.        Open a complete remote Desktop - VNC
+
+  5.         Addressing Nested PMs, VMs, and HOSTs - CTYS-Nameservices
+  5.1.        Basic syntax elements - Reserved Characters
+  5.2.        Required Namebinding
+  5.2.1.       Integration of PMs, VMs, and HOSTS
+  5.2.2.       Implementation basics for handling of namebindings
+  5.2.3.       Address syntax
+  5.2.3.1       Single-Target
+  5.2.3.2       Group-Targets
+  5.3.        Nameservices
+  5.3.1.       Design of Nameservices
+  5.3.1.1.      Local File-DB
+  5.3.1.2.      Network LDAP-Access
+
+  6.         Software Architecture
+  6.1.        Basic Extendibility Design
+  6.2.        Development Environment
+  6.2.1        Some basics on "bash"
+  6.2.1.1.      "source-ing"
+  6.2.1.2.      Using bash-modules as self-configuring dynamic objects
+  6.2.2.       Component Framework
+  6.2.2.1.      Hook - The Extendibility Interface
+  6.2.2.1.1.     Static Load of Modules
+  6.2.2.1.2.     Dynamic OnDemand Load of Modules
+  6.2.2.1.3.     Operational States
+  6.2.2.1.4.     IGNORE-Flag - A stateless State
+  6.2.2.1.5.     Multi-OS Boot Environments
+  6.2.2.2.      Database Design
+  6.2.2.2.1.     Dynamic vs. Static
+  6.2.2.2.2.     Standard Interface Layout - MACHINE and TITLE
+  6.2.2.3.      Interface-Specification - Online-Help     
+  6.2.2.3.1.     Interface-Specification-Rules
+  6.2.2.3.2.     Generic Context-Help for Shell-Scripts  
+  6.3.        All about bash-Plugins and bash-Libraries
+  6.3.1.       The Differences
+  6.3.2.       Libraries
+  6.3.3.       Plugins
+  6.3.3.1       Category CORE
+  6.3.3.2       Category GENERIC
+  6.3.3.3       Category HOSTs
+  6.3.3.4       Category PMs
+  6.3.3.5       Category VMs
+
+  7.          Interface Design
+  7.1.         Target-Platforms
+  7.2.         Feature-Design
+  7.3.         Command-Sets
+  7.4.         Plugins
+  7.4.1.        Standard Plugins
+  7.4.2.        Extensions
+  7.4.3.        Subdispatcher
+  7.5          Security Design
+  7.5.1.        Accounts and Impersonation
+  7.5.2.        Access Location
+  7.5.3.        System Resources
+
+  8.          Common Options
+  8.1.         Syntax Elements and Behaviour
+  8.1.2.        Options Scanners - Reserved Characters
+  8.1.3.        Sessions Name binding
+  8.1.4.        Common Cache Handling
+  8.1.5.        The Untold Shifted Stack Essential - CREATE
+  8.2.         ctys Options
+  8.3.         ctys Arguments
+
+  9.          Plugins - Feature Extensions
+  9.1.         Prerequisites
+  9.2.         Category HOSTs
+  9.2.1.        CLI - Comman Line Interface
+  9.2.2.        VNC - Virtual Network Console
+  9.2.3.        X11 - X11-Server Calls
+  9.3.         Category PMs
+  9.3.1.        PM - Linux and OpenBSD Hosts
+  9.4.         Category VMs
+  9.4.1.        QEMU - QEMU Emulator
+  9.4.2.        VMW - VMware
+  9.4.3.        XEN - Xen
+  9.5.         Category GENERIC
+  9.5.1.        LIST Plugin-Collector
+  9.5.2.        ENUMERATE Plugin-Collector
+  9.5.3.        SHOW Plugin-Collector
+  9.5.4.        INFO Plugin-Collector
+
+  10.         ctys Support Tools
+  10.1.        Nameservices
+  10.1.1.       Online-Tools
+  10.1.1.1.      ctys-vhost
+  10.1.1.2.      ctys-vping
+  10.1.1.3.      ctys-macmap
+  10.1.1.4.      ctys-dnsutil
+  10.1.1.5.      ctys-smbutil
+  10.1.2.       Offline-Tools
+  10.1.2.1.      ctys-vdbgen
+  10.1.2.2.      ctys-extractARPlst
+  10.1.2.3.      ctys-extractMAClst
+  10.1.2.4.      ctys-genmconf
+  10.2.        Utilities
+  10.2.1.       Online-Tools
+  10.2.1.1.      ctys-script
+  10.2.2.       Offline-Tools
+  10.2.2.1.      ctys-mv
+  10.2.2.2.      ctys-cp
+  10.2.2.3.      ctys-rm
+  10.2.2.4.      ctys-sed
+  10.2.2.5.      ctys-awk
+  10.2.3.       Helper-Tools
+  10.2.3.1.      ctys-install
+  10.2.3.2.      ctys-install1
+  10.2.3.3.      ctys-plugins
+  10.2.3.4.      getCurOS
+  10.2.3.5.      getCurOSRelease
+  10.2.3.6.      getCurDistribution
+  10.2.3.7.      getCurRelease
+  10.2.3.8.      pathlist
+
+  11.         Application Examples
+  11.1.        Desktop Sessions
+  11.1.1.        Openning multiple ctys
+  11.1.2.        Openning multiple ctys with extended geometry 
+  11.1.2.1.       Seperate calls
+  11.1.2.2.       One call
+  11.1.3.        Different resolution on client and server
+  11.1.4.        Dynamic moving sessions windows
+  11.1.5.        Spanning multiple physical screens with on VNC-Window
+  11.1.6.        CREATE with tree-search for unique IDs
+  11.1.7.        Some session related calls
+  11.1.8.        Some ctys related calls
+  11.2.        HOSTs - Sessions
+  11.3.        VMs - Sessions
+  11.4.        PMs - Sessions
+  11.4.1.        PMs - Using Wake-On-Lan - WoL
+  11.4.1.1.        CREATE a PM Session
+  11.4.1.2.        CREATE a VM Session with initial PM Session
+  11.4.1.3.        CANCEL a PM Session containing VM-Stack-Sessions
+  11.5.        User Access - Secure permissions
+  11.5.1.        SSH, SSL, IPsec, and VPNs
+  11.5.2.        VM-Stacks, SSO, and Kerberos
+  11.5.3.        Network Filesystems
+  11.5.4.        Authentication - Impersonation
+  11.5.4.1.        sudoers
+  11.5.4.2.        k5users
+  11.5.4.3.        Secure root Access
+  11.5.5.        SELinux
+  11.5.6.        Firewall
+  11.5.7.        Resource Access Permissions
+  11.5.7.1.        TAP/TUN by VDE
+  11.5.7.1.1.        VDE within Xen Dom0
+  11.5.7.1.2.        VDE within Xen DomU
+  11.5.7.1.3.        VDE within VMware
+  11.5.7.1.4.        VDE within Native Unix
+  11.5.7.2.        Basic DomU Management by Xen-Dom0
+  11.6.        Applications of ctys-vhost
+  11.6.1.        Database Generation ctys-vdbgen and companions
+  11.6.2.        LDAP based VM-Stack Nameservices
+  11.6.3.        Group Addressing
+  11.6.3.1.        Group Caches - The Performance Clue
+  11.6.3.2.        View Scopes - Preconfigured Task-Groups
+  11.6.4.        Stack Addressing - Utilities
+  11.6.4.1.        Access into Stacked VMs
+  11.6.4.2.        ctys-vhost
+  11.6.4.3.        ctys-vping
+  11.6.4.4.        ctys
+  11.6.4.5.        Stacked DISPLAY
+  11.6.5.        DHCP Poll
+  11.6.6.        PXELinux - Address Translation
+
+  12.         Appendices
+  12.1.        References
+  12.2.        Current Loaded Plugins
+  12.3.        File Formats
+  12.3.1        Common Tools and Formats
+  12.3.2        Groups
+  12.3.3        Static Import File Databases - fdb
+  12.3.3.1.      macmap.fdb
+  12.3.3.2.      enum.fdb
+  12.3.3.       Static Pre-Fetch Cache Databases - cdb
+  12.3.4.1.      grpscache.cdb
+  12.3.4.2.      statcache.cdb
+  12.3.5.       Dynamic Runtime Cache Databases
+  12.3.6.       Configuration Entries
+  12.4.        LDAP
+  12.5.        Call Input-Output Formats
+  12.5.1.       Common Data Import/Export Options
+  12.5.2.       ENUMERATE
+  12.5.3.       LIST
+  12.5.4.       INFO
+  12.5.5.       SHOW
+  12.6.        Miscellaneous
+  12.6.1.       Basic EXEC principle
+  12.6.2.       PATH
+  12.6.3.       Configuration files:
+  12.6.4.       Media Access Control(MAC) Addresses - VM-NICs
+  12.7.        ERRORS and WORKAROUNDS
+  12.7.1.       ERRORS-OBSTRUCTIVE
+  12.7.2.       ERRORS-REMINDER
+  12.8.        TODO

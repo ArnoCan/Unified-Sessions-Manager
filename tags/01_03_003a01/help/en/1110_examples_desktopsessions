@@ -1,0 +1,419 @@
+   11.1. Desktop Sessions
+
+    11.1.1. Openning multiple ctyss
+    -------------------------------
+
+     This creates 3 vncviewer desktops to 3 different hosts and one
+     VMware-VM session, which will be done with one call when
+     provided within one call or script:
+
+
+        ctys -a create=l:CONSOLE -g :1 host01
+        ctys -a create=l:CONSOLE -g :2 host02
+        ctys -a create=l:CONSOLE -g :3 host03
+        ctys -t vmw -a CREATE=f:'vmware/openbsd-001.vmx' \
+             -g '600x400+2660+100' host01
+
+
+    11.1.2. Openning multiple ctyss
+    -------------------------------
+
+     11.1.2.1. Seperate calls
+     ------------------------
+      This spans now 2 screens:
+
+
+        ctys -a create=l:CONSOLE -g "2560+0:1" host01
+
+
+      This resets to one screen:
+
+  
+        ctys -a create=l:CONSOLE -g ":1" host01
+
+
+
+     11.1.2.2. One call
+     ------------------
+      This call combines multiple session into one call, it opens 
+      4 sessions on two hosts in seperate VNC desktops.
+
+
+       ctys  --                                             \
+         host02'(-a create=l:F1,REUSE -g 400x400:3)'        \
+         host02'(-a create=l:F2,REUSE -g 400x400+500+500:3)'\
+         host01'(-a create=l:F3,REUSE -g 400x400:4)'        \
+         host01'(-a create=l:F4,REUSE -g 400x400+500+500:4)'
+
+
+      This combines different sizes of client windows.
+
+
+       ctys -b on  --                                        \
+        host02'(-a create=l:chk1,REUSE -g 400x400+10+10:4)'  \
+        host02'(-a create=l:chk2,REUSE -g 400x340+10+440:4)' \
+        host02'(-a create=l:chk3,REUSE -g 400x400+420+10:4)' \
+        host02'(-a create=l:chk4,REUSE -g 440x940+830+10:4)' \
+        host02'(-a create=l:chk5,REUSE -g 800x130+10+820:4)' \
+        host02'(-a create=l:chk6,REUSE -g 300x150+440+440:4)'\
+        host02'(-a create=l:chk7,REUSE -g 300x150+490+630:4)'
+
+
+     11.1.3. Different resolution on client and server
+     -------------------------------------------------
+
+      This displays a local window of size "500x500" on screen 4. The
+      resolution of the server (vncserver or Xclient) is "1800x1800":
+
+
+        ctys -a create=l:CONSOLE -g '500x500:4' -r '1800x1800' host01
+
+
+
+     11.1.4. Dynamic moving sessions window
+     --------------------------------------
+
+      For moving a vncviewer window circular across all screens and
+      additionally within the screen, just the following lines are
+      reuqired.
+
+
+
+       #
+       #cycle screens
+       #
+       local _scr=; #screens
+       local _pos=; #offsets within that screen
+       #
+       for (( _scr=0; _scr<7; _scr++));do
+         #cycle within screen
+         for pos in +600+100 +700+150 +800+200 +700+300 +600+200 ;do
+
+           ctys -a create=l:TST01,REUSE -g "500x500${_pos}:$scr" \
+                  host01
+
+           sleep 3
+         done
+       done
+
+
+      The first call simply CREATE a ctys-session by starting
+      vncserver, whereas the following calls just attach a
+      vncviewer-client to the already running ctys-session. If the
+      ctys-session already exists, no CREATE of ctys-session will be
+      done.
+
+      This usage of REUSE here is utilized for the specific default
+      behaviour of RealVNC(and tightVNC), where by default no desktop
+      sharing is allowed. The standard behaviour is therefore after
+      authorization to vncserver, to kill all (so one) previously
+      started viewer-instances. When sharing is activated, REUSE just
+      creates the requested new client, but does not touch the
+      previous clients.
+
+      Thus for performance reasons here the call of REUSE is prefered,
+      instead of using RECONNECT key, which first explicitly "kills"
+      all previously locally started vncviewer instances on the
+      current host of vncviewer execution for the for targeted
+      ctys-session, which is the vncserver to be attached to.
+
+      The following does the same, but opens an additional
+      VMware-Server session, which will be placed on a the screen next
+      to VNC.  Here it is performed by two seperate calls.
+
+
+       #
+       #cycle screens
+
+       #
+       local _scr=; #screens
+       local _pos=; #offsets within that screen
+       #
+       for (( _scr=3; _scr<7; _scr++));do
+         #cycle within screen
+         for pos in +600+100 +700+150 +800+200 +700+300 +600+200 ;do
+
+          ctys -a create=l:TST01,REUSE                       \
+               -g "500x500${_pos}:${scr}"                    \
+               host01
+
+          ctys -t VMW                                        \
+               -a create=l:TST01-VMW,RECONNECT               \
+               -g "500x500${_pos}:$((scr+1))"                \
+               host01
+
+          sleep 3
+        done
+       done
+
+
+       The following does the same, but performs just one call for
+       both.
+
+
+       #
+       #cycle screens
+       #
+       local _scr=; #screens
+       local _pos=; #offsets within that screen
+       #
+       for (( _scr=3; _scr<7; _scr++));do
+        #cycle within screen
+        for pos in +600+100 +700+150 +800+200 +700+300 +600+200;do
+
+         ctys                                               \
+           host01"(                                         \
+                    -a create=l:TST01,REUSE                 \
+                    -g 500x500${_pos}:${scr}                \
+                  )"                                        \
+           host01"(                                         \
+                    -t VMW                                  \
+                    -a create=l:TST01-VMW,RECONNECT         \
+                    -g "500x500${_pos}:$((scr+1))"          \ 
+                  )"
+
+           sleep 3
+         done
+        done
+
+
+      The following does the same and adds XEN. Which has to be
+      executed on a different host than VMware is.
+
+       #
+       #cycle screens
+       #
+       local _scr=; #screens
+       local _pos=; #offsets within that screen
+       #
+       for (( _scr=3; _scr<7; _scr++));do
+        #cycle within screen
+        for pos in +600+100 +700+150 +800+200 +700+300 +600+200;do
+
+         ctys                                               \
+           host01"(                                         \
+                    -t VNC                                  \
+                    -a create=l:TST01,REUSE                 \
+                    -g 500x500${_pos}:${scr}                \
+                  )"                                        \
+           host01"(                                         \
+                    -t VMW                                  \
+                    -a create=l:TST01-VMW,RECONNECT         \
+                    -g "500x500${_pos}:$((scr+1))"          \ 
+                  )"                                        \
+           host02"(                                         \
+                    -t XEN                                  \
+                    -a create=l:TST01-XEN,RECONNECT         \
+                    -g "500x500${_pos}:$((scr+2))"          \ 
+                  )"
+
+         sleep 10 #give some more time
+        done
+       done
+
+
+      Now adding multiple desktop support.
+
+
+       #
+       #cycle screens
+       #
+       local _scr=; #screens
+       local _pos=; #offsets within that screen
+       #
+       for (( _scr=3; _scr<7; _scr++));do
+         for desk in rd prod 3;do  #rd=1, prod=2, 3=admin
+           #cycle within screen
+           for pos in +600+100 +700+150 +800+200 +700+300 +600+200;do
+
+            ctys                                             \
+              host01"(                                       \
+                       -t VNC                                \
+                       -a create=l:TST01,REUSE               \
+                       -g 500x500${_pos}:${scr}              \
+                       -D ${desk}                            \
+                     )"                                      \
+              host02"(                                       \
+                       -t VMW                                \
+                       -a create=l:TST01-VMW,RECONNECT       \
+                       -g "500x500${_pos}:$((scr+1))"        \
+                       -D ${desk}                            \
+                     )"                                      \
+              host03"(                                       \
+                       -t XEN                                \
+                       -a create=l:TST01-XEN,RECONNECT       \
+                       -g "500x500${_pos}:$((scr+2))"        \ 
+                       -D ${desk}                            \
+                     )"
+
+           done
+          sleep 10 #give some more time
+        done
+      done
+
+
+     11.1.5. Spanning multiple physical screens with on VNC-Window
+     -------------------------------------------------------------
+
+      Currently it seems though, that in case of RealVNC 4.1.2
+      on CentOS-5.0 the following behaviour is given:
+
+       - A desktop with size bigger than a physical(better to say
+         X11-configured) screen has to be configured when starting the
+         vncserver. So e.g. the geometry parameter for the vncserver
+         call could be "2560x1024" on a adjecent pair of "1280x1024"
+         screens.
+
+       - When openning the vncviewer the desktop will be sized as
+         given by the vncserver, but the displayed window is
+         restricted by the current screen dimension. 
+
+      As it seems to be, the oversized window is restricted to the
+      size of the screen of the monitor in the middle of the
+      calculated area of required size and offset. This is the device
+      on which the resulting screen will be displayed. The maximum
+      size given as an option to vncviewer will not change this
+      behaviour. 
+
+      This seems to be a bug of vncviewer, but anyhow, the horizontal
+      scrollbar shows the correct proportions and the windows could be
+      expanden manually to it's full size, spanning multiple screens.
+
+
+      This behaviout is a major drawback for automatic and final
+      configuration of desktop layouts, requiring additional manual
+      interaction. But it does only effect, when sizing a window
+      bigger than a screen.
+
+      So with the following call a window could be created, which is
+      spanning 4 adjecent screens, but has to expanded to it's final
+      size manually:
+
+       ctys -a create=l:BIG13 -g '5120x1024:3' host01
+
+
+      For debugging of the remote actions the following could be
+      called:
+
+       ctys -a create=l:BIG13 -g '5120x1024:3' -- '(-d 6)' host01
+
+      Which sets the debugging level on the remote host "host01" to
+      "6".
+   
+
+     11.1.6. CREATE with tree-search for unique IDs
+     ----------------------------------------------
+
+      One of the real smart features of ctys is it's ability to use
+      any of it's unique IDs for automatic serach for related vmx-file
+      within a defined subtreee, which is by default HOME.
+
+      Any directory prefix could be provided.
+
+      The applicable IDs are 
+
+
+       - the vmx-filename with any partial relative path-prefix
+       - the UUID
+       - the LABEL, a.k.a displayName of name/DomainName.
+
+
+      The following calls are possible:
+
+       - This starts a VMware session with the first matched UUID
+         within subtree "vmware/dir2" relative to HOME on host01.
+
+          ctys -t vmw                                             \
+               -a create=uuid:0101010...01,basepath:vmware/dir2   \
+               host01                                             \
+
+
+        - This starts a VMware session with the first matched LABEL
+          within subtree "vmware/dir2" relative to HOME on host01.
+
+           ctys -t vmw                                             \
+                -a create=label:MatchMe,basepath:vmware/dir2       \
+                host01                                             \
+
+
+        - This starts a VMware session with the first matched vmx-file
+          within subtree "vmware/dir2" relative to HOME on host01.
+
+
+           ctys -t vmw                                             \
+                -a create=filename:dir2/OpenBSD-01/OpenBSD-01.vmx, \
+                          basepath:vmware                          \
+                host01                                             \
+
+
+        - This starts a VMware session with the vmx-file on host01.
+
+
+           ctys -t vmw                                              \
+                -a create=pname:$HOME/dir2/OpenBSD-01/OpenBSD-01.vmx\
+                host01                                              \
+
+
+     11.1.7. Some session related calls
+     ----------------------------------
+
+      ENUMERATE:
+       Enumerate the current available sessions of type VMW, where
+       UUIDs are displayed additionaly to labels and vmx-files. The
+       scan for vmx-files begins relative to the callers HOME
+       directory within the subdirectories: "vmware/dir2" and
+       "vmware/dir3" on host01.
+
+        ctys -t vmw -a enumerate=UUID,vmware/dir2%vmware/dir3 host1
+
+
+      LIST:
+       List all current active sessions, where all attributes are
+       visible, the fullpathname for vmx-files is displayed. 
+       Initially all type-plugings are loaded and listed due to load
+       state. All CLIENT and SERVER processes located on the host01
+       are displayed. Warnings are suppressed.
+
+        ctys -a list=all,fullpath,both -W -T all host01
+
+
+       HINT:Loading of all present plugins could exhaust shell resources.
+
+
+      SHOW:
+       This shows the current dynamic state of the remote hosts,
+       therefore basic system information for OS, MACHINE, RAM,
+       processes(by top), and current ALARMS of lm_sensors if
+       installed.
+ 
+        ctys -a show host0{1,2}
+
+
+      INFO:
+       This displays information related to static data of selected
+       hosts, which contains installed OS, CPU-info, RAM-info,
+       VNC-info, and wmctrl-info.
+
+       For practical purposes the CPU-Flags: VT-x, AMD-V, and PAE are
+       displayed.
+
+        ctys -a info host0{1,2}
+
+
+     11.1.8. Some ctys related calls
+     -------------------------------
+
+      Display Version and available plugin:
+       The following call enumerates all actually loaded plugins as set
+       by default:
+
+        ctys -v
+
+
+       The following call enumerates all actually available plugins and
+       their versions.
+
+
+        ctys -v -T all
+
+

@@ -1,0 +1,81 @@
+
+
+Usage: 
+======
+
+   ctys-smbutil [options]
+
+
+Description:
+============
+
+   ctys-dnsutil displays a short list of current available SMB server
+   and workstations.
+
+
+Options:
+========
+
+
+   -d <debug-level>
+
+      Same as ctys.
+
+
+   -h
+      Print help.
+
+
+   -i
+      Show numerical TCP/IP-Address. This is supported in combination
+      with "-n" option only without "-X" option.
+
+
+   -n
+      Show TCP/IP-Address as name. This is supported in combination
+      with "-i" option only without "-X" option.
+
+
+   -R <runtime states>
+
+      Restricts a set of multiple results with additional 
+      constrains for output.
+
+      Only the possible targets which are operable or actually
+      operational are listed. This includes the actual running VM with
+      it's hosting PM, and in addition all other operational machines,
+      where the current VM is available too. This case is the most
+      common for NFS based exec-pools, where a single VM could be
+      accessed remotely by a number of PMs. This particularly offers
+      the advantage of copyless-migration of online and offline VMs.
+
+      Very handy, and in companion with others probably one 
+      of the most important internal top-level-calls for 
+      GuestOS-Command-Execution.
+      
+      <runtime states>=[(REVERSE|R|-),]PING|SSH[,PM|VM]
+
+
+        REVERSE|R|-:
+                  This reverses the resulting set, thus the "not
+                  matching" states only will be shown.
+
+
+        PING[:<packetcnt>[%<timeout>]]:
+
+                  A RUNNING session is simply "ping-ed".
+
+                  Resulting statement of operational mode may result on 
+                  applied security policies, but not exclusively on the 
+                  state of the running OS's IP-stack.
+
+
+   -V
+
+      See ctys, version output.
+
+
+   -X
+
+      See ctys, terse for machine output.
+

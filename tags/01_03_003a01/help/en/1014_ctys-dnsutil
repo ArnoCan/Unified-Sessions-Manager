@@ -1,0 +1,164 @@
+
+
+Usage: 
+======
+
+   ctys-dnsutil [options] [<dns-server-list>]
+
+
+Description:
+============
+
+   ctys-dnsutil supports the display of data which is mainly based on
+   the data requested from DNS by usage of "host -l <server>" call. 
+   The only current application of this utility is to generate lists
+   as input for additional processing or display. Extended queries are
+   supported by "ctys-vhost" utility. It has to be recognised, that
+   not all machines might be handled by a reacheable DNS server. This
+   is particularly true for VMs located within host-only-networks
+   performing on isolated networks by means of routing.
+
+   One important application is the usage of this tool for the LIST
+   action of plugins from PMs. The output list will be used as initial
+   data set for actual available active PMs.
+
+   Additional constraints related to actual runtime-state for members
+   of raw-list will be applied for various tools and several
+   post-analysis. 
+
+   The most basic checks are based on ping and ssh access checks, but
+   the type of the machine - PM or VM - and the hierarchy could be
+   evaluated by several approaches. 
+
+   For an initial definition and assignment of a managed PM the
+   "ctys-genpmconf" utility has to be executed. The generated data from
+   the directory /etc/ctys.d/pm.conf is used as an final proof, that
+   the polled TCP/IP-address is related to a PM.
+
+   A VM is defined as a contained VM characterised by it's configuration 
+   file, which is in the case of current supported VMs an ASC-II file
+   with specific syntax. 
+
+
+Options:
+========
+
+   -c
+      Uses "ctys-vhost" for PM/VM evaluation instead of polling the
+      real instance. The basic implicit access checks for ping and ssh
+      are still performed.
+
+      The databases for ctys-vhost has to be prepared, thus not usable
+      for initial scan to generate that databases of course.
+
+
+   -C
+      Basically the same as "-c", but here no implicit dynamic checks
+      are performed at all. The only dynamic evaluated data is the
+      query of the DNS server.
+
+
+   -d <debug-level>
+
+      Same as ctys.
+
+
+   -h
+      Print help.
+
+
+   -i
+      Show numerical TCP/IP-Address. This is supported in combination
+      with "-n" option only without "-X" option.
+
+
+   -l <USER>
+      DEFAULT=CTYS_NETACCOUNT(DEFAULT->USER)
+
+      Remote user to be used for network logins.
+
+
+   -n
+      Show TCP/IP-Address as name. This is supported in combination
+      with "-i" option only without "-X" option.
+
+
+   -R <runtime states>
+
+      Restricts a set of multiple results with additional 
+      constrains for output.
+
+      Only the possible targets which are operable or actually
+      operational are listed. This includes the actual running VM with
+      it's hosting PM, and in addition all other operational machines,
+      where the current VM is available too. This case is the most
+      common for NFS based exec-pools, where a single VM could be
+      accessed remotely by a number of PMs. This particularly offers
+      the advantage of copyless-migration of online and offline VMs.
+
+      Very handy, and in companion with others probably one 
+      of the most important internal top-level-calls for 
+      GuestOS-Command-Execution.
+      
+      <runtime states>=[(REVERSE|R|-),]PING|SSH[,PM|VM]
+
+
+        REVERSE|R|-:
+                  This reverses the resulting set, thus the "not
+                  matching" states only will be shown.
+
+
+        PING[:<packetcnt>[%<timeout>]]:
+
+                  A RUNNING session is simply "ping-ed".
+
+                  Resulting statement of operational mode may result on 
+                  applied security policies, but not exclusively on the 
+                  state of the running OS's IP-stack.
+
+
+        SSH     : A RUNNING session is additionally checked for 
+                  SSH-connect by a dummy-interconnect.
+
+                  On some nodes the timeout my take some time, so be
+                  patient when such a node is in the DNS query.
+ 
+                  This option might be really senceful, once SSO is
+                  established and probably a common net-access-user
+                  with limited permissions for probing-only is
+                  configured.
+
+                  "ssh" is the only and one state, which is an almost
+                  viable confirmation for the ability of establishing
+                  ctys connections.
+
+
+        PM      : Checks whether machine is a PM. Therefore first
+                  SSH-check is activated and performed, and on the
+                  remaining set of accessible machines the PM-check is
+                  performed.
+
+                  PM accessibility is defined as the accessibility of
+                  the running OS on PM and the presence of the
+                  file "/etc/ctys.d/pm.conf".
+
+
+        VM      : Checks whether machine is a VM. Therefore first
+                  SSH-check is activated and performed, and on the
+                  remaining set of accessible machines the VM-check is
+                  performed.
+
+                  VM accessibility is defined as the accessibility of
+                  the running OS on VM and the presence of the
+                  file "/etc/ctys.d/vm.conf".
+
+
+   -V
+
+      See ctys, version output.
+
+
+   -X
+
+      See ctys, terse for machine output.
+

@@ -1,0 +1,68 @@
+
+   8.3. ctys Arguments
+   ===================
+
+    -a <action>[=<action-suboptions>]
+    [--]                                     \
+    ['('<any-options global for all remote>')']  \
+    (([user@]<hostname>)|<groupname>)['('<any-options>')'][ ...] 
+
+
+    These are the remote options which are given as global and
+    individual options for each host. The options are (almost) the same
+    as for common call.
+
+
+    ATTENTION:
+      "--" is required when using remote options, otherwise some
+      problems with standard options might occur.
+
+
+    <user>
+      default:\${USER}=${USER}
+      When instead the "-l" option likewise the r-functions is supported
+      the given user(list) is permutated with the listed hosts.
+      Particularly nice for bulk-tests, but anyhow a limit of about 20
+      sessions to individual hosts (IP-addresses) is hardcoded to avoid 
+      some "hard-coded-resets". This value could be reset by following
+      envirnment variable:
+
+         R_CREATE_MAX=${R_CREATE_MAX:-20}
+
+    <hostname>
+      default:'uname -n'(`uname -n`)
+
+    <groupname>
+      Any user defined group/macro, for additional information refer to
+      ctys manual.
+
+    <any-options>
+      Any global option could be provided individually for each host.
+      E.g. individual debugging level on that host only.
+  
+      One implementation specific to be aware of is, that these options 
+      are superposed, but not reset, thus the current environment will 
+      remain for the following host.
+  
+      Example:
+       The following example shows three hosts, where each has a different 
+       debugging level.
+  
+       First of all the debugging flag and level is not forward propagated,
+       and as common for all other environment settings too, "the last wins".
+  
+         "...-d 6 -- ( -d 3 ) host01 host02( -d 1) host02(-d 0)..."
+  
+       So, the given options results in the following scenario:
+   
+        -> localhost:   -d 6          = -d 6
+        -> host01:      -d 3          = -d 3
+        -> host02:      -d 3 -> -d 1  = -d 1
+        -> host03:      -d 3 -> -d 0  = -d 0
+  
+      - <command> 
+        Command to be executed on the target host, which could be a
+        native physical providing a remote dektop based on VNC, or a
+        virtual machine like Xen. In any case the login will be
+        performed by means of the target system, but the administrative
+        support for neatless execution is provided by this tool.

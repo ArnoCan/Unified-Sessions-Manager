@@ -1,0 +1,580 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+#VMW generic default parameters, will be dynamically reset in setVersionVMW
+VMW_STATE=DISABLED
+VMW_MAGIC=VMW_GENERIC
+VMW_VERSTRING=;
+VMW_DEFAULTOPTS="-x -q"
+VMW_PREREQ=;
+
+_myPKGNAME_VMW="${BASH_SOURCE}"
+_myPKGVERS_VMW="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
+
+_myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
+_BASE_VMW="${_myPKGBASE_VMW}hook"
+
+
+#Exe-File(common for client and server): vmplayer or vmware
+_CALLEXE=;
+
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vmw" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/vmw/vmw.conf" ];then
+	. "${HOME}/.ctys/vmw/vmw.conf"
+    fi
+
+    #Source pre-set environment from installation 
+    if [ -f "${MYCONFPATH}/vmw/vmw/cli.conf" ];then
+	. "${MYCONFPATH}/conf/vmw/vmw.conf"
+    fi
+fi
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  serverRequireVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a server component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function serverRequireVMW () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/ServerOnly/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+        #check for consoles, which are one decisive for component location
+	local _myConsole=;
+	[ "${*}" != "${*//:[vV][mM][wW]}" ]&&_myConsole=VMW
+	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+
+	case $_A in 
+ 	    CONNECT)
+		case $_myConsole in
+		    VMW)
+			_res=;_ret=1;
+			;;
+		    VNC)
+			_res=;_ret=1;
+			;;
+		    *)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume false:$_myConsole for $_A "
+			_res=;_ret=1;
+			;;
+		esac
+		;;
+ 	    CREATE)  
+		case $_myConsole in
+		    VMW)
+			_res="${_CS_SPLIT}";_ret=0;
+			;;
+		    VNC)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Require WS6 on target:$_myConsole for $_A "
+			_res="${_CS_SPLIT}";_ret=0;
+			;;
+		    *)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res="${*}";_ret=0;
+			;;
+		esac
+		;;
+	esac
+    else
+ 	_res="${*}";_ret=0;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientRequireVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a client component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function clientRequireVMW () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/1/p;s/LocalOnly/1/p;s/ClientOnly/1/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+        #check for consoles, which are one decisive for component location
+	local _myConsole=;
+	[ "${*}" != "${*//:[vV][mM][wW]}" ]&&_myConsole=VMW
+	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+
+	case $_A in 
+ 	    CONNECT)
+		case $_myConsole in
+		    VMW)
+			case $VMW_MAGIC in
+			    VMW_P[1]*)_res=;_ret=1;;
+			    VMW_S[1]*)_res=${*};_ret=0;;
+			    VMW_WS[56]*)_res=${*};_ret=0;;
+                        esac
+			;;
+		    VNC)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Has to be decided on target:$_myConsole for $_A "
+			;;
+		    *)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res=;_ret=1;
+			;;
+		esac
+		;;
+ 	    CREATE)  
+		case $_myConsole in
+		    VMW)
+			case $VMW_MAGIC in
+			    VMW_P[1]*)_res=;_ret=1;;
+			    VMW_S[1]*)_res=${*};_ret=0;;
+			    VMW_WS[56]*)_res=${*};_ret=0;;
+                        esac
+			;;
+		    VNC)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Has to be decided on target:$_myConsole for $_A "
+			;;
+		    *)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res=;_ret=1;
+			;;
+		esac
+		;;
+	esac
+    else
+ 	_res=;_ret=1;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setVersionVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets defaults and MAGIC-ID for local vmware version.
+#
+#  The defaults for VMW_DEFAULTOPTS will only be used when no CLI
+#  options are given.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: NOEXIT
+#      This optional parameter as literal forces a return instead of 
+#      exit by "gotoHell". Should be used, for test-only, when for
+#      missing or erroneous plugins specific actions has to follow
+#      within current execution thread.
+#      
+#
+#OUTPUT:
+#  GLOBALS:
+#    VMV_MAGIC:  {VMW_WS6|VMW_S103|...}
+#      Value to be checked, when no local native components are 
+#      present, the following values will be set.
+#
+#      They have to be checked, when CTRL_EXECLOCAL or "-L CF".
+#
+#        NOLOC     No local component available, remaining:
+#                  -> !CTRL_EXECLOCAL && "-L (DF|SO)"
+#
+#        NOLOCVMV  No local VMware component, remaining:
+#                  -> !CTRL_EXECLOCAL && "-L (DF|SO)"
+#                  -> VNC-viewer for WS6 IF "VNC"
+#
+#  (ffs.)NOLOCVNC  No local "VNC" (for WS6), remaining:
+#                  -> "-L (DF|SO|CF|LO)"
+#
+#    VMW_DEFAULTOPTS
+#      Appropriate defaults.
+#
+#      -Pre-set generic default parameters: "-x -q"
+#      -WMW_WS6:                            "-x -q -n"
+#      -WMW_S103:                           "-x -q -l"
+#      -WMW_S104:                           "-x -q -l"
+#
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setVersionVMW () {
+    local _checkonly=;
+    if [ "$1" == "NOEXIT" ];then
+	local _checkonly=1;        
+    fi
+
+    local _verstrg=;
+    _CALLEXE=`which vmware 2>/dev/null`;
+    if [ $? == 0 ];then
+	_verstrg=`vmware -v`
+    else
+	_CALLEXE=`which vmplayer 2>/dev/null`;
+	if [ $? == 0 ];then
+	    _verstrg=`vmplayer -v`
+	fi
+    fi
+
+
+    if [ -z "${_verstrg}" ];then
+	ABORT=2
+	if [ "${CTRL_SESSIONTYPE}" == "VMW" -a -z "${_checkonly}" ];then
+	    if [ -z "${_CALLEXE}" ];then
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VMware"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
+		printERR $LINENO $BASH_SOURCE ${ABORT} " -> vmware && vmplayer"
+		printERR $LINENO $BASH_SOURCE ${ABORT} ""
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
+		printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
+		printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	    else
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot evaluate version:\"${_CALLEXE}\""
+	    fi
+	    gotoHell ${ABORT}
+	else
+	    if [ -z "${_CALLEXE}" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CHKONLY:VMware seems not to be installed."
+	    else
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CHKONLY:Cannot evaluate version:\"${_CALLEXE}\""
+	    fi
+	    return ${ABORT}
+	fi
+    fi
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "VMware"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "  _CALLEXE=${_CALLEXE}"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "  _verstrg=${_verstrg}"
+
+
+    #currently somewhat restrictive to specific versions.
+    case ${_verstrg} in
+	"VMware Player 1.0."*)
+	    VMW_MAGIC=VMW_P105;
+	    VMW_DEFAULTOPTS="";
+	    VMW_STATE=ENABLED
+	    VMW_VERSTRING=${_verstrg};
+            VMW_PREREQ="vmplayer"
+	    ABORT=1;
+	    printWNG $LINENO $BASH_SOURCE ${ABORT} "Limited options support, e.g. no \"-g <geometry>\" for:"
+	    printWNG $LINENO $BASH_SOURCE ${ABORT} "  \"${_verstrg}\""
+	    ;;
+	"VMware Server 1.0."*)
+	    VMW_MAGIC=VMW_S104;
+	    VMW_STATE=ENABLED
+	    VMW_DEFAULTOPTS="-x -q -l";
+	    VMW_VERSTRING=${_verstrg};
+            VMW_PREREQ="vmware"
+	    ;;
+	"VMware Workstation 6"*)
+	    VMW_MAGIC=VMW_WS6;
+	    VMW_STATE=ENABLED
+	    VMW_DEFAULTOPTS="-x -q -n";
+	    VMW_VERSTRING=${_verstrg};
+            VMW_PREREQ="vmware,vncviewer"
+	    ;;
+         *)
+	    printWNG $LINENO $BASH_SOURCE 0 "Unsupported or misconfigured local version:"
+	    printWNG $LINENO $BASH_SOURCE 0 "  ctys    :<${VERSION}>"
+	    printWNG $LINENO $BASH_SOURCE 0 "  VMW     :<${_myPKGVERS_VMW}>"
+	    printWNG $LINENO $BASH_SOURCE 0 "  Product :<${_verstrg}>"
+	    printWNG $LINENO $BASH_SOURCE 0 "."
+	    printWNG $LINENO $BASH_SOURCE 0 "Remaining options:"
+	    printWNG $LINENO $BASH_SOURCE 0 "->remote: \"-L DisplayForwarding\""
+	    printWNG $LINENO $BASH_SOURCE 0 "->remote: \"-L ServerOnly\"(partial...)"
+	    printWNG $LINENO $BASH_SOURCE 0 "->local:  VNC-client"
+	    printWNG $LINENO $BASH_SOURCE 0 "."
+	    VMW_MAGIC=NOLOC;
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "VMV_MAGIC       = ${VMW_MAGIC}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "VMV_STATE       = ${VMW_STATE}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "VMV_VERSTRING   = ${VMW_VERSTRING}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "VMV_PREREQ      = ${VMW_PREREQ}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "VMW_DEFAULTOPTS = ${VMW_DEFAULTOPTS}"
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientServerSplitSupportedVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether the split of client and server is supported.
+#  This is just a hardcoded attribute and controls the application 
+#  matrix of following attribute values of option "-L" locality:
+#
+#   - ConnectionForwarding
+#   - DisplayForwarding
+#   - ServerOnly
+#   - LocalOnly
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: If supported
+#    1: else
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function clientServerSplitSupportedVMW () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME $1"
+    case $1 in
+	CREATE)
+	    case ${VMW_MAGIC} in
+		VMW_S103|VMW_S104)
+		    return 0
+ 		    ;;
+                #VMW_S103|WMW_WS6|VMW_GENERIC)
+		*)  #For now seems to be common, but let it beeee....
+		    ABORT=2
+		    noClientServerSplitSupportedMessageVMW
+		    gotoHell ${ABORT}
+ 		    ;;
+	    esac
+	    ;;
+
+	CANCEL)return 0;;
+#	SHIFT)return 0;;
+    esac
+    return 1;
+}
+
+
+#
+#Managed load of sub-packages which are required in almost any case.
+#On-demand-loads will be performed within requesting action.
+#
+hookPackage "${_myPKGBASE_VMW}/session"
+hookPackage "${_myPKGBASE_VMW}/enumerate"
+hookPackage "${_myPKGBASE_VMW}/list"
+hookPackage "${_myPKGBASE_VMW}/info"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  handleVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Main dispatcher for current plugin. It manages specific actions and
+#  context-specific sets of suboptions.
+#
+#  It has to follow defined interfaces for main framework, due its dynamic
+#  detection, load, and initialization.
+#  Anything works by naming convention, for files, directories, and function 
+#  names so don't alter it.
+#
+#  Arbitrary subpackages could be defined and chained-loaded. This is due 
+#  design decision of plugin developers. Just the entry point is fixed by 
+#  common framework.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function handleVMW () {
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
+  local OPMODE=$1;shift
+  local ACTION=$1;shift
+
+  case ${ACTION} in
+      CREATE) 
+          hookPackage "${_myPKGBASE_VMW}/create"
+          createConnectVMW ${OPMODE} ${ACTION} 
+	  ;;
+
+      CANCEL)
+          #Be careful with that axe Eugene...
+          hookPackage "${_myPKGBASE_VMW}/cancel"
+          cutCancelSessionVMW ${OPMODE} ${ACTION} 
+          ;;
+
+      GETCLIENTPORT)
+	  case ${OPMODE} in
+              CHECKPARAM)
+		  if [ -n "$CTRL_MODE_ARGS" ];then
+                      printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+                      _CTRL_GETCLIENTPORT=$CTRL_MODE_ARGS
+		  else
+		      ABORT=1
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
+		      gotoHell ${ABORT}
+		  fi
+                  ;;
+
+	      ACTION)
+		  if [ -z "${CTRL_EXECLOCAL}" ];then
+		      assembleExeccall
+		  else
+		      printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
+  		      echo "CLIENTPORT(VMW,${MYHOST},${_CTRL_GETCLIENTPORT})=`getClientTPVMW ${_CTRL_GETCLIENTPORT//,/ }`"
+		      gotoHell 0
+		  fi
+		  ;;
+          esac
+	  ;;
+
+      *)
+          ABORT=1;
+          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected VMW:OPMODE=${OPMODE} ACTION=${ACTION}"
+	  gotoHell ${ABORT}
+          ;;
+  esac
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initVMW () {
+  local _curInit=$1;shift
+  local _initConsequences=$1
+  local ret=0;
+
+  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $BASH_SOURCE "$FUNCNAME ${_curInit}"
+
+  case $_curInit in
+      0);;#NOP - Done by shell
+      1)
+          #adjust version specifics  
+          setVersionVMW $_initConsequences
+          ret=$?
+
+          #add own help to searchlist for options
+	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/VMs/VMW/help/${MYLANG}/010_vmw"
+	  ;;
+      2);;#Curently nothing todo.
+      3);;#Curently nothing todo.
+      4);;#Curently nothing todo.
+      5);;#Curently nothing todo.
+  esac
+
+  return $ret
+}
