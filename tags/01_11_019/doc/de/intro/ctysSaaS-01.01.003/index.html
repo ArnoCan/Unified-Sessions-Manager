@@ -1,0 +1,779 @@
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <!--
+      //
+      // Copyright (C) 2009 Arno-Can Uestuensoez <acue@UnifiedSessionsManager.org>
+      //
+      //
+    -->
+  <head>
+    <meta name="generator" 
+	  content="HTML Tidy for Linux/x86 (vers 1st November 2003), see www.w3.org" />
+    <meta name="Keywords" 
+	  content="
+		   Arno-Can,Uestuensoez.Arno-Can Uestuensoez,
+		   &Uuml;st&uuml;ns&ouml;z.Arno-Can &Uuml;st&uuml;ns&ouml;z,
+		   UnifiedSessionsManager,Unified Sessions Manager,
+		   UnifiedSessions,UnifiedSessions Manager,Unified SessionsManager,
+		   UnifiedSessions,Unified Sessions,
+		   SessionsManager,Sessions Manager,
+		   UnifiedManager,Unified Manager,
+		   Kerberos,LDAP,ssh,SSH,SSL,OpenSSH,OpenSSL,PKI,CA,bash,virtualization,virtual,VM,virtual
+		   machine,xen,Xen,vmx,RDP,VNC,TightVNC,RealVNC,tunnel,X11,Gnome,CentOS,KDE,fvwm,xfce,RHEL,OpenSuSE,OpenBSD,
+ 		   VirtualBox,virtualbox,VBoxManage,vboxmanage,VBoxSDL,vboxsdl,rdesktop,rdesktop-vrdp,
+		   KVM,qemu-kvm,kvm,
+		   RTEMS,QNX,FreeRTOS,uCLinux,
+		   BSD,debian,Appliance,Live-DVD,Live-CD,Boot
+		   Stick,Firewall,Firewall,Piercing,Routing,Automount,SMB,Samba,
+		   FreeBSD,NetBSD,Solaris,Pacifica,Vanderpool,
+		   lm_sensors,wmctrl,Desktops,Workspaces,SNMP,Nagios,
+		   Cluster,Load Sharing,Distribution,OpenVZ,VMware appliance
+		   builder,QEMU,ARM7,PPC,Shutdown and Recovery,
+		   encryption TCP/IP management of VM-Stacks nested virtual
+		   machines,C++,UML,OO-Design,Network
+		   Management,TMN,SNMP-Agents,Software Development,
+		   ATM,Q3,OSI,CMISE,TCP/IP,Cisco,Performance
+		   Management,Fault,Management,Service Management,
+		   Business Management,Netzplanung,QD2,SISA0,Windows-NT,MySQL-Server,
+		   rdesktop,xdg,freedesktop,FreeDesktop,
+		   ESX,ESXi,XenServer,esx,xenserver,
+		   Android,MeeGo,android,meego,
+		   opensource, GPL3, artistic license"
+	  />
+    <meta name="Distribution" content="Global" />
+    <meta name="author" content="Arno-Can Uestuensoez - acue@unifiedsessionsmanager.org" />
+    <meta name="Robots" content="index,follow" />
+
+    <title>UnifiedSessionsManager und SaaS</title>
+    <meta name="copyright" 
+	  content="Copyright &#169; 2009,2010 Arno-Can Uestuensoez + Copyright &#169; 2005 W3C (MIT, ERCIM, Keio)" />
+    <link rel="stylesheet" href="./show.css" type="text/css" 
+	  media="screen, projection" />
+    <link rel="stylesheet" href="./print.css" type="text/css"
+	  media="print" />
+    <link rel="stylesheet" href="./w3c-blue.css" type="text/css" 
+	  media="screen, projection" />
+    <script src="./slidy.js" type="text/javascript">
+    </script>
+  </head>
+
+  <body>
+
+    <div class="background">
+      <!-- For explorer -->
+      <!--       <img alt=""src="./bg.jpg" width="100%"  /> -->
+    </div>
+    
+    <div class="slide cover">
+      <img src="./Cumulus_clouds_panorama.jpg" alt="Cover page images (keys)" class="cover" />
+      <p class="copyright01">
+	<a href="http://en.wikipedia.org/wiki/User:Fir0002"
+     	   target="_blank">Copyright &#169; Fir0002/Flagstaffotos</a>
+      </p>
+      <br clear="all" />
+      <h1>Unified<span class="sessionsGreen">Sessions</span>Manager<br />
+	<small><small>Virtualisierung und Cloud	Computing</small></small>
+      </h1>
+      <p class="titleString">UnifiedSessionsManager  und SaaS<br />
+	<small><small>
+	    01.01.001a05<br />
+	    <a href="http://www.i4p.com">Copyright &#169; 2009,2010 Arno-Can &Uuml;st&uuml;ns&ouml;z</a>
+	    &lt;<a href="mailto:acue@UnifiedSessionsManager.org">acue@UnifiedSessionsManager.org</a>&gt;
+	</small></small>
+      </p>
+    </div>
+
+
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Die Skizze</h1>
+      <div class="blueprint">
+	<img  alt="" src="./overview.png" />
+      </div>
+
+      <div class="blueprintText">
+	<p>Der
+	  <span class="unifiedColor">Unified</span><span class="sessionsGreen">Sessions</span><span class="managerColor">Manager</span>
+	  bietet Werkzeuge f&uuml;r die Ausf&uuml;hrung lokaler und
+	  entfernter On-Demand Operationen.
+	</p>
+
+	<p>
+	  Er skaliert von einer Ein-Kern-CPU auf einer Workstation bis zu einer
+	  Multi-Kern Multi-CPU Server Farm.
+ 	</p>
+
+
+	<p>
+	  Ausschlie&szlig;lich basierend auf gepr&uuml;ften State-Of-The-Art Komponenten
+	  wird erg&auml;nzende "Glueware" zur Integration und Ausf&uuml;hrung bereitgestellt.
+	</p>
+
+	<p>
+	  Er unterst&uuml;tzt wesentliche Produkte mit der M&ouml;glichkeit
+	  der flexiblen Erweiterbarkeit.
+	</p>
+      </div>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Dienste f&uuml;r den Benutzer</h1>
+
+      <ul>
+	<li>
+	  Der Fokus liegt auf dem Betrieb und der erforderlichen Konfiguration
+	  der Laufzeit-Elemente f&uuml;r verteilte Systeme und Umgebungen.
+	  <br />
+	</li>
+
+
+	<li>Die erste Version unterst&uuml;tzt...
+	  <ul>
+	    <li>... ein generisches Addressierungsschema und Aliasse.</li>
+	    <li>... einen Werkzeugsatz f&uuml;r virtualisierte Namensdienste.</li>
+	    <li>... Erweiterbarkeit durch eine Modulare Architektur.</li>
+	    <li>... Kommandozeilen Schnittstelle zur Automatisierung der
+	      Konfiguration und des Starts von Diensten.</li>
+	    <li>... Automatisierungs-Werkzeuge f&uuml;r die Erfassung von
+	      Inventardaten und Durchf&uuml;hrung von lokalen und
+	      entfernten Konfigurationen.
+	    </li>
+	  </ul>
+	</li>
+      </ul>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Anwendungsbereich</h1>
+
+      <ul>
+	<li>Der 
+	  <span class="unifiedColor">Unified</span><span class="sessionsGreen">Sessions</span><span class="managerColor">Manager</span>
+	  unterst&uuml;tzt einen Satz von generischen Aktionen f&uuml;r die Erzeugung,
+	  Betrieb und den Abbruch von Benutzersitzungen zu
+	  Betriebssystemen, daher 
+	  <span class="unifiedColor">cty</span><span class="sessionsGreen">s</span>
+	  - 
+	  <span class="unifiedColor">commutate to your</span><span class="sessionsGreen"> sessions</span>.
+	  <br />
+	</li>
+	<li>Diese sind CREATE, CANCEL, LIST, ENUMERATE, SHOW und INFO.
+	  <ul>
+	    <li>Diese sind auf interaktive und automatisierte Sitzungen anwendbar.</li>
+	    <li>Es wird nicht zwischen Desktop-, Client- und
+	      Server-Virtualisierung unterschieden.</li>
+	    <li>Physikalische Machinen und Betriebssystem-Zugang
+	      werden gleich und konform zu Sitzungen zu virtuellen Maschinen behandelt.</li>
+	  </ul>
+	  <br />
+	</li>
+
+	<li>Das realisierte Sicherheits-Konzept auf Basis von OpenSSH
+	  bietet die zuverl&auml;ssige Anwendbarkeit auf lokale und
+	  entfernte Sitzungen.
+	</li>
+      </ul>
+    </div>
+
+    <div class="handout">
+      <p>For handouts, its often useful to include extra notes using a
+	div element with class="handout" following each slide, as in:</p>
+
+      <pre>
+	&lt;div class="slide"&gt; 
+	<em>... your slide content ...</em>
+	&lt;/div&gt;
+
+	&lt;div class="handout"&gt;
+	<em>... stuff that only appears in the handouts ...</em>
+	&lt;/div&gt;
+      </pre>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Generische Sicht auf Dienste...</h1>
+      <ul>
+	<li>
+	  Eine genauere Analyse der Standard-Prozesse und
+	  Arbeitsabl&auml;ufe bei der Benutzung von virtualisierten
+	  Umgebungen f&uuml;hrt im Ergebnis zu einem generischen und
+	  standardisierten Sitzungs-Management durch den Benutzer.
+	</li>
+
+
+	<li>
+	  Die Definition von grundlegenden Bausteinen f&uuml;r verteilte
+	  virtualisierte Umgebungen bietet die Basis f&uuml;r erweiterte Konzepte f&uuml;r
+	  die zuk&uuml;nftige Dienste Entwicklung mit virtuellen Komponenten - 
+	  <span class="sessionsGreen">v-components</span>
+	  .
+	</li>
+
+	<li>
+	  Gegenw&auml;rtige Konzepte umfassen lediglich die flache Anwendung
+	  - <span class="sessionsGreen">v-apps</span> -
+	  aufbauend auf den folgenden defacto Paradigmen:
+	  <ul>
+	    <li>Desktop Virtualisierung</li>
+	    <li>Client Virtualisierung</li>
+	    <li>Server Virtualisierung</li>
+	  </ul>
+	</li>
+      </ul>
+    </div>
+
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>...Desktop Virtualisierung</h1>
+      <ul>
+	<li>Desktop Virtualisierung ist eine immanent interaktive
+	  Benutzersitzung mit erforderlicher lokalen Benutzerschnittstelle.
+	</li>
+
+	<li>Der lokale Benutzerzugang wird durch
+	  Kommando-Zeilen-Schnistellen/CLI und graphische Benutzeroberfl&auml;chen
+	  auf Basis von X11 (Gnome, KDE, Fvwm, Xfce, X11, ...) unterst&uuml;tzt.
+	  <ul>
+	    <li>
+	      Einzel- und Multi-Bildschirm-Konfigurationen im Xinerama Modus.
+	    </li>
+	    <li>
+	      Spezifische Erweiterungen des X11-Parameters  "geometry"
+	      unterst&uuml;tzen die Positionierung und Addressierung.
+	    </li>
+	    <li>
+	      Spezielle Parameter erweitern die Verwaltung von
+	      Sitzungsunterbrechungen und die Wiederaufnahme:
+	      CONNECT, RECONNECT, REUSE, and RESUME.
+	    </li>
+	  </ul>
+	</li>
+
+	<li>
+	  Der einzig zul&auml;ssige Verbindungstyp ist OpenSSH, dies bietet...
+	  <ul>
+	    <li>...
+	      dynamische  Sicherheitsl&ouml;sung mit zuverl&auml;ssiger Verschl&uuml;sselung.
+	    </li>
+	    <li>...
+	      X11-DISPLAY Weiterleitung als DISPLAYFORWARDING.
+	    </li>
+	    <li>...
+	      getrennte X-Client und X-Server Ausf&uuml;hrung
+	      &uuml;ber verschl&uuml;sselte
+	      Verbindungen als CONNECTIONFORWARDING.
+	    </li>
+	  </ul>
+	</li>
+      </ul>
+    </div>
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>...Client und Server Virtualisierung</h1>
+      <ul>
+	<li>Client Virtualisierung unterscheidet sich nur unwesentlich
+	  von einer Desktop Virtualisierung.
+	  Der Unterschied ist die m&ouml;gliche nicht-interaktive
+	  Sitzung, die als Gateway zu anderen Clients dient.
+	</li>
+
+	<li>Entsprechend verwandt ist die Server Virtualisierung, bei
+	  der die logische Bestimmung des Servers die Bereitstellung 
+	  eines Dienstes ist.
+	</li>
+
+	<li>Technisch unterscheiden sich die Systeme in erster
+	  N&auml;herung nicht.
+
+	  Insbesondere unter der gegebenen Pr&auml;misse, da&szlig; alle genanten zumindest
+	  eine Administrationsschnittstelle ben&ouml;tigen, die eine interaktive
+	  Sitzung z.B. &uuml;ber einen Konsolen-Port erlaubt.
+	</li>
+      </ul>
+    </div>
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>=> Eine gemeinsame Sicht</h1>
+      <ul>
+	<li>Der
+	  <span class="unifiedColor">Unified</span><span class="sessionsGreen">Sessions</span><span class="managerColor">Manager</span>
+	  unterscheidet nicht zwischen verschiedenen Typen von Hypervisorn.
+	  Die verbleibende Unterscheidung is eine logische
+	  3-Schichten-Architektur von Dienste-Kategorien:
+	  <ul>
+	    <li>HOSTs: Direkter Zugang zu einem enthaltenen Betriebssystem</li>
+	    <li>VMs: Virtuelle Maschinen - Administration des Hypervisors.</li>
+	    <li>PMs: Physikalische Maschinen - Administration der
+	    physikalischen Maschine.</li>
+	  </ul>
+	</li>
+	<li>Die logische Kategorisierung erm&ouml;glicht die Definition von
+	  Abh&auml;ngigkeiten f&uuml;r die Automatisierung von
+	  Abl&auml;ufen mit verschachtelten Hierarchien.
+	  <ul>
+	    <li>
+	      Die definierten Abh&auml;ngigkeiten werden in einem
+	      bottom-up Verfahren zum automatisierten Start 
+	      mehrschichtiger Systeme und deren geordneter Beendigung in
+	      einem top-down Verfahren angewandt.
+	    </li>
+
+	    <li>
+	      Das generische Design erm&ouml;glicht Verschachtelungen in virtuellen
+	      Stacks, wobei der jeweilige Hypervisor oder Emulator
+	      stets eine Sicht auf eine virtuell physikalische Machine
+	      hat und selbst wiederum einen Sub-Stack enth&auml;lt.
+	      Dies expandiert die Anwendung der
+	      3-Layer-Kategorisierung auf eine beliebige Anzahl
+	      rekursiver Stack-Layer Instanzen.
+	      Wobei jeder Layer einen eigenen Sub-Stack definiert.
+	    </li>
+
+	  </ul>
+	</li>
+
+	<li>
+	  Dies bietet die konzeptionellen Bausteine f&uuml;r die Einf&uuml;hrung von
+	  virtuellen Komponenten -
+	  <span class="sessionsGreen">v-components</span>
+	  .
+	</li>
+      </ul>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Clouds, SOA und SaaS - heute</h1>
+
+      <ul>
+	<li>
+	  Die gegenw&auml;rtige Definition von Service Orientierten Architekturen
+	  umfa&szlig;t  im Wesentlichen einen Ersatz der Sichtweise des Netzes von DCE/CORBA
+	  als einen "nahtlosen Computer" durch die Einf&uuml;hrung von Web basierten
+	  diskreten Dienste Zugangspunkten.
+	</li>
+
+	<li>
+	  Der Web getriebene Hauptansatz ist hier die Einf&uuml;hrung von Standard
+	  Applikationsservern mit wohl definierten Schnittstellen als
+	  operationale Container-Instanzen f&uuml;r Anwendungen.
+	</li>
+
+
+	<li>
+	  Dies resultiert in Container-Instanzen die letzlich physikalische
+	  Prozesse sind, die Abh&auml;ngigkeiten zu
+	  Softwareinfrastrukturen unterliegen und in der Regel nur in bestimmten
+	  Betriebssystemen ausgef&uuml;hrt werden k&ouml;nnen.
+	</li>
+
+	<li>
+	  Auch nach den erzielten Fortschritten bei der Standardisierung der
+	  Schnittstellen verbleiben...
+	  <ul>
+	    <li>...eine gro&szlig;e Menge von Schnittstellen.</li>
+	    <li>...Abh&auml;ngigkeiten zu Laufzeitumgebungen und Betriebssystemen.</li>
+	    <li>...ist eine einfache Administration nicht m&ouml;glich.</li>
+	    <li>...fehlt eine Dienste-Konfiguration im weiteren Sinne.</li>
+	    <li>...gibt es keine dynamische Ortsunabh&auml;ngigkeit auf Netzebene.</li>
+	  </ul>
+	</li>
+      </ul>
+    </div>
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>v-components und stacked-VMs f&uuml;r SOA und SaaS</h1>
+
+      <ul>
+	<li>
+	  Das vorliegende Konzept der 
+	  <span class="sessionsGreen">v-components</span>
+	  stellt ein generisches Konzept zur Erweiterung der Schnittstellen
+	  des Design-Paradigmas von Software Komponenten f&uuml;r
+	  spezifische Container-Instanzen dar.
+	</li>
+
+	<li>
+	  Die Container-Instanz des zuk&uuml;nftigen SOA ist das Netzwerk selbst, 
+	  mit virtualisierten Diensten 
+	  - <span class="sessionsGreen">v-services</span> -
+	  aus vollst&auml;ndigen inertialen Systemen aus
+	  physikalischen und virtuellen Hosts oder
+	  virtuellen Subnetzen.
+	</li>
+
+	<li>
+	  Der v-service seinerseitz kann verschachtelte virtuelle Dienste in
+	  einem virtuellen Stack
+	  - <span class="sessionsGreen">v-stack</span> -
+	  enthalten, der durch einen  virtuellen Gateway 
+	  <span class="sessionsGreen">v-host</span>
+	  gekapselt den Gesamt-Dienst anbietet.
+	</li>
+
+	<li>
+	  Dieses Paradigma hat weitgehenden Einflu&szlig; auf das resultierende Software-Design und die
+	  generischen Leistungsmerkmale.
+	  <ul>
+	    <li>...Anwendungen haben ausschlie&szlig;lich Netzwerk-Schnittstellen.</li>
+	    <li>...beseitigt Anwendungs-Abh&auml;ngigkeiten zu Infrastruktur.</li>
+	    <li>...kann vollst&auml;ndig mit Hilfe von Standardwerkzeugen
+	      Administriert werden.</li>
+	    <li>...eliminiert die Grenzen der Konfigurierbarkeit und Skalierbarkeit.</li>
+	    <li>...ist dynamisch laufzeit-unabh&auml;ngig von der Netz-Position.</li>
+	    <li>...bietet erweiterte Sicherheits-Einrichtungen, aber
+	      auch Herausforderungen!</li>
+	  </ul>
+	</li>
+      </ul>
+    </div>
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Das gro&szlig;e Bild</h1>
+
+      <img  alt="" class="bigpicture" src="./cover.png" />
+      <div class="blueprintText">
+
+	<p>
+	  Die resultierende Gesamt-Architektur gibt einen Einblick in die 
+	  Bandbreite der durch den 
+	  <span class="unifiedColor">Unified</span><span class="sessionsGreen">Sessions</span><span class="managerColor">Manager</span>
+	  unterst&uuml;tzten Leistungsmerkmale.
+	</p>
+
+	<p>
+	  Die Vision hinter den Kulissen kann zusammengefa&szlig;t
+	  werden als 
+	  "Ein vollst&auml;ndig generisches Netz als Dienste-Infrastruktur aus ihrerseitz
+	  ortsunabh&auml;ngigen und dynamisch relozierbaren Diensten."
+	</p>
+
+	<p>
+	  Das Konzept des
+	  <span class="sessionsGreen">v-stack</span> 
+	  bietet Skalierbarkeit und Konfigurierbarkeit 
+	  durch herstellerunabh&auml;ngige Standardwerkzeuge.
+	</p>
+
+      </div>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Was ist bisher definiert?</h1>
+
+      <ul>
+	<li>
+	  Die vorliegende Definition durch den 
+	  <span class="unifiedColor">Unified</span><span class="sessionsGreen">Sessions</span><span class="managerColor">Manager</span>
+	  ist eine zuk&uuml;nftige Erweiterung von SOA und SaaS zu einer
+	  virtualisierten Laufzeitumgebung die unabh&auml;ngig ist von der
+	  Netz-Position und der ausf&uuml;hrenden Plattform; zudem
+	  eine generische Komponenten-Schnittstelle auf
+	  Netz-Ebene als Dienste-Baukasten bietet.
+	</li>
+      </ul>
+      <br />
+
+      <ul>
+	<li>
+	  Der technische Nachweis ist erbracht und wird in Verbindung mit dem Aufkommen
+	  weiterer Mehr-Kern-CPUs schnell zur verbreiteten Anwendung f&uuml;hren.
+	  Dies wird beginnend mit der Einf&uuml;hrung der 16-Kern-Prozessoren erwartet.
+	  Die 32-Kern-Prozessoren in Verbindung mit Harware- und Betriebssytem unterst&uuml;tzten
+	  kaskadierten Hypervisor werden f&uuml;r die folgenden n&auml;chsten Jahre erwartet.
+	  <br />
+	</li>
+
+	<li>
+	  Die Stacks von VMs - v-stacks - 
+	  werden dann zu einem vertikalen logischen Administrations-Konzept mit
+	  physikalisch flacher Verteilung auf eine Matrix von CPUs und Kernen, 
+	  d.h. ohne Leistungseinbu&szlig;en.
+	</li>
+      </ul>
+    </div>
+
+
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Wie pa&szlig;t dies zu Clouds und Services?</h1>
+
+      <ul>
+	<li>
+	  <span class="sessionsGreen"><strong>...Perfekt!</strong></span>
+	  <br />
+	  <br />
+	</li>
+
+	<li>
+	  Der
+	  <span class="unifiedColor">Unified</span><span class="sessionsGreen">Sessions</span><span class="managerColor">Manager</span>
+	  bietet seit 02/2008 die vollst&auml;ndige Laufzeitumgebung f&uuml;r den
+	  Betrieb von verteilten Arbeitsumgebungen und relozierbaren
+	  Diensten.
+	</li>
+
+	<li>
+	  Der realisierte Ansatz is generisch und skalierbar von einem einzelnen
+	  Rechner bis hin zu Server-Farmen mit einer beliebigen Anzahl
+	  von Maschinen.
+	</li>
+
+	<li>
+	  Ein nennenswerter Umfang an freien und Open-Source Hypervisorn 
+	  in Verbindung mit dem &uuml;berwiegenden Anteil der freien
+	  Betriebssysteme wird unterst&uuml;tzt.
+	</li>
+
+
+	<li>
+	  Die Lizensierung ist GPL3 + FDL-1.3 + CCL-3.0.
+	</li>
+
+	<li>
+	  Das Konzept und die beanspruchten Erfindungen sind Dokumentiert in 
+	  <ul>
+	    <li>
+	      der ersten Version(
+	      <a class="sflogo" href="http://sourceforge.net/project/showfiles.php?group_id=208449"
+		 target="_top">
+		01.03.003a01 - 2008.02.11 - 
+		<img src="http://sourceforge.net/sflogo.php?group_id=208449&type=15"
+		     width="132" height="33"
+		     alt="SOURCEFORGE.NET" />
+	      </a>
+	      ) als ein ca. 250 seitiges Online-Manual ("ctys -H print"), 
+	    </li>
+	    <li>
+	      in den folgenden Versionen als eigenst&auml;ndige PDF
+	      Dokumente(
+	      01.11.001 - 2010.05.17 -
+	      <a class="sflogo" href="http://sourceforge.net/project/showfiles.php?group_id=208449"
+		 target="_top">
+		<img src="http://sourceforge.net/sflogo.php?group_id=208449&type=15"
+		     width="132" height="33"
+		     alt="SOURCEFORGE.NET" />
+	      </a>
+              + 
+	      <a class="sflogo" href="http://www.unifiedsessionsmanager.org"
+		 target="_top">http://www.unifiedsessionsmanager.org
+	      ).
+	      </a>
+	    </li>
+	  </ul>
+	</li>
+      </ul>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Unterst&uuml;tzte Systeme</h1>
+
+      <ul>
+
+	<li>Die aktuelle Version unterst&uuml;tzt:
+	  <ul>
+	    <li>KVM, QEMU, VirtualBox, VMware(Workstation/Server/Player), and Xen</li>
+	    <li>FreeBSD, Linux(CentOS, debian, Fedora, Mandriva, OpenSUSE,
+	      Scientific Linux, SuSE, Ubuntu),
+	      OpenBSD, OpenSolaris, Solaris 10
+	    </li>
+	    <li>Gnome, KDE, X11, Xfce, FVWM</li>
+	    <li>TightVNC, RealVNC, RDP/rdesktop, Xterm, Gnome-Terminal, CLI, and Emacs</li>
+	  </ul>
+	  <br />
+	</li>
+
+	<li>Die n&auml;chsten Versionen f&uuml;gen hinzu:
+	  <ul>
+	    <li>OpenVZ, VMware(iESX), and XenServer</li>
+	    <li>Linux(UnbreakableLinux), NetBSD</li>
+	    <li>FreeOS, QNX, and uCLinux - zun&auml;chst f&uuml;r X86
+	  and ARM Architekturen, RTEMS.</li>
+	  </ul>
+	</li>
+
+
+      </ul>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Aktuelle Entwicklung - Zuk&uuml;nftige Versionen.</h1>
+
+      <ul>
+	<li>
+	  Die folgenden Updates erfolgen auf Basis des bash-Frameworks.
+	  <ul>
+	    <li>
+	      Die erw&auml;hnten zus&auml;tzlichen Hypervisor und Betriebssysteme.
+	    </li>
+
+	    <li>
+	      Installationspakete f&uuml;r die Betriebssysteme CentOS, Fedora, debian und
+	      OpenBSD.
+	    </li>
+
+	    <li>
+	      Eine generische dynamische Relozierungs-Ebene.
+	    </li>
+
+	    <li>
+	      Fehlerkorrekturen.
+	    </li>
+
+	  </ul>
+	</li>
+
+
+	<li>F&uuml;r zuk&uuml;nftige Versionen ist geplant:
+	  <ul>
+	    <li>Neuimplementierung des Framworks mit Perl und C/C++.</li>
+	    <li>...einiges mehr.</li>
+	  </ul>
+	</li>
+
+      </ul>
+    </div>
+
+
+    <!-- *********** -->
+    <div class="slide">
+      <h1>Copyright</h1>
+
+      <div class="copyrightText">
+	<p> The following Web-Elements are used from the
+          Open-Source community.
+	  For applicable licences refer to the provided links.
+	  The license provided for such components are in general fully complain
+          to the requested by the authors.
+	</p>
+      </div>
+      <div class="copyrightText">
+	<ol>
+	  <li>HTML Slidy by 
+	    <a href="http://www.w3.org/2005/03/slideshow.html"
+     	       target="_blank">
+ 	      <strong>Dave Ragget</strong></a><br />
+
+	    The slide show script and style sheet can be used freely under W3C's 
+	    <a href="http://www.w3.org/Consortium/Legal/copyright-software"
+     	       target="_blank">software licensing</a>.
+	    and 
+	    <a href="http://www.w3.org/Consortium/Legal/copyright-documents"
+     	       target="_blank">document use</a>.
+	    <br />
+	    Please send comments to the author: Dave Raggett 
+	    &lt;<a href="http://www.w3.org/2005/03/slideshow.html"
+     		   target="_blank">dsr@w3.org</a>&gt;
+	  </li>
+
+	  <li>Design elements from <strong><a href="http://www.styleshout.com/" target="_blank">
+                styleshout.com</a></strong><br />
+            The design <strong>PixelGreen 1.2</strong> is downloaded from 
+            <a href="http://www.freewebtemplates.com/" target="_blank">Free Templates</a>:
+            It is a free, W3C-compliant, CSS-based website template 
+ 	    by <strong><a href="http://www.styleshout.com/" target="_blank">
+                styleshout.com</a></strong>.
+	  </li>
+
+
+	  <li>
+	    Cumulus clouds of Victoria, Australia - 
+	    Taken by 
+	    <a href="http://en.wikipedia.org/wiki/User:Fir0002"
+     	       target="_blank"><strong>Fir0002</strong></a>
+	    <br />
+	    <strong>GNU head</strong><br />
+ 	    Permission is granted to copy, distribute
+	    and/or modify this document under the terms of the GNU Free
+	    Documentation License, Version 1.2 only as published by the
+	    Free Software Foundation; with no Invariant Sections, no
+	    Front-Cover Texts, and no Back-Cover Texts. A copy of the
+	    license is included in the section entitled "Text of the GNU
+	    Free Documentation License."
+	    <br />
+	    <br />
+	    <strong>This image is not in the Public Domian.</strong><br />
+	    In order to comply with the license this image is released
+	    under, any reproduction of this image, in any medium, must
+	    appear with a copy of, or full (hyperlinked) URL of the 
+	    <a href="http://en.wikipedia.org/wiki/GNU_Free_Documentation_License"
+     	       target="_blank"><strong>GFDL license</strong></a>.
+	    In addition, attribution of this image to
+	    <strong>"Fir0002/Flagstaffotos"</strong>
+	    is required in a prominent location
+	    near to the image and you are required to release the image
+	    (or any subsequent derivatives of it) under the GFDL. No
+	    other conditions may be added to, or removed from this
+	    license without the permission of the author and copyright
+	    holder. If you require a less restrictive commercial license
+	    please email me to negotiate terms.
+	  </li>
+
+
+	  <li>
+	    The contents of this slideshow 
+	    by 
+	    <a href="http://www.i4p.com"
+     	       target="_blank"><strong>Ingenieurbuero Arno-Can Uestuensoez</strong></a>
+	    <br />
+	    <strong>GNU head</strong><br />
+ 	    Permission is granted to copy, distribute
+	    and/or modify this document under the terms of the GNU Free
+	    Documentation License, Version 1.2 only as published by the
+	    Free Software Foundation; with no Invariant Sections, no
+	    Front-Cover Texts, and no Back-Cover Texts. A copy of the
+	    license is included in the section entitled "Text of the GNU
+	    Free Documentation License."
+	    <br />
+	    <br />
+	    <strong>This document is not in the Public Domian.</strong><br />
+	    In order to comply with the license this image is released
+	    under, any reproduction of this document, or parts of it,
+	    in any medium, must appear with a copy of, or full
+	    (hyperlinked) URL of the 
+	    <a href="http://en.wikipedia.org/wiki/GNU_Free_Documentation_License"
+     	       target="_blank"><strong>GFDL license</strong></a>.
+	    In addition, attribution of copies to
+	    <strong>"Ingenieurbuero Arno-Can Uestuensoez"</strong>
+	    is required in a prominent location
+	    near to the copied parts, or in case of larger documents
+	    within the bibliography and you are required to release
+	    the document, or it's parts (or any subsequent derivatives
+	    of it) under the GFDL. No other conditions may be added
+	    to, or removed from this
+	    license without the permission of the author and copyright
+	    holder. If you require a less restrictive commercial license
+	    please email me to negotiate terms.
+	  </li>
+	</ol>
+      </div>
+
+
+    </div>
+  </body>
+</html>

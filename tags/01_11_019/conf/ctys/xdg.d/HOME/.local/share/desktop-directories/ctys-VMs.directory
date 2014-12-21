@@ -1,0 +1,12 @@
+#  -*- mode: conf; -*-
+#
+[Desktop Entry]
+Name=Virtual Machines
+Name[de]=Virtual Machines
+Name[en_GB]=Virtual Machines
+Comment=Virtual Machines
+Comment[de]=Virtual Machines
+Comment[en_GB]=Virtual Machines
+Type=Directory
+Icon=ctys-network-transmit
+Encoding=UTF-8

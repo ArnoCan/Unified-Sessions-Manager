@@ -1,0 +1,318 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_10_013
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+
+function set-MSProducts () {
+    DEFAULTINSTMODE=CD;
+    case ${DISTREL} in
+	WNT4WS)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-wnt4ws-XEN;;
+		QEMU) set-wnt4ws-QEMU;;
+	    esac
+	    ;;
+	WNT4S)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-wnt4s-XEN;;
+		QEMU) set-wnt4s-QEMU;;
+	    esac
+	    ;;
+	W2KWS)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-w2kws-XEN;;
+		QEMU) set-w2kws-QEMU;;
+	    esac
+	    ;;
+	W2KS)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-w2ks-XEN;;
+		QEMU) set-w2ks-QEMU;;
+	    esac
+	    ;;
+	WXP)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-wxp-XEN;;
+		QEMU) set-wxp-QEMU;;
+	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+    esac
+}
+
+
+
+#*******************************************************************
+#
+#DIST: WNT4WS
+#
+#
+function set-wnt4ws-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WNT-4.0/nt40-ws.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "Available Release of Windows on XEN-PARA"
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-wnt4ws-QEMU () {
+    DEFAULT_BOOTLOADER=;
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WNT-4.0/nt40-ws.iso
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	PARA)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	HVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+#*******************************************************************
+#
+#DIST: WNT4WS
+#
+#
+function set-wnt4s-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WNT-4.0/nt40-s-u.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "Available Release of Windows on XEN-PARA"
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-wnt4s-QEMU () {
+    DEFAULT_BOOTLOADER=;
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WNT-4.0/nt40-s-u.iso
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	PARA)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	HVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+
+
+#*******************************************************************
+#
+#DIST: W2KWS
+#
+#
+function set-w2kws-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/W2K/w2kp-license-1.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "Available Release of Windows on XEN-PARA"
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-w2kws-QEMU () {
+    DEFAULT_BOOTLOADER=;
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/W2K/w2kp-license-1.iso
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	PARA)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	HVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+#*******************************************************************
+#
+#DIST: W2KWS
+#
+#
+function set-w2ks-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/W2K/w2k-all-license-2/w2k-all/w2ks.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "Available Release of Windows on XEN-PARA"
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-w2ks-QEMU () {
+    DEFAULT_BOOTLOADER=;
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/W2K/w2k-all-license-2/w2k-all/w2ks.iso
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	PARA)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	HVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+
+#*******************************************************************
+#
+#DIST: WXP
+#
+#
+function set-wxp-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WXP/wxp/german/winxp/pro.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "Available Release of Windows on XEN-PARA"
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-wxp-QEMU () {
+    DEFAULT_BOOTLOADER=;
+    DEFAULT_REPOSITORY_URL=
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WXP/wxp/german/winxp/pro.iso
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	PARA)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	HVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+

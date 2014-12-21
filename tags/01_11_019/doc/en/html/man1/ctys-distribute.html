@@ -1,0 +1,540 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;background-color:#dcd0bc ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#d6bc8f ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-distribute</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-distribute</H1>
+<FONT SIZE="4">
+November, 2010
+</FONT></CENTER>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+  <UL>
+  <LI><A HREF="#toc1">NAME</A>
+  <LI><A HREF="#toc2">SYNTAX</A>
+  <LI><A HREF="#toc3">DESCRIPTION</A>
+  <LI><A HREF="#toc4">OPTIONS</A>
+    <UL>
+    <LI><A HREF="#toc5">-d &lt;debug-args&gt;</A>
+    <LI><A HREF="#toc6">-F (1|2|3|force|forceclean|forceall)</A>
+    <LI><A HREF="#toc7">-h</A>
+    <LI><A HREF="#toc8">-H &lt;help-option&gt;</A>
+    <LI><A HREF="#toc9">-l &lt;remote login&gt;</A>
+    <LI><A HREF="#toc10">-M &lt;access-mask&gt;</A>
+    <LI><A HREF="#toc11">--menu-create=(PRIVATE|SHARED)</A>
+    <LI><A HREF="#toc12">-P &lt;pkg-type&gt;</A>
+    <LI><A HREF="#toc13">-V</A>
+    <LI><A HREF="#toc14">-X</A>
+    </UL>
+  <LI><A HREF="#toc15">ARGUMENTS</A>
+  <LI><A HREF="#toc16">EXIT-VALUES</A>
+  <LI><A HREF="#toc17">SEE ALSO</A>
+  <LI><A HREF="#toc18">AUTHOR</A>
+  <LI><A HREF="#toc19">COPYRIGHT</A>
+  </UL>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+<P>
+.
+</P>
+<A NAME="toc1"></A>
+<H1>NAME</H1>
+<P>
+<B>ctys-distribute - local and remote installation, bulk-distribution</B>
+<br />
+<br />
+<br />
+</P>
+<A NAME="toc2"></A>
+<H1>SYNTAX</H1>
+<P>
+<br />
+</P>
+<P>
+<B>ctys-distribute</B> 
+<PRE>
+
+   [-d &lt;debug-options&gt;]
+   [-F (1|2|3|force|forceclean|forceall)]
+   [-h]
+   [-H &lt;help-options&gt;]
+   [-l &lt;remote login&gt;]
+   [-M &lt;access-mask&gt;]
+   [--menu-create=(PRIVATE|SHARED)]
+   [-P (
+       (UserHomeCopy|UHC)
+      |(UserHomeLinkonly|UHL)
+      |(SharedAnyDirectory|SAD),&lt;subopts&gt;
+      |(SharedAnyLinkonly|SAL),&lt;subopts&gt;
+      |(AnyDirectory|AD),&lt;subopts&gt;
+      )]
+   [-V]
+   [-X]
+   &lt;list-of-target-acounts&gt;
+
+</PRE>
+<br />
+<br />
+<br />
+</P>
+<A NAME="toc3"></A>
+<H1>DESCRIPTION</H1>
+<P>
+<B>ctys-distribute</B> is the main interface for local and  remote installation.
+The installation of a single target and an arbitrary list of remote targets for
+automated bulk installations is provided.
+</P>
+<P>
+Various distribution and installation methods for distribution packages
+and installation types could be applied, these are for the current
+version:
+<br />
+<br />
+</P>
+<DL>
+<DT><B>File based installation:</B></DT><DD>
+File based installation uses an existing installation or an arbitrary copy of
+a valid directory tree.
+The contained revision could be either installed as a copy or as
+refrences by symbolic links for execution only.
+The configuration files are installed locally for the calling user in any case.
+These are nor replaced by default, just when '-F' option is used.
+<P></P>
+The <B>ctys-distribute</B> utility therefore resolves the actual physical location of the executable
+and performes the installation solely based on it's own physical directory tree.
+Therefore any copy of the ctys subtree could be used for independent local and remote installation,
+which is consistent as defined by the implemented release.
+<P></P>
+This has particularly some advance for custom installations, e.g. when the set of documents is required
+to be reduced it is sufficient just to delete the relevant files/directories.
+<P></P>
+In case of remote installation the current version uses excessive local-remote-interaction
+by <B>ssh/scp</B> based commands, thus for practical reasons requires automated remote login procedures.
+These could be for example either based on Kerberos or SSH-Keys.
+This might be reduced to at least one authentication in future versions.
+<P></P>
+The call of
+<PRE>
+  &lt;path-to&gt;/ctys-distribute.sh -F 2 -P UHC userA@hostB
+</PRE>
+installs the complete copy contained within the '&lt;path-to&gt;' directory tree.
+Therefore symbolic links are resolved to their actual physical paths, the resulting
+directory path to a valid copy is used.
+The copy has to be valid, but not neccessarily to be installed, or the current users active installation.
+The default when omitting a  '&lt;path-to&gt;' is resolved by the PATH search algorithm and proceeded
+similar to the previos case.
+Resulting in using the current installation as the install source for the user 'userA@hostB', where the
+current configuration for 'userA@hostB' is deleted and replaced completely due to the '-F 2' option.
+Where <B>UHC</B> is the shortcut for '<B>U</B>ser<B>H</B>ome<B>C</B>opy'
+<P></P>
+The call of
+<PRE>
+  &lt;path-to&gt;/ctys-distribute.sh -F 2 -P UHL
+</PRE>
+installs the complete current installation on for the user 'userA@hostB', where the
+current configuration is deleted and replaced completely by '-F 2', and the source executables
+are referenced by symbolic links only.
+The documents are physically shared by search-path references.
+Where <B>UHL</B> is the shortcut for '<B>U</B>ser<B>H</B>ome<B>L</B>inkonly'
+<P></P>
+Once installed one of the following calls may be applied for further help.
+When a full installation with has proceeded, the suffix '.sh' could be omitted
+for the created symbolic links:
+<PRE>
+  
+  &lt;path-to&gt;/ctys-distribute.sh -H man
+  &lt;path-to&gt;/ctys-distribute.sh -H html=base
+  &lt;path-to&gt;/ctys-distribute.sh -H html=doc
+  
+  &lt;path-to&gt;/ctys.sh -H man
+  &lt;path-to&gt;/ctys.sh -H pdf
+  &lt;path-to&gt;/ctys.sh -H html
+  
+  &lt;path-to&gt;/ctys.sh -H html=base
+  &lt;path-to&gt;/ctys.sh -H html=doc
+  
+  &lt;path-to&gt;/ctys.sh -H path
+  &lt;path-to&gt;/ctys.sh -H list
+  
+</PRE>
+<P></P>
+The following keys are not case sensitive, additionally the uppercase letters could be used
+as abbreviations - which are not case sensitive too, e.g. 'UHC' for 'UserHomeCopy', or 'uHc'.
+<P></P>
+<DT></DT><DD>
+<B>UserHomeCopy</B>
+installs for the current local or remote user a user-local
+copy into it's HOME directory with the standard ctys-directory
+structure.
+<P></P>
+<DT></DT><DD>
+<B>UserHomeLinkonly</B>
+installs for the current local or remote user a partial
+user-local copy, where the specific configuration files are copied, 
+whereas the executables and documentation is set as symbolic
+links only. 
+<P></P>
+<DT></DT><DD>
+<B>SharedAnyDirectory</B>
+variant installs a local copy for share usaged, thus sets up
+a common installation within any directory, but should be in 
+accordance to common standards of the actual UNIX variant.
+<P></P>
+<DT></DT><DD>
+<B>AnyDirectory</B>
+variant installs a local copy only for shared usage.
+<br />
+<br />
+<P></P>
+<DT><B>Package based installation</B></DT><DD>
+Package based installation is forseen by means of the standard mechanisms.
+"ctys-distribute" could be used as a installer for the following install
+applications:
+<P></P>
+<DT></DT><DD>
+<B>rpm</B>
+The distributions <B>rpm-CentOS</B>, <B>rpm-Fedora</B>, and <B>rpm-OpenSUSE</B> are supported by the provided rpms.
+In the "install section" ctys-distribute can be applied as:
+<P></P>
+<PRE>
+  
+  INSTBASE=${RPM_BUILD_ROOT}/usr/share
+  INSTTARGET=${INSTBASE}/${RPM_PACKAGE_NAME}-${RPM_PACKAGE_VERSION}
+  
+  ${PWD}/bin/ctys-distribute.sh -F 1 -P AnyDirectory,${INSTTARGET} localhost
+  
+</PRE>
+<P></P>
+This installs the complete package without configuration of user accounts.
+<P></P>
+The user accounts have to be configured by calling:
+<P></P>
+<PRE>
+  
+  /usr/share/bin/ctys-distribute.sh -F 1 -P UserHomeLinkonly localhost
+  
+  
+</PRE>
+<B>ATTENTION:</B>
+<P></P>
+When a previous installation is present the configuration directories should be updated too 
+due to the circumstance, that these also contain some dynamic evaluation code.
+But these probably may contain some custom patches, thus the '-F 1' option preserves the 
+configuration directory '$HOME/.ctys'.
+For forced update these may either be removed manually, or by usage of '-F 2' option.
+<P></P>
+<DT></DT><DD>
+<B>deb</B>
+ffs.
+<P></P>
+<DT></DT><DD>
+<B>pkg-OpenBSD</B>
+ffs.
+<P></P>
+<DT></DT><DD>
+<B>pkg-Solaris</B>
+ffs.
+<br />
+<br />
+</DL>
+
+<P>
+The utilitiy scp of the OpenSSH package is used for any transfer, thus 
+remote SSH access is required.
+</P>
+<P>
+The call evaluates its own actual physical file location by recursive 
+dereferencing symbolic links and uses the actual containing distribution 
+for further steps. 
+Thus if a specific distribution outside the search path is to be installed, the
+call path has to be provided explicitly:
+&lt;path-to-installbase&gt;/bin/ctys-distribute
+</P>
+<P>
+.
+</P>
+<A NAME="toc4"></A>
+<H1>OPTIONS</H1>
+<P>
+<B>ctys-distribute</B> 
+</P>
+<A NAME="toc5"></A>
+<H2>-d &lt;debug-args&gt;</H2>
+<P>
+Refer to "ctys" generic options for additional information.
+<br />
+<br />
+</P>
+<A NAME="toc6"></A>
+<H2>-F (1|2|3|force|forceclean|forceall)</H2>
+<P>
+Bypassed to ctys-install1.sh
+<br />
+<br />
+</P>
+<A NAME="toc7"></A>
+<H2>-h</H2>
+<P>
+Print help, refer to "-H" for additional information.
+<br />
+<br />
+</P>
+<A NAME="toc8"></A>
+<H2>-H &lt;help-option&gt;</H2>
+<P>
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+</P>
+<P>
+For additional help refer to the documents or type <B>ctys -H help</B>.
+<br />
+<br />
+</P>
+<A NAME="toc9"></A>
+<H2>-l &lt;remote login&gt;</H2>
+<P>
+The remote USER to be used as a EMail style prefix for all given
+remote hostnames within the &lt;list-of-target-acounts&gt;.
+This option is supported with hostname-only targets, it
+cannot be intermixed with EMail style &lt;USER&gt;@&lt;HOST&gt; targets.
+<br />
+<br />
+</P>
+<A NAME="toc10"></A>
+<H2>-M &lt;access-mask&gt;</H2>
+<P>
+Access mask for post-chmod, where the value is literally passed to:
+</P>
+<P>
+ "chmod -R &lt;access-mask&gt; &lt;base-lib-dir&gt;"
+</P>
+<P>
+The user-local file access permissions remain unmodified.
+<br />
+<br />
+</P>
+<A NAME="toc11"></A>
+<H2>--menu-create=(PRIVATE|SHARED)</H2>
+<P>
+Creates menu entries during installation by call of <B>ctys-xdg</B>.
+The creation of SHARED manus requires root permissions.
+The <B>--force</B> option is not provided, thus the entries could be installed
+on supported and verified desktops only.
+For the remaining the tool <B>ctys-xdg</B> has to be called manually.
+<br />
+<br />
+</P>
+<A NAME="toc12"></A>
+<H2>-P &lt;pkg-type&gt;</H2>
+<P>
+This option supports the selection of prepared installation packages,
+which are automated by preconfigured parameters or to be finished by
+interactive dialogue from the command line interface.
+</P>
+<P>
+The packages are prepared during build operations within the local
+"packages" directory for the current version.
+</P>
+<P>
+For system directory appropriate access permissions are required.
+</P>
+ <UL>
+ <LI><B>(UserHomeCopy|UHC)</B>:
+ <P></P>
+Creates a copy in $HOME/lib and sets links to $HOME/bin.
+ <P></P>
+ <LI><B>(UserHomeLinkonly|UHL)</B>:
+ <P></P>
+Creates sets links to $HOME/bin from execution directory.
+ <P></P>
+ <LI><B>(SharedAnyDirectory|SAD)</B>,<I>&lt;install-directory&gt;</I>[,<I>&lt;link-directory&gt;</I>]:
+ <P></P>
+The links will be set within the standard directory conventions.
+ <P></P>
+  <UL>
+  <LI><I>&lt;install-directory&gt;</I>:
+Directory for installation of non-user specific files.
+  <P></P>
+  <LI><I>&lt;link-directory&gt;</I>:
+The links to be set, default is "${HOME}/bin".
+  <P></P>
+  </UL>
+ <LI><B>(SharedAnyLinkonly|SAL)</B>,<I>&lt;reference-directory&gt;</I>,<I>&lt;link-directory&gt;</I>:
+ <P></P>
+Any directory could be linked, this could be used e.g. for providing
+sysmbolic links within standard search PATH.
+ <P></P>
+  <UL>
+  <LI><I>&lt;reference-directory&gt;</I>:
+Directory for targets of symbolic links to non-user specific files.
+  <P></P>
+  <LI><I>&lt;link-directory&gt;</I>:
+The links to be set.
+  <P></P>
+  </UL>
+ <LI><B>(AnyDirectory|AD)</B>,<I>&lt;install-directory&gt;</I>:
+ <P></P>
+Copies only without setup of configuration.
+Foreseen for build process only.
+ <P></P>
+  <UL>
+  <LI><I>&lt;install-directory&gt;</I>:
+Directory for installation of non-user specific files.
+<br />
+<br />
+  </UL>
+ </UL>
+
+<A NAME="toc13"></A>
+<H2>-V</H2>
+<P>
+Version.
+<br />
+<br />
+</P>
+<A NAME="toc14"></A>
+<H2>-X</H2>
+<P>
+Terse output format, effects "-V" when set left-of.
+<br />
+<br />
+</P>
+<P>
+.
+</P>
+<A NAME="toc15"></A>
+<H1>ARGUMENTS</H1>
+<DL>
+<DT><B>&lt;list-of-target-acounts&gt;</B></DT><DD>
+The target accounts appropriate for the ssh/scp-call, where the
+install process shout be executed.
+<P></P>
+The provided formats are a list of EMail style hostnames or pure
+hostnames. EMail style hostnames are not supported in conjunction with
+the "-l" option.
+<P></P>
+For any hostname without a user-prefix either the current USER or the
+user from the "-l" option is prepended.
+<br />
+<br />
+</DL>
+
+<P>
+.
+</P>
+<A NAME="toc16"></A>
+<H1>EXIT-VALUES</H1>
+<DL>
+<DT> 0: OK:</DT><DD>
+Result is valid.
+<P></P>
+<DT> 1: NOK:</DT><DD>
+Erroneous parameters.
+<P></P>
+<DT> 2: NOK:</DT><DD>
+Missing an environment element like files or databases.
+<br />
+<br />
+<br />
+</DL>
+
+<A NAME="toc17"></A>
+<H1>SEE ALSO</H1>
+<DL>
+<DT><B>ctys use-cases</B></DT><DD>
+ffs.
+<P></P>
+<DT><B>ctys plugins</B></DT><DD>
+ <DL>
+ <DT>  <B>PMs</B></DT><DD>
+<I>ctys-PM(7)</I>
+ <DT>  <B>VMs</B></DT><DD>
+<I>ctys-KVM(7)</I>, <I>ctys-QEMU(7)</I>, <I>ctys-VMV(7)</I>, <I>ctys-XEN(7)</I>, <I>ctys-VBOX(7)</I>
+ <DT>  <B>HOSTS</B></DT><DD>
+<I>ctys-CLI(7)</I>, <I>ctys-PM(7)</I>, <I>ctys-VNC(7)</I>, <I>ctys-X11(7)</I>
+ <P></P>
+ </DL>
+<DT><B>ctys executables</B></DT><DD>
+<I>ctys-genmconf(1)</I>, <I>ctys-install(1)</I>, <I>ctys-plugins(1)</I>, <I>ctys-vhost(1)</I>
+<P></P>
+<DT><B>system executables</B></DT><DD>
+ffs.
+<br />
+<br />
+<br />
+</DL>
+
+<A NAME="toc18"></A>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<A NAME="toc19"></A>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+<br />  
+The whole document - all sections - is/are defined as invariant.
+</UL>
+
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<A HREF="http://www.gnu.org"><IMG ALIGN="middle" SRC="../../images/60px-Official-gnu.png" BORDER="0" ALT=""></A>
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -\-toc -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.019/doc-tmp/BASE/en/html/man1/ctys-distribute.html -->
+</BODY></HTML>
