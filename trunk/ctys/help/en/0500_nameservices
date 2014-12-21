@@ -1,0 +1,560 @@
+
+  5. CTYS-Nameservices
+  ====================
+
+   5.1. Basic syntax elements - Reserved Characters
+   ================================================
+
+     The foreseen and implemented scanners are designed to allow
+     implementation in a straight-forward manner. Therefore some
+     characters are reserved allowing an simple implementation of
+     hierarchical structured syntax definitions by nested loops.
+
+     The full set and description of all reserved characters is given
+     in the chapter "Options Scanners - Reserved Characters". 
+
+       '=':   Seperator for option and it's suboptions. 
+       ',':   Seperator for suboptions belonging to same group. 
+       ':':   Seperator for suboption keys and it's arguments.
+       '%':   Seperator for suboption argument values.
+
+       '()':  Grouping character pair for target specific options
+              belonging to a common target a.k.a. host.
+
+
+   5.2. Required Namebinding
+   =========================
+
+     A session is defined and accessed by it's name binding. This is
+     actually different for almost each integrated type of sessions
+     a.k.a. plugins within their native namespaces. Therefore the
+     following unifying name binding has been defined, which still
+     supports the several specific namings as an additional facility,
+     to be used for some required specific use-cases and/or call of
+     specific tools.
+
+     The ctys modules which are implementing the namebinding
+     particularly supports conversion between the several naming
+     attributes, thus a common interworking could be setup.
+
+     In addition a common nameservice is defined, which offers a
+     binding und cross-resolution between the different
+     plugins. Distribution and transparent caching, including security
+     aspects is included.
+
+
+    5.2.1. Integration of PMs, VMs, and HOSTs
+    =========================================
+
+      The integration of the supported categories PM, VM, and HOST is
+      the essential advantage of the implemented namebinding. 
+      Therefore a superset is defined as protocol entity and
+      implemented within the several plugins. Basic functions with
+      plugin specific call interfaces are supported as a common
+      library.
+
+      The main advantage results from the combination of the various
+      IDs addressing several entities of different categories and
+      types into a common and centralized database. This address-pool
+      contains identifying data from within multiple OSI/ISO-protocol
+      layers, as well as from multiple application domains. The common
+      access with additional dynamic runtime data and the combination
+      into runtime profiles for service-locator-decisions offers broad
+      application of the nameservice.
+
+      The actual execution entity ctys-vdbgen for generation of static
+      data and the ctys-vhost runtime interface to nameservice could
+      be easily extended individually for implementing specific policy
+      based nameservices. The supplied basic version offers a
+      functionality for combination of dynamic and static data and
+      application of several filters on them.
+
+      The different plugins of the defined categories need not
+      neccesarily to implement all elements of the common naming
+      schema, e.g. the type HOSTs has normally not a configuration
+      file, and the IDs are gereated dynamically by the executing
+      OS. Whereas the VMs have a configuration file with almost the
+      whole set of relevant runtime information founding the
+      uniqueness of a instanciated Vm under operations. 
+
+      Plugins also can define additional elements for their own
+      namespace, but which is not allowed to replace other
+      mechanisms. For example the VNC plugin implements a "BULKCNT"
+      attribute, which supports a facility to start the given number
+      of sessions at once and sharing one encrypted tunnel for
+      DisplayForwarding. This feature is particularly used for testing
+      purposes.
+
+      The big unifying element is the commonly supported LABEL, which
+      has slightly different semantics within the different
+      namespaces, but supports in anycase it's main intention of a
+      common access alias. The LABEL could be used as any other
+      namebinding element and supports the full scope of functionality
+      for addressing entities. The only drawback ist the
+      responsibility of the caller for it's assignment and therefore
+      it's uniqueness. 
+
+      Other IDs might be unambiguous by default but could be tampered
+      by in-place-backups or multiple mount of shared filesystems,
+      additionally by user-errors of course.
+
+      So the challange of ambiguity will remain in any case, but could
+      be coped easily with some discipline. The in-place-backups will
+      be treated by using the first attempt in most cases, where
+      multiple results could occur.
+
+
+    5.2.2. Implementation basics for handling of namebindings
+    =========================================================
+
+      The namebinding and therefore it's evaluation to resulting
+      entities is in many cases not explicitlty defined to match
+      completely by algorithmic decryption.
+
+      This results from the following characteristics, which offer the
+      real advantage of the given schema.
+
+
+      - The address elements are foreseen to be used as search pattern
+        for resulting entries which will suffice given keywords as
+        attributes within specific instance contexts. E.g. it is
+        possible to search a configuration file representing a VM,
+        which is localized within a given subtree, and which contains
+        a specified UUID. The resulting query by ctys-vhost will give
+        the selected item, TCP/IP-address or resolved filepath with
+        hosting PM.
+
+      - The second reason for a stepwise evaluation of given
+        namebindings is the distributed nature of the addressed
+        entities. This means, that an immediate evaluation of the
+        resulting values on the callers site is in much of the cases
+        simply impossible due to the remote-only availability of the
+        required data.
+
+      - Completely dynamically allocated entities will have just a few
+        static inherent information, like their generic callname for
+        execution, whereas almost any additional identifier related to
+        the runnning instances will be generated by the hosting
+        container, e,g, the guestOS within a PM or VM. In that case
+        the LABEL could be the only reliable identifier for a specific
+        session.
+
+
+      Therefore an internal interface is defined, which will evaluate
+      the given parameters with multiple calls of an plugin interface
+      by a central dispatcher. The interface is mainly based on
+      dispatching tasks by it's given type("-t/-T") and ACTION("-a")
+      and passing pre-analysed and assigned generic commandline
+      arguments and resolved permutations to the specific plugin. The
+      information for each task is called her message.
+
+      The main dispatcher distinguished between two types of messages
+      to be passed to the plugins, one type are generic messages
+      related to multiple plugin types by definition, theese will be
+      handeled centrally by simpls calling specific format converters.
+      Messages or better actions of this type are LIST, ENUMERATE,
+      SHOW, and INFO.
+
+      The almost plugin type specific messages are passed to the
+      affected plugin with the action type and an internal action,
+      which is actually a sub-action. The sub-actions are CHECKPARAM
+      and ACTION, where the CHECKPARAM by interface convention just
+      implements a local check of parameters as possible on the
+      caller's site, whereas the ACTION message does the final checks
+      at the site of execution target and performs the requested
+      actions.
+
+      The expansion of names related to the transfer of action to the
+      execution site, e.g. when several PMs are selected for one USER
+      differing from the caller's USER-ID, each host from the given
+      set of addresses will be combined with the defined user and the
+      remote execution is performed.
+
+      Another issue arises from the usage of addresses resulting from
+      namebinding with context specific options, which apply as a
+      superposition of the globally set call-options for the specific
+      target only, this could be given for each target specifically.
+
+
+      Ctys will handle all of this cases correctly.
+
+
+    5.2.3. Address syntax
+    =====================
+
+     5.2.3.1 Single-Target
+     =====================
+
+      The following namebindung founds the superset of addressing
+      attributes, which support specific addressing of explicitly
+      one target as well as generic addressing of one or more
+      targets by using search paths and content attributes,
+      a.k.a. keywords or attribute value assertions.
+
+      The given sub-options are defined not to be order dependent,
+      and the keywords are case-insensitive.
+
+      The contained paranthesis, angle, and square brackets are just
+      syntactic helpers, when they are part of the syntax, the will be
+      quoted with single quotation marks.
+
+
+          TAE - Target Application Entity address
+          =======================================
+
+          <target-application-entity>:=<TAE>
+          <TAE>:=[<access-point>}<application>
+
+          <access-point>:=<physical-access-point>[<virtual-access-point>]
+
+
+          <physical-access-point>:=<PM>
+          <PM>:=<machine-address>[:<access-port>]
+
+          <virtual-access-point>:='['<VM>']'
+          <VM>:=<machine-address>[:<access-port>]
+
+
+          <application>:=<host-execution-frame><application-entity>
+
+
+          <machine-address>:=<mconf-filename-path>
+                 |<id>
+                 |[<basepath-for-namespace-of-attribute-value-assertion>]
+                   (
+                     <label>
+                     |<mconf-filename>
+                     |<UUID>
+                     |<MAC-address>
+                     |<TCP/IP-address>
+                   )
+
+
+          TDE - Target Display Entity address
+          ===================================
+
+          <DISPLAYext>:=<target-display-entity>
+
+          <target-display-entity>:=<TDE>
+          <TDE>:=<TAE>:<display>.<screen>
+
+   
+      The given general syntaxes lead to the following applied
+      syntaxes with the slightly variation of assigned keywords.
+
+          TAE - Target Application Entity address
+          =======================================
+
+          <target-application-entity>:=<TAE>
+          <TAE>:=[<access-point>}<application>
+
+          <access-point>:=<physical-access-point>[<virtual-access-point>]
+
+
+          <physical-access-point>:=<PM>
+          <PM>:=<machine-address>[:<access-port>]
+
+          <virtual-access-point>:='['<VM>']'
+          <VM>:=<machine-address>[:<access-port>]
+
+
+          <application>:=<host-execution-frame><application-entity>
+
+
+          <machine-address>:=
+                 |(id|i):<mconf-filename-path>|<id>
+                 |(pathname|pname|p):<mconf-path>
+                 |[(basepath|base|b):<base-path>{1,n}]
+                   (
+                     (label|l):<label>
+                     |(filename|fname|f):<mconf-filename>
+                     |(uuid|u):<UUID>
+                     |(mac|m):<MAC-address>
+                     |(TCP|t):<TCP/IP-address>
+                   )
+
+
+
+      The above minor variations take into account some common
+      implementation aspects.
+
+       (id|i):<mconf-filename-path>|<id>
+
+         The <id> is used for a variety of tasks just as a neutral
+         matching-pattern of bytes, so it could be handled similiar
+         for e.g. VNC-IDs and VM-ConfiguraionIDs, and DomU-IDs.
+
+         Therefore, fore matching only commands, e.g. CONNECT or
+         CANCEL, the <id> is a neutral pattern. 
+
+         This eases the implementation of cross-over function like
+         LIST, because otherwise e.g. appropriate access-rights to
+         the file are required, which is normally located in a
+         protected subdirectory. These has to be permitted, even
+         though it migt not be required by the actual performed
+         function.
+
+
+       (pathname|pname|p):<mconf-path>
+
+         When a VM has to be started, the <pathname> to it's
+         configuration file has to be known. Therefore the <pathname>
+         is defined. The pathname is the full qualified name within
+         the callers namescope. SO in case of UNIX it requires a
+         leading '/'.
+
+
+       (basepath|base|b):<base-path>{1,n}
+
+         Basepath could be a list of prefix-paths for usage by UNIX
+         "find" command.
+
+         When omitted, the current working directory of execution is
+         used by default.
+
+
+       (label|l):<label> {[a-zA-Z-_0-9]{1,n} (n<30, if possible)}
+
+         User defined alias, which should be unique. Could be used for
+         any addressing means.
+
+         
+       (filename|fname|f):<mconf-filename>
+
+         A relative pathname, with a relative path-prefix to be used
+         for down-tree-searches within the given lsit of <base-path>.
+
+
+       (uuid|u):<UUID>
+
+         The well known UUID, which should be unique. But might not,
+         at least due to inline backups, sharing same UUID as the
+         original. Therefore the parameter FIRST, LAST, ALL is
+         supported, due to the fact, that backup files frequently will
+         be assigned a name extension, which places them in
+         alphabetical search-order behind the original. So, when using
+         UUID as unique identifier, a backup will be ignored when
+         FIRST is used. 
+
+         Anyhow, cross-over ambiguity for different VMs has to be
+         managed by the user.
+
+
+       (mac|m):<MAC-address>
+
+         The MAC address, which has basically similiar semanticall
+         meaning due to uniqueness as the UUID.
+
+         Within the scope of ctys, it is widely assumed - even though
+         not really prerequired - that the UUIDs and MAC-Addresses are
+         manual assigned statically, this could be algorithmic
+         too. The dynamic assignement by VMs would lead to partial
+         difficulties when static caches are used.
+
+
+       (TCP|t):<TCP/IP-address>
+
+         The TCP/IP address is assumed by ctys to assigned in fixed
+         realtion to a unique MAC-Address. 
+
+
+       <target-application-entity>
+
+          The full path of the stacked execution stack, addressing the
+          execution path from the caller's machine to the terminating
+          entity to be executed. This particularly includes any
+          involved PM, and VM, as well as the final executable. Thus
+          the full scope of actions to be performed in order to start
+          the "On-The-Top" executable is contained.
+
+
+       <access-point>:=<physical-access-point>[<virtual-access-point>]
+
+          The complete path to the execution environment.
+
+
+       <physical-access-point>:=<PM>
+       <PM>:=<machine-address>[:<access-port>]
+
+          The physical termination point as the lowest element of the
+          execution stack. This is the first entitiy to be contacted
+          from the caller's site, normally by simple network access.
+
+
+       <virtual-access-point>:='['<VM>']'
+       <VM>:=<machine-address>[:<access-port>]
+
+          A stack of virtual machines, which could be nested to an
+          execution stack. This seems to be upcoming with the
+          enhancement of the number of CPU-cores and the possibility
+          of partitioning these into execution groups.
+
+
+       <application>:=<host-execution-frame><application-entity>
+
+          The application itself, which has to be frequently used in
+          combination with a given service as runtime environment.
+
+
+       <host-execution-frame>
+
+         The starter entity of addressed container, which frequently
+         supports a sub-comman-call or the interactive dialog-access
+         of users to the target system.
+
+
+       <application-entity>
+
+         The executable target entity of the addresses application,
+         which could be an ordinary shell script to be executed by a
+         starter instance, or an selfcontained executable, which
+         operates standalone within the containing entity. E.g. this
+         could be a shared object or an executable.
+
+
+
+       The following extends the DISPLAY for seamless usage within
+       ctys. So redirections of entities to any PM, VM of VNC session
+       supporting an active Xserver will be supported. The onyl
+       restrictions apply, are the hard-coded rejection of unencrypted
+       connections crossing machine-borders.
+
+
+          TDE - Target Display Entity address
+          ===================================
+
+          <DISPLAYext>:=<target-display-entity>
+
+          <target-display-entity>:=<TDE>
+          <TDE>:=<TAE>:display.screen
+
+
+
+     5.2.3.2 Group-Targets
+     =====================
+
+      ctys supports the usage of groups, which are actually filenames
+      containing a list of hostst to be handeled together. This list
+      could be any user defined assembly of single-targets by any
+      criteria, to be executed together as a group.
+
+      Technically the groupname within the CLI is simply replaced by
+      the set of hostnames from the group file. Additionaly context
+      options for that group are permutated for the resulting set of
+      hosts from the group. Group elements may be in current version
+      bare taget names, without stored context options.
+
+      Due to the previous expansion of given groups, the group name
+      will hide any actual target with that name from the CLI, whereas
+      this name could be reused within a group file. Groups are
+      could be nested by "#include" statement, multiple groups could
+      be listed, seperated by commas. The group statement could be
+      present more than once for each include-statement:
+
+        "#include <group>[,group[,...]]"
+
+      The '#' has to be the first characryhter of the line followed
+      immediately by the literal keyword 'include'.
+
+      Group files are stored and searched by default within the directory
+      "$HOME/.ctys/groups" and "$MACONFPATH/groups", but multiple
+      search paths could be provided by the environment variable. The
+      syntax is analogous to PATH-syntax.
+
+
+        CTYS_GROUPS_PATH=<absolute-path>[:<....>[:<...]]
+
+
+      The first match will be used.
+
+      The file itself could be padded with comments and empty lines,
+      which are ignored when evaluating it.
+
+      The default paths are prepended to the CTYS_GROUPS_PATH during
+      init fo ctys.
+
+    
+   5.3. Nameservices
+   =================
+
+     The addressing of services within a network performed within
+     severeal containing entities could be only utilized in an
+     efficient manner when an adequate nameservice with a convincing
+     interface is supported. Therefore the nameservice of ctys is
+     designed and reworked several times in order to supply seamless
+     access to all handeled entities.
+
+
+    5.3.1 Design of Nameservices
+
+      The nameservice is mainly based on the ctys runtime call for the
+      actions ENUMERATE and LIST. These actions with the attribute
+      MACHINE supply a complete standard record with a terse format
+      for easy processeing by UNIX common filter chains.
+
+      Therefore each entity is stored within one line constituting a
+      complete record from a ctys-call. This has particularly the
+      advantage, that for the typical search requests of mapping one
+      field to another an easy to define awk-regexpr could be used by
+      the caller. This of course could be a simple string. Substrings
+      representing partial information of an item are matched by all
+      superposing strings which are longer than the search string. 
+      Therefore the listing of members of a subnet, or members with
+      MAC-addresses from a single supplier is almost a trivial query
+      with given interface. The listing of contained elements within a
+      container of ower level is as trivial too, by just supplying the
+      container's id as search string. You might find this very handy,
+      once you worked with full pathnames used as IDs for any action
+      on VMs.
+
+      When using the ctys actions the produced output is literally
+      ready to be used within the ctys-nameservice file-database. It
+      will be just redirected into the runtime files. This opens for
+      the user particularly the asset, that different local cache
+      databasess of several executions groups could be simply created
+      by selecting members for a call. The native ctys-call is
+      encapsulated by ctys-vdbgen with a little overhead in order to
+      manage combined calls and some common databased-paths for usage
+      by the relying runtime support tools. Therefore ctys-vdbgen
+      should be used instead of rudimentary native calls.
+
+      A second tool called ctys-extractMAClst generated a mapping
+      database from a dhcpd.conf file with three column information,
+      mapping hostnames, TCP/IP-addresses and MAC-addresses. 
+
+      These both databases will be utilized by the runtime tools in
+      order to generate complete mapping information when required.
+
+      In current implementation, which is the first system to be
+      stabelized and probably discussed somewhat, the mapping data is
+      stored individually within a configuration database in the home
+      directory of each user, which is $HOME/.ctys/db.
+
+      Additional information could be within the help of each tool.
+
+
+    5.3.1.1. Local File-DB
+
+      As mentioned the current version stores it's data in
+      filedatabases, with one record each line. The fields are
+      seperated by semicolons, so these files could be viewed and
+      inspected with almost any table-calculation tool.
+
+      Performance is for small and medium networks quite good, where
+      medium might be up to hundred+ entities(REMARK: I guess much
+      more but argue conservative for now!). This relies on your
+      machine of course.
+
+      The remote data will be fetched and collected by "ctys -a
+      LIST..." calls, what could be somewhat time consuming, but is
+      cached locally within one call, could be done persistently too,
+      refer to ctys-vhost options for further information.
+
+
+    5.3.1.2. Network LDAP-Access
+
+      Even though the performance of the tools seem to be perfectly
+      alright, the centralized management and distribution of network
+      information data would be prefered. Therefore one of the next
+      versions is foreseen to rely on a LDAP implementation.
+

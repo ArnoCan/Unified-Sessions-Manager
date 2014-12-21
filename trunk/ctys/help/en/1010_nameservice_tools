@@ -1,0 +1,24 @@
+
+   10.1 NAMESERVICE-BASE
+   =====================
+
+    The nameservice utilities manage and provide mapping of ctys-names
+    for VM-Addressing to TCP/IP addrsses.
+
+    The following restrictions should be recognized first of all. 
+
+     -> The ctys toolset handles by TCP/IP or better by OpenSSH
+        interconnected entities. Thus HostOnly networks are not
+        supported.
+
+     -> The VMs like Xen and VMware rely as one of their most important
+        identifier th MAC-Id, particularly when DHCP is used in higly
+        dynamic networks, where the VMs are frequently roaming devices.
+
+     -> ctys does handle DHCP based mapping, but does not support
+        address-pools. So static administered MAC-addresses could be used
+        for selection by ctys tools only. Anyhow, as long as this is not
+        required, ctys perfectly cooporates with dynamically assigne
+        TCP/IP-addresses.
+
+

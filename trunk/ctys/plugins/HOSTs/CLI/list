@@ -1,0 +1,114 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_CLI_LIST="${BASH_SOURCE}"
+_myPKGVERS_CLI_LIST="01.01.001a00"
+hookInfoAdd $_myPKGNAME_CLI_LIST $_myPKGVERS_CLI_LIST
+_myPKGBASE_CLI_LIST="`dirname ${_myPKGNAME_CLI_LIST}`"
+
+_CLI_LIST="${_myPKGNAME_CLI_LIST}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessionsCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#    output format: "host:label:id:UUID:pid:uid:gid:sessionType:clientServer"
+#
+#FUNCEND###############################################################
+function listMySessionsCLI () {
+    local _site=$1 #only this is relevant for CLI
+
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME ${*}"
+    if [ "${CTRL_SESSIONTYPE}" != "CLI" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
+        ABORT=2
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        gotoHell ${ABORT}
+    fi
+
+    if [ "${_site}" == S -o "${_site}" == B ];then
+	    local SERVERLST=`listProcesses|grep ' CREATE='|grep ' CLI '|grep -v grep`
+            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=${SERVERLST}"
+            local SERVERLST1=`echo "${SERVERLST}"|awk -f ${_myPKGBASE_CLI}/serverlst01.${MYOS}.awk`
+            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "SERVERLST1(RAW)=${SERVERLST1}"
+	    local SERVERLST2=;
+            local i7=;
+	    local _PPID=;
+	    local _CPID=;
+	    for i7 in ${SERVERLST1};do
+		local _PID=`echo ${i7}|awk -F';' '{print $8}'`;
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_PID=<${_PID}>"
+		case ${MYOS} in
+		    Linux)
+                        #parent _PID = sshd-fork only
+			_PPID=`${PS} ${PSEF} |grep -v grep |grep $_PID|awk '$2=='${_PID}'{print $3}'`;
+			[ -n "${_PPID}" ]&&_PPID=`${PS} ${PSEF} |grep -v grep |grep sshd|awk '$2=='${_PPID}'{print $2}'`;
+
+                        #child PID = shell
+			_CPID=`${PS} ${PSEF} |grep $_PID|grep -v "-e -F ${VERSION}"|grep -v grep |awk '$3=='${_PID}'{print $2}'`;
+			;;
+		    OpenBSD)
+                        #parent PID = sshd-fork only
+			_PPID=`${PS} ${PSL} |awk '$2=='$_PID'{print $3}'`;
+			[ -n "${_PPID}" ]&&_PPID=`${PS} ${PSEF} |grep -v grep |grep sshd|awk '$2=='${_PPID}'{print $2}'`;
+
+                        #child PID = shell
+			_CPID=`${PS} ${PSL} |grep $_PID|grep -v "-e -F ${VERSION}"|grep -v grep |awk '$3=='${_PID}'{print $2}'`
+			;;
+		esac
+                #have parent sshd-childs, I like it!
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_PID=<${_PID}> - _PPID=<${_PPID}> - _CPID=<${_CPID}>"
+                #only valid if complete => _PPID AND _CPID, else in "CREATE-ion"
+		if [ -n "${_PPID}" -a -n "${_CPID}" ];then
+		    local S2=`echo ${i7}|awk -F';' -v p=${_PPID} -v c=${_CPID} ' \
+                          { \
+                              printf("%s",$1); \
+                              for(i=2;i<=NF;i++){ \
+                                  if(i==2){printf(";%s",p); }\
+                                  else if(i==5){printf(";%s",c);} \
+                                  else printf(";%s",$i); \
+                              } \
+                              printf("\n"); \
+                          }'`
+		    SERVERLST2="${SERVERLST2} ${S2}"
+		fi
+	    done
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "SESLST(PROCESSED)=\"${SERVERLST2}\""
+    for i in ${SERVERLST2};do
+	i="${MYHOST};${i}"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CURSES=${i}"
+	echo "${i}"
+    done
+}
+
+

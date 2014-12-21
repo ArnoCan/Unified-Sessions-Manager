@@ -1,0 +1,765 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+#XEN generic default parameters, will be reset in setVersionXEN
+XEN_MAGIC=XEN_GENERIC
+XEN_VERSTRING=;
+XEN_STATE=DISABLED
+XEN_DEFAULTOPTS="-x -q"
+XEN_PREREQ=;
+
+_myPKGNAME_XEN="${BASH_SOURCE}"
+_myPKGVERS_XEN="01.01.001a02"
+hookInfoAdd $_myPKGNAME_XEN $_myPKGVERS_XEN
+
+_myPKGBASE_XEN="`dirname ${_myPKGNAME_XEN}`"
+_BASE_XEN="${_myPKGBASE_XEN}hook"
+
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/xen" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/xen/xen.conf.${MYOS}" ];then
+	. "${HOME}/.ctys/xen/xen.conf.${MYOS}"
+    fi
+fi
+
+if [ -d "${MYCONFPATH}/xen" ];then
+    if [ -f "${MYCONFPATH}/xen/xen.conf.${MYOS}" ];then
+	. "${MYCONFPATH}/xen/xen.conf.${MYOS}"
+    fi
+fi
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  serverRequireXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a server component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function serverRequireXEN () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/ServerOnly/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+        #check for consoles, which are one decisive for component location
+	local _myConsole=;
+	[ "${*}" != "${*//:[cC][lL][iI]}" ]&&_myConsole=CLI
+	[ "${*}" != "${*//:[gG][tT][eE][rR][mM]}" ]&&_myConsole=GTERM
+	[ "${*}" != "${*//:[xX][tT][eE][rR][mM]}" ]&&_myConsole=XTERM
+	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+
+	case $_A in 
+ 	    CONNECT)
+		case $_myConsole in
+		    CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+			ABORT=1;
+			printERR $LINENO $_BASE_XEN ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $_BASE_XEN ${ABORT} "option: -L ConnectionForwarding"
+			gotoHell ${ABORT}
+			;;
+		    VNC)
+			_res=;_ret=1;
+			;;
+		    *)
+			printWNG $LINENO $_BASE_XEN ${ABORT} "$FUNCNAME:Assume false:$_myConsole for $_A "
+			_res=;_ret=1;
+			;;
+		esac
+		;;
+ 	    CREATE)  
+		case $_myConsole in
+		    CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+			ABORT=1;
+			printERR $LINENO $_BASE_XEN ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $_BASE_XEN ${ABORT} "option: -L ConnectionForwarding"
+			gotoHell ${ABORT}
+			;;
+		    VNC)
+			_res="${_CS_SPLIT}";_ret=0;
+			;;
+		    *)
+			printWNG $LINENO $_BASE_XEN ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res="${*}";_ret=0;
+			;;
+		esac
+		;;
+	esac
+    else
+ 	_res="${*}";_ret=0;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientRequireXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a client component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function clientRequireXEN () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/1/p;s/LocalOnly/1/p;s/ClientOnly/1/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+        #check for consoles, which are one decisive for component location
+	local _myConsole=;
+	[ "${*}" != "${*//:[cC][lL][iI]}" ]&&_myConsole=CLI
+	[ "${*}" != "${*//:[gG][tT][eE][rR][mM]}" ]&&_myConsole=GTERM
+	[ "${*}" != "${*//:[xX][tT][eE][rR][mM]}" ]&&_myConsole=XTERM
+	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+
+	case $_A in 
+ 	    CONNECT)
+		case $_myConsole in
+		    CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+			ABORT=1;
+			printERR $LINENO $_BASE_XEN ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $_BASE_XEN ${ABORT} "option: -L ConnectionForwarding"
+			gotoHell ${ABORT}
+			;;
+		    VNC)
+			_res=${*};_ret=0;
+			;;
+		    *)
+			printWNG $LINENO $_BASE_XEN ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res=${*};_ret=0;
+			;;
+		esac
+		;;
+ 	    CREATE)  
+		case $_myConsole in
+		    CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+			ABORT=1;
+			printERR $LINENO $_BASE_XEN ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $_BASE_XEN ${ABORT} "option: -L ConnectionForwarding"
+			gotoHell ${ABORT}
+			;;
+		    VNC)
+			_res=${*};_ret=0;
+			;;
+		    *)
+			printWNG $LINENO $_BASE_XEN ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res=${*};_ret=0;
+			;;
+		esac
+		;;
+	esac
+    else
+ 	_res=;_ret=1;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setVersionXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets defaults and MAGIC-ID for local Xen version.
+#
+#  The defaults for XEN_DEFAULTOPTS will only be used when no CLI
+#  options are given.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: NOEXIT
+#      This optional parameter as literal forces a return instead of 
+#      exit by "gotoHell". Should be used, for test-only, when for
+#      missing or erroneous plugins specific actions has to follow
+#      within current execution thread.
+#      
+#
+#OUTPUT:
+#  GLOBALS:
+#    XEN_MAGIC:  {XEN_3|...}
+#      Value to be checked, when no local native components are 
+#      present, the following values will be set.
+#
+#
+#    XEN_DEFAULTOPTS
+#      Appropriate defaults.
+#
+#      -XM                   : ""
+#
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setVersionXEN () {
+    local _checkonly=;
+    if [ "$1" == "NOEXIT" ];then
+	local _checkonly=1;        
+    fi
+
+    #will load only when missing
+    hookPackage CLI
+    hookPackage X11
+    hookPackage VNC
+
+    #
+    #Check local components in any case, post-fetchin here puts them to init list
+    #by the time.
+    #
+
+    #CLI - let us say required!!!
+    local _vncOK=`hookInfoCheckPKG CLI`
+    if [ -z "${_vncOK}" ];then
+	ABORT=1;
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $_BASE_XEN ${ABORT} "This feature requires additional CLI plugin to be pre-loaded."
+	    printERR $LINENO $_BASE_XEN ${ABORT} "-> Set the option \"-T vnc,cli,...\" "
+	    printERR $LINENO $_BASE_XEN ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "This feature reuqires additional CLI plugin to be pre-loaded."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "-> Set the option \"-T vnc,cli,...\" "
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    return ${ABORT}
+	fi
+    else
+	XEN_PREREQ="${XEN_PREREQ} CLI-ValidatedBy(hookInfoCheckPKG)"
+    fi
+
+    #X11 - let us say required!!!
+    local _vncOK=`hookInfoCheckPKG X11`
+    if [ -z "${_vncOK}" ];then
+	ABORT=1;
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $_BASE_XEN ${ABORT} "This feature requires additional X11 plugin to be pre-loaded."
+	    printERR $LINENO $_BASE_XEN ${ABORT} "-> Set the option \"-T vnc,x11,...\" "
+	    printERR $LINENO $_BASE_XEN ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "This feature reuqires additional X11 plugin to be pre-loaded."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "-> Set the option \"-T vnc,x11,...\" "
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    return ${ABORT}
+	fi
+    else
+	XEN_PREREQ="${XEN_PREREQ} X11-ValidatedBy(hookInfoCheckPKG)"
+    fi
+
+    #VNC - let us say required!!!
+    local _vncOK=`hookInfoCheckPKG VNC`
+    if [ -z "${_vncOK}" ];then
+	ABORT=1;
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $_BASE_XEN ${ABORT} "This feature requires additional VNC plugin to be pre-loaded."
+	    printERR $LINENO $_BASE_XEN ${ABORT} "-> Set the option \"-T vnc,xen,...\" "
+	    printERR $LINENO $_BASE_XEN ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "This feature reuqires additional VNC plugin to be pre-loaded."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "-> Set the option \"-T vnc,xen,...\" "
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    return ${ABORT}
+	fi
+    else
+	XEN_PREREQ="${XEN_PREREQ} VNC-ValidatedBy(hookInfoCheckPKG)"
+    fi
+
+    #
+    #if not final and though actual execution target just relay it,
+    #so client and additional basic server-checks only on this node
+    #
+    XEN_MAGIC=RELAY;
+    XEN_VERSTRING="GenericClientCapabilityOnly";
+    if [ -n "${_vncOK}" ];then
+	XEN_PREREQ="${XEN_PREREQ} <LocalClientVNC>"
+    fi
+    XEN_PREREQ="${XEN_PREREQ} <LocalXserverDISPLAY>"
+    XEN_PREREQ="${XEN_PREREQ} <delayedValidationOnFinalTarget>"
+    if [ -z "$CTRL_EXECLOCAL" ];then
+	XEN_STATE=ENABLED
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_MAGIC       = ${XEN_MAGIC}"
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_STATE       = ${XEN_STATE}"
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_VERSTRING   = ${XEN_VERSTRING}"
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_PREREQ      = ${XEN_PREREQ}"
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_DEFAULTOPTS = ${XEN_DEFAULTOPTS}"
+	return
+    fi
+
+    if [ -z "${XM}" ];then
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $_BASE_XEN ${ABORT} "Cannot execute \"xm\""
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+    fi
+    if [ -z "${VIRSH}" ];then
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $_BASE_XEN ${ABORT} "Cannot execute \"virsh\""
+	    printERR $LINENO $_BASE_XEN ${ABORT} "Check the installation of \"libvirt\", which is a mandatory prerequisite for XEN."
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+    fi
+
+    #setup callee for executables requiring root-permission 
+    checkedSetSUaccess  XENCALL    XM     "${MYCONFPATH}/xen/xen.conf.${MYOS}"
+    checkedSetSUaccess  VIRSHCALL  VIRSH  "${MYCONFPATH}/xen/xen.conf.${MYOS}"
+
+    local _verstrg=;
+
+
+    #basic tool is xm
+    local _res=`callErrOutWrapper $LINENO $BASH_SOURCE ${XENCALL} which ${XM}`
+    callErrOutWrapper $LINENO $BASH_SOURCE  ${XENCALL} which ${XM} >/dev/null
+    if [ $? -ne 0 ];then
+	ABORT=2
+	printERR $LINENO $_BASE_XEN ${ABORT} "Missing executable for xm check your Xen installation."
+	printERR $LINENO $_BASE_XEN ${ABORT} "  Checked by call of:\"${XENCALL} which ${XM}\""
+	printERR $LINENO $_BASE_XEN ${ABORT} "   =>\"${_res}\""
+	printERR $LINENO $_BASE_XEN ${ABORT} "  For call-prefix configuration see XENCALL"
+	printERR $LINENO $_BASE_XEN ${ABORT} "PATH--->`echo;splitPath 10 PATH ${PATH}`"
+	printERR $LINENO $_BASE_XEN ${ABORT} "<---PATH"
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+    else
+        #
+        #This is all due to missing "--version" flag for xm???!!!
+        #
+        if [ -n "`which rpm 2>/dev/null`" ];then
+            #do it properly            
+            _verstrg=`callErrOutWrapper $LINENO $BASH_SOURCE rpm -q xen `
+	    XEN_PREREQ="${XEN_PREREQ} ${_verstrg}-DetectedVersionBy(rpm)"
+        else
+            ${XENCALL} which ${VIRSH} 2>/dev/null >/dev/null
+	    if [ $? -eq 0 ];then
+		_Xverstrg=`callErrOutWrapper $LINENO $BASH_SOURCE ${XENCALL} ${VIRSH} version|awk '/Running hypervisor/{print $3 " " $4}'`
+		case $_Xverstrg in
+		    "XenProxy 3.358.115")_verstrg="xen-3.0.3";;
+		    "XenProxy 3."*)_verstrg="xen-3.x";;
+		    *)_verstrg="xen-x";;
+		esac
+		XEN_PREREQ="${XEN_PREREQ} ${_verstrg}-DetectedVersionBy(virsh->${_Xverstrg// /_})"
+	    else
+		if [ -n "`which xentrace 2>/dev/null`" ];then
+                    #"guess" it as good as possible
+		    _verstrg=`callErrOutWrapper $LINENO $BASH_SOURCE ${XENCALL} xentrace --version `
+		    case $_verstrg in
+			v1.1*)_verstrg="xen-3.0.3";;
+			v1*)_verstrg="xen-3.x";;
+			v*)_verstrg="xen-x";;
+			*)_verstrg=;;
+		    esac
+		    XEN_PREREQ="${XEN_PREREQ} ${_verstrg}-EstimatedVersionBy(xentrace)"
+		fi
+	    fi
+        fi
+    fi
+
+    if [ -z "${_verstrg}" ];then
+	ABORT=2
+	if [ "${CTRL_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $_BASE_XEN ${ABORT} "Cannot evaluate version"
+	    gotoHell ${ABORT}
+	else
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "CHKONLY:Xen seems not to be installed."
+	    return ${ABORT}
+	fi
+    fi
+
+    #enable conditionally - disable-checks follow immediately
+    XEN_STATE=ENABLED
+    local _cap=/sys/hypervisor/properties/capabilities
+    if [ -e "${_cap}" ];then
+	for i in `cat ${_cap}`;do
+	    XEN_PREREQ="${XEN_PREREQ} <CAPABILITY:${i// /_}>"
+	done
+    else
+	XEN_STATE=DISABLED
+	XEN_PREREQ="${XEN_PREREQ} <CAPABILITY:evaluationFailed:${_cap// /_}>"
+    fi
+
+    #Check:CHECK-ACCESS-PERMISSIONS
+    callErrOutWrapper $LINENO $BASH_SOURCE  ${XENCALL} which which >/dev/null
+    if [ $? -ne 0 ];then
+	printWNG $LINENO $_BASE_XEN ${ABORT} "Final check of check-access-permissions for current USER=${USER} failed."
+	printWNG $LINENO $_BASE_XEN ${ABORT} "=> failed to perform \"${XENCALL} which which\""
+	printWNG $LINENO $_BASE_XEN ${ABORT} "most common reason is required root permission => setting XEN_STATE=DISABLED"
+	XEN_PREREQ="${XEN_PREREQ} <FAILED:${XENCALL// /_}_which_which-USER=${USER}-NO-CHECK-ACCESS-PERMISSION>"
+	XEN_STATE=DISABLED
+    else
+	XEN_PREREQ="${XEN_PREREQ} ${XENCALL// /_}_which_which-USER=${USER}-CHECK-ACCESS-PERMISSION-GRANTED"
+    fi
+
+    #Check:ACCESS-PERMISSIONS-XM
+    callErrOutWrapper $LINENO $BASH_SOURCE  ${XENCALL} ${XM} info >/dev/null
+    if [ $? -ne 0 ];then
+	printWNG $LINENO $_BASE_XEN ${ABORT} "Final check of access-permissions for current USER=${USER} failed."
+	printWNG $LINENO $_BASE_XEN ${ABORT} "=> failed to perform \"${XENCALL} ${XM} info\""
+	printWNG $LINENO $_BASE_XEN ${ABORT} "most common reason is required root permission => setting XEN_STATE=DISABLED"
+	XEN_PREREQ="${XEN_PREREQ} <FAILED:${XENCALL// /_}_${XM}_info-USER=${USER}-NO-ACCESS-PERMISSION>"
+	XEN_STATE=DISABLED
+    else
+	XEN_PREREQ="${XEN_PREREQ} ${XENCALL// /_}_${XM}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+    fi
+
+    #Check:ACCESS-PERMISSIONS-VIRSH
+    callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} dominfo 0 >/dev/null
+    if [ $? -ne 0 ];then
+	printWNG $LINENO $_BASE_XEN ${ABORT} "Final check of access-permissions for current USER=${USER} failed."
+	printWNG $LINENO $_BASE_XEN ${ABORT} "=> failed to perform \"${VIRSHCALL} ${VIRSH} info\""
+	printWNG $LINENO $_BASE_XEN ${ABORT} "most common reason is required root permission => setting XEN_STATE=DISABLED"
+	XEN_PREREQ="${XEN_PREREQ} <FAILED:${VIRSHCALL// /_}_${VIRSH}_info-USER=${USER}-NO-ACCESS-PERMISSION>"
+	XEN_STATE=DISABLED
+    else
+	XEN_PREREQ="${XEN_PREREQ} ${VIRSHCALL// /_}_${VIRSH}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+    fi
+
+
+    #Check:HYPERVISOR-STATE
+    if [ "${XEN_STATE}" == ENABLED ];then
+	${XENCALL} ${XM} info 2>&1 |grep -q "nr_cpus" 
+	if [ $? -ne 0 ];then
+	    XEN_PREREQ="${XEN_PREREQ} <FAILED:${XENCALL// /_}_${XM}_info-HYPERVISOR-STATE=DISABLED"
+	    ${VIRSHCALL} ${VIRSH} info 2>&1 |grep -q "running" 
+	    if [ $? -ne 0 ];then
+		printWNG $LINENO $_BASE_XEN ${ABORT} "Xen-Hypervisor is not active,"
+		printWNG $LINENO $_BASE_XEN ${ABORT} "you probably are not in Dom0, try another kernel."
+		printWNG $LINENO $_BASE_XEN ${ABORT} "  MYHOST  =${MYHOST}"
+		printWNG $LINENO $_BASE_XEN ${ABORT} "  MYOS    =${MYOS}"
+		printWNG $LINENO $_BASE_XEN ${ABORT} "  MYOSREL =${MYOSREL}"
+		XEN_PREREQ="${XEN_PREREQ} <FAILED:${VIRSHCALL// /_}_${VIRSH}_info-HYPERVISOR-STATE=DISABLED"
+		XEN_STATE=DISABLED
+	    else
+		XEN_PREREQ="${XEN_PREREQ} ${VIRSHCALL// /_}_${VIRSH}_info-HYPERVISOR-STATE=ENABLED"
+	    fi
+	else
+	    XEN_PREREQ="${XEN_PREREQ} ${XENCALL// /_}_${XM}_info-HYPERVISOR-STATE=ENABLED"
+	fi
+
+    fi
+
+    #currently somewhat restrictive to specific versions.
+    case ${_verstrg} in
+	"xen-3.0.3"*)
+	    XEN_MAGIC=XEN_303;
+	    XEN_VERSTRING=${_verstrg};
+	    XEN_DEFAULTOPTS="";
+	    ;;
+
+	"xen-3.x"*)
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "Setting XEN_MAGIC=\"XEN_3x\" for an untested xen-3.x version."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "Might work perfectly, as long as compatible to xen-3.0.3, but is not verified."
+	    XEN_MAGIC=XEN_3x;
+	    XEN_VERSTRING=${_verstrg};
+	    XEN_DEFAULTOPTS="";
+	    ;;
+
+	"xen-"*)
+            #
+	    XEN_MAGIC=XEN_GENERIC;
+	    XEN_VERSTRING=${_verstrg};
+	    XEN_DEFAULTOPTS="";
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "Setting XEN_GENERIC for unprepared version."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "Somewhat risky due to feature evolution, but anyhow, setting it."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "XEN_GENERIC = \"${_verstrg}\""
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "KERNEL      = \"${MYOS} - ${MYOSREL}\""
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "."
+	    printWNG $LINENO $_BASE_XEN ${ABORT} "Tested version is \"xen-3.0.3\"."
+	    ;;
+
+         *)
+	    printWNG $LINENO $_BASE_XEN 0 "Not supported or misconfigured local version:"
+	    printWNG $LINENO $_BASE_XEN 0 "  ctys    :<${VERSION}>"
+	    printWNG $LINENO $_BASE_XEN 0 "  XEN     :<${_myPKGVERS_XEN}>"
+	    printWNG $LINENO $_BASE_XEN 0 "  Product :<${_verstrg}>"
+	    printWNG $LINENO $_BASE_XEN 0 "."
+	    printWNG $LINENO $_BASE_XEN 0 "Remaining options:"
+	    printWNG $LINENO $_BASE_XEN 0 "->remote: \"-L DisplayForwarding\""
+	    printWNG $LINENO $_BASE_XEN 0 "->remote: \"-L ServerOnly\"(partial...)"
+	    printWNG $LINENO $_BASE_XEN 0 "->local:  VNC-client"
+	    printWNG $LINENO $_BASE_XEN 0 "."
+	    XEN_MAGIC=NOLOC;
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_MAGIC       = ${XEN_MAGIC}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_STATE       = ${XEN_STATE}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_VERSTRING   = ${XEN_VERSTRING}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_PREREQ      = ${XEN_PREREQ}"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_XEN "XEN_DEFAULTOPTS = ${XEN_DEFAULTOPTS}"
+
+    [ "${XEN_STATE}" == ENABLED ];
+    return $?;
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientServerSplitSupportedXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether the split of client and server is supported.
+#  This is just a hardcoded attribute and controls the application 
+#  matrix of following attribute values of option "-L" locality:
+#
+#   - ConnectionForwarding
+#   - DisplayForwarding
+#   - ServerOnly
+#   - LocalOnly
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: If supported
+#    1: else
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function clientServerSplitSupportedXEN () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_BASE_XEN "$FUNCNAME $1"
+    case $1 in
+	CREATE)return 0;;
+#	CANCEL)return 0;;
+    esac
+    return 1;
+}
+
+
+#
+#Managed load of sub-packages which are required in almost any case.
+#On-demand-loads will be performed within requesting action.
+#
+hookPackage "${_myPKGBASE_XEN}/config"
+hookPackage "${_myPKGBASE_XEN}/session"
+hookPackage "${_myPKGBASE_XEN}/enumerate"
+hookPackage "${_myPKGBASE_XEN}/list"
+hookPackage "${_myPKGBASE_XEN}/info"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  handleXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Main dispatcher for current plugin. It manages specific actions and
+#  context-specific sets of suboptions.
+#
+#  It has to follow defined interfaces for main framework, due its dynamic
+#  detection, load, and initialization.
+#  Anything works by naming convention, for files, directories, and function 
+#  names so don't alter it.
+#
+#  Arbitrary subpackages could be defined and chained-loaded. This is due 
+#  design decision of plugin developers. Just the entry point is fixed by 
+#  common framework.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function handleXEN () {
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $_BASE_XEN "${FUNCNAME}:$*"
+  local OPMODE=$1;shift
+  local ACTION=$1;shift
+
+  case ${ACTION} in
+      CREATE) 
+          hookPackage "${_myPKGBASE_XEN}/create"
+          createConnectXEN ${OPMODE} ${ACTION} 
+	  ;;
+
+      CANCEL)
+          hookPackage "${_myPKGBASE_XEN}/cancel"
+          cutCancelSessionXEN ${OPMODE} ${ACTION} 
+          ;;
+
+      GETCLIENTPORT)
+	  case ${OPMODE} in
+              CHECKPARAM)
+		  if [ -n "$CTRL_MODE_ARGS" ];then
+                      printVerboseDebug ${DBG_LVL_UID} $LINENO $_BASE_XEN "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+                      _CTRL_GETCLIENTPORT=$CTRL_MODE_ARGS
+		  else
+		      ABORT=1
+		      printERR $LINENO $_BASE_XEN ${ABORT} "Missing <session-label>|<session-id>"
+		      gotoHell ${ABORT}
+		  fi
+                  ;;
+
+	      ACTION)
+		  if [ -z "${CTRL_EXECLOCAL}" ];then
+		      assembleExeccall
+		  else
+		      printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_BASE_XEN "Remote command:OPTARG=${OPTARG}"
+  		      echo "CLIENTPORT(XEN,${MYHOST},${_CTRL_GETCLIENTPORT})=`getClientTPXEN ${_CTRL_GETCLIENTPORT//,/ }`"
+		      gotoHell 0
+		  fi
+		  ;;
+          esac
+	  ;;
+
+      *)
+          ABORT=1;
+          printERR $LINENO $_BASE_XEN ${ABORT} "System Error, unexpected XEN:OPMODE=${OPMODE} ACTION=${ACTION}"
+	  gotoHell ${ABORT}
+          ;;
+  esac
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initXEN () {
+  local _curInit=$1;shift
+  local _initConsequences=$1
+  local ret=0;
+
+  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $_BASE_XEN "$FUNCNAME ${_curInit}"
+
+  case $_curInit in
+      0);;#NOP - Done by shell
+      1)
+          #adjust version specifics  
+          setVersionXEN $_initConsequences
+          ret=$?
+
+          #add own help to searchlist for options
+	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/VMs/XEN/help/${MYLANG}/010_xen"
+	  ;;
+      2);;#Curently nothing todo.
+      3);;#Curently nothing todo.
+      4);;#Curently nothing todo.
+      5);;#Curently nothing todo.
+  esac
+
+  return $ret
+}

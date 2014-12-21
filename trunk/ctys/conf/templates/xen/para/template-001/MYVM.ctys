@@ -1,0 +1,42 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+#@#-----------------------------------------------------------
+#@#Created by      = /homen/acue/bin/ctys-genmconf
+#@#VERSION         = 01_01_001a01
+#@#DATE            = 20080108043027
+#@#-----------------------------------------------------------
+
+#@#The next entry is required as literally "#@#MAGICID-<plugin>"
+#@#where <plugin> is the enumerating plugin name.
+#@#MAGICID-XEN
+##@#HOST            = "tst101"
+##@#LABEL           = "tst101"
+##@#ID              = ""
+##@#UUID            = "d5f05f5bb0a54fee962f1d620065713d"
+##@#MAC             = "00:50:56:13:11:41"
+#@#IP               = "192.168.1.220"
+#@#VNCPORT          = 
+#@#VNCBASE          = 
+#@#VNCDISPLAY       = 
+#@#DISTRO           = "CentOS"
+#@#OS               = "Linux"
+#@#OSREL            =
+#@#VERNO            = "5"
+#@#SERNO            = 
+#@#CATEGORY         = "PM"
+

@@ -1,0 +1,1148 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_CLI="${BASH_SOURCE}"
+_myPKGVERS_CLI="01.02.002c01"
+hookInfoAdd "$_myPKGNAME_CLI" "$_myPKGVERS_CLI"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setDefaultsByMasterOption
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets defaults as defined for master option. The settings are implemented 
+#  in accordance to the table "Resulting Defaults for a given '-a <action>'".
+#
+#  Master option is defined for this project to be "-a <ACTION>" which
+#  defines the task to be performed.
+# 
+#  For this project a default for the mandatory master option itself is 
+#  defined as, so the does not neccessarily needs to provide it.
+#
+#    "-a INFO"
+#
+#  As defined with generic behaviour, gives static relevant information
+#  for selected node, which is as default "localhost".
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setDefaultsByMasterOption () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTRL_MODE_ARGS=$CTRL_MODE"
+
+    #options list not to be evaluated locally, will be stripped off and bypassed
+    #could be varied for each ACTION
+    REMOTEONLY=" -A -d -r -T "
+
+    case ${CTRL_MODE} in
+        GETCLIENTPORT)
+            ;;
+	LIST)
+            #do it on terminating leaf or missing any request
+            if [  -n "${CTRL_EXECLOCAL}" ];then
+		CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/ALL};
+	    fi
+
+            #no preselection
+	    if [ "${1}" == "${1// -t}" ];then
+		R_OPTS="${R_OPTS} `cliOptionsStrip KEEP ' -T ' -- ${1}`"
+	    fi
+	    CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/0};
+	    CTRL_MODE_ARGS=${CTRL_MODE_ARGS//*DEFAULT*/$DEFAULT_CTRL_MODE_ARGS_LIST}
+	    R_CLIENT_DELAY=0;
+	    X_DESKTOPSWITCH_DELAY=0;
+	    ;;
+	ENUMERATE)
+            #do it on terminating leaf
+            if [  -n "${CTRL_EXECLOCAL}" ];then
+		CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/ALL};
+	    fi
+
+            #no preselection
+            if [ "${1}" == "${1// -t}" ];then
+		R_OPTS="${R_OPTS} `cliOptionsStrip KEEP ' -T ' -- ${1}`"
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS=$R_OPTS"
+	    fi
+
+	    CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/0};
+	    CTRL_MODE_ARGS=${CTRL_MODE_ARGS//*DEFAULT*/$DEFAULT_CTRL_MODE_ARGS_ENUMERATE}
+	    R_CLIENT_DELAY=0;
+	    X_DESKTOPSWITCH_DELAY=0;
+	    ;;
+	INFO)
+            #do it on terminating leaf
+            if [  -n "${CTRL_EXECLOCAL}" ];then
+		CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/ALL};
+	    fi
+
+            #no preselection
+            if [ "${1}" == "${1// -t}" ];then
+		R_OPTS="${R_OPTS} `cliOptionsStrip KEEP ' -T ' -- ${1}`"
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS=$R_OPTS"
+	    fi
+
+
+            CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/0};
+	    R_CLIENT_DELAY=0;
+	    X_DESKTOPSWITCH_DELAY=0;
+	    ;;
+	SHOW)
+            #do it on terminating leaf
+            if [  -n "${CTRL_EXECLOCAL}" ];then
+		CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/ALL};
+	    fi
+
+            #no preselection
+            if [ "${1}" == "${1// -t}" ];then
+		R_OPTS="${R_OPTS} `cliOptionsStrip KEEP ' -T ' -- ${1}`"
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS=$R_OPTS"
+	    fi
+
+	    CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/0};
+	    R_CLIENT_DELAY=0;
+	    X_DESKTOPSWITCH_DELAY=0;
+	    ;;
+
+
+	CREATE)
+	    CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/VNC};
+            case "${CTRL_SESSIONTYPE}" in 
+		CLI)CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/0};;
+		*) CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/1};;
+	    esac
+	    CTRL_MODE_ARGS=${CTRL_MODE_ARGS//*DEFAULT*/$DEFAULT_CTRL_MODE_ARGS_CREATE}
+	    ;;
+	CANCEL)
+	    CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/VNC};
+	    CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/1};
+	    R_CLIENT_DELAY=0;
+	    X_DESKTOPSWITCH_DELAY=0;
+	    ;;
+
+# 	MOVE|SHIFT|CLONE|COPY|REMOVE|MODIFY)
+# 	    CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE//*DEFAULT*/VNC};
+# 	    CTRL_ASYNC=${CTRL_ASYNC//*DEFAULT*/1};
+# 	    R_CLIENT_DELAY=0;
+# 	    X_DESKTOPSWITCH_DELAY=0;
+# 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Action not yet supported:${CTRL_MODE}"
+# 	    ;;
+
+	*)
+	    CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE}
+	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Set default:CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE}"
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTRL_SESSIONTYPE=$CTRL_SESSIONTYPE"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS=$R_OPTS"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchOptions
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI options. It sets the appropriate context, which could be 
+#  for remote or local execution.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Callcontext:
+#      LOCAL  : for local execution
+#      REMOTE : for local and remote execution, because some HAS to 
+#               be recognized locally too, so for "simplicity" => both.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function fetchOptions () {
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=<${@}>"
+    local _callContext=$1;shift
+    local _myArgs=$@
+
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:_myArgs=<${_myArgs}>"
+
+    #check now for options which really are for remote evaluation only,
+    #the remaining are to be handled loacally for remote assembly, but some local processing
+    if [ "${_callContext}" == REMOTE ];then
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS=<${R_OPTS}>"
+	R_OPTS="${R_OPTS} `cliOptionsStrip KEEP $REMOTEONLY -- $_myArgs`"
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:REMOTE-ONLY:R_OPTS=<${R_OPTS}>"
+	_myArgs="`cliOptionsStrip REMOVE $REMOTEONLY -- $_myArgs`"
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:LOCAL-ONLY:_myArgs=<${_myArgs}>"
+    fi
+
+    #control flow
+    EXECUTE=1;
+    unset ABORT
+    OPTIND=1
+    OPTLST="a:A:b:d:D:efF:g:hH:l:L:M:no:O:p:r:s:t:T:vVWwX";
+
+    #otherwise does it awk-y
+    if [ -z "${_myArgs// }" ];then
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:remaining NO-ARGS:_myArgs=\"\""
+	return
+    fi
+    while getopts $OPTLST CUROPT ${_myArgs} && [ -z "${ABORT}" ]; do
+	case ${CUROPT} in
+	    a) #[-a:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+
+                #for bi-usage-options like "-V", which could be used seperately, or for analysis of
+                #runtime resources at the end of an execution
+                local _actionSet=1;
+
+		CTRL_MODE=`echo "${OPTARG}"|awk -F'=' '{print $1}'`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE=$CTRL_MODE"
+		CTRL_MODE=`echo ${CTRL_MODE}|tr '[:lower:]' '[:upper:]'`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_SESSIONTYPE=$CTRL_SESSIONTYPE"
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE=$CTRL_MODE"
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "OPTARG=<${OPTARG}>"
+		CTRL_MODE_ARGS=`echo "${OPTARG}"|awk -F'=' '{for(i=2;i<=NF;i++){if(i>2){printf("=");}printf("%s",$i)};printf("\n");}'`;
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+
+                #1. Stage: Check and set appropriate generic defaults to the different tasks
+                setDefaultsByMasterOption "${_myArgs}"
+
+
+                #2. Stage: Verify options by selected feature package.
+ 		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+		for y in ${PACKAGES_KNOWNTYPES};do
+		    if [ "${CTRL_SESSIONTYPE}" == $y -o "${CTRL_SESSIONTYPE}" == "ALL" -o "${CTRL_SESSIONTYPE}" == DEFAULT ];then
+			_matched=1;
+			case ${CTRL_MODE} in
+			    LIST|ENUMERATE|SHOW|INFO)
+				eval handleGENERIC CHECKPARAM ${CTRL_MODE} 
+				;;
+			    *)
+				eval handle${y} CHECKPARAM ${CTRL_MODE}
+				;;
+			esac
+		    fi
+		done
+		if [ -z "$_matched" ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+		fi
+		;;
+
+
+	    A) #[-A:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing sub-arguments for \"-A\" option."
+		fi
+		case ${OPTARG} in
+		    0|off)unset CTRL_ALLOWAMBIGIOUS;;
+		    1|on)
+			CTRL_ALLOWAMBIGIOUS=1;
+			R_OPTS="${R_OPTS} -A 1 ";
+			;;
+		    *)
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous sub-arguments for option:\"-A\" ${OPTARG}"
+			;;
+		esac
+		printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Allow ambiguous labels:${CTRL_ALLOWAMBIGIOUS}"
+		;;
+
+	    b) #[-b:] 
+                if [ -z "${OPTARG}" ]; then 
+                    ABORT=1; 
+                    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing sub-arguments for \"-b\" option."  
+		fi 
+		case ${OPTARG} in 
+		    0|off)CTRL_ASYNC=0;;
+		    1|on)CTRL_ASYNC=1;; 
+		    *) ABORT=1; printERR $LINENO $BASH_SOURCE
+			${ABORT} "Erroneous sub-arguments for option:\"-b\" ${OPTARG}" 
+			;; 
+		esac 
+		printVerboseDebug ${DBG_LVL_UI}	$LINENO $BASH_SOURCE "Background operations: \"${CTRL_ASYNC}\"" 
+                ;;
+
+	    d) #[-d:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		_cnt=0;
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Reconfigure debug output NOW(${OPTARG})..."
+		for i in ${OPTARG//,/ };do
+		    case $_cnt in
+			0)CTRL_VERBOSE=${i};;
+			1)DBG_RANGE_MIN=${i};;
+			2)DBG_RANGE_MAX=${i};;
+			*);;
+		    esac
+		    ((_cnt++))
+		done
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "...reconfiguration done."
+
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "-d ${OPTARG}"
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE " => CTRL_VERBOSE  = ${CTRL_VERBOSE}"
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE " => DBG_RANGE_MIN = ${DBG_RANGE_MIN}"
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE " => DBG_RANGE_MAX = ${DBG_RANGE_MAX}"
+		if [ -n "${CTRL_VERBOSE//[0-9]/}" -o -n "${DBG_RANGE_MAX//[0-9]/}" -o -n "${DBG_RANGE_MIN//[0-9]/}" ]; then
+		    ABORT=2;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Arguments for debugging has to be numbers only:-d ${OPTARG}"
+		fi
+		;;
+
+	    D) #[-D:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+
+                #It is the remote component of DisplayForwarding, for which the GUI will be set on the
+                #DISPLAY-client, thus not here!
+                runningOnDisplayStation
+		if [ $? == 0 ];then
+                    desktopsSupportCheck
+		    if [ $? -ne 0 ]; then
+			ABORT=1; 
+			printERR $LINENO $BASH_SOURCE ${ABORT} "This option is only available when \"wmctrl\" is installed."
+			gotoHell ${ABORT}       
+		    fi
+
+                    CTRL_WMCTRL_DESK="${OPTARG}";
+                    desktopsCheckDesk ${CTRL_WMCTRL_DESK}
+		    if [ $? -ne 0 ]; then
+			ABORT=1; 
+			printERR $LINENO $BASH_SOURCE ${ABORT} "given desktop is not available:-D <${CTRL_WMCTRL_DESK}>"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  due to reliability desktops has to be pre-created manually."
+			gotoHell ${ABORT}       
+		    fi
+		fi
+		;;
+
+	    e) #[-e]
+		CTRL_EXECLOCAL=1;
+		;;
+
+	    f) #[-f]
+		CTRL_FORCE=1;
+		;;
+
+
+	    F) #[-F:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		L_VERS="${OPTARG}";
+		;;
+
+	    g) #[-g:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "geometry parameter missing geometry:-g"
+		    gotoHell ${ABORT}
+		fi
+		
+		CTRL_GEOMETRY=`expandGeometry ${CTRL_VERBOSE:-0} "${OPTARG}"`;
+		if [ $? -ne 0 ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "geometry parameter expansion error:-g \"${OPTARG}\""
+		    printERR $LINENO $BASH_SOURCE ${ABORT} " => \"${CTRL_GEOMETRY}\""
+		    gotoHell ${ABORT}
+		fi
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-g \"${OPTARG}\" => CTRL_GEOMETRY=${CTRL_GEOMETRY}"
+		;;
+
+	    h) #[-h]
+		printHelp;
+		ABORT=0;
+		;;
+
+	    H) #[-H]
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-H \"${OPTARG}\""
+		printHelpEx "${OPTARG}";
+		ABORT=0;
+		;;
+
+	    l) #[-l]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		R_USERS="${OPTARG}";
+		;;
+
+	    L) #[-L:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing sub-arguments for \"-L\" option."
+		fi
+
+		case ${OPTARG} in
+		    LO|LocalOnly)
+			CTRL_CLIENTLOCATION="-L LocalOnly";
+ 		        ;;
+
+		    CF|ConnectionForwarding)
+			CTRL_CLIENTLOCATION="-L ConnectionForwarding";
+ 		        ;;
+		    DF|DisplayForwarding)
+			CTRL_CLIENTLOCATION="-L DisplayForwarding";
+			;;
+
+		    CO|ClientOnly)
+			CTRL_CLIENTLOCATION="-L ClientOnly";
+ 		        ;;
+		    SO|ServerOnly)
+			CTRL_CLIENTLOCATION="-L ServerOnly";
+			;;
+
+		    *) 
+			ABORT=1; 
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous sub-arguments for option:\"-L\"${OPTARG}" 
+			;; 
+		esac 
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "LocalClient - Connection Forwading:\"${CTRL_CLIENTLOCATION}\"" 
+		;;
+
+	    M) #[-M:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		R_TEXT="-T ${OPTARG}";
+		;;
+
+	    n) #[-n]
+		CTRL_NOEXEC=1;
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-n => CTRL_NOEXEC=${CTRL_NOEXEC}"
+		;;
+
+	    O) #[-O:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote global options for server, suboptions missing:-O"
+		fi
+		R_OPTS="${R_OPTS} ${OPTARG}";
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "remote global options for server:-O \"${OPTARG}\""
+		;;
+
+	    o) #[-o:]
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-o - generic option to be passed through to application plugins"
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "     currently yust reserved,  not yet implemented."
+		ABORT=1;         
+		printERR $LINENO $BASH_SOURCE ${ABORT} "option not yet implemented:\"-o\""
+		gotoHell ${ABORT}
+
+                CTRL_PASSTHRUOPTS=${OPTARG}
+		;;
+
+	    p) #[-p:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "database path or address-mapping: \"-p\""
+		fi
+                DBPATHLST=${OPTARG}
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "database path or address-mapping:DBPATHLST=\"${DBPATHLST}\""
+		;;
+
+	    r) #[-r:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote resolution parameter missing geometry:-r"
+		    gotoHell ${ABORT}
+		fi
+		
+		local _CTRL_REMOTERESOLUTION_RAW=`expandGeometry ${CTRL_VERBOSE:-0} "${OPTARG}"`;
+		if [ $? -ne 0 ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote resolution parameter expansion error:-r \"${OPTARG}\""
+		    printERR $LINENO $BASH_SOURCE ${ABORT} " => \"${_CTRL_REMOTERESOLUTION_RAW}\""
+		    gotoHell ${ABORT}
+		fi
+
+		CTRL_REMOTERESOLUTION=`echo ${_CTRL_REMOTERESOLUTION_RAW}|sed -n 's/[^0-9]*\([0-9x]*\).*$/\1/gp'`;
+		if [ -z "${CTRL_REMOTERESOLUTION}" ]; then
+		    ABORT=1;         
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote resolution parameter expansion error:-r \"${OPTARG}\""
+		    printERR $LINENO $BASH_SOURCE ${ABORT} " => \"${CTRL_REMOTERESOLUTION}\""
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Size-Only is supported for remote resolution: \"<xsize>x<ysize>\""
+		    gotoHell ${ABORT}
+		fi
+
+
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-r \"${OPTARG}\" "
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "   => CTRL_REMOTERESOLUTION=${CTRL_REMOTERESOLUTION}"
+
+		;;
+
+
+	    s) #[-s:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+
+		CTRL_SCOPE=`echo "${OPTARG}"|awk -F'=' '{print $1}'`
+		CTRL_SCOPE=`echo ${CTRL_SCOPE}|tr '[:lower:]' '[:upper:]' 2>/dev/null`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_SCOPE=$CTRL_SCOPE"
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "OPTARG=<${OPTARG}>"
+		CTRL_SCOPE_ARGS=`echo "${OPTARG}"|awk -F'=' '{print $2}' 2>/dev/null`;
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_SCOPE_ARGS=$CTRL_SCOPE_ARGS"
+		X1="${OPTARG}_x_"
+		if [ "${X1//=_x_/}=" == "${OPTARG}"  ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous subopts:${OPTARG}"
+		fi
+		case ${CTRL_SCOPE} in
+		    USER|GROUP)
+			if [ -n "${CTRL_SCOPE_ARGS}"  ];then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "For \"-s USER|GROUP\" are no subopts allowed:\"-s ${CTRL_SCOPE}=${CTRL_SCOPE_ARGS}\""
+			fi
+			;;
+
+		    USRLST|GRPLST)
+			if [ -z "${CTRL_SCOPE_ARGS}"  ];then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "For \"-s USRLST|GRPLST\" are subopts required"
+			fi
+			;;
+
+		    ALL)
+			if [ -n "${CTRL_SCOPE_ARGS}"  ];then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "For \"-s ALL\" are no subopts allowed:\"-s ${CTRL_SCOPE}=${CTRL_SCOPE_ARGS}\""
+			fi
+			CTRL_SCOPE=USRLST;
+			CTRL_SCOPE_ARGS=ALL;
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_SCOPE=ALL remapped to"
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "-> CTRL_SCOPE     = USRLST"
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "-> CTRL_SCOPEARGS = ALL"
+			;;
+
+		    *)
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous scope:${CTRL_SCOPE}"
+			printERR $LINENO $BASH_SOURCE ${ABORT} " Supported values: USER|GROUP|USRLST|GRPLST"
+			;;        
+		esac
+		CTRL_SCOPE_CONCAT="${CTRL_SCOPE}=${CTRL_SCOPE_ARGS}"
+		;;
+
+
+
+	    t) #[-t:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "OPTARG=${OPTARG}"
+		CTRL_SESSIONTYPE=`echo ${OPTARG}|tr '[:lower:]' '[:upper:]'`
+                printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+		if [ "${PACKAGES_KNOWNTYPES//$CTRL_SESSIONTYPE}" == "${PACKAGES_KNOWNTYPES}" \
+                    -a "${CTRL_SESSIONTYPE}" != "ALL" \
+		    ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous session type:${CTRL_SESSIONTYPE}"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Available types are:"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  ${PACKAGES_KNOWNTYPES}"
+		fi
+		;;
+
+
+	    T) #[-T:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                #To be pre-processed in calling-main.
+                #Defines the types of plugins to be loaded
+		CTYS_MULTITYPE=${ARG};
+		;;
+
+	    v) #[-v]
+                let CTRL_PRINTINFO+=1;
+		_noActionWng=1;
+		;;
+
+	    V) #[-V]
+		if [ -z "$CTRL_TERSE" ];then
+		    printVersion
+		    gotoHell 0
+		fi
+                let CTRL_PRINTINFO+=1;
+		_noActionWng=1;
+		;;
+
+	    w) #[-w]
+		R_OPTS="${R_OPTS} -w ";
+		export CTRL_WARNINGEXT=1;
+		;;
+
+	    W) #[-W]
+		R_OPTS="${R_OPTS} -W ";
+		unset CTRL_WARNING;
+		unset CTRL_WARNINGEXT;
+		;;
+
+	    X) #[-X]
+		R_OPTS="${R_OPTS} -X ";
+		CTRL_TERSE=" -X ";
+		;;
+
+	    *)
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous parameter"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "type \"${MYCALLNAME} -h\" for additional help"
+		;;
+	esac
+    done
+    if [ -n "${ABORT}" -a "${ABORT}" != "0" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:CLI error for call parameters."
+	gotoHell ${ABORT}
+    fi
+
+    if [ \( "${_callContext}" == LOCAL  -a -z "${_actionSet}" \) -a -z "${_noActionWng}" ];then
+	printWNG $LINENO $BASH_SOURCE ${ABORT} "Missing ACTION \"-a\""
+    fi
+
+    if [ -z "${ABORT}" -a -z "${_actionSet}" ];then
+        ABORT=0;
+    fi
+
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchArguments
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI arguments
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function fetchArguments () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:ARGV=${*}"
+    #fetch remote options
+#    R_OPTS="${R_OPTS} `echo $*|sed -n 's/^(\([^)]*\)) .*/\1/p'`"
+    R_OPTS="${R_OPTS} `echo $*|sed -n 's/^(\([^)]*\)).*/\1/p'`"
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS=\"${R_OPTS}\""
+
+    #the remaining parameters must be hostnames.
+    R_HOSTS="`echo $*|sed  's/^([^)]*) *//'`"
+
+    #So we assume local operations, but not analyse the "-l" option for 
+    #permutation now. The actual execution user will be detected at last,
+    #just before execution, where the target-string 
+    #
+    #    "ssh <SSH-OPTS> ${USER}@localhost" 
+    #
+    #is simply deleted and just the command is executed.
+    if [ -z "${R_HOSTS}" ];then
+	R_HOSTS=localhost;
+    fi
+
+    R_HOSTS=`expandGroups ${R_HOSTS}`
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "R_OPTS=<${R_OPTS}>"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "R_HOSTS=<${R_HOSTS}>"
+
+    #adjust the default-marker to value
+    if [ "${CTRL_SCOPE}" == "DEFAULT" ];then
+	CTRL_SCOPE=${DEFAULT_CTRL_SCOPE}
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getSessionType
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Extract the session type from a given EXECCAL argument or any
+#  options list.
+#  Therefore the string "... -t <SESSION-TYPE> ..." is extracted.
+#  The given type should be a member of list PACKAGES_KNOWNTYPES.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getSessionType () {
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "\$=<$*>"
+  local _type=`echo $*|sed -n 's/^.*-t[ "]\([^ "]*\)[ "].*$/\1/p'`
+
+  if [ -n "${_type}" \
+       -a "${_type}" != "ALL" \
+       -a "${1}"  != "listMySessions" \
+       -a "${1}"  != "enumerateMySessions" \
+       -a "${1}"  != "rExecute" \
+       -a "${PACKAGES_KNOWNTYPES}" == "${PACKAGES_KNOWNTYPES//$_type}" \
+  ]; then
+      ABORT=2;
+      printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Unknown _type=$_type"
+      printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:  \$*=$*"
+      gotoHell ${ABORT};
+  fi       
+  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_type=$_type"
+  echo ${_type}
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getAction
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Extract the action from a given EXECCAL argument or any
+#  options list. Therefore the "effective" action is resolved.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getAction () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    case ${1} in
+	rExececute)_action=EXECUTE;;
+	listMySessions)_action=LIST;;
+	enumerateMySessions)_action=ENUMERATE;;
+    esac
+
+    if [ -z "${_action}" ];then
+	local _action=`echo $*|sed -n 's/^.* -a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
+    fi
+    _action="`echo ${_action}|tr '[:lower:]' '[:upper:]'`"
+
+    case $_action in
+	GETCLIENTPORT);;
+ 	ENUMERATE|INFO|LIST|SHOW);;
+ 	CANCEL);;
+ 	CREATE);;
+	*)
+	    ABORT=2;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown _action=$_action"
+	    gotoHell ${ABORT};
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_action=$_action"
+    echo ${_action}
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getActionResulting
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Extract the action from a given EXECCAL argument or any
+#  options list. Therefore the "effective" action is resolved.
+#
+#  This is here due to the basic design assumption, that an 
+#  action is related to a sessions could be e.g. CREATE, which
+#  creates a session, but e.g. to an already existing and 
+#  performing "meeting" - by a shared connect.
+#
+#  So the ACTION=CREATE with the sub-ACTION=CONNECT will be the 
+#  "effective" ACTION CONNECT.
+#
+#  Whereas a REUSE, which means open a new session if "meeting" 
+#  is not yet existing, but just join "CONNECT" when already there,
+#  has technically still the effective ACTION CREATE.
+#
+#  This is particularly relevant, when deciding the required tasks, 
+#  e.g. in case of the distributed approach of ConnectionForwarding.
+#
+#  Therefore the string "... -a <ACTION>=<sub-ACTION> ..." 
+#  is extracted as "effective ACTION".
+#
+#  Supported types are literally:
+#
+#    CREATE={CREATE,REUSE,RESUME}
+#    CONNECT={CREATE:CONNECT,CREATE:RECONNECT}
+#           REMARKS: 
+#             CREATE:RECONNECT:
+#                 Clients handeled explicitly only on server site.
+#    CANCEL={<any>}
+#           REMARK: 
+#             Clients are generally handeled explicitly only on 
+#             server site.
+#    LIST={<any>}    
+#    ENUMERATE={<any>}    
+#    SHOW={<any>}    
+#    INFO={<any>}    
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    0: true
+#    1: false
+#    2: could be - additional check required
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getActionResulting () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    case ${1} in
+	rExececute)_action=EXECUTE;;
+	listMySessions)_action=LIST;;
+	enumerateMySessions)_action=ENUMERATE;;
+    esac
+
+    if [ -z "${_action}" ];then
+	local _action=`echo $*|sed -n 's/^.* -a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
+    fi
+    _action="`echo ${_action}|tr '[:lower:]' '[:upper:]'`"
+
+    local _res=$_action;
+    case $_action in
+	GETCLIENTPORT);;
+ 	ENUMERATE|INFO|LIST|SHOW);;
+ 	CANCEL);;
+ 	CREATE)
+	    if [ "${*//[rR][eE][cC][oO][nN][nN][eE][cC][tT]}" != "${*}" ];then
+		_res=CONNECT;
+	    else
+		if [ "${*//[cC][oO][nN][nN][eE][cC][tT]}" != "${*}" ];then
+		    _res=CONNECT;
+		fi
+		_res=CREATE;
+	    fi
+	    ;;
+
+# 	MOVE|SHIFT|CLONE|COPY|REMOVE|MODIFY);;
+# 	MACRO);;
+# 	EXECUTE|KILL|PS|DEBUG|CLI|GUI);;
+	*)
+	    ABORT=2;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown _action=$_action"
+	    gotoHell ${ABORT};
+	    ;;
+    esac
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:_res=$_res"
+    echo ${_res}
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientServerSplitSupported
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  True if a for type and resultingAction task could be splitted.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    0: true
+#    1: false
+#    2: could be - additional check required
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function clientServerSplitSupported () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/ServerOnly/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    if [ -n "${_CS_SPLIT}" ];then
+	clientServerSplitSupported${_S} ${_A}
+	_ret=$?;
+	if [ $_ret -eq 0 ];then
+	    case $_A in 
+ 		CONNECT)_ret=1;;
+	    esac
+	fi
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    return ${_ret};
+}
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getLocation
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Extract the location from a given EXECCAL argument or any
+#  options list.
+#  Therefore the string "... -L <LOCATION> ..." is extracted.
+#  Supported types are literally:
+#
+#    NOW:
+# 	LO|LocalOnly, CF|ConnectionForwarding, DF|DisplayForwarding,
+# 	CO|ClientOnly, SO|ServerOnly
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getLocation () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _location=`echo $*|sed -n 's/^.*-L[ "]*\([^ "]*\)[ "]*.*$/\1/p'`
+    
+    case $_location in
+        LO|LocalOnly)            _location=LocalOnly;;
+        CF|ConnectionForwarding) _location=ConnectionForwarding;;
+        DF|DisplayForwarding)    _location=DisplayForwarding;;
+        CO|ClientOnly)           _location=ClientOnly;;
+        SO|ServerOnly)           _location=ServerOnly;;
+    esac
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_location=$_location"
+    echo ${_location}
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getDesktop
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Extracts the desktop label or id:
+#
+#  "DisplayForwarding"     =>   DisplayForwarding
+#  "ConnectionForwarding"  =>   ConnectionForwarding
+#  "ServerOnly"            =>   ServerOnly
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getDesktop () {
+    local _action=`echo $*|sed -n 's/^.*-D[ "]*\([^ "]*\)[ "].*$/\1/p'`
+    local _id=
+    if [ -n "${_action}" ];then
+#        desktopsCheckDesk "${_action}"
+        _id=`desktopsGetId ${_action}`
+        echo $_id
+    fi
+    return
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getExecPattern
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Extracts the execution pattern by evaluating and correlating the 
+#  following options:
+#
+#  "DisplayForwarding"     =>   DisplayForwarding
+#  "ConnectionForwarding"  =>   ConnectionForwarding
+#  "ServerOnly"            =>   ServerOnly
+#
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one requested option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    ConnectionForwarding
+#    DisplayForwarding
+#    ServerOnly
+#
+#
+#FUNCEND###############################################################
+function getExecPattern () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    if [ -z "$*" ];then
+	printWNG $LINENO $BASH_SOURCE 0 "$FUNCNAME:empty call"
+	return
+    fi
+    local _action=`echo $*|sed -n 's/^.*-L ConnectionForwarding.*$/ConnectionForwarding/p;s/^.*-L DisplayForwarding.*$/DisplayForwarding/p;s/^.*-L ServerOnly.*$/ServerOnly/p;s/^.*-L LocalOnly.*$/LocalOnly/p'`
+    
+    case $_action in
+	ConnectionForwarding|DisplayForwarding|ServerOnly|LocalOnly)
+	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_action=$_action"
+	    echo ${_action}
+	    return
+	    ;;
+	*)
+	    ABORT=2;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown \$@     =$@"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown _action=$_action"
+	    gotoHell ${ABORT};
+    esac
+}
+
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  runningOnDisplayStation
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: this is graphical output station running XServer
+#    1: NO
+#  VALUES:
+#
+#FUNCEND###############################################################
+function runningOnDisplayStation () {
+    if [ "${CTRL_EXECLOCAL}" != "1" \
+         -o "${CTRL_CLIENTLOCATION}" != "-L DisplayForwarding" \
+         -a "${CTRL_CLIENTLOCATION}" != "-L ServerOnly" \
+    ];then
+	return 0
+    fi
+    return 1
+}
+
+

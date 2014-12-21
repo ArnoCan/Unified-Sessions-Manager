@@ -1,0 +1,130 @@
+   9.2.1.2. Examples
+    ----------------
+
+
+    Openning a single interactive session locally:
+    ----------------------------------------------
+
+      This opens a second shell as local execution, almost the same as
+      an ordinary sshell call.
+
+        ctys -t CLI -a create 
+
+      The "localhost" is hardcoded to behave as subshell call too.
+
+        ctys -t CLI -a create localhost
+
+
+      Any X11 command could be executed within the new shell as
+      expected.
+
+
+
+    Openning a single interactive remote session by hostname:
+    ----------------------------------------------------------
+
+      This opens a second shell as local execution, the full ssh stack
+      will be used for the "remote" connection, no bypassing
+      implemented.
+
+        ctys -t CLI -a create <host>
+
+      Any X11 command could be executed within the new shell, the
+      display will be forwarded by default via "-X" option of OpenSSH.
+
+      E.g. the interactive call of "xclock" will display
+      correctly. This is particularly also true for the whole
+      login-chain, when CLI is used for cascaded logins.
+
+      So, obviously of course, feel free to pierce your FW.
+
+
+
+    Executing a single remote command only:
+    ---------------------------------------
+
+      This opens a remote shell and executes the provided command only
+      before termination. The connection will be kept open during the
+      whole session, thus does not support background mode.
+
+      Space within options, including suboptions, has to be masked by
+      reserved character '%'. 
+
+      HINT: This means just replace any SPACE with a % within any
+            option and it's argumens, except for the <host> context
+            options, if provided.
+
+
+        ctys -t CLI -a create=cmd:'uname%-a' <host>
+
+
+
+    Executing a single remote command on multiple targets:
+    ------------------------------------------------------
+
+      The full scope of addressing of ctys is supported, thus the
+      addressing of multiple targets, where each target could be a
+      single host of a preconfigured hosts-group, is applicable. 
+      Intermixed addressing is supported too.
+
+
+         ctys -t CLI -a create=cmd:'uname%-a' <host1> <host2>
+
+      or 
+
+         ctys -t CLI -a create=cmd:'uname%-a' \
+              <host1> <group1> <host2> <group2> 
+
+
+      The full scope of "include" files fo group definitions is
+      applicable, thus tree-like reuse of groups could be applied.
+
+      Thus e.g. groups of instances could be shutdown together.
+
+
+         ctys -t CLI -a create=cmd:'halt -p' <myEmergencyGroup1>
+
+      or
+
+         ctys -t CLI -a create=cmd:'halt -p' <myUPS01Clients>
+     
+
+      Due to security reasons root-permission should be configured and
+      handeled properly, of course. Do not blame ctys, when failing.
+
+
+
+
+    Executing a single remote command as chained/relayed/gatewaed login:
+    --------------------------------------------------------------------
+
+      Even though there is upcoming a virtual circuit plugin, CLI
+      could be used for digging multi-hop tunnels too. 
+
+      It might be recognized that there is currently a chance (?) for
+      users with appropriate permissions to intercept the
+      communications, when on the intermediate hops the message flow
+      has to be re-encrypted after decryption.
+
+      The vcircuit module under developemnt will additionaly encrypt
+      the message-flow on an end-to-end basis.
+
+      Space within options, including suboptions, has to be masked by
+      reserved character '%'. 
+
+      HINT: This means just replace any SPACE with a % within any
+            option and it's argumens, except for the <host> context
+            options, if provided.
+
+
+       ctys -t cli -a create=cmd:'ctys%-t%cli%-a%create%<host2>' <host1>
+
+      This uses <host1> as an intermediate hop for connecting to the
+      <host1>, which is the first target.
+
+      This approach is very similliar to the equivalent usage of
+      OpenSSH, and could be used in same manner to bypass routing as
+      well as firewalls, when execution permissions on gateways are
+      available.
+
+

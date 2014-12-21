@@ -1,0 +1,1660 @@
+
+   8.2. ctys Options
+   =================
+
+    -a <action>[=<action-suboptions>]
+
+       The following actions are supported:
+
+
+
+         Handling of addressed sessions:
+
+         - CREATE   : Start and/or connect to sessions
+         - CANCEL   : Finish, suspend and kill sessions
+
+
+
+         Retrieve overall generic information:
+
+         - ENUMERATE  : static information about stored VMs
+         - INFO       : static details about ENABLED VMs
+
+         - LIST       : dynamic information about running VMs
+         - SHOW       : dynamic details about ENABLED VMs
+
+
+
+         Internal helper-methods using the official interface:
+
+         - GETCLIENTPORT
+
+
+
+         CANCEL
+         ======
+
+             CANCEL=(<machine-address>){1}|ALL
+                     (
+                        [,(FORCE|STACK)]
+                        [,SELF]
+                        [,(
+                           RESET|REBOOT
+                           |(INIT:<init-state>)
+                           |(PAUSE|S3)|(SUSPEND|S4)
+                           |((POWEROFF|S5)[:<timeoutBeforeKillVM>])
+                        ]
+                        [SYNCTIMEOUT:<timeout-value>]
+                     )
+
+
+               FORCE
+
+                 Cancels the stack by call to hypervisor. No forward
+                 propagation is performed. If supported, a kill call
+                 is performed after a timeout.
+
+
+               STACK
+
+                 Cancels stack by forward propagation of CANCEL
+                 request. If supported, a kill call is performed after
+                 a timeout.
+
+
+               SELF
+
+                 Includes the execution target as final system to be
+                 canceled. Else the upper stack beginning with the
+                 <machine-address> is canceld only.
+
+
+               RESET
+
+                 Resets the target, for a stack element an approriate
+                 forward propagation of the RESET request will be
+                 performed. Therefore a mapping as given in the
+                 following description if proceeded.
+
+
+               REBOOT
+
+                 Reboots the target, the behaviour is almost the same
+                 as for RESET.
+
+
+               INIT:<init-state>
+
+                 Performs an native INIT on UNIX systems. Therefore an
+                 appropriate forward propagation by remapping of the
+                 INIT request is performed as decribed in the
+                 following.
+
+
+               PAUSE|S3
+
+                 Calls PAUSE when supported, which is an ACPI state S3
+                 - Suspend To RAM. Therefore the call will
+                 be propagated and first requested to GuestOSs within
+                 the stack, else the hypervisor of the current level
+                 is called.
+
+                 When propagation is not appreciated, the FORCE flag
+                 should be used.
+
+
+               SUSPEND|S4
+
+                 SUSPEND has almost the same behaviour as PAUSE, the
+                 only difference is the state S4 - Suspend To Disk.
+
+
+               POWEROFF|S5[:<timeoutBeforeKillVM>])
+
+                 POWEROFF or ACPI state S5, switches into offline
+                 mode, which is actually a stand-by mode. Within
+                 UnifiedSessionsManager the configuration of WoL is
+                 pre-required in order to actiate systems from state
+                 S5.
+
+                 The support of remote power switches is foreseen for
+                 a future version.
+
+
+               SYNCTIMEOUT:<timeout-value>
+
+                 This is the timeout after forward propagation of a
+                 CANCEL request to all of contained
+                 current-level-entries.
+                 After the timeout the next escalation level will be
+                 performed.
+
+
+               NOCACHE
+
+                 Refer for additional information to "Common Cache
+		 Handling".
+
+               NOPOLL
+
+                 Refer for additional information to "Common Cache
+		 Handling".
+
+
+
+            The cancel method requires a plugin type specific addressing
+            schema. This is due to the various fields of application, so
+            e.g. a VM could be addressed by its ID, which is a fully
+            qualified pathname in most cases, and will be used as access
+            key by various VMs. The ctys tools extend this schema
+            e.g. for usage of the UUID in combination with a provided
+            base-path for automatic scanning and remapping to the VMs
+            ID, Label and UNIX-pid. 
+
+            This of course is not applicable to arbitrary VNC sessions,
+            even though the hosting machine should have the same
+            information, and though a UUID will basically be
+            available. Multiple VNC or X11-sessions on the same host
+            can not be distinguished by a UUID only.
+
+            The parameters will be applied to a LIST call on selected
+            host.
+
+            Following extensions for selection are supported
+            additionaly to standard CREATE parameters. 
+
+              - all
+                This means all resulting session entities from
+                previous parameters, this includes SERVER as well as
+                CLIENT parts executed on current host.
+
+              - Additional plugin-Specific
+
+              So, the resulting set will be canceled, when access
+              rights are granted.
+
+
+              When handling stacks of nested PMs and VMs, the CANCEL
+              action on a base level will force contained instances to
+              teminate too. Thus a behaviour has to be defined,
+              whether a top-down soft shutdown has to be performed, or
+              a "bottom-up" behaviour of instances, by killing the
+              assigned level without recognition of contained
+              instances. This might be appropriate e.g. in emergency
+              cases.
+
+
+              Two basic directions are defined:
+
+              - FORCE
+
+                As described above.
+
+              - STACK
+                Uses a chained approach for shutting down by an
+                top-down behaviour. Therefore the VM-stack will be
+                first walked up and marked by repetitive sub-calls
+                with defined specific CANCEL suboptions. These
+                suboptions will be applied top-down in a
+                roll-back-chain once reaching the top of the stack.
+
+                The following mapping for propagation will be applied.
+
+                  Mode        | Pre-defined above-modes
+                 -------------+------------------------------
+                  PAUSE       | PAUSE
+                  SUSPEND     | SUSPEND
+                  RESET       | POWEROFF
+                  REBOOT      | POWEROFF
+                  POWEROFF    | POWEROFF
+                              |
+                  INIT:0      | POWEROFF
+                  INIT:1      | POWEROFF
+                  INIT:2      | ffs.
+                  INIT:3      | none
+                  INIT:4      | ffs.
+                  INIT:5      | none
+                  INIT:6      | POWEROFF
+                              |
+
+  
+              The internal parameter SELF controls the VM stack to be
+              CANCELed. Due to the requirement of calling CANCEL on
+              the hypervisor itself, the <execution-target> receiving
+              the CANCEL job is in case of a VM not the
+              <cancel-target>, thus not to be canceled itself. So
+              these entity propagates the CANCEL job to the stack and
+              sets the SELF flag for all following entities to cancel
+              theirself if applicable, else the hypervisor will force
+              it.
+
+              The exception it a PM, which has no lower container. 
+              Therefore a PM as the recipient of a CANCEL job will
+              cancel itself in any case. Similiar exeception applies
+              for a PM to be CREATEd while it is not yet running.
+
+              The mode of operation is controlled by following
+              parameters. When not given, the default CANCEL mode is
+              applied, which is a SHUTDOWN/STOP for servers and an
+              UNIX-kill for client processes.
+
+              - INIT:<init-state>
+                Mapped to UNIX init.
+
+              - PAUSE
+                The VM will be paused immediately, remaining clients
+                will be "UNIX-killed", not so if SERVER selected.
+
+              - SUSPEND
+                The VM will be suspended immediately, remaining clients
+                will be "UNIX-killed", not so if SERVER selected.
+
+              - RESET
+                A reset is performed on any instance immediately,
+                remaining clients will be "UNIX-killed", not so if
+                SERVER selected.
+
+              - REBOOT
+                Performes a "soft reset", where the instances will be
+                given a timeout before forcing them to terminate.
+
+              - POWEROFF[:<timeoutBeforeKillVM>)]]
+                A multilevel-delayed SHUTDOWN of VMs is performed.
+
+                CANCEL works by default asynchronously, because it
+                should be  usable for emergency shutdown, where a
+                bunch of sessions on a server has to be killed
+                immediately more or less accurate. So give all of them
+                same delay and chance.
+
+                When in case of required proper stack operations
+                synchronous operations is required, a specific
+                timeout could be provided. After the exhaust of the
+                timeout, the target item will be just killed by means
+                of containing OS. The option "-b" controls the common
+                behaviour, whereas specific methods supply variations.
+
+
+        CREATE
+        ======
+
+           CREATE=<machine-address>{1}
+                  [,(CONNECT|REUSE|RECONNECT|RESUME)]
+                  [,(NOCACHE|NOPOLL)]
+                  [,<callopts>]
+                  [,<xopts>]
+
+
+              CONNECT
+
+                Connects to an existing session, else an exit with
+                error state is performed. Therefore a new client is
+                started.
+
+
+              REUSE
+
+                Basically the same as CONNECT, but when the server is
+                not available, it will be started before connecting.
+
+
+              RECONNECT
+
+                Basically the same as REUSE, with the difference, that
+                any client session will be terminated before a new ONE
+                is established. Additional could be opened with REUSE
+                or CONNECT in shared-mode.
+
+
+              RESUME
+                Resumes a previously suspended session. This can
+                differ between the various plugins.
+
+
+               NOCACHE
+
+                 Refer for additional information to "Common Cache
+		 Handling".
+
+               NOPOLL
+
+                 Refer for additional information to "Common Cache
+		 Handling".
+
+
+
+           Start remote session. Session type specific parameters 
+           could/have to be provided.
+
+           The given sub-options are not order dependent, and the
+           keywords are case-insensitive.
+
+           The contained paranthesis, angle, and square brackets are
+           just syntactic helpers.
+
+           For call details refer to the specific package.
+
+           Plugin category: HOST
+
+             These are specific to several plugins of close relation,
+             which could be subcategorized into two basic types.
+
+              - stateless (desktop)
+                E.g. VNC supports stateless connections for a remote
+                desktop.
+
+                These support limited <machine-address> only, due to
+                their dynamic properties. Additionally the most of the
+                runtime IDs ae inherited or shared with their hosting
+                OS, e.g. the TCP/IP-address. The ID is generated by
+                the runtime system dynmically, and is valid only for
+                the lifetime of the current session.
+
+                Some of these sessions, namely the VNC type, do
+                support a splitted Client and Server component, where
+                the client component could be detached and
+                re-attached.
+
+
+              - stateful 
+                These are servers, which recognize when an attached
+                client teminates, and therefore terminate heir sessions
+                assuming that the user might not want to
+                continue. Typical of these category in standard
+                configuration are X11 and CLI.
+
+ 
+             Additional information is provided with the specific
+             plugin.
+
+
+           Plugin category: VM
+
+             The given generic options are common to almost any VM
+             plugin. Additional information is provided by the affected
+             plugin.
+
+             In case of ambiguity due to a parameter the first
+             matching result wins.
+
+             - <machine-address>
+
+               Refer to common options parts description.
+
+             - <callopts> 
+
+               When <callopts> are given, these will be passed
+               through to the VM execution.
+
+             - <xopts> 
+
+               XToolkit options, when are given, these will be passed
+               through to the the VM execution and bypassed to X.
+
+               The partly required "--" double hyphen will be inserted
+               as required.
+
+               Be aware, that some of X-options such as "-geometry"
+               and "-name" are already implicitly utilized by other
+               options, thus use this if, than CAREFULLY.
+
+
+             - REUSE
+               When matching REUSE keyword, first it is tried
+               to find matching sessions server-only and if found,
+               this will be connected instead creating a new one. If
+               missing, a new session is created.
+
+               REUSE fails if already a client is attached to the
+               server of that session. Therefore use RECONNECT if this
+               is required. ...
+
+               ...On Workstation, not so on Server. But anyhow, this
+               depends on several factors, and at the end of the day
+               probably on the users configuration too.
+
+               Thus REUSE just checks whether a server/session-entity
+               is already running. The influence of already running
+               clients to the success of call is determined by the
+               current product with its actual configuration.
+
+               For uniqueness refer to RECONNECT.
+
+
+             - RECONNECT
+               When RECONNECT sub-option is given, any previously
+               running client(and only the clients!) will be
+               canceled before starting the new client. This could be
+               restricted by missign access-rights to any of current
+               clients, which has to be handled by underlying security
+               layer.
+
+               Therefore it is esential for any VM to be configured as
+               previously mentioned - to continue running the server
+               in the background, when the client is detached.
+
+               OTHERWISE this will FAIL AND the SERVER TERMINATES.
+
+               This option fits pretty well, if a pure repositioning
+               or resizing of the current client has to be performed,
+               whereas the server, thus the "virtual screen output" of
+               the running server remains unchanged and continues
+               meanwhile so as if a screen is still attached.
+
+               Due to access and locality restrictions following cases
+               of "-L" option(including DEFAULT) has to be
+               distinguished. The several permutations with process
+               owners USER and GROUP are not handeled here. In general
+               could be said, access rights are prerequisites from
+               underlying security layer has to be guaranteed.
+
+               - DisplayForwarding
+                 This is the most simple case, where by definition any
+                 client is running coallocated with its server, so
+                 could be simply found, canceled  and restarted locally.
+
+               - ConnectionForwarding
+                 This becomes some what tricky already:
+
+                 - Previously executed clients are running on current
+                   callers machine.  
+                   Almost as simple as DisplayForwarding, if both are
+                   managed by ctys, of course.
+
+                 - Previously executed clients are running on a
+                   machine different from current caller's machine.
+                   In current implementation this is not supported,
+                   but foreseen to be.
+
+               - ServerOnly
+                 Not applicable.
+
+               - LocalOnly
+                 FFS.
+
+
+
+        ENUMERATE
+        =========
+
+           ENUMERATE[=
+                  (
+                    [PNAME,][TYPE,][LABEL,][UUID,][MAC,][IP,]
+                    [DISTRO,][OS,][VERNO,][SERNO,][CATEGORY,]
+                  )[TERSE,]
+                  |
+                  [MACHINE[,TITLE]|MAXKEY|ALL]
+                  (
+                     (basepath|base|b):<base-path>{1,n}
+                  )
+                  [,mapdbp]
+
+
+           Lists all available remote Sessions. Any relevant result
+           value could be used for CREATE action.
+
+           The keyword PNAME is just given for completeness as
+           optional, but actually are preset and is displayed in any
+           case.
+
+           The output order is as given for the activation keywords.
+           Multiple occurances of values are listed, even though the
+           majority of ctys-processing routines currently use first
+           entry only. For some of the values, such as MAC, multiple
+           settings might be semantically OK, but for others like UUID
+           NOT!
+
+
+            Multiple values allowed:     MAC, IP
+            Multiple values NOT allowed: LABEL, UUID, TYPE, PNAME
+
+
+           Some additional values are supported for basic management
+           of VMs by simply adding masked keywords to present
+           configuration files and/or directories. These set mainly a
+           link to the contained OS. These values could be placed on
+           different places. They are read in the following priority,
+           where first match wins:
+
+
+             1. <vmx-file>
+             2. ${<vmx-file>%.*}.ctys
+             3. `dirname <vmx-file>`.ctys
+
+           In any case the given values are masked with the specific
+           prefix-characters:
+
+             "#@#"
+
+           So should be ignored as comments by almost any VM.
+
+           The relevat keywords are:
+
+              #@#CTYS-IP[0-9]*
+              #@#CTYS-DISTRO
+              #@#CTYS-OS
+              #@#CTYS-VERSION
+              #@#CTYS-SERNR
+              #@#CTYS-CATEGORY
+
+            For example:
+
+              #@#CTYS-IP0="192.168.1.150"
+              #@#CTYS-DISTRO="SuSE-9.3"
+              #@#CTYS-OS="Linux-2.6"
+              #@#CTYS-VERSION="01.01.001"
+              #@#CTYS-SERNR="20071126140247"
+              #@#CTYS-CATEGORY="TST"
+
+           When "-X" option is supported, the output is prepared as
+           ";" semicolon seperated list for post-processing. The same
+           is true, when setting TERSE.
+
+           In addition to configured mapping-values within the VMs
+           configuration file some external sources could be used for
+           name resolution additionally. Currently the so called
+           macmap-DB supports a generated statich mapping from an
+           dhcpd.conf file with a syntax in accordance to ISF. The
+           enumDB itself will be generated by usage of
+           "ctys-extractMAClst" utility. The following option
+           enables the usage, whereas the "-p" option supports the
+           setting of custom databases.
+          
+                   mapdb
+
+           When the database is missing, but selected, it will lead to
+           an error. But when the required mapping is not found, this
+           will silently ignored.
+
+
+           In current implementation just a hardcoded wildcard is
+           executed for current SESSIONTYPE.
+
+           This will be expanded soon, at least some regexp will be
+           added.
+
+
+           - VMW
+             All IDs as a result of following find operation will be
+             listed: If basepath# is supplied:
+
+               find ${basepath1} ${basepath2} ... -name '*.vmx' -print
+
+
+           Enumerate-Output-Format for MACHINE option:
+            ------------------------------------------
+
+             +-----------------------------+
+               0 - h:    host              | Structure is 
+               1 - t:    type              | identical to LIST
+               2 - l:    label             | action.
+               3 - i:    id                |
+               4 - uu:   uuid              | Selection: MAXKEY
+               5 - mac:  mac               |
+             +-----------------------------+
+               6 - IP
+               7 - VNCPORT
+               8 - VNCBASE
+               9 - VNCDISPLAY
+              10 - DISTRO
+              11 - OS
+              12 - VERNO
+              13 - SERNO
+              14 - CATEGORY
+
+
+        GETCLIENTPORT
+        =============
+ 
+           GETCLIENTPORT=<label>|<id>{1}
+
+           Returns the port for attaching the front end client
+           services to the server component. This will be used
+           internally only, or within plugins and macros.
+
+           Security is based on SSH for ctys execution and the
+           appropriate options of the current VM for restricting to
+           local access only.
+
+           The output is presented as follows:
+
+            "CLIENTPORT(<type,<FQDN-host>,<vm-label>)=<client-access-port>"
+
+           Which could be for example:
+
+              "CLIENTPORT(VMW,host01.fantasy,linuxBox)=904"
+
+
+        INFO
+        ====
+
+           Displays several static information for the given hosts. 
+           This action is currently under development, thus might 
+           change soon. 
+
+           Currently some OS and Machine information is displayed. 
+           Particularly the HW-Virtualization flags are shown.
+
+           For now the Display is given as:
+
+
+            bash-3.1$ ctys -a info -W delphi
+            #############################
+            Node:delphi.soho
+               System      :Linux
+               OS          :GNU/Linux
+               RELEASE     :2.6.21.6-delphi-005
+               MACHINE     :i686
+               KERNEL#CPU  :SMP-KERNEL
+               CPU-INFO    
+                 processor:0
+                     vendor_id           :GenuineIntel
+                     cpu family          :6
+                     model               :11
+                     model name          :Intel(R) Pentium(R) III CPU ...
+                     stepping            :4
+                     cpu MHz             :1266.131
+                     cache size          :512 KB
+                 processor:1
+                     vendor_id           :GenuineIntel
+                     cpu family          :6
+                     model               :11
+                     model name          :Intel(R) Pentium(R) III CPU ...
+                     stepping            :4
+                     cpu MHz             :1266.131
+                     cache size          :512 KB
+            
+                  Flags assumed equal for all processors on same machine:
+                     flags               
+                        vmx(VT-x - Pacifica)    = 0
+                        svm(AMD-V - Vanderpool) = 0
+                        PAE                     = 1
+            
+               MEM-INFO    
+                  MemTotal               :  4018 G
+                  SwapTotal              : 24579 G
+            
+               VNC         :VNC Viewer Free Edition 4.1.2 for X - ...
+               wmctrl      :wmctrl is on this machine not available
+            
+               ------------
+               ctys:       :01_02_003a10
+               Plugings:   :   VNC
+
+
+
+        LIST
+        ====
+
+           LIST[
+                 =[(server|s)|(clients|c)|(both|b)]
+                  (
+                    [id|uuid]
+                    | [label]
+                    | (
+                        [id|uuid[,label[,type[,pid[,user[,group]]]]]]
+                        |all
+                      )
+                      [,fullpath]
+                      [,(machine[,title]|maxkey)]
+                      [,terse]
+                  )
+                  | none
+               ]
+
+           default:server,id
+
+           Lists active remote sessions.
+
+           All loaded types are listed by filtering according to
+           results of given filter of suboptions. 
+
+           The base set to be filtered is defined by the options "-t"
+           and/or "-T". If "-t" is not present, the default "-t ALL" will
+           be applied to all pre loaded. Be aware that the default for
+           "-T" is an empty set.
+
+           At least one identifier will be displayed, which is
+           [id]. When suppression might be forced due to options,
+           this will be ignored.
+
+           For changing the selection scope of elements see '-s'
+           parameter.
+
+
+             [id]
+               For the syntax of <id>, which is the <session-id> refer
+               to the specific package.
+
+             [uuid]
+               For the applicability and syntax of <uuid>, which is
+               the UUID refer to the specific package.
+               Anyhow, the uuid is generally applicable for VMs only.
+               This is due to the offline-availability of UUID for
+               VM-configuration files only.
+
+               For native machines things get somewhat tricky, even
+               though not impossible. But handlig of offline and
+               powered-off machines might remain a challenge for a
+               wide-range list. This was definitely straight forward
+               for locally accessible VM-files.
+
+
+             [label]
+               User defined shortcut. Any contained ":"-colon will be
+               replaced by an "_"-underscore.
+           
+             [,machine[,title]]
+               Complete record which is in "terse" format. Optional
+               "titel" could be applied for header.
+
+             [type]
+               The type of session(the given "-t" parameter) for
+               TERSE mode particularly..
+
+             [pid]
+               The pid of remote server process.
+
+             [user]
+               The actual user id of remote server process.
+
+             [group]
+               The actual group id of remote server process.
+
+             all
+               All above info.
+
+             (server|s)|(clients|c)|(both|b)
+               List all 
+
+                 (clients|c) : client of sessions
+                 (server|s)  : server of sessions
+                 (both|b)    : Lists both.
+
+               on selected host. Default is S, which is similiar to
+               the definition of a session.
+
+             full
+               List any information in full length. The default is to
+               list abbreviations only where appropriate. This is
+               particularly helpful for VMs, where e.g. for Vmware the
+               whole absolute pathname represents the id. In those
+               cases currently the `basename <VM-ID>` is displayed as
+               default.
+
+             terse
+               Lists the displayed items in machine processable way, it
+               is the same format as with "-X" option.
+
+             none
+               No details, ignore all options.
+
+
+
+           List-Output-Format for MACHINE option:
+            -------------------------------------
+
+             +-----------------------------+
+               0 - h:    host              | Structure is 
+               1 - t:    type              | identical to ENUMERATE
+               2 - l:    label             | action.
+               3 - i:    id                |
+               4 - uu:   uuid              | Selection: MAXKEY
+               5 - mac:  mac               |
+             +-----------------------------+
+               6 - dsp:  display
+               7 - cp:   client access port
+               8 - sp:   server access port
+               9 - p:    pid
+              10 - u:    uid
+              11 - g:    gid
+              12 - cs:   client|server
+
+
+               6. Display to be used for X11.
+               7. TCP/IP-port for client connect.
+               8. Port for server managemetn, e.g. as supported by
+                  Xen.
+
+
+        SHOW
+        ====
+
+           Displays several dynamic information for the given hosts. 
+           This action is currently under development, thus might 
+           change soon. 
+
+           Currently some OS and Machine information are displayed. 
+           Particularly a short resource-analysis for manual
+           load-distribution by rule of thumbnail is shown. In
+           addition the "ALARM" keywords of lm-sensors are "grepped"
+           and displayed, when some occurs. Thi is due to avaoidance
+           of new VM starts in case of some existing ALARMS. The
+           package lm_sensors therefore has to be installed and
+           configured.
+
+           For now the Display is given as:
+
+            bash-3.1$ ctys -a show -W delphi
+            #############################
+            Node:delphi.soho
+               System      :Linux
+               OS          :GNU/Linux
+               RELEASE     :2.6.21.6-delphi-005
+               MACHINE     :i686
+               MEM-INFO    
+                  MemTotal            :  4018 G
+                  MemFree             :    96 G
+                  SwapTotal           : 24579 G
+                  SwapFree            : 24579 G
+               Top         : iterations=10
+                  top - 10:25:33 up 1 day, 12:39,  1 user,  load aver...
+                  Tasks: 241 total,   1 running, 240 sleeping,   0 st...
+                  Cpu(s):  0.4%us,  0.4%sy,  0.0%ni, 98.6%id,  0.5%wa...
+                  Mem:   4018724k total,  3922936k used,    95788k fr...
+                  Swap: 24579420k total,        4k used, 24579416k fr...
+                  
+                    PID USER      PR  NI  VIRT  RES  SHR S %CPU %MEM ...
+                  28241 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28246 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28247 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28248 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28249 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28250 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28251 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28252 vadmin     5 -10  388m 308m 296m S    0  7.9 ...
+                  28253 vadmin    15   0  388m 308m 296m S    0  7.9 ...
+                  28230 vadmin    15   0 99216  32m  16m S    0  0.8 ...
+                   3640 root      15   0 41332  27m 3596 S    0  0.7 ...
+                  23299 acue      15   0 45984  24m  14m S    0  0.6 ...
+                  20011 root      15   0 42340  22m  13m S    0  0.6 ...
+                  23147 acue      15   0 31344  22m 4448 S    0  0.6 ...
+                  19842 root      15   0 27016  20m 4220 S    0  0.5 ...
+                  29259 root      18   0 43420  19m  12m S    0  0.5 ...
+                  23249 acue      15   0  113m  16m  11m S    0  0.4 ...
+                   2939 root      15   0 21188  16m 4836 S    0  0.4 ...
+                  19945 root      18   0  109m  15m  11m S    0  0.4 ...
+                  23247 acue      15   0 77020  14m 9656 S    0  0.4 ...
+                  23264 acue      16   0 85696  13m 9.8m S    0  0.3 ...
+                  23280 acue      15   0 85696  13m 9.8m S    0  0.3 ...
+               HEALTH      
+                  Total ALARMs=0
+
+
+    -A <0|off|1|on>
+       Allow ambiguity, this has several effects on values which may
+       or may not be allowed to be ambiguos.
+
+       Allow ambiguity(-A 1) or disallow(-A 0:default).
+
+         - LABELs
+           Even though the labels might be ambiguous, the IDs are not,
+           thus an unambiguous labels only restrict the access by
+           labels, but could be used to group sessions together, if
+           access by IDs only is sufficient.
+       
+         - HOSTS
+           When lists of hosts and groups are applied and resolved to
+           redundant hosts within the list, this could be a desired
+           circumsstance or not. If not activated, redundancies in
+           resulting group lists will be removed silently.
+
+           Else just executed as given.
+
+
+    -b <0|off|1|on>
+       Background execution, this flag is mapped to the "-f" flag of
+       the ssh-client, which causes background execution of the
+       client, thus used console will be released immediately after
+       authorisation(if user interaction required).  Do NOT USE "\&"
+       instead.
+
+
+    -d <#debug level>[,<range-min>[,<range-max>]]
+       Sets the level of debug output and optional a range of lines
+       within the file to be traced.
+
+       Setting the level is the same as using the number of "-v"
+       arguments. So "-d 0" is equivalent to "-v", "-d 1" is to "-v
+       -v", and so on.
+
+       The range of lines could be used to set maximum output level
+       and restrict the amount of actual output to by allowing just a
+       block of code.  As with all other options, for debugging the
+       remote-component give the "-d" options within the "-o" option,
+       which transfers the listed options to the remote peer.
+
+       The evaluation of the current level is performed by checking a
+       value as threshold, not as an bit-array. Some levels are
+       predefined, even though any positive integer value could be
+       utilized.
+
+       ERRORS
+         Traced independently and in any case.
+
+       DBG_LVL_UI=${DBG_LVL_UI:-0}
+         Common UserInterface. Draft information for obvious mistakes,
+         e.g.  erroneous call-parameters.
+
+       DBG_LVL_UIE=${DBG_LVL_UIE:-1}
+         Common UserInterfaceExtended, requesting some more - second
+         level - support.
+
+       DBG_LVL_UID=${DBG_LVL_UID:-2}
+         Common UserInterfaceDebug, requesting information for
+         understanding the thread of an potential error and finding at
+         least an immediate workaround.
+
+       DBG_LVL_SUPPORT=${DBG_LVL_SUPPORT:-3}
+         Collecting sufficient information for an support inquiry.
+
+       DBG_LVL_MAINT=${DBG_LVL_MAINT:-4}
+         Maintenance, thus really detailed. This is targeting the
+         analysis of an error and getting sufficient information for a
+         viable solution.
+
+       DBG_LVL_OVERKILL=${DBG_LVL_OVERKILL:-5}: Maintenance,
+         but definetly extended. To be used when feeling somewhat
+         helpless...  ...giving you the virtual showdown - probably.
+
+       DBG_LVL_HAYSTACK=${DBG_LVL_HAYSTACK:-10}
+         Ooops...  
+         ...OK, it's the ultimate-overkill, but maybe supporting some
+         enlighting "grep-ping" results.
+
+
+       ...any additional user defined, but it is recommended to use
+       the predefined.
+
+
+       REMARK: The values could be (temporary) redefined by exporting
+               shell environment, e.g for combining multiple levels
+               into a common level without others.
+
+               Example: Show only SUPPORT extensions:
+               - Predefine in calling shell:
+
+                 export DBG_LVL_SUPPORT=${DBG_LVL_SUPPORT:-0}
+
+                 export DBG_LVL_UI=${DBG_LVL_UI:-10}
+                 export DBG_LVL_UIE=${DBG_LVL_UIE:-10}
+                 export DBG_LVL_UID=${DBG_LVL_UID:-20} 
+                 export DBG_LVL_MAINT=${DBG_LVL_MAINT:-40}
+                 export DBG_LVL_OVERKILL=${DBG_LVL_OVERKILL:-50}
+
+               - Use "-v" or "-d 0" option.
+
+               ..that's it. 
+
+       CURRENT ERROR: In current implementation local
+         startup-trace(pre-options-eval) is also displayed when just
+         remote debugging is enabled. Due to less priority and
+         required effort a present environment
+         variable(_SUPRESSVERBOSESTARTUP) could be used as workaround.
+
+
+    -D <DesktopId>|<DesktopLabel>
+       This parameter requires the tool 'wmctrl' to be present, if not
+       the usage is not provided and an error message is generated
+       before exiting ctys.
+
+       When provided, the following applies:
+
+         <DesktopId>
+           The id of the desktop to be used for placing the
+           window. Currently 1-3 digits are supported.
+
+         <DesktopLabel>
+           The user defined label of the desktop to be used for
+           placing the window. When beginning with a digit, and is
+           shorter than 4 characters, at least one charachter has to
+           be a non-digit, otherwise it will be detected as
+           <DesktopId>.
+           Currently special charachters like '&' are not supported,
+           so just digits and ordinary characters and hyphens should
+           be used.
+
+
+        A list of current desktops could be shown by calling:
+
+         "wmctrl -d"
+
+        Where the first column is the id of the desktop, and the last
+        is the label. For further information on wmctrl refer to
+        related man page.
+
+        In current implementation of ctys two cases for the addressing
+        of desktops has to be disctinguished.
+
+          - Display Forwarding In case of Display Forwarding the
+            window is not managed by target Xserver, just it's window
+            is drawn. So this window could not addressed by wmctrl,
+            and it is not listed when using 'wmctrl -l'. So this case
+            will be handled by switching the desktop to the target,
+            and semi-sysnchronous starting the session, until the
+            window appears on the desktop.
+
+          - Connection Forwarding In this case the client is executed
+            on the local machine and is - if supported - managed by
+            the target Xserver. But, this seems not to be reliable.
+
+        So in any case, when the desktop is specified, ctys switches
+        to synchronous operations and switches one after another to
+        all desktops where a window has to be depicted. Current
+        processed desktop is the visible desktop, until any assigned
+        window has appeared.
+
+        LIMITS:
+          Due to restrictions of current wmctrl versions
+          window-selection the sessions for each destop are called
+          grouped together and placed on the defined desktop by
+          previous switching of visible desktop before calling
+          configured sessions.
+
+          OK, so far so good, BUT when using SSH and requiring
+          authentication by password - which is when no SSO is
+          implemented - due to call convention of SSH(ssh -f ...) the
+          password is requested in the callers CLI/XTerm. When the
+          selected output desktop is different from that, it will be
+          switched before calling SSH-session of course. This means
+          it leads to a now hidden password-request on the calling
+          desktop.
+
+          There is - due to basic SSH concept - NO SCRIPTING
+          WORKAROUND to this behaviour when no reliable "moving
+          windows between desktops" support is available. So the
+          possible solutions for now are:
+
+          1. Establish Authentication on SSH level, by
+             key-distribution or usage of kerberized SSH.
+
+             Obvious, but once again:
+               Please not by rhost, and not for root at all. Probably
+               you can integrate ksu into your login. Avoid remote
+               access permissions for root in any case!
+
+          2. Make the calling terminal visible on all your desktops,
+             at least during ctys configuration call.
+
+
+    -e 
+       For completeness only: Execute locally, this indicates the
+       termination point of a virtual circuit. This parameter is
+       foreseen for internal usage only, and must not be used, by
+       ordinary users, thus it is not further detailed.
+
+
+    -f 
+       Force execution and ignore minor warnings. Basically no
+       "destructive" operation, particularly nothing irreversible will
+       be performed.
+
+				   
+    -F <remote_version>
+       Force remote version.
+
+
+    -g <geometry>|<geometryExtended>
+       The geometry for client-side representation. It is the exact
+       syntax of X client "--geometry" parameter with an additional
+       screen parameter as alias or index for usage with Xorg multiple
+       displays.
+
+       ATTENTION: In order of using xorg.conf and saving effort some
+         minor assumptions as requirements concerning the xorg.conf
+         file are made.  Current implementation requires due to
+         stateless filtering the field "Identifier" as first entry in
+         "ServerLayout" sections.
+
+       Supported variants: 
+       - Xorg-style: <geometry>
+         "<x-size>x<y-size>[[+,-]<x-offset>[+,-]<y-offset>]" Any screen
+         offset has to be calculated manually.
+
+       - Xinerama-alias-style: <geometryExtended>
+         "<Xorg-style>[:[<ScreenSection>|<ScreenIndex>][:<ServerLayout>]]"
+
+         - "<x-size>x<y-size>:Screen4" 
+           The screen from the first ServerLayout section with given
+           Screen section name as alias will be used. The required
+           offsets will be calculated from the "/etc/X11/xorg.conf"
+           file.
+
+         - "<x-size>x<y-size>:Screen4:Layout[0,1]"
+           The screen from the LayoutSection named "Layout[0,1]" with
+           given Screen section name as alias will be used. The
+           required offsets will be calculated from the
+           "/etc/X11/xorg.conf" file.
+
+         - "<x-size>x<y-size>:4:Layout[0,1]" 
+           The screen from the LayoutSection named "Layout[0,1]" with
+           given Screen index will be used. The required offsets will
+           be calculated from the "/etc/X11/xorg.conf" file.
+          
+          
+    -h 
+       Help, Shows a short sum-up of call convention and possible call
+       details for getting additional help.
+
+
+    -H <item[,item][,item]...>
+       Help extended
+       This option shows detailed decription and extended
+       help. Therefore it is possible to constrain the output by
+       choosing a list of specific options or any other item literals
+       from the help text.
+
+       For displaying of the whole text any of following generic options
+       could be used:
+
+          "ctys -H ''" 
+          "ctys -H all" 
+          "ctys -H '*'"
+
+       For displaying of the whole text with formatted output for
+       printing the following option could be used. The same text as
+       with "-H all" si printed than, but with filtering and
+       formatting by "pr". The variable "PR_OPTS=${PR_OPTS}" could be
+       pre-set. Current default is "-o 5 -l 76" for DIN-A5.
+
+          "ctys -H print" 
+
+       For displaying a specific subset of the help text an literal item 
+       could be specified. The given literal will be matched at the
+       beginning of leading non-whitespace and non-commentary lines
+       within the output of "ctys -H all". So e.g. to find help on how
+       to list functions just type "ctys -H func". But be aware, the
+       help content may change, therefore this searched entity could
+       be obsoleted in a later version.
+
+       For listing the description of option '-H' only the following
+       has to be called:
+
+          "ctys -H '-H'" 
+
+       For listing the description of both options '-H' and '-h' only
+       the following has to be called:
+
+          "ctys -H '-h,-H'" 
+
+       So for listing the help only for any list of options (with hyphen)
+       just type the list of suboptions as for '-h,-H'.
+
+       For listing of additional literals from text now a short
+       description of the item literal is neccessary.
+
+
+        SECTION-KEYS
+        ============
+         Each given item is used internally as a keyword in order to
+         determine the beginning of a section with it's own
+         description. Multiple sections for an item are supported. The
+         decision when an item is matched, or it's decription section
+         is starting and finishing is made based on indention of the
+         text.  Therefore the starting point is searched as a string
+         given by the following regexp
+
+           "^ *"<item> 
+           or 
+           precisely by '\$1~"^"_a' in awk, where _a is the value of
+           item, where the seperator is default.
+
+           Even though leading white-spaces in the item - if less then
+           the search target - will function well, they are eliminated
+           by intermediary shell-expansion within the processing
+           script. Thus keys are only supported without spaces.
+
+         This means, that the first string is matched, which consisits
+         of non-whitespace characters and is terminated by a whitespace.
+         The matching line is the first line of description. 
+
+         Next the indention is utilized in order to decide the
+         termination of the specific description. Therefore the leading
+         white-spaces are used to assemble a new regexpr in order to
+         search for the first terminating line of current description,
+         which is excluded.
+
+         The item could be a shortcut of the targeted keyword, but
+         should be unambigious, otherwise any matching item - which is
+         some more - is listed.
+
+         The only one exception to this is that leading "=" are ignored,
+         this is in order to underline visually main headers - beeing
+         could-be items of choice - with equivalent width to the search
+         item itself.
+
+         Another important fact is, the item is evaluated literally,
+         which is case sensitive of course.
+
+         For listing the description of "SECTION-KEY" only type:
+
+           "ctys -H SECTION-KEYS" 
+
+
+       So for now the description might be sufficient to understand
+       the options for items to be displayed.
+
+       For example the "DESCRIPTION" section will be displayed with
+       one of the following calls:
+
+          "ctys -H DESC" 
+          "ctys -H DESCR" 
+          "ctys -H DESCRIPTION" 
+
+       But nothing is displayed with the following calls:   
+
+          "ctys -H DESc" 
+          "ctys -H DESCRIPTIOn" 
+          "ctys -H DESCRIPTIONx" 
+
+       Additional following keywords are supported for development
+       interfaces. Literal bash functions and Script header are
+       distinguished by TYPE(bash-function vs. bash-script).
+
+           funcList[=[<any-function>][@<module-name>[@...]]]
+             List of functionnames, sorted by functionnames. In
+             addition the filenames and linenumbers are displayed too.
+
+           funcListMod[=[<any-function>][@<module-name>[@...]]]
+             List of functionnames, sorted by filenames. In addition
+             the filenames and linenumbers are displayed too.
+
+           funcHead[=[<any-function>][@<module-name>[@...]]]
+             List of functionheaders, sorted by filenames.
+
+       The following constraints could be applied:
+
+           <any-function>
+             If given <any-function> than only this is displayed.
+
+           <module-name>
+             If given <module-name>, than the functions contained
+             within this module onyl are displayed.
+
+
+    -l <login_name>
+       default:\$USER($USER)
+
+
+    -L (LocalOnly|LO)
+       | (ConnectionForwarding|CF)
+       | (DisplayForwarding|DF)
+       | (DisplayRedirection|DR):<display>[.<screen>]
+       | (ClientOnly|CO)
+       | (ServerOnly|SO)
+
+       This option controls the location and possible split of the
+       involved client and server parts ot current session.
+
+       When connecting a user interface with it's server components
+       the following basic constellations could be distinguished:
+
+       - LocalOnly
+         Client and server components are colocated on users 
+         workstation, the display is driven locally.
+
+       - DisplayForwarding
+         Client and server components are colocated on server, and 
+         the display is forwarded to the users workstation.
+
+       - DisplayRedirection:<display>.<screen>
+         Almost the same case as DisplayForwarding, the only
+         difference is that al redirection of the display on
+         "localhost" will be done. The localhost is the only supported
+         redirection, due to security issues. When a remote
+         redirection is required one of the other typed has to be
+         executed on the "display target" with full support of
+         encrypted connections. The local redirection is not encrypted
+         as any local display attachement. The most often application
+         is the batch execution of a task and using a Xserver, e.g. a
+         VNCserver as a stateless desktop, which itself could be
+         started headless-only from a batch-script too. 
+
+       - ConnectionForwarding
+         Client and server are split, whereas the client component is 
+         located on the users workstation and the server component is
+         located on the server machine. The connection from
+         server/client component is forwarded on application protocol
+         level.
+
+       - ClientOnly
+         This is a client in standalone mode, still used internal 
+         only, e.g. for COPY when performing phase-2 with remote-copy
+         from local client.
+
+       - ServerOnly
+         This is a server in a so called headless-mode.
+
+       All of these modes are supported by dynamically allocating
+       encrypted ssh tunnels between the components. The choosen
+       comopenents will be located and executed automatically.
+
+       There are just some specific technical driven chracteristics to
+       be recognized.
+
+       - ServerOnly
+         First of all, this case just starts a remote server(as far as
+         supported by specific package) in headless mode. No specific
+         communications will be addressed in this state.
+
+         This mode will be primarily addressed as an internal starter
+         mode.
+
+       - LocalOnly
+         This is the most usual case for common application software
+         in propriatery single-user-only environments. This is not the
+         focus of this tool, there might be better solutions, for
+         that, if at all required.
+
+         But a very similar case, the display forwarding is.
+
+       The following cases are the main application area of this tool,
+       which focusses on massively distributed environments.
+
+       - DisplayForwarding
+         This is a frequently applied default mode for usage of modern
+         architectures in a single user environment often within
+         a standalone or fileserver level networked single user machine.
+
+         It suits also good to servers with thin clients, where the
+         display features do not need to be of enhanced graphics
+         functionality. Almost the whole required resources are
+         offloaded to the server here.
+
+         The whole display will be forwarded to the clients machine by
+         an underlying systems protocol, in this case the X11 protocol
+         with display redirection will be used. This will be also
+         applied, when a complete virtual desktop based on VNC and/or
+         a virtual machine is started on the server.
+
+         For security reasons and smart application only the OpenSSH
+         package is supported.
+
+       - ConnectionForwarding
+         In this case the most of the graphics processing will be done
+         native on the client site. Which utilizes on one hand
+         protocolls like X11 protocol of local application specific
+         clients and in addition uses XClients to utilize the local
+         XServer.
+
+         With tools like VNC based on FBP the client will be executed
+         in locally and redirected by port-forwarding via an encrypted
+         SSH tunnel to the remote server. 
+
+       All this modes are related to a single session only, thus could
+       and are in daily business intermixed arbitrarily on the desktop.
+
+       So far the basic characteristics related to the given CLI
+       flags. The main implementation details are related to
+       connections establishment and possible channelbundling when
+       performing access between the same peers.
+
+       The DisplayForwarding is related to communications a simple
+       case when using SSH with a VNC server. It is almost just
+       required to set the "-X" flag and all the communications
+       between the peers will be done automaticaly through that one
+       channel only. The termination is by definition coupled to the
+       session, so exiting the terminating application closes the
+       session.
+
+       When using ConnectionForwarding the things become some more
+       complicated. The decision here was made to using port
+       forwarding literally only, but not in reverse direction in
+       order to avoid a listenning mode on clients side.
+
+       Due to some limits of actual implementations a channel-bundling
+       is not supported by OpenSSH for X-forwarding when used with the
+       "-L" option for an explicit frowarding tunnel. Particularly VNC
+       binds each of it's DISPLAYs for each call to another listenning
+       port. Clients front-ends like VMware-Workstation works fine,
+       but are used to unification in a common manner. So for this
+       mode for each session a new SSH tunnel will be created
+       dynamically in so called one-shot mode.
+
+       Another issue results in the management of multiple destops on
+       the clients display. When using multiple desktops with a
+       supported tool like "wmctrl" particularly in an arbitrarly
+       intermixed mode it would be preferably to set up several
+       desktops in the background and switch them to the foreground as
+       required. The restrictions here result from the limits and
+       unreliability of handling windows and therefore placing them on
+       arbitrary desktops(which would preferably be in the background
+       of course). So the most reliable workaround as applied here
+       seems to be grouping the windows desktop-wise and switching to
+       the desktop when visualising them by default behaviour on the
+       current. The usage of Proxy-XServer or any kind of
+       ghost-desktops for preparation is currently ffs.
+
+       The support for this option depends on the session type and the
+       current action. E.g. the LIST action to show the users sessions
+       might be aware of splitted sessions, so they could list the
+       client side session components. Another point to be supported
+       is the detection of server-only components of some plugins,
+       when the client with the "easy-to-grep" strings is
+       missing. Particularly some actions like CANCEl or MOVE might
+       require knowledge of service location.
+
+       Therefore each package for a specific session type has to
+       support an appropriate function that checks the availability of
+       this feature. 
+
+       In general the following actions might support client side
+       execution(not all of them might be implemented yet). Generally
+       the localhost is the only client recognized by implicit
+       split.
+
+         CREATE, CANCEL<when client cancel is required>,
+         SHIFT, ENUMERATE,  LIST
+
+
+    -M <message>
+       Free text to be used as prefix for target exec. It will be
+       printed before output.
+
+       default:""
+
+
+    -n 
+       Just display, do not execute. For test only.
+
+
+    -p <db-directory-path-list>
+       Path list to directories containing DBs for name resolution,
+       same for each <db-directory-path> as for ctys-vdbgen. 
+
+       ctys will internally handle names by multiple levels of
+       resolution, which dependens on the actual executing plugin. The
+       most sophisticated address resolution is frequently required
+       for VMs when using them in a roaming manner on groups of
+       machines, where after some plugin specific resolution of
+       convenient VM-addressing by user an TCP/IP service-access-point
+       for OpenSSH has to be addressed.
+
+       The second case to be handled is the addressing of execution
+       entities of type HOSTs transparently within a VM or PM. This
+       will be supplied by ctys-nameservice too.
+
+       For almost all of the nameservice tasks additinonally required
+       for plugin-specific address resolution actions the ctys-vhost
+       command is used internally. This option sets the databases for
+       operations of ctys-vhost. If not present ctys-vhost defaults 
+       will be applied.
+
+
+    -P 
+
+       Use default <db-directory-path>.
+
+
+    -r <xsize>x<ysize>
+       Remote resolution, which is by default the same as local client
+       size given by "-g" option.
+
+       This parameter is not applicable to any application. It has to
+       be defined in the application specific package. The current
+       supported applications are:
+
+       - VNC: for vncserver
+
+
+    -s <scope>
+       Restrics/expands the scope/selected set for mode of operation.
+       For the amount of data to be listed refer to the '-m'
+       parameter.
+
+       The enumeration of hosts is within the scope of hostname
+       parameter.
+
+       default:USER
+       - USER
+         Own session.
+
+       - GROUP
+         Sessions of group.
+
+       - USRLST=(usr1[,usr2][,...])|all
+         Given list.
+
+       - GRPLST=(grp1[,grp2][,...])|all
+         Given list.
+
+       - ALL
+         This value is remapped to "USRLST=all".
+
+
+    -t <session_type>[=suboptions] 
+       Defines the context of execution and the resulting applicable
+       feature set.  This could be a flat endpoint-user-session in
+       case of VNC, or a virtual OS-starter in case of a VM session
+       e.g. in case of VMW or XEN.  Suboptions specify more detailed
+       charachteristics.
+
+       Thus this parameter has to be set first.
+
+       default:VNC
+
+       <session_type>
+       - VNC
+         Remote VNC sessions, calls the scripts ctys-callVncserver and/or
+         ctys-callVncviewer.  The specific behaviour is here to set a
+         password for the VNC session from a passwd-file via CLI
+         option. The access rights of this stored passwd in 
+
+            $HOME/.vnc/passwd
+
+         should be checked.
+
+       - XEN
+         Remote Xen sessions.
+
+       - ALL
+         All known types.
+
+
+       For additional types refer to the specific plugins.
+
+       In current implementation as default only one module could be
+       loaded and thus used within one call. So all parts of the call,
+       the specific options for the hosts if present too, has to be of
+       the same type. For another type, a seperate call has to be
+       done.
+
+       This is due to avoidance of bash resource allocation
+       exhaustion, when the sources of ctys are unstripped from
+       comments and embedded debugging feature.
+
+       To load multiple plugins for one call, the environment variable 
+       CTYS_MULTITYPE or the "-T" option could be set.
+
+
+    -T <session_type>[:<session_type>[:...]] | all
+       Preloads given list of <session_type> instead of loading the
+       plugins of requested types by "-t" option.
+
+       Alternatively the environment variable CTYS_MULTITYPE could be
+       pre-set, which has the same result. If CTYS_MULTITYPE  and the
+       "-T" option are provided, the option has priority.
+
+       This option is required for the scope control of generic
+       actions, which generally will be applied by calling of all
+       current loaded <session_type> interfaces.
+
+       E.g. the "-a LIST" action lists active sessions for all
+       actually loaded <session_type>. For display of current active
+       sessions of all available <session_type>, the "-T all" has to
+       be used.
+
+
+       <session_type>
+         The name of a dynamic loaded plugin, which is the
+         <session_type>.
+
+       all
+         Tries to load all present plugins, this would frequently
+         fail, when the configured resources of bash are exceeded.
+        
+         This could be even caused by a single module, which exhausts
+         available resources - as in any existing system.
+
+         Thus the default will be set to requested types by "-t"
+         options or NIL by default.
+
+
+    -v
+       Show version. Current version scheme is as follows:
+
+
+    -V 
+       Show version. Current version scheme is as follows:
+
+         AA_BB_CCC[abc]DD
+
+           AA:     Official major upgrades.
+           BB:     Official minor upgrades.
+           CCC:    Build <-> Test versions.
+           [abc]:  Development versions, Test-States:
+                   [a]lpha
+                   [b]eta
+                   [c]amma (of course)
+           DD:     Pre-Release development versions. Anyway, 
+                   if publicly available might be yet almost
+                   stable.
+
+       This option strongly interacts with the "-X" option, when set
+       only the version number is display, without a <CR>. This is the
+       only relevant information for batch-processing. Else all
+       current loaded components - libraries + CORE-plugins +
+       Application-plugings - are listed.
+
+       Using this option twice shows in addition to the plugin
+       short-names the actual file of storage. Sub-packages loaded by
+       Application are contained in the list too.
+
+       This list is generated at the end of execution, thus
+       on-demand-loaded sub-packages are listed too, as far as the
+       have been demanded during current call. The set of the
+       "on-demand-loaded" plugins can vary in dependency of the actual
+       performed control flow.
+
+       When using this option alone, only the initial by
+       "default-loaded-components are listed.
+
+
+    -w
+       Activate extended warnings. A following "-W" will switch off
+       any warning. These activated warnings are almost in any case
+       trivial, but they primarily fetch the whole err-channel of
+       normally non-critical subcalls, so be prepared to inspect them
+       from time to time.
+
+
+    -W 
+       Supress all warnings, superposes "-w". As for any option, the
+       order for interaction of concurrent options is important, so
+       the last set wins.
+
+
+    -X
+       Generate terse output for post processing.  The '-v Verbose'
+       flag is not effected and should be only used for testing.
+

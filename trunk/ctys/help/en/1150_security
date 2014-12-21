@@ -1,0 +1,492 @@
+
+    11.5. User Access - Secure permissions
+    --------------------------------------
+
+
+     11.5.1. SSH, SSL, IPsec, and VPNs
+     ---------------------------------
+
+       The only supported access method of ctys-tools is the usage of
+       SSH, any other method might be used in companion.
+
+       Even though SSH keys could be utilized and some other methods
+       like r-files could be used, theese are not discussed here. 
+
+       The only and one SSO approach used and supported by the author
+       is a kerberos and LDAP based SSO in companion with kerberised
+       SSH.
+
+       With the usage of automount NFS(will be changed soon to AFS), a
+       seamless authorisation and environment support throughout
+       stacked VMs is supplied.
+
+       For root access a local account should remain.
+
+
+     11.5.2. VM-Stacks, SSO, and Kerberos
+     ------------------------------------
+
+
+     11.5.3. Network Filesystems
+     ---------------------------
+
+
+     11.5.4. Authentication - Impersonation
+     --------------------------------------
+
+      11.5.4.1. sudoers
+      -----------------
+
+       Sudoers is some more flexible adaptable than k5users, it
+       particularly allows access-profiles by distinguishing several
+       call-options, e.g. CANCEL, CREATE, etc.. The approach of lean
+       call options in difference to supplying as much keys on first
+       level-options just makes it little more challanging, but not
+       impossible.
+
+       This is particularly helpful when restricting access selectively
+       to specific call options. E.g. in case of Xen to the required
+       Dom0 for LIST action call.
+
+
+
+      11.5.4.2. k5users
+      -----------------
+
+       For a present kerberos environment the utilization of krb5users
+       seems to be the smartest approach, even though the call itself
+       cannot be matched by specific CLI-options. This lack for
+       selective access profiles could be worked around by defining
+       different users and appropriate chroot-environments easily.
+
+       The required entries have the form:
+
+         "<user>@<realm> /usr/bin/which /usr/sbin/xm /usr/bin/virsh \
+             /sbin/ether-wake"
+
+
+       Which is required fo Xen and PM.
+
+       The k5login should NOT be used for ctys.
+
+
+      11.5.4.3. Secure root Access
+      ----------------------------
+
+
+     11.5.5. SELinux
+     ---------------
+
+
+     11.5.6. Firewall
+     ----------------
+
+
+     11.5.7. Resource Access Permissions
+     -----------------------------------
+
+      11.5.7.1. TAP/TUN by VDE
+      ------------------------
+
+       A TAP device is - as far as currently known (?) - the only
+       easy to use approach for interconnecting QEMU to the external
+       interface of the hosting machine. The same requirement may be
+       present for other VMs too.
+
+       The only and main restriction was the originally required
+       presence of the package "userspace-utils" from the UML project,
+       containing the "tunctl" tool for tap craetion and asignemt of
+       it's owner. This is, at least not out-of-the-box available for
+       a huge number of distributions. 
+
+       So the tool from the package VDE(vde2), called "vde_tunctl"
+       could be used as a perfect replacement. The additional benefit
+       is the included "vde_switch", which is a virtual switch, able
+       to operate in hub-mode. This supports user-space access and on
+       demand creation of new interfaces with the users permission
+       only. Just one initial TAP device is required to be created
+       with root permissions. 
+
+       Thus the following basic structure is assumed to be
+       pre-configured for usage by various users:
+
+
+        USER-1:
+         +------+   +------------------------------+-o  
+         + tap1 +---+ /var/tmp/vde_switch0.${USER} +-o
+         +------+   +------------------------------+-o  
+         
+        USER-2:
+         +------+   +------------------------------+-o
+         + tap2 +---+ /var/tmp/vde_switch0.${USER} +-o
+         +------+   +------------------------------+-o
+
+         .
+         .
+         .
+
+       For each user allowed to access external network a seperate
+       virtual switch with user-space access has to be provided.
+
+
+       11.5.7.1.1.VDE within Xen Dom0
+        -----------------------------
+
+        This lists required steps to setup a QEMU instance within a
+        Xen-Dom0 VM using the default xenbr0 bridge for external
+        interconnection.
+
+
+
+         <--- XEN-Dom0 ---->   <-------- VDE ---------->   <-QEMU->
+
+                                                    ${QEMUSOCK}
+                                                         |
+                                                         |
+         +-----+  +--------+   +------+   +------------+ | +------+
+         |     |  |        |   |      |   |            | V |      |
+         | NIC +--+ xenbr0 +---+ tap3 +---+ vde_switch +---+ QEMU |
+         |     |  |        |   |      |   |            |   |      |
+         +-----+  +--------+   +------+   +------------+   +------+
+                            (3)   (2)           (4)           (6)
+
+
+                                       
+        Pre-required admin tasks with root permissions, not called
+        within ctys.
+
+         1. For CentOS-5.0 the vde2-2.2.0-pre1 version is used, seems
+            to work perfectly.
+
+            Just download it and follow the instructions. For the
+            original distribution a "configure-make-make install" is
+            required.
+
+
+         2. Create: root permission required
+
+            "tapX" with 
+
+              "vde_tunctl -u <user-without-root-permission>"
+
+            e.g.
+
+
+              vde_tunctl -u acue
+
+
+            Returns a line like:
+
+              "Set 'tap3' persistent and owned by uid 4711"
+
+
+         3. Call: root permission required
+
+            Use the returned 'tap3' for following call:
+
+              /etc/xen/qemu-ifup tap3 xenbr0
+
+
+            This is due to the usage of QEMU within Xen, for the
+            targeted stack test. Any other configuration will be
+            similar to this.
+
+            The given script could be at various locations, it
+            contains basically the following calls only:
+
+              ifconfig $1 0.0.0.0 up
+              brctl addif $2 $1
+
+
+            Which brings up the newly created interface 'tap3' and
+            adds an interface to the virtual Xen bridge connecting it
+            to the world outside.
+
+            The results could be verified with:
+
+             - ifconfig tap3
+               should list an interface 'tap3'
+
+             - brctl show
+               should contain an interface 'tap3'
+             
+
+         4. Call: root permission required
+
+            Now this interface will be connected to another virtual
+            switch, the vde_switch in order to brovide an internal
+            multiplexer for multiple QEMU instances to be connected to
+            the external interfaces via the Xen-bridge.
+
+              QEMUSOCK=/var/tmp/vde_switch0.$USER
+              QEMUMGMT=/var/tmp/vde_mgmt0.$USER
+
+              vde_switch -d \
+                         -tap tap3 \
+                         -s ${QEMUSOCK} \
+                         -M ${QEMUMGMT}
+
+
+              chown -R <userX.groupX> ${QEMUSOCK}
+              chown -R <userX.groupX> ${QEMUMGMT}
+
+
+         5. Call: optional
+ 
+              QEMUMGMT=/var/tmp/vde_mgmt0.$USER
+
+              unixterm ${QEMUMGMT}
+
+
+        User tasks, not requiring root permissions, called within ctys.
+
+         6. Call:
+            The variable QEMUSOCK could be configured within
+            qemu.conf.${MYOS}.
+
+
+              QEMUSOCK=/var/tmp/vde_switch0.$USER
+
+              vdeqemu -vnc :17 \
+                      -k de \
+                      -net nic,mac=<MAC-addr> \
+                      -net,sock=${QEMUSOCK} \
+                      linux-0.2.img &
+
+
+         7. Call:
+
+              vncviewer :17&
+
+ 
+         8. Call within GuestOS:
+
+              ifconfig eth0 <IP-address>
+
+
+            The default address is something like "10.0.2.15", when
+            your network fits to this, nothing is required to be done.
+
+
+         9. Call ssh, and or ping, or whatever you want.
+
+
+        That's it.
+
+
+
+       11.5.7.1.2. VDE within Xen DomU
+        ------------------------------
+
+        See chapter 11.5.7.1.4. VDE within Native Unix.
+
+
+       11.5.7.1.3. VDE within VMware
+        ----------------------------
+
+        See chapter 11.5.7.1.4. VDE within Native Unix.
+
+
+
+
+       11.5.7.1.4. VDE within Native Unix
+        ---------------------------------
+
+        This lists required steps to setup a QEMU instance on a native
+        Linux system creating a new bridge with bridctl for external
+        interconnection.
+
+
+
+
+         <--- XEN-Dom0 ---->   <-------- VDE ---------->   <-QEMU->
+
+                                                    ${QEMUSOCK}
+                                                         |
+                                                         |
+         +-----+  +--------+   +------+   +------------+ | +------+
+         |     |  |        |   |      |   |            | V |      |
+         | NIC +--+ br0    +---+ tap3 +---+ vde_switch +---+ QEMU |
+         |     |  |        |   |      |   |            |   |      |
+         +-----+  +--------+   +------+   +------------+   +------+
+                            (3)   (2)           (4)           (6)
+
+
+                                       
+        Pre-required admin tasks with root permissions, not called
+        within ctys.
+
+         1. For CentOS-5.0 the vde2-2.2.0-pre1 version is used, seems
+            to work perfectly.
+
+            Just download it and follow the instructions. For the
+            original distribution a "configure-make-make install" is
+            required.
+
+
+         2. Create: root permission required
+
+            "tapX" with 
+
+              "vde_tunctl -u <user-without-root-permission>"
+
+            e.g.
+
+
+              vde_tunctl -u acue
+
+
+            Returns a line like:
+
+              "Set 'tap3' persistent and owned by uid 4711"
+
+
+         3. Call: root permission required
+
+            Create a new bridge:
+
+              brctl addbr br0
+
+
+         4. Call: root permission required
+
+            Disable STP for now:
+
+              brctl stp br0 off
+
+
+         5. Call: root permission required
+
+            Add interface - bonding interface here:
+
+              brctl addif br0 bond0
+
+
+
+         6. Call: root permission required
+
+            Deactivate bonding interface:
+
+              ifconfig bond0 down
+
+
+
+         7. Call: root permission required
+
+            Set to promiscous mode:
+
+              ifconfig bond0 0.0.0.0 up
+
+
+
+         8. Call: root permission required
+
+            Set IP address for host:
+
+              ifconfig br0 <ip-of-bond0> up
+
+
+            Call ping, but may take some trials and some seconds 
+            - 4-5 fails within about 20-40seconds, than works.
+
+         9. Call: root permission required
+
+            Use the returned 'tap3' for following call:
+
+              /etc/xen/qemu-ifup tap3 br0
+
+
+            This is due to the usage of QEMU within Xen, for the
+            targeted stack test. Any other configuration will be
+            similar to this.
+
+            The given script could be at various locations, it
+            contains basically the following calls only:
+
+              ifconfig $1 0.0.0.0 up
+              brctl addif $2 $1
+
+
+            Which brings up the newly created interface 'tap3' and
+            adds an interface to the virtual Xen bridge connecting it
+            to the world outside.
+
+            The results could be verified with:
+
+             - ifconfig tap3
+               should list an interface 'tap3'
+
+             - brctl show
+               should contain an interface 'tap3'
+             
+
+         4. Call: root permission required
+
+            Now this interface will be connected to another virtual
+            switch, the vde_switch in order to brovide an internal
+            multiplexer for multiple QEMU instances to be connected to
+            the external interfaces via the Xen-bridge.
+
+              QEMUSOCK=/var/tmp/vde_switch0.$USER
+              QEMUMGMT=/var/tmp/vde_mgmt0.$USER
+
+              vde_switch -d \
+                         -tap tap3 \
+                         -s ${QEMUSOCK} \
+                         -M ${QEMUMGMT}
+
+
+              chown -R <userX.groupX> ${QEMUSOCK}
+              chown -R <userX.groupX> ${QEMUMGMT}
+
+
+         5. Call: optional
+ 
+              QEMUMGMT=/var/tmp/vde_mgmt0.$USER
+
+              unixterm ${QEMUMGMT}
+
+
+        User tasks, not requiring root permissions, called within ctys.
+
+         6. Call:
+            The variable QEMUSOCK could be configured within
+            qemu.conf.${MYOS}.
+
+
+              QEMUSOCK=/var/tmp/vde_switch0.$USER
+
+              vdeqemu -vnc :17 \
+                      -k de \
+                      -net nic,mac=<MAC-addr> \
+                      -net,sock=${QEMUSOCK} \
+                      linux-0.2.img &
+
+
+         7. Call:
+
+              vncviewer :17&
+
+ 
+         8. Call within GuestOS:
+
+              ifconfig eth0 <IP-address>
+
+
+            The default address is something like "10.0.2.15", when
+            your network fits to this, nothing is required to be done.
+
+
+         9. Call ssh, and or ping, or whatever you want.
+
+
+        That's it.
+
+
+
+
+
+
+      11.5.7.2. Basic DomU Management by Xen-Dom0
+      -------------------------------------------
+

@@ -1,0 +1,1698 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="Unified Sessions Manager"
+#
+#CALLFULLNAME:
+CALLFULLNAME="Manage address resolution."
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_02_001a00
+#DESCRIPTION:
+#  Main untility of project ctys for manging sessions.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  Use '-h' for initial help.
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+#path for various loads: libs, help, macros, plugins
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux: CentOS/RHEL(5+), SuSE-Professional 9.3"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work for any dist.):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome + fvwm"
+
+#to be tested - coming soon
+TARGET_WM_SOON="xfce"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+
+. ${MYLIBPATH}/lib/misc
+. ${MYLIBPATH}/lib/security
+. ${MYLIBPATH}/lib/help/help
+. ${MYLIBPATH}/lib/groups
+
+#path to directory containing the default mapping db
+if [ -d "${HOME}/.ctys/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/.ctys/db/default}
+fi
+
+#path to directory containing the default mapping db
+if [ -d "${MYCONFPATH}/conf/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
+fi
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+  . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+################################################################
+
+#path to directory containing the tmp
+MYTMP=${MYTMP:-/tmp/$USER}
+if [ ! -d "${MYTMP}" ];then
+    mkdir -p "${MYTMP}"
+fi
+
+
+#controls debugging for awk-scripts
+doDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST
+D=$?
+
+
+CTRL_INTERACTIVE=0;
+CTYS_MULTITYPE=ALL;
+CTRL_TERSE=;
+
+_rtscope=0;
+_user=;
+_groups=0;
+_machine=0;
+_title=0;
+_macmap=0;
+_macmaponly=0;
+_macmaponlytrial=0;
+_mt=0;
+_pm=0;
+#_src=ALL;
+#_src=ENUM;
+_tcp=0;
+_dns=0;
+_mac=0;
+_idd=0;
+_ids=0;
+_uuid=0;
+_label=0;
+_os=0;
+_first=0;
+_last=0;
+_all=0;
+_rttype=0;
+_cost=0;
+_rebuildcache=0;
+_keepRTCache=0;
+_keepAll=0;
+_arglst=;
+_cacheoff=0;
+
+#storage of concatenated STATCACHEDB and volatile RT data of LIST
+#will be reset before usage when RTCACHE:<key> is set.
+RTCACHEDB=${MYTMP}/${MYCALLNAME}.${DATETIME}.cdb
+
+#Maximum age of a cached DB in seconds, when threshold reached it cache
+#will be forced to clear.
+CACHECLEARPERIOD=3600
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setGroupsFeature
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets environment and loads plugins a required for GROUPS plugin.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setGroupsFeature () {
+    #assure for append...
+    if [ -n "$CTYS_GROUPS_PATH" ];then
+	mstr=$HOME/.ctys/groups
+	CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH//$mstr}
+	mstr=$MYCONFPATH/groups
+	CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH//$mstr}
+    fi
+
+    if [ -n "$CTYS_GROUPS_PATH" ];then
+	checkPathElements CTYS_GROUPS_PATH ${CTYS_GROUPS_PATH}
+    fi
+
+    if [ ! -d "${HOME}/.ctys/groups" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing standard directory:${HOME}/.ctys/groups"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Has to be present at least, check your installation"
+	gotoHell ${ABORT}
+    fi
+
+    if [ ! -d "${MYCONFPATH}/groups" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing standard directory:${MYCONFPATH}/groups"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Has to be present at least, check your installation"
+	gotoHell ${ABORT}
+    fi
+
+    CTYS_GROUPS_PATH="${HOME}/.ctys/groups:${MYCONFPATH}/groups${CTYS_GROUPS_PATH:+:$CTYS_GROUPS_PATH}"
+
+    PLUGINPATHS=${MYINSTALLPATH}/plugins/CORE
+    initPackages
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  myFetchOptions
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI options. It sets the appropriate context, which could be 
+#  for remote or local execution.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Callcontext:
+#      LOCAL  : for local execution
+#      REMOTE : for local and remote execution, because some HAS to 
+#               be recognized locally too, so for "simplicity" => both.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function myFetchOptions () {
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=<${@}>"
+    local _myArgs=$@
+
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:_myArgs=<${_myArgs}>"
+
+    #control flow
+    EXECUTE=1;
+    unset ABORT
+    OPTIND=1
+    OPTLST="d:hi:l:p:c:C:M:R:S:T:XIo:VW";
+    while getopts $OPTLST CUROPT ${_myArgs} && [ -z "${ABORT}" ]; do
+	case ${CUROPT} in
+
+	    c) #[-c:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                _cost=;
+                case ${OPTARG} in
+                    [mM][iI][nN][cC][nN][tT])             _cost=mincnt;;
+                    [mM][aA][xX][cC][nN][tT])             _cost=maxcnt;;
+                    [cC][nN][tT])                         _cost=cnt;;
+		    *)
+			ABORT=1;         
+   			printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown COST: \"${OPTARG}\""
+			;;
+                esac
+		_tcp=1;
+		_idd=1;
+		_ids=1;
+		_mac=1;
+		_uuid=1;
+		_pm=1;
+		_mt=1;
+		_os=1;
+		;;
+
+	    C) #[-C:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		for iS in ${OPTARG//,/ }; do
+                    case ${iS} in
+                        #
+                        #setting sets
+                        #
+			[oO][fF][fF])
+			    _cacheoff=1;
+			    ;;
+			[mM][aA][cC][mM][aA][pP])
+			    _macmap=1;
+			    ;;
+			[mM][aA][cC][mM][aA][pP][oO][nN][lL][yY])
+			    _macmaponly=1;
+			    ;;
+			[gG][rR][oO][uU][pP][sS])
+			    _groups=1;
+			    ;;
+
+                        #
+                        #setting persistency
+                        #
+			[rR][eE][bB][uU][iI][lL][dD][cC][aA][cC][hH][eE])
+			    _groups=1;
+			    _rebuildcache=1;
+			    ;;
+			[kK][eE][eE][pP][aA][lL][lL])
+			    _keepAll=1;
+			    ;;
+
+                        #
+                        #clear sets
+                        #
+			[cC][lL][eE][aA][rR][tT][mM][pP])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}` ${DBPATHLST//:/ }"
+                            echo
+			    echo "CLEARTMP"
+ 			    echo "-> Clear all current caches of \"${MYCALLNAME}\" for \"${USER}\":"
+ 			    echo "   -> TMP-Caches    :\"${MYTMP}\""
+                            echo
+			    find ${MYTMP}      -name "${MYCALLNAME}.*.cdb" -exec /bin/rm -rf {} \; -printf "      %p\n"
+ 			    echo 
+                            gotoHell 0;
+			    ;;
+
+			[cC][lL][eE][aA][rR][aA][lL][lL])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}` ${DBPATHLST//:/ }"
+                            echo
+			    echo "CLEARUSER"
+ 			    echo "-> Clear all current caches for \"${USER}\":"
+ 			    echo "   -> TMP-Caches    :\"${MYTMP}\""
+ 			    echo 
+			    find ${MYTMP}      -name "${MYCALLNAME}.*.cdb" -exec /bin/rm -rf {} \; -printf "      %p\n"
+ 			    echo 
+ 			    echo "   -> Static-Caches :\"${_allStat}\""
+                            echo
+			    local i4del=;
+			    for i4del in `find ${_allStat}   -name '*.cdb' -print`;do
+				echo "      $i4del"
+				rm -rf "${i4del}"
+			    done
+ 			    echo 
+                            gotoHell 0;
+			    ;;
+
+                        #
+                        #list sets
+                        #
+			[lL][iI][sS][tT])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}`  ${DBPATHLST//:/ }"
+
+                            echo
+			    echo "Current \"${MYCALLNAME}\" file-caches for \"${USER}\":"
+ 			    find ${MYTMP}    -type f -name "${MYCALLNAME}.*.cdb" -printf "  %4kk  " -exec wc -l {} \;
+			    find ${_allStat} -type f -name '*.cdb'               -printf "  %4kk  " -exec wc -l {} \;
+                            echo
+			    echo "Current \"${MYCALLNAME}\" group-caches of groups for \"${USER}\":"
+ 			    find ${MYTMP}    -type d -printf "  %4kk  " -print |grep 'ctys-vhost.grpscache.cdb'
+ 			    find ${_allStat} -type d -printf "  %4kk  " -print |grep 'ctys-vhost.grpscache.cdb'
+                            echo
+                            gotoHell 0;
+			    ;;
+
+
+			[lL][iI][sS][tT][tT][aA][rR][gG][eE][tT][sS])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}`  ${DBPATHLST//:/ }"
+
+                            echo
+			    echo "Current \"${MYCALLNAME}\" file-caches for \"${USER}\":"
+ 			    find ${MYTMP}    -type f -name "${MYCALLNAME}.*.cdb" -printf "  %4kk  " -exec wc -l {} \;
+			    find ${_allStat} -type f -name '*.cdb'               -printf "  %4kk  " -exec wc -l {} \;
+                            echo
+                            gotoHell 0;
+			    ;;
+
+
+			[lL][iI][sS][tT][gG][rR][oO][uU][pP][sS])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}`  ${DBPATHLST//:/ }"
+
+                            echo
+			    echo "Current \"${MYCALLNAME}\" group-caches for \"${USER}\":"
+ 			    find ${MYTMP}    -type f -printf "  %4kk  " -exec wc -l {} \;|grep 'ctys-vhost.grpscache.cdb'
+ 			    find ${_allStat} -type f -printf "  %4kk  " -exec wc -l {} \;|grep 'ctys-vhost.grpscache.cdb'
+                            echo
+                            gotoHell 0;
+			    ;;
+
+
+                        #
+                        #members of sets
+                        #
+			[mM][eE][mM][bB][eE][rR][sS][dD][bB])
+                            echo
+			    echo "MEMBERSDB - ctys stack- addresses."
+                            echo 
+                            ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o ctys -M all .|sort
+                            gotoHell 0;
+			    ;;
+
+
+			*)
+			    ABORT=1;         
+   			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown MappingSource: \"${OPTARG}\""
+			    ;;
+                    esac
+		done
+		;;
+
+	    d) #[-d:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		_cnt=0;
+		printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Reconfigure debug output NOW(${OPTARG})..."
+		for i in ${OPTARG//,/ };do
+		    case $_cnt in
+			0)CTRL_VERBOSE=${i};;
+			1)DBG_RANGE_MIN=${i};;
+			2)DBG_RANGE_MAX=${i};;
+			*);;
+		    esac
+		    ((_cnt++))
+		done
+		printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "...reconfiguration done."
+
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "-d ${OPTARG}"
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE " => CTRL_VERBOSE  = ${CTRL_VERBOSE}"
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE " => DBG_RANGE_MIN = ${DBG_RANGE_MIN}"
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE " => DBG_RANGE_MAX = ${DBG_RANGE_MAX}"
+		if [ -n "${CTRL_VERBOSE//[0-9]/}" -o -n "${DBG_RANGE_MAX//[0-9]/}" -o -n "${DBG_RANGE_MIN//[0-9]/}" ]; then
+		    ABORT=2;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Arguments for debugging has to be numbers only:-d ${OPTARG}"
+		fi
+		;;
+
+
+	    h) #[-h]
+		showToolHelp
+		ABORT=0;
+		;;
+
+	    i) #[-i:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                local KEYLST=`echo "$OPTARG"|tr '[:lower:]' '[:upper:]'|sed 's/,/ /g'`
+		for KEY in $KEYLST;do
+                    case ${KEY} in
+			CTYSADDRESS|CTYS)                 _ctysin=1;;
+			*)
+			    ABORT=1;         
+   			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown OUTPUT: \"${KEY}\""
+			    ;;
+                    esac
+		done
+		;;
+
+	    I) #[-I]
+		CTRL_INTERACTIVE=1;
+		CTRL_VERBOSE=0;
+		;;
+
+	    l) #[-l:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote user for SSH access-verification: \"-l\""
+		fi
+                _user=${OPTARG}
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "remote user for SSH access-verification:$_user"
+		;;
+
+	    o) #[-o:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                local KEYLST=`echo "$OPTARG"|tr '[:lower:]' '[:upper:]'|sed 's/,/ /g'`
+		for KEY in $KEYLST;do
+                    case ${KEY} in
+			CLIENTACCESS|CACCESS|CPORT)       _cport=1;;
+			CLIENTDISPLAY|CDISPLAY|DISP)      _disp=1;;
+			CTYSADDRESS|CTYS)                 _ctysaddr=1;_machine=1;;
+			DNS|D)                            _dns=1;;
+			IDD)                              _idd=1;;
+			IDS|ID|I)                         _ids=1;;
+			LABEL|L)                          _label=1;;
+			MAC|M)                            _mac=1;;
+			MACHINE)                          _machine=1;;
+			MAXKEY)                           _pm=1;_mt=1;_label=1;_ids=1;_uuid=1;_mac=1;;
+			UUID|U)                           _uuid=1;;
+			OS|O)                             _os=1;;
+			PM|HOST|H)                        _pm=1;;
+			SERVERACCESS|SACCESS|SPORT|S)     _sport=1;;
+			TCP|T)                            _tcp=1;;
+			TITLE)                            _title=1;;
+			MTYPE|MT)                         _mt=1;;
+			*)
+			    ABORT=1;         
+   			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown OUTPUT: \"${KEY}\""
+			    ;;
+                    esac
+		done
+		;;
+
+	    p) #[-p:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "database path or address-mapping: \"-p\""
+		fi
+                DBPATHLST=${OPTARG}
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "database path or address-mapping:DBPATHLST=\"${DBPATHLST}\""
+		;;
+
+	    M) #[-M:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                _first=0;
+                _last=0;
+                _all=0;
+                case ${OPTARG} in
+                    [fF][iI][rR][sS][tT])     _first=1;;
+                    [lL][aA][sS][tT])         _last=1;;
+                    [aA][lL][lL])             _all=1;;
+		    *)
+			ABORT=1;         
+   			printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown AMOUNT: \"${OPTARG}\""
+			;;
+                esac
+		;;
+
+	    R) #[-R:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+
+                local KEYLST=`echo "$OPTARG"|tr '[:lower:]' '[:upper:]'|sed 's/,/ /g'`
+		for KEY in $KEYLST;do
+                    case ${KEY} in
+			[pP][iI][nN][gG]) _rttype=1;  [ $_rtscope == 0 ]&&_rtscope=1;;
+			[sS][sS][hH])     _rttype=2;  [ $_rtscope == 0 ]&&_rtscope=1;;
+			
+			[pP][mM])         _rtscope=1; [ $_rttype == 0 ]&&_rttype=1;;
+			[vV][mM])         _rtscope=2; [ $_rttype == 0 ]&&_rttype=1;;
+
+			*)
+			    ABORT=1;         
+   			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown RUNTIME-TYPE: \"${KEY}\""
+			    ;;
+                    esac
+		done
+		;;
+
+	    S) #[-S:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		for iS in ${OPTARG//,/ }; do
+                    #let the shell do:iS=`echo ${iS}|tr '[:lower:]' '[:upper:]'`
+                    case ${iS} in
+                        #
+                        #DB
+#
+			[[lL][iI][sS][tT])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}`  ${DBPATHLST//:/ }"
+                            echo
+			    echo "Current file-databases for \"${USER}\":"
+ 			    find ${MYTMP}    -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
+			    find ${_allStat} -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
+                            echo 
+                            setGroupsFeature
+                            echo
+			    echo "Current group files of:CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\":"
+			    listGroups SHORT
+                            echo
+                            gotoHell 0;
+			    ;;
+
+
+                        #
+                        #DB
+                        #
+			[[lL][iI][sS][tT][dD][bB])
+                            local _allStat="`dirname ${DEFAULT_DBPATHLST}`  ${DBPATHLST//:/ }"
+                            echo
+			    echo "Current file-databases for \"${USER}\":"
+ 			    find ${MYTMP}    -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
+			    find ${_allStat} -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
+                            echo 
+                            gotoHell 0;
+			    ;;
+			[mM][eE][mM][bB][eE][rR][sS][dD][bB])
+                            echo
+			    echo "MEMBERSDB - ctys stack- addresses."
+                            echo 
+                            ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -C OFF -o ctys -M all .|sort
+                            gotoHell 0;
+			    ;;
+
+
+                        #
+                        #GROUPS
+                        #
+			[lL][iI][sS][tT][gG][rR][oO][uU][pP])
+                            setGroupsFeature
+                            echo
+			    echo "Current group files of:CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\":"
+			    listGroups SHORT
+                            echo
+                            gotoHell 0;
+			    ;;
+			[cC][oO][nN][tT][eE][nN][tT][gG][rR][oO][uU][pP])
+                            setGroupsFeature
+                            echo
+			    echo "Current group files of:CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\":"
+			    listGroups CONTENT
+                            echo 
+                            gotoHell 0;
+			    ;;
+			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP])
+                            setGroupsFeature
+                            echo
+			    echo "Current group files of:CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\":"
+			    listGroups DEEP
+                            echo 
+                            gotoHell 0;
+			    ;;
+			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]2)
+                            setGroupsFeature
+                            echo
+			    echo "Current group files of:CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\":"
+			    listGroupMembers DEEP
+                            echo 
+                            gotoHell 0;
+			    ;;
+			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]3)
+                            setGroupsFeature
+                            echo
+			    echo "Current group files of:CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\":"
+			    listGroups DEEP3
+                            echo 
+                            gotoHell 0;
+			    ;;
+
+			*)
+			    ABORT=1;         
+   			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown MappingSource: \"${OPTARG}\""
+			    ;;
+                    esac
+		done
+		;;
+
+	    T) #[-T:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+                #To be pre-processed in calling-main.
+                #Defines the types of plugins to be loaded
+		CTYS_MULTITYPE=${OPTARG};
+		;;
+
+	    V) #[-V]
+		printVersion
+		ABORT=0;
+		;;
+
+	    W) #[-W]
+		unset CTRL_WARNING;
+		;;
+
+	    X) #[-X]
+		CTRL_TERSE=" -X ";
+		;;
+	    *)
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous parameter:${CUROPT}"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Call \"${MYCALLNAME} -h\" for additional help"
+		;;
+	esac
+    done
+    #check for COST calculation context:
+    if [ "${_cost}" == 1 -a \( "$_tcp" != 1 -o "$_pm" != 1 \) ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "When \"load distribution\", the ip addresses and hosting PM are mandatory."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  COST   = $_cost"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  TCP/IP = $_tcp"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  PM     = $_pm"
+    fi
+
+    if [ -n "${ABORT}" -a "${ABORT}" != "0" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:CLI error for call parameters."
+	gotoHell ${ABORT}
+    fi
+    if [ -n "${ABORT}" ];then
+	gotoHell ${ABORT}
+    fi
+
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:_arglst=$*"
+    shift $(( OPTIND - 1))
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:_arglst=$*"
+    _arglst=$*
+    if [ -z "$_arglst" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:arguments"
+	gotoHell ${ABORT}
+    fi
+
+
+    #force consistency
+    if [ "$_cost" == 1 ];then
+	_first=;_last=;_all=1;
+	_tcp=1;_idd=1;_ids=1;_mac=1;_uuid=1;_pm=1;_mt=1;_os=1;
+    fi
+
+    if [ "$_first" == 0 -a "$_last" == 0 -a "$_all" == 0   ];then
+	_first=1;
+    fi
+    
+    if [ "$_macmaponly" == 1 ];then
+	if((_ctysaddr+_machine+_idd+_ids+_label+_machine+_uuid+_os+_pm+_mt>0));then
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "With \"-C MACMAPONLY\" use for \"-o\":{TCP,MAC,DNS},"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "else the cache-databases \"*.cdb\" are required."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Generally prefer usage of \"-C MACMAP\", which decides"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "for best performance when possible."
+	    gotoHell ${ABORT}
+	fi
+    else
+        #if macmap is enabled
+        #switch to direct macmap-access(without additional overhead) when only contained parameters given
+	if((_macmap==1&&_tcp+_mac+_dns>0&&_ctysaddr+_machine+_idd+_ids+_label+_machine+_uuid+_os+_pm+_mt==0));then
+	    _macmaponlytrial=1;
+	fi
+    fi
+
+    if((_title==1&&_title+_machine!=2));then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "TITLE could be set for MACHINE only."
+	gotoHell ${ABORT}
+    fi
+
+    if((_ctysaddr==1&&_cport+_disp+_idd+_os+_pm+_sport+_title+_mt>0));then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "CTYS address could contain: mac ids uuid label"
+        #_dns
+	gotoHell ${ABORT}
+    fi
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkStatCacheDB
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Makes the decision for cacheupdate, therefore the caches are simply  
+#  removed, when criteria matches. Criteria are:
+#
+#   1. outdated data due to new available
+#   2. outdated cache age, which is just an obligatoric refresh, 
+#      currently every hour.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1:  Current DB
+#
+#GLOBALS:
+#  CACHECLEARPERIOD 
+#    When age reaches threshold, cache will be cleared.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkStatCacheDB () {
+    local _curDB=$1
+    if [ -z "$_curDB" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:ERROR:Internal ERR:MISSING _curDB=${_curDB}"
+	gotoHell ${ABORT}
+    fi
+
+    [ "$CTRL_INTERACTIVE" == 1 ]&&printf "CHECK             =%s\n" ${i}
+
+    #prepare DB-Directory with static data
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:Check DB-Presence..."
+
+    if [ ! -d "${_curDB}" ];then
+	ABORT=1;
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "...\"${_curDB}\" NOK"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "...ooops!"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing DB-directory, required to be present."
+	gotoHell ${ABORT}
+    fi
+
+    STATCACHEDB=${_curDB}/${MYCALLNAME}.statcache.cdb
+    GRPSCACHEDB=${_curDB}/${MYCALLNAME}.grpscache.cdb
+    ENUMDB=${_curDB}/enum.fdb
+    MACMAPfile=${_curDB}/macmap.fdb
+
+
+
+    ################
+    #Current caches #
+    ################
+
+    #basics
+    if [ -z "${STATCACHEDB}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing definition:STATCACHEDB=${STATCACHEDB}"
+	gotoHell ${ABORT}
+    fi
+    if [ -z "${GRPSCACHEDB}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing definition:GRPSCACHEDB=${GRPSCACHEDB}"
+	gotoHell ${ABORT}
+    fi
+
+    #obvious
+    if [ -f "${STATCACHEDB}" ];then
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Present:STATCACHEDB=${STATCACHEDB}"
+	if [ "$_rebuildcache" == "1" ];then
+            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "CLEAR/Remove STATCACHEDB=${STATCACHEDB} due to REBUILD-flag"
+  	    rm -f ${STATCACHEDB} 2>/dev/null
+	fi
+#     else
+# 	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "FeshAndNew:STATCACHEDB=${STATCACHEDB}"
+# 	if [ "$_rebuildcache" == "0" ];then
+# 	fi
+    fi
+
+    #the highlight nr#1
+    if [ -z "${MACMAPfile}" -o ! -f "${MACMAPfile}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MACMAPfile=${MACMAPfile}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Required for getting TCP/IP-addresses from MAC-addresses."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Following may be applied:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "-> use another option than \"-S $_src\" DEFAULT=ALL"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "-> generate data, refer to \"ctys-extractMAClst\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Quick and dirty(please avoid this),"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "TCP/IP - MAC information will be missing."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "You will not be remembered about an present but empty macmap.fdb!"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "-> call \"touch ${MACMAPfile}\""
+	gotoHell ${ABORT}
+    fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Found:MACMAPfile=${MACMAPfile}"
+    if [ "${MACMAPfile}" -nt "${STATCACHEDB}" ];then
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "   but outdated, resync with:"
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "     \"${MACMAPfile}\""
+  	rm -f ${STATCACHEDB} 2>/dev/null
+    fi
+
+    #depends from obvious
+    if [ -d "${GRPSCACHEDB}" ];then
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Present:GRPSCACHEDB=${GRPSCACHEDB}"
+	if [ "$_rebuildcache" == "1" ];then
+            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "CLEAR/Remove GRPSCACHEDB=${GRPSCACHEDB} due to REBUILD-flag"
+  	    rm -rf ${GRPSCACHEDB} 2>/dev/null
+        else
+	    if [ ! -f "${STATCACHEDB}" ];then
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "CLEAR/Remove GRPSCACHEDB=${GRPSCACHEDB} due to missing STATCACHEDB"
+  		rm -rf ${GRPSCACHEDB} 2>/dev/null
+	    else
+		if [ "${STATCACHEDB}" -nt "${GRPSCACHEDB}" ];then
+		    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "CLEAR/Remove GRPSCACHEDB=${GRPSCACHEDB} due to newer STATCACHEDB"
+  		    rm -rf ${GRPSCACHEDB} 2>/dev/null
+		else
+                    setGroupsFeature
+		    local _chkpath1=;
+		    local _chk1=;
+		    for _chkpath1 in `listGroups`;do
+			_chk1=`basename ${_chkpath1}`		    
+			if [ ! -f "${GRPSCACHEDB}/${_chk1}" -o "${_chkpath1}" -nt "${GRPSCACHEDB}/${_chk1}" ];then
+			    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "CLEAR/Remove GRPSCACHEDB=${GRPSCACHEDB} due to newer ${_chkpath1}"
+  			    rm -rf ${GRPSCACHEDB} 2>/dev/null
+			fi
+		    done
+		fi
+	    fi
+	fi
+    else
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "FreshAndNew:GRPSCACHEDB=${GRPSCACHEDB}"
+	if [ "$_rebuildcache" == "0" ];then
+	    _groups=1;
+	fi
+    fi
+
+
+
+    ################
+    #Sources caches #
+    ################
+
+    if [ -z "${ENUMDB}" -o ! -f "${ENUMDB}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:ENUMDB=${ENUMDB}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Required as base for mapping PMs and VMs."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Following may be applied:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "-> generate data, refer to \"ctys-vdbgen\""
+	gotoHell ${ABORT}
+    fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Found:ENUMDB=${ENUMDB}"
+    if [ "${ENUMDB}" -nt "${STATCACHEDB}" ];then
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "   but outdated, clear and resync with:"
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "     \"${ENUMDB}\""
+	rm -f ${STATCACHEDB} 2>/dev/null
+    fi
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "GROUPS already checked elsewhere!"
+
+    local age=`getDateTimeOfInode ${STATCACHEDB}`;
+    if(( (age-DATETIME)>CACHECLEARPERIOD ));then
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "   STATCACHEDB cleared due to cache-age>CACHECLEARPERIOD=${CACHECLEARPERIOD}"
+	rm -f ${STATCACHEDB} 2>/dev/null
+    fi
+
+    local age=`getDateTimeOfInode ${GRPSCACHEDB}`;
+    if(( (age-DATETIME)>CACHECLEARPERIOD ));then
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "   GRPSCACHEDB cleared due to cache-age>CACHECLEARPERIOD=${CACHECLEARPERIOD}"
+	rm -rf ${GRPSCACHEDB} 2>/dev/null
+    fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "...\"${_curDB}\" OK"
+
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  buildStatCacheDB
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1:  Current DB
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function buildStatCacheDB () {
+    local _curDB=$1
+    if [ -z "$_curDB" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:ERROR:Internal ERR:MISSING _curDB=${_curDB}"
+	gotoHell ${ABORT}
+    fi
+
+    function resolveENUM () {
+	awk -F';' -v p=${MACMAPfile} -v d=$D -f ${MYCALLPATH}/ctys-vhost-enum.awk
+    }
+
+    STATCACHEDB=${_curDB}/${MYCALLNAME}.statcache.cdb
+    GRPSCACHEDB=${_curDB}/${MYCALLNAME}.grpscache.cdb
+    ENUMDB=${_curDB}/enum.fdb
+    MACMAPfile=${_curDB}/macmap.fdb
+
+    if [ \
+	! -f  "${STATCACHEDB}" \
+        -o  "${_rebuildcache}" == "1" \
+	];then
+
+        [ "$CTRL_INTERACTIVE" == 1 ]&&printf "BUILD STAT-DB     =%s\n" ${i}
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "STATCACHEDB:Creation required"
+
+	rm -f ${STATCACHEDB} 2>/dev/null
+
+   	printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "STATCACHEDB:add ENUMDB=${ENUMDB}"
+	cat ${ENUMDB}|resolveENUM >>${STATCACHEDB}
+    fi
+
+
+    if [ \
+	! -d  "${GRPSCACHEDB}" \
+        -o  "${_rebuildcache}" == "1" \
+	];then
+
+        setGroupsFeature
+
+	if [ ! -d "${GRPSCACHEDB}" ];then
+	    mkdir "${GRPSCACHEDB}"
+	fi
+
+	local _chkpath1=;
+	local _chk0=;
+	local _chk1=;
+
+        #expects clean target
+#	 `listGroupMembers DEEP`;
+	local _lx=`listGroupMembers`;
+        _lx=${_lx// /};
+        _lx=${_lx//\'/}; #' 4emacs
+        _lx=${_lx//\"/}; #" 4emacs
+        _lx=`echo ${_lx}|sed 's/([^)]*)//g'`
+
+	for _chk0 in $_lx;do
+	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_chk0=${_chk0}"
+ 	    local _grppath=${_chk0%%:*};_grp=${_grp## }
+ 	    local _grp=`basename ${_grppath}`
+# 	    local _lst=${_chk0##*:};_lst=${_lst//\}};_lst=${_lst//\{};_lst=${_lst//,/ };
+ 	    local _lst=;
+ 	    _lst=${_chk0##*:};
+            _lst=${_lst//\}/ };
+            _lst=${_lst//\{/ };
+            _lst=${_lst//,/ };
+
+	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_lst=${_lst}"
+	    for _chk1 in $_lst;do
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_chk1=${_chk1}"
+
+                #uses statcache
+		${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -M all -o machine ${_chk1}>>${GRPSCACHEDB}/${_grp}
+	    done
+            [ "$CTRL_INTERACTIVE" == 1 ]&&printf "BUILD GRP-DB      =%s\n" ${_grppath}
+	done
+    fi
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  vHostCost
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Cost is given for calculations of load distribution.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function vHostCost () {
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "Calculate target driven by COST."
+
+    #shift to array
+    idx=0;
+    declare -a RESULTARRAY
+    declare -a RESULTWEIGHT
+    RESULTLST_1=`for i in $RESULTLST;do echo $i;done|sort`
+
+
+    #call LIST on each host just once!
+    tmpHost0=;
+    for i in $RESULTLST_1;do
+	RESULTARRAY[$idx]=$i
+
+        #new index
+	tmpHost1=`echo $i|awk -F';' '{print $5}'`
+
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$tmpHost0 == $tmpHost1"
+	if [ "$tmpHost0" == "$tmpHost1" ];then 
+	    RESULTWEIGHT[$idx]=${RESULTWEIGHT[$((idx-1))]}
+	else
+	    RESULTWEIGHT[$idx]=`ctys -a LIST=MACHINE  -T ${CTYS_MULTITYPE} $tmpHost1 |wc -l`
+	    doDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE 
+	    if [ $? == 0 ];then
+		tmpCache1=`ctys -a LIST=MACHINE -T ${CTYS_MULTITYPE} $tmpHost1`
+		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "tmpCache1=${tmpCache1}"
+	    fi
+	fi
+	if [ "$CTRL_INTERACTIVE" == 1 ];then
+	    printf "RESULTWEIGHT[%03d]=%03d  $tmpHost1\n" $idx ${RESULTWEIGHT[$idx]}
+	fi
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$tmpHost1=RESULTARRAY[$idx]=${RESULTARRAY[$idx]}"
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$tmpHost1=RESULWEIGHT[$idx]=${RESULTWEIGHT[$idx]}"
+	tmpHost0=$tmpHost1
+	((idx++))
+    done
+
+
+    case $_cost in
+	maxcnt)
+	    maxIdx=0;
+	    maxWeight=0;
+	    for((i=0;i<idx;i++));do
+		if((RESULTWEIGHT[i]>maxWeight));then
+		    maxWeight=${RESULTWEIGHT[$i]};
+		    maxIdx=$i;
+		    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "maxIdx=$maxIdx=>$maxWeight"
+		    if [ "$CTRL_INTERACTIVE" == 1 ];then
+			echo  "delta maxIdx($maxIdx)=$maxWeight"
+		    fi
+		fi
+	    done
+	    if [ -n "$_ctysaddr" ];then
+		echo ${RESULTARRAY[$maxIdx]}|makeCtysAddr
+	    else
+		echo ${RESULTARRAY[$maxIdx]}
+	    fi
+	    ;;
+	mincnt)
+	    minIdx=0;
+	    minWeight=99999;
+	    for((i=0;i<idx;i++));do
+		if((RESULTWEIGHT[i]<minWeight));then
+		    minWeight=${RESULTWEIGHT[$i]};
+		    minIdx=$i;
+		    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "minIdx=$minIdx=>$minWeight"
+		    if [ "$CTRL_INTERACTIVE" == 1 ];then
+			echo  "delta minIdx($minIdx)=$minWeight"
+		    fi
+		fi
+	    done
+	    if [ -n "$_ctysaddr" ];then
+		echo ${RESULTARRAY[$minIdx]}|makeCtysAddr
+	    else
+		echo ${RESULTARRAY[$minIdx]}
+	    fi
+	    ;;
+	cnt)
+	    for((i=0;i<idx;i++));do
+		if [ -n "$_ctysaddr" ];then
+		    echo ${RESULTARRAY[$i]}|makeCtysAddr
+		else
+		    echo ${RESULTARRAY[$i]}
+		fi
+	    done
+	    ;;
+    esac
+
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  applyPreSelectionFilter
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function applyPreSelectionFilter () {
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "s=${*} -v t=$_tcp -v dns=$_dns -v m=$_mac -v ids=$_ids -v idd=$_idd"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-v u=$_uuid -v p=$_pm -v mt=$_mt -v o=$_os -v first=$_first"
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-v last=$_last -v all=$_all -v l=$_label -v rt=$_rttype -vd=$D "
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-v rs=$_rtscope -v mach=$_machine "
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-v user=${_user} -v mmap=$_macmap -v callp=${MYCALLPATH}" 
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-v interact=${CTRL_INTERACTIVE}"
+
+    local IFS="
+"
+
+    local DBIN=$1;shift
+
+    if [ "${_title}" == 1 -a "${_machine}" == 1 ];then
+	echo -n "ContainingMachine;SessionType;Label;ID;UUID;MAC"
+	echo ";TCP/IP;VNCAccessPort;VNCBasePort;VNCDisplay;Distribution;OS;VersionNr;SerialNr;Category"
+    fi
+
+    function inputFilter () {
+        local _final=$1;shift
+        if [ "$_final" == "1" ];then
+	    awk -F';' -v s="${*}" -v t=$_tcp -v dns=$_dns -v m=$_mac -v ids=$_ids -v idd=$_idd -v u=$_uuid \
+		-v p=$_pm -v mt=$_mt -v o=$_os -v first=$_first -v last=$_last -v all=$_all \
+		-v l=$_label -v rt=$_rttype -v rs=$_rtscope -v mach=$_machine \
+		-v d=$CTRL_VERBOSE -v user=${_user} -v mmap=$_macmap -v callp="${MYCALLPATH}" \
+                -v interact=${CTRL_INTERACTIVE} \
+		-f ${MYCALLPATH}/ctys-vhost-presel.awk \
+		|sed 's/; */;/g'
+	else
+	    awk -v s="${*}"  '$0~s{print $0;}'
+	fi
+    }
+
+    local _inargs=$*
+    local _init=1;
+    while [ -n "${*}" ];do
+        local _curArg=$1;shift
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Apply ergexpr=\"${_curArg}\""
+        if [ -n "${*}" ];then
+            #not last regexpr-filter
+            if [ -n "$_init" ];then
+		RESULTLST=`cat ${DBIN}|inputFilter 0 "${_curArg}"`
+		unset _init;
+	    else
+                local i1=;
+		local _RESULTLST=;
+		for i1 in ${RESULTLST};do
+		    _RESULTLST="${_RESULTLST:+$_RESULTLST
+}"`echo ${i1}|inputFilter 0 "${_curArg}"`
+		done
+		RESULTLST="${_RESULTLST}"
+	    fi
+	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "RESULT=-->\"$RESULTLST\"<--"
+	else
+            #last regexpr-filter
+            if [ -n "$_init" ];then
+		RESULTLST=`cat ${DBIN}|inputFilter 1 "${_curArg}"`
+		unset _init;
+	    else
+                local i1=;
+		local _RESULTLST=;
+		for i1 in ${RESULTLST};do
+		    _RESULTLST="${_RESULTLST:+$_RESULTLST
+}"`echo ${i1}|inputFilter 1 "${_curArg}"`
+		done
+		RESULTLST="${_RESULTLST}"
+	    fi
+	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "RESULT=-->\"$RESULTLST\"<--"
+	fi
+    done
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "RESULT-NO-RTSTATE=-->\"$RESULTLST\"<--"
+
+    #to do this for chained filter args
+    if [ "$_first" == "1" ];then
+	for i1 in ${RESULTLST};do _RESULTLST="${i1}";break;done
+	RESULTLST="${_RESULTLST}"
+    fi
+    [ "$_last" == "1" ]&&RESULTLST=${RESULTLST##*
+}
+
+
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "RESULT-NO-RTSTATE=-->\"$RESULTLST\"<--"
+
+    local _OUT=;
+    local _VM=;
+    local _PM=;
+    local _pos=;
+    local _RESULTLST=;
+
+    if [ "$_rttype" != 0 ];then
+      for i in $RESULTLST;do
+        _OUT=${i##*#@#}
+        _VM=${i%#@#*}
+        _PM=${_VM#*@}
+        _VM=${_VM%@*}
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "PM=$_PM"
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "VM=$_VM"
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "OUT=$_OUT"
+        if [ "$_rtscope" == 2 ];then
+            _pos=`${MYCALLPATH}/ctys -t vmw -a list=MACHINE,server $_PM|grep $_VM`
+	    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$_pos"
+            if [ -n "$_pos" ];then
+		printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$_OUT"
+		_RESULTLST="${_RESULTLST} ${_OUT}"
+            fi
+        else
+	    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$_pos"
+	    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$_OUT"
+	    _RESULTLST="${_RESULTLST} ${_OUT}"
+	fi
+      done
+      RESULTLST="${_RESULTLST}"
+    fi
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "RESULT=-->\"$RESULTLST\"<--"
+}
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  makeCtysAddr
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Generates a complete ctys <machine-address> from a given "ENUMERATE"
+#  string.
+#
+#  Currently not usabele as a standalone library function!
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function makeCtysAddr () {
+    if((_tcp+_mac+_ids+_uuid+_label==0));then
+	_ids=1;
+    fi
+    awk -F';' -v t=$_tcp -v m=$_mac -v ids=$_ids -v idd=$_idd -v u=$_uuid \
+	-v p=$_pm  \
+	-v l=$_label -v rt=$_rttype -v rs=$_rtscope -v mach=$_machine \
+	-v d=$D -v user=${_user} \
+	-f ${MYCALLPATH}/ctys-vhost-maddr.awk
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  useMacMapOnly
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Works on macmap.fdb only.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function useMacMapOnly () {
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=<${*}>"
+    local curMacMap=${1}/macmap.fdb;shift
+    local argLst=$*;shift
+    if [ -f "${curMacMap}" ];then
+	awk -F';' -v s="${argLst}" -v t=$_tcp -v m=$_mac -v dns=$_dns \
+ 	    -v first=$_first -v last=$_last -v all=$_all \
+	    -v rt=$_rttype -v rs=$_rtscope -v mach=$_machine \
+            -v d=$CTRL_VERBOSE  -v w=$CTRL_WARNING  \
+    	    -f ${MYCALLPATH}/ctys-vhost-macmap.awk "${curMacMap}"
+        return 
+    fi
+    return 1
+}
+
+###########################################################
+###########################################################
+
+
+#controls debugging for awk-scripts
+doDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE
+D=$?
+
+printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=<${*}>"
+
+_args=$*;
+#avoid array-detection for <machine-addr> input.
+if [ "${*}" != "${*//-i/}" ];then
+    #Ok, input format is defined, seems to be <machine-addr>
+    #Yes, that's the trick!
+    #Using just nested matching for resolution!
+    _args="${*//[/ }"
+    _args="${_args//]/ }"
+fi
+
+myFetchOptions ${_args:-*}
+
+
+#basic check for setup db
+DBPATHLST=${DBPATHLST:-$DEFAULT_DBPATHLST}
+if [ -z "$DBPATHLST" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "At least default for DB-file required."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Usega:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  prio1: -> \"-p <db-dir-path>\""
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  prio2: -> export DEFAULT_DBPATHLST=..."
+    gotoHell ${ABORT}
+fi
+
+
+################################
+#
+#match MAC-MAP only
+#
+#
+if [ "$_macmaponly" == "1" -o "$_macmaponlytrial" == 1 ];then
+    for i in ${DBPATHLST//:/ };do
+	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Check MACMAP=${i}"
+	useMacMapOnly "${i}" ${_arglst}
+        if [ $? -eq 0 ];then gotoHell 0;fi
+    done
+    if [ "$_macmaponly" == "1" ];then
+	gotoHell 0
+    fi
+fi
+
+
+
+################################
+#
+#check databases and caches
+#
+#
+[ "$CTRL_INTERACTIVE" == 1 ]&&printf "START R-Methods\n"
+#static data: check each source DB-Directory 
+for i in ${DBPATHLST//:/ };do
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Check STATCACHE=${i}"
+    checkStatCacheDB "${i}"
+done
+
+
+[ "$CTRL_INTERACTIVE" == 1 ]&&printf "START R/W-Methods\n"
+#runtime data: prepare cache
+if [ "$_keepRTCache" == "0" -a "$_keepAll" == "0" ];then
+    [ "$CTRL_INTERACTIVE" == 1 ]&&printf "RM RTCACHE        =%s\n" ${RTCACHEDB}
+    rm -f ${RTCACHEDB} 2>/dev/null
+else
+    [ "$CTRL_INTERACTIVE" == 1 ]&&printf "KEEPRTCACHE       =%s\n" ${RTCACHEDB}
+fi
+for i in ${DBPATHLST//:/ };do
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Prepare STATCACHE=${i}"
+    buildStatCacheDB "${i}"
+done
+
+
+
+
+################################
+#
+#prepare regexpr-subset
+#
+#
+
+#compromise: runtime performance and some "structure"
+#            RESULTLST is the one and only "data-bus"
+if [ "${DBPATHLST}" != "${DBPATHLST//:/ }" ];then
+  MULTIDB=1
+  _COLLECT=;
+fi
+
+for _db in ${DBPATHLST//:/ };do
+    if [ "${_cacheoff}" == 1 ];then
+	DBWORK="${_db}/enum.fdb"
+    else
+	DBWORK="${_db}/${MYCALLNAME}.statcache.cdb"
+    fi
+    applyPreSelectionFilter "${DBWORK}" ${_arglst}
+    if [ -n "${MULTIDB}" ];then
+	_COLLECT="${_COLLECT:+$_COLLECT
+}${RESULTLST}"
+    fi
+done
+
+if [ -n "${MULTIDB}" ];then
+    RESULTLST="${_COLLECT}"
+fi
+
+
+################################
+#
+#Is load to be calculated?
+#
+# ->ATTENTION: Display format could be exceptional divergent(namely for load-display:CNT),
+#              when selected, vHostCost will not return!
+#
+if [ "$_cost" == 1 ];then
+    vHostCost
+fi
+
+
+
+
+
+################################
+#
+#FINAL: OK that's it.
+#
+IFS="
+"
+for i in $RESULTLST;do
+    if [ -n "$_ctysaddr" ];then
+	echo $i|makeCtysAddr
+    else
+	echo $i
+    fi
+done
+
+if [ "$_keepRTCache" == "0" -a "$_keepAll" == "0" ];then
+    rm -f ${RTCACHEDB} 2>/dev/null
+else
+    if [ "$CTRL_INTERACTIVE" == 1 ];then
+	printf "KEEPRTCACHE       =%s\n" ${RTCACHEDB}
+	printf "RESULTWEIGHT[%03d]=%03d  $tmpHost1\n" $idx ${RESULTWEIGHT[$idx]}
+    fi
+fi
+gotoHell 0
+

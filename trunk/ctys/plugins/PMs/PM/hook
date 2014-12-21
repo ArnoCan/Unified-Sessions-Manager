@@ -1,0 +1,462 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+#PM generic default parameters, will be reset in setVersionPM
+PM_MAGIC=PM_GENERIC
+PM_VERSTRING=;
+PM_STATE=DISABLED
+PM_DEFAULTOPTS=;
+PM_PREREQ=;
+
+
+
+_myPKGNAME_PM="${BASH_SOURCE}"
+_myPKGVERS_PM="01.01.001a02"
+hookInfoAdd $_myPKGNAME_PM $_myPKGVERS_PM
+
+_myPKGBASE_PM="`dirname ${_myPKGNAME_PM}`"
+_BASE_PM="${_myPKGBASE_PM}hook"
+
+
+#Exe-File(common for client and server): vmplayer or vmware
+_CALLEXE=;
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/pm" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/pm/linux.conf" ];then
+	. "${HOME}/.ctys/pm/linux.conf"
+    fi
+
+    #Source pre-set environment from installation 
+    if [ -f "${MYCONFPATH}/pm/linux.conf" ];then
+	. "${MYCONFPATH}/pm/linux.conf"
+    fi
+fi
+
+#FUNCBEG###############################################################
+#NAME:
+#  serverRequirePM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a server component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function serverRequirePM () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/ServerOnly/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+        #check for consoles, which are one decisive for component location
+	local _myConsole=;
+	[ "${*}" != "${*//:[cC][lL][iI]}" ]&&_myConsole=CLI
+	[ "${*}" != "${*//:[gG][tT][eE][rR][mM]}" ]&&_myConsole=GTERM
+	[ "${*}" != "${*//:[xX][tT][eE][rR][mM]}" ]&&_myConsole=XTERM
+	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+
+	case $_A in 
+ 	    CONNECT)
+		case $_myConsole in
+		    CLI|GTERM|XTERM)
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L ConnectionForwarding"
+			gotoHell ${ABORT}
+			;;
+		    VNC)
+			_res=;_ret=1;
+			;;
+		    *)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume false:$_myConsole for $_A "
+			_res=;_ret=1;
+			;;
+		esac
+		;;
+ 	    CREATE)  
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L ConnectionForwarding"
+		gotoHell ${ABORT}
+		;;
+	esac
+    else
+ 	_res="${*}";_ret=0;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientRequirePM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Reports whether a client component has to be called for the current
+#  action.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $*: ${EXECCALL}|<options-list>
+#     Generally a string containing an <options-list>, where the
+#     first match is choosen. So only one type option is allowed to
+#     be contained.
+#
+#OUTPUT:
+#  RETURN:
+#    INPUT, where required changes for destination are set.
+#  VALUES:
+#    0: true, required - output is valid.
+#    1: false, not required - output is not valid.
+#
+#FUNCEND###############################################################
+function clientRequirePM () {
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/1/p;s/LocalOnly/1/p;s/ClientOnly/1/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    local _ret=1;
+    local _res=;
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    #if split not supported server only could be used
+    if [ -n "${_CS_SPLIT}" ];then
+        #check for consoles, which are one decisive for component location
+	local _myConsole=;
+	[ "${*}" != "${*//:[cC][lL][iI]}" ]&&_myConsole=CLI
+	[ "${*}" != "${*//:[gG][tT][eE][rR][mM]}" ]&&_myConsole=GTERM
+	[ "${*}" != "${*//:[xX][tT][eE][rR][mM]}" ]&&_myConsole=XTERM
+	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+
+	case $_A in 
+ 	    CONNECT)
+		case $_myConsole in
+		    CLI|GTERM|XTERM)
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L ConnectionForwarding"
+			gotoHell ${ABORT}
+			;;
+		    VNC)
+			_res=${*};_ret=0;
+			;;
+		    *)
+			printWNG $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			_res=${*};_ret=0;
+			;;
+		esac
+		;;
+ 	    CREATE)  
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L ConnectionForwarding"
+		gotoHell ${ABORT}
+		;;
+	esac
+    else
+ 	_res=;_ret=1;
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    echo -n "${_res}";
+    return ${_ret};  
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  setVersionPM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets the version of the OS on top of PM, which is in this case PM.
+#  It will be tried to stay generic as long as possible, probably by support
+#  of some minor "ifdef"-style.
+#
+#  Anyhow, the preferred PM platform is CentOS, mainly 5+, but 4.4+ 
+#  will be supported too. RHEL should work too, is a sympathic target too,
+#  of course.
+#
+#  OpenSuSE, and some legacy versions are in the range, because of using
+#  SuSE PM almost from the first days on(since about 1992-93?, version 0.?).
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  GLOBALS:
+#
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function setVersionPM () {
+    local _checkonly=;
+    if [ "$1" == "NOEXIT" ];then
+	local _checkonly=1;        
+    fi
+
+    PM_PREREQ="MYOS=${MYOS} MYOSREL=${MYOSREL} MYDIST=${MYDIST} MYREL=${MYREL}";
+    local _PMCONF=/etc/ctys.d/pm.conf
+    if [ -f "${_PMCONF}" ];then
+	PM_PREREQ="${PM_PREREQ} PMCONF=\"${_PMCONF}\"";
+    else
+	PM_PREREQ="${PM_PREREQ} <Missing:PMCONF=\"${_PMCONF}\"=>call:ctys-genmconf>";
+    fi
+
+    PM_VERSTRING="${MYDIST}(localhost)";
+    PM_DEFAULTOPTS=;
+
+    case ${MYOS} in
+	Linux)
+	    PM_MAGIC=PM_Linux;
+	    PM_STATE=ENABLED
+	    ;;
+	OpenBSD)
+	    PM_MAGIC=PM_OpenBSD;
+	    PM_STATE=ENABLED
+	    ;;
+	*)
+	    PM_MAGIC=NO_LOC
+	    ABORT=1;
+	    if [ "${CTRL_SESSIONTYPE}" == "PM" -a -z "${_checkonly}" ];then
+		gotoHell ${ABORT}
+	    else
+		return ${ABORT}
+	    fi
+	    ;;
+    esac
+
+    return
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  clientServerSplitSupportedPM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether the split of client and server is supported.
+#  This is just a hardcoded attribute and controls the application 
+#  matrix of following attribute values of option "-L" locality:
+#
+#   - ConnectionForwarding
+#   - DisplayForwarding
+#   - ServerOnly
+#   - LocalOnly
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: If supported
+#    1: else
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function clientServerSplitSupportedPM () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME $1"
+    case $1 in
+	CREATE)return 0;;
+	CANCEL)return 0;;
+#	SHIFT)return 0;;
+    esac
+    return 1;
+}
+
+
+#
+#Managed load of sub-packages which are required in almost any case.
+#On-demand-loads will be performed within requesting action.
+#
+hookPackage "${_myPKGBASE_PM}/session"
+hookPackage "${_myPKGBASE_PM}/enumerate"
+hookPackage "${_myPKGBASE_PM}/list"
+hookPackage "${_myPKGBASE_PM}/info"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  handlePM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Main dispatcher for current plugin. It manages specific actions and
+#  context-specific sets of suboptions.
+#
+#  It has to follow defined interfaces for main framework, due its dynamic
+#  detection, load, and initialization.
+#  Anything works by naming convention, for files, directories, and function 
+#  names so don't alter it.
+#
+#  Arbitrary subpackages could be defined and chained-loaded. This is due 
+#  design decision of plugin developers. Just the entry point is fixed by 
+#  common framework.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function handlePM () {
+  printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
+  local OPMODE=$1;shift
+  local ACTION=$1;shift
+
+  if [ "${MYOS}" != Linux ];then
+      printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:OS not supported by PM:\"${MYOS}\""
+      return
+  fi
+
+  case ${ACTION} in
+      CREATE) 
+          hookPackage "${_myPKGBASE_PM}/create"
+          createConnectPM ${OPMODE} ${ACTION} 
+	  ;;
+
+      CANCEL)
+          #Be careful with that axe Eugene...
+          hookPackage "${_myPKGBASE_PM}/cancel"
+          cutCancelSessionPM ${OPMODE} ${ACTION} 
+          ;;
+
+      GETCLIENTPORT)#seperate as reminder
+          ABORT=1;
+          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected PM:OPMODE=${OPMODE} ACTION=${ACTION}"
+	  gotoHell ${ABORT}
+          ;;
+
+      *)
+          ABORT=1;
+          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected PM:OPMODE=${OPMODE} ACTION=${ACTION}"
+	  gotoHell ${ABORT}
+          ;;
+  esac
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initPM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initPM () {
+  local _curInit=$1;shift
+  local _initConsequences=$1
+  local ret=0;
+
+  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $BASH_SOURCE "$FUNCNAME ${_curInit}"
+
+  case $_curInit in
+      0);;#NOP - Done by shell
+      1)
+          #adjust version specifics  
+          setVersionPM $_initConsequences
+          ret=$?
+
+          #add own help to searchlist for options
+	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/PMs/PM/help/${MYLANG}/*_PM"
+	  ;;
+      2);;#Curently nothing todo.
+      3);;#Curently nothing todo.
+      4);;#Curently nothing todo.
+      5);;#Curently nothing todo.
+  esac
+
+  return $ret
+}

@@ -1,0 +1,46 @@
+#FUNCBEG###############################################################
+#NAME:
+#  getCurDistribution
+#
+#TYPE:
+#  generic-script
+#
+#DESCRIPTION:
+#  Used during bootstrap of each call to get current distribution.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+
+CALLDIR=`dirname $0`
+
+CUROS=`${CALLDIR}/getCurOS`
+CURDIST=;
+case $CUROS in
+  Linux) 
+        #Tested for CentOS 5 + SuSE 9.3
+        #Might work for more ...
+	ls /etc/*-release 2>&1 >/dev/null
+	if [ $? -eq 0  ];then
+	  CURDIST=`cat /etc/*-release|head -n 1|awk '{print $1;}'`
+        else
+	  CURDIST="${CUROS}-Linux"
+        fi
+	;;
+  OpenBSD)
+	CURDIST="${CUROS}"
+	;;
+  *)
+	CURDIST="${CUROS}-generic"
+        ;;
+esac
+[ -n "$_DBG_" ]&&echo "CURDIST=${CURDIST}" >&2
+
+
+echo -n ${CURDIST}

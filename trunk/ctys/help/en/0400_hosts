@@ -1,0 +1,83 @@
+
+  4. HOSTs-Sessions - Access to running OSs
+  =========================================
+
+   Host sessions are simple sessions to running instance of an
+   OS. Therfore no seperate VM needs to be started. A HOSTs session is
+   an ordinary login with some additional processes started as
+   required.
+
+   The available standard HOSTs sessions are CLI, X11, and VNC. 
+
+   All of these are supported to be accessed via a SSH encryption
+   only. Due to standardisation no specific parameters are supported,
+   but a seperate ssh-call is performed. The callee is executed by the
+   ssh encapsulation.
+
+
+   4.1. Command Line Access - CLI
+   ==============================
+
+     This supports a command line interface, which is natively
+     executed within the calling terminal, no new window is required,
+     nor supported. Addional command execution is supported by
+     specific suboptions.
+
+     Thus this plugin supports for interactive sessions synchronous
+     execution only, even though it is principally possible to use it
+     asynchronously.
+
+     The execution of remote commands by CLI could be performed more
+     senceful, when the intermixin of output is not a drawback.
+
+     The particular advantage is the usability from ASC-II terminals
+     only, which do not support a graphical user interface.
+
+     Therefore no graphic option is applicable for CLI, thus the type
+     of forwarding is not relevant here.
+
+     The onyl supported connection type is an encrypted ssh
+     connection, thus the CLI module is more ore less an ssh
+     connection with additional ctys-addressing capabilities.
+
+
+   4.2. Start a GUI application - X11
+   ==================================
+
+     The X11 application supoports the stat of GUI applications. Therefore 
+     any command could be provided and will be executed on the provided 
+     execution target.
+
+     Due to the stateful operations of X11 client and server
+     architecture "DisplayForwarding" is the only supported operational
+     mode.
+
+     The asynchronous execution mode is the applied standard.
+
+     The only supported connection type is an encrypted SSH channel
+     with local access of X11 protocol only. Thus with the usage of
+     ctys any X11 connection becomes a secure remote connection with
+     encryption provided by ssh.
+
+
+   4.3. Open a complete remote Desktop - VNC
+   =========================================
+
+     Another and meanwhile one of the most important remote execution
+     facility is the VNC package. Which consists of a protocol
+     definition and the implementing tools.
+
+     This is important to recognise, due to the wide support of a so
+     called VNCserver interface of VMs, where the attached console is
+     the client component of one of the VNC packages only.
+
+     Due to the splitted client and server components this plugin
+     supports "DisplayForwarding" and "ConnectionForwarding". It could
+     be used in this manner in combination with any supporting VM.
+
+     Therefore encrypted connections are supported only. Due to the
+     standards and design of internal libaries for automatic
+     etsablishment of tunnels the OpenSSH package is supported
+     only. Specific options of some packages are not used, even though
+     they are just a wrapper for an SSH call.
+

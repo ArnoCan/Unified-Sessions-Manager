@@ -1,0 +1,405 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_CLI_CREATE="${BASH_SOURCE}"
+_myPKGVERS_CLI_CREATE="01.01.001a01"
+hookInfoAdd $_myPKGNAME_CLI_CREATE $_myPKGVERS_CLI_CREATE
+_myPKGBASE_CLI_CREATE="`dirname ${_myPKGNAME_CLI_CREATE}`"
+
+_CLI_CREATE="${_myPKGNAME_CLI_CREATE}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  createConnectCLI
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Creates a session and/or connects to the server.
+#  
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function createConnectCLI () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "${FUNCNAME}:$*"
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
+
+    function chkCtysVhost () {
+	if [ $1 != 0 ];then
+	    printERR $LINENO $_LINUX_CREATE ${ABORT} "ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} exit with error:$ret"
+ 	    gotoHell ${1}
+	fi
+    }
+
+    local i;
+    local A;
+
+    case ${OPMODE} in
+	CHECKPARAM)
+            #
+            #Just check syntax drafts, the expansion of labels etc. could just be
+            #expanded on target machine.
+            #
+            if [ -n "$CTRL_MODE_ARGS" ];then
+		A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "CLI($A)"
+
+                #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		local _unambig=0;
+		local _unambigCON=0;
+		for i in $A;do
+		    KEY=`echo ${i}|awk -F':' '{print $1}'|tr '[:lower:]' '[:upper:]'`
+		    ARG=`echo ${i}|awk -F':' '{print $2}'|sed 's/%/ /g'`
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "KEY=${KEY}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "ARG=${ARG}"
+
+                    #handle keywords
+                    if [ -n "${ARG}" \
+			-o -z "${ARG}" \
+			-a \( \
+                          "${KEY}" == "PSEUDOTTY"  \
+	  		  -o "${KEY}" == "NOCACHE" \
+			  -o "${KEY}" == "NOPOLL" \
+                        \) \
+			];then
+			case $KEY in
+			    PSEUDOTTY|PTTY)
+				CTRL_SSHPSEUDOTTY=$((CTRL_SSHPSEUDOTTY++));
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "set:CTRL_SSHPSEUDOTTY=${CTRL_SSHPSEUDOTTY}"
+				;;
+
+			    SHELL|S)
+                                local _shell="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "SHELL=$_shell"
+				;;
+			    CMD)
+                                local _cmd="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "CMD=$_cmd"
+				;;
+
+
+                          #####################
+                          # <call-arguments>  #
+                          #####################
+			    CALLOPTS|C)
+				local _callopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "CALLOPTS=${_callopts}"
+				;;
+			    XOPTS|X)
+				local _xopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "XTOOLKITOPTS=${_xopts}"
+				;;
+
+
+                          #####################
+                          # <machine-address> #
+                          #####################
+			    NOCACHE)
+				local _cache=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOCACHE not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				;;
+			    NOPOLL)
+				local _poll=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOPOLL not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				;;
+
+
+
+
+
+# 			    BASEPATH|BASE|B)
+# 				local _base="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "BASE=${_base}"
+# 				;;
+
+# 			    TCP|T)
+# 				local _tcp="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "TCP=${_tcp}"
+# 				let _unambig+=1;
+# 				;;
+# 			    MAC|M)
+# 				local _mac="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "MAC=${_mac}"
+# 				let _unambig+=1;
+# 				;;
+# 			    UUID|U)
+# 				local _uuid="${ARG}";
+#  				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "UUID=${_uuid}"
+# 				let _unambig+=1;
+# 				;;
+			    LABEL|L)
+				local _label="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "LABEL=${_label}"
+				let _unambig+=1;
+				;;
+# 			    FILENAME|FNAME|F)
+# 				local _fname="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "FILENAME=${_fname}"
+# 				let _unambig++;
+# 				;;
+# 			    ID:I)
+# 				local _id="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "ID=${_id}"
+# 				local _idgiven=1;
+# 				;;
+# 			    PATHNAME|PNAME|P)
+# 				if [ -n "${ARG##/*}" ]; then
+# 				    ABORT=1;
+# 				    printERR $LINENO $_CLI_CREATE ${ABORT} "PNAME has to be an absolute path, use fname else."
+# 				    printERR $LINENO $_CLI_CREATE ${ABORT} " PNAME=${ARG}"
+#  				    gotoHell ${ABORT}
+# 				fi
+# 				local _pgiven=1;
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "PATHNAME=${ARG}"
+# 				;;
+
+			    *)
+				ABORT=1;
+				printERR $LINENO $_CLI_CREATE ${ABORT} "Unknown sub-opts for CLI:${KEY}"
+				printERR $LINENO $_CLI_CREATE ${ABORT} "Allowed values: REUSE - base|b - label|l - fname|f - pname|p"
+ 				gotoHell ${ABORT}
+				;;
+			esac
+                    else
+			ABORT=1;
+			printERR $LINENO $_CLI_CREATE ${ABORT} "Erroneous KEY:<${KEY}>"
+ 			printERR $LINENO $_CLI_CREATE ${ABORT} "  Required syntax :<KEY>:<ARG>";
+ 			printERR $LINENO $_CLI_CREATE ${ABORT} "  Given systax    :<${KEY}>:<${ARG}>";
+ 			gotoHell ${ABORT}               
+		    fi
+		done
+	    fi
+            #Eas later procesing by simple key, else not really required.
+	    if [ -z "${_label}" ];then
+		ABORT=1;
+		printERR $LINENO $_CLI_CREATE ${ABORT} "Missing mandatory parameter:\"LABEL\""
+ 		gotoHell ${ABORT}               
+	    fi
+	    ;;
+
+	ACTION)
+	    if [ -n "${R_TEXT}" ];then
+		echo "${R_TEXT}"
+	    fi
+	    if [ -z "${CTRL_EXECLOCAL}" ];then
+		assembleExeccall
+	    else
+                #
+                #Doing local semantical correctness evaluation now.
+                #
+		if [ -n "$CTRL_MODE_ARGS" ];then
+		    A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "CLI($A)"
+
+                    #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		    local _unambig=0;
+		    for i in $A;do
+			KEY=`echo ${i}|awk -F':' '{print $1}'|tr '[:lower:]' '[:upper:]'`
+  			ARG=`echo ${i}|awk -F':' '{print $2}'|sed 's/%/ /g'`
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "KEY=${KEY}";
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "ARG=${ARG}";
+
+			if [ -n "${ARG}" \
+			    -a \( \
+                                 "${KEY}" == "PSEUDOTTY"  \
+	  		         -o "${KEY}" == "NOCACHE" \
+			         -o "${KEY}" == "NOPOLL" \
+                            \) \
+			    ];then
+			    case $KEY in
+				PSEUDOTTY|PTTY)
+				    CTRL_SSHPSEUDOTTY=$((CTRL_SSHPSEUDOTTY++));
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "set:CTRL_SSHPSEUDOTTY=${CTRL_SSHPSEUDOTTY}"
+				    ;;
+
+				SHELL|S)
+                                    local _shell="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "SHELL=$_shell"
+				    ;;
+				CMD)
+                                    local _cmd="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "CMD=$_cmd"
+				    ;;
+
+
+
+                          #####################
+                          # <call-arguments>  #
+                          #####################
+				CALLOPTS|C)
+				    local _callopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "CALLOPTS=${_callopts}"
+                                    CTRL_SESSIONIDARGS="${_callopts}"
+				    ;;
+				XOPTS|X)
+				    local _xopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "XTOOLKITOPTS=${_xopts}"
+                                    CTRL_XTOOLKITOPTS="${_xopts}"
+				    ;;
+
+
+
+                          #####################
+                          # <machine-address> #
+                          #####################
+				NOCACHE)
+				    local _cache=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				    ;;
+				NOPOLL)
+				    local _poll=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				    ;;
+
+
+				BASEPATH|BASE|B)
+                                  #can be checked now
+                                    local _base="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "BASE=${_base}"
+                                    for i in ${_base//\%/ };do
+					if [ ! -d "${i}" ];then
+					    ABORT=1;
+					    printERR $LINENO $_CLI_CREATE ${ABORT} "Missing given base-path";
+					    printERR $LINENO $_CLI_CREATE ${ABORT} "  i  = ${i}";
+					    printERR $LINENO $_CLI_CREATE ${ABORT} "  PWD= ${PWD}";
+					    printERR $LINENO $_CLI_CREATE ${ABORT} "Check your actual PWD when providing a relative base-path";
+ 					    gotoHell ${ABORT};
+					fi
+				    done
+				    ;;
+
+				TCP|T)
+				    local _tcp="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "TCP=${_tcp}"
+				    ;;
+				MAC)
+				    local _mac="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "MAC=${_mac}"
+				    ;;
+				UUID|U)
+				    local _uuid="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "UUID=${_uuid}"
+				    ;;
+
+				LABEL|L)
+                                    local _label="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "LABEL=${_label}"
+				    ;;
+				FILENAME|FNAME|F)
+                                    local _fname="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "FILENAME=${_fname}"
+				    ;;
+				ID)
+                                    local _id="${ARG}";
+                                    if [ -n "${_id}" ];then
+					ABORT=1;
+					printERR $LINENO $_CLI_CREATE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "  ID(1)=${_pname}"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "  ID(2)=${ARG}"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "Will be extended soon."
+ 					gotoHell ${ABORT}
+                                    fi
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "ID=${_id}"
+				    ;;
+				PATHNAME|PNAME|P)
+                                    if [ -n "${_pname}" ];then
+					ABORT=1;
+					printERR $LINENO $_CLI_CREATE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "  PNAME(1)=${_pname}"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "  PNAME(2)=${ARG}"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "Will be extended soon."
+ 					gotoHell ${ABORT}
+                                    fi
+                                    if [ ! -f "${ARG}" ];then
+					ABORT=1;
+					printERR $LINENO $_CLI_CREATE ${ABORT} "Missing given file or access permission for ID/PNAME"
+					printERR $LINENO $_CLI_CREATE ${ABORT} "  PNAME=${ARG}"
+ 					gotoHell ${ABORT}
+                                    fi
+                                    local _pname="${_pname:+$_pname|}${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "RANGE:PATHNAME=${_pname}"
+				    ;;
+
+
+				*)
+				    ABORT=1;
+				    printERR $LINENO $_CLI_CREATE ${ABORT} "Unexpected sub-opts for CLI:${KEY}"
+ 				    gotoHell ${ABORT}
+				    ;;
+			    esac
+			fi
+		    done
+		    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_CLI_CREATE "CombineParamaters"
+		else
+		    local stripDummy=;
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "No user supplied parameters - set defaults"
+		fi
+
+                #evaluate the actual task
+		local _mytask=;
+                if [ -z "${_cmd}" ];then
+		    _mytask="${_shell:-$CLI_SHELL_DEFAULT}"
+		else
+		    _mytask="${_shell:-$CLI_SHELL_CMD_DEFAULT} \"${_cmd}\""
+		fi
+
+                case "${CTRL_CLIENTLOCATION#-L }" in
+		    LocalOnly|DisplayForwarding)
+                        if [ -z "${_label}" ];then
+                            _label="DEFAULT-${DATETIME}"
+                        fi
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE "startSessionCLI \"${_label}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE " ->\"${_label}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE " ->\"${_mytask}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE " ->\"${_callopts}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_CLI_CREATE " ->\"${_xopts}\""
+
+                        startSessionCLI "${_label}"  "${_mytask} ${_callopts}" "${_xopts}"
+			gotoHell 0
+			;;
+
+		    ConnectionForwarding|*)
+			ABORT=1
+			printERR $LINENO $_CLI_CREATE ${ABORT} "Execution locality error:${CTRL_CLIENTLOCATION}"
+			gotoHell ${ABORT}
+			;;
+		esac
+	    fi
+	    ;;
+    esac
+
+}
+
+

@@ -1,0 +1,207 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_VMW_LIST="${BASH_SOURCE}"
+_myPKGVERS_VMW_LIST="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VMW_LIST $_myPKGVERS_VMW_LIST
+_myPKGBASE_VMW_LIST="`dirname ${_myPKGNAME_VMW_LIST}`"
+
+_VMW_LIST="${_myPKGNAME_VMW_LIST}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessionsVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists all VMW sessions.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: C|S|B
+#     determines the filter to be applied.
+#     C: clients
+#     S: servers
+#     B: both
+# $2: 1=MACHINE|0=HUMAN
+# $*: FULLPATH|UUID
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function listMySessionsVMW () {
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_LIST "$FUNCNAME <$*>"
+    local _site=$1;shift
+    local _machine=$1;shift
+
+    #controls debugging for awk-scripts
+    doDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST
+    local D=$?
+
+    #controls marker for subtype, will be used for LIST-ACTION results:
+    #current possible:
+    #  S<version>: VMware-server
+    #              version{1}
+    #  W<version>: VMware-workstation
+    #              version{6}
+    #  P<version>: VMware-player
+    #              version{1}
+    local SUBTYPE=;
+
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_LIST "$FUNCNAME $_site <$*>"
+#    if [ "${CTRL_SESSIONTYPE}" != "VMW" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
+    if [ "${CTRL_SESSIONTYPE}" != "VMW" -a "${CTRL_SESSIONTYPE}" != "ALL" -a "${CTRL_SESSIONTYPE}" != "DEFAULT" ];then 
+        ABORT=2
+        printERR $LINENO $_VMW_LIST ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        gotoHell ${ABORT}
+    fi
+
+    local _U=`echo $*|sed -n 's/^.* *UUID *.*$/1/p'`
+
+    local _F=`echo $*|sed -n 's/^.* *FULLPATH *.*$/1/p'`
+    #Seems OK for now: supports VMware-WS + VMware-Server.
+    #When errors occur, first check changes for their process-call-structure!
+    #
+    #Some former trials as reminder
+    #
+    # Old production version, 
+    # -> OK        for VMware-Server-1.0.x and VMware-WS-5.x, 
+    # -> NOT OK    for VMware-WS-6.0:
+    #
+    #   _SESLST=`listProcesses|grep '.vmx '|grep -v grep`
+    #
+    # Intermediary restriction on own wrapper:
+    # Fixing on own wrapper and beeing blind for rest Is not what is intended!
+    #
+    #   _SESLST=`listProcesses|awk '/'${MYCALLNAME}'/{print $0;}'|grep '.vmx '|grep -v grep`
+    #
+    # Currently that's it:
+
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "VMW_MAGIC  =${VMW_MAGIC}"
+    local CLIENTLST=;
+    local SERVERLST=;
+
+    #
+    #Now normalize versions CLI from 'ps' call within listProcesses
+    #
+    #Format:
+    #
+    #  <UNIX process parameters> <vmx-filepath> [<label>]
+    #
+    #  => <UNIX process parameters> = "<uid> <pid> <ppid> <c> <stime> <tty> <time>"
+    # 
+
+    # 
+    #  "<uid> <pid> <ppid> <c> <stime> <tty> <time> <vmx-filepath> <label> <uuid> <mac> <disp> <cport> <sport>"
+    #    $1     $2    $3    $4   $5      $6   $7         $8           $9    $10    $11   $12     $13     $14
+    #
+    #
+    #REMARK:
+    #  For the client processes the parameters <label=displayName> and <uuid=uuid.bios>
+    #  from the vmx-file are passed to the CLI when building the EXECCALL.
+    #  This has particularly in case of ConnectionForwarding the advantage, that later 
+    #  no additional remote access is required.
+    #
+    case ${VMW_MAGIC} in
+	VMW_P1*)
+	    if [ "${_site}" == S -o "${_site}" == B ];then
+                #for S103 the "-s displayName=..." is NOT passed after fork to the backend, 
+                #so fetch LABEL and UUID from file - if permissions set.
+		SERVERLST=`listProcesses|sed -n 's/\(.*\)  *\/[^ ]*vmware-vmx *-@ *[^ ]* *\([^ ]*\)/\1 \2/p'`
+	    fi
+	    if [ "${_site}" == C -o "${_site}" == B ];then
+		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -v machine="$_machine" -f ${_myPKGBASE_VMW}/clientlst01p.awk`
+	    fi
+            SUBTYPE=P1;
+  	    ;;
+	VMW_S1*)
+	    if [ "${_site}" == S -o "${_site}" == B ];then
+                #for S103 the "-s displayName=..." is NOT passed after fork to the backend, 
+                #so fetch LABEL and UUID from file - if permissions set.
+		SERVERLST=`listProcesses|sed -n 's/\(.*\)  *\/[^ ]*vmware-vmx *-C *\([^ ]*\) .*/\1 \2/p'`
+	    fi
+	    if [ "${_site}" == C -o "${_site}" == B ];then
+		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -v machine="$_machine" -f ${_myPKGBASE_VMW}/clientlst01.awk`
+	    fi
+            SUBTYPE=S1;
+  	    ;;
+	VMW_WS6*)
+	    if [ "${_site}" == S -o "${_site}" == B ];then
+                #for WS6 the "-s displayName=..." is passed after fork to the backend, 
+                #anyhow, no extra "IF-THEN" now.
+ 		SERVERLST=`listProcesses|sed -n 's/\(.*\)  *\/[^ ]*vmware-vmx .* \([^ ]*\)$/\1 \2/p'`
+	    fi
+	    if [ "${_site}" == C -o "${_site}" == B ];then
+		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -v machine="$_machine" -f ${_myPKGBASE_VMW}/clientlst01.awk`
+	    fi
+            SUBTYPE=W6;
+ 	    ;;
+    esac
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "SERVERLST(RAW)=<${SERVERLST}>"
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "CLIENTLST(RAW)=<${CLIENTLST}>"
+
+    if [ -z "${SERVERLST}" -a -z "${CLIENTLST}" ];then
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "No sessions yet."
+	return
+    fi
+
+
+    #get-call for displayName from vmx-file
+    local _call1="sed -n 's/\t//g;/^#/d;s/displayName *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+
+    #get-call for UUID (uuid.bios) from vmx-file
+    if [ -n "$_U" ];then
+        local _call2="sed -n 's/[ -]//g;s/[^#]*uid.bios *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+    fi
+
+    export -f getClientTPVMW
+    export -f printVerboseDebug
+    export -f printERR
+    export -f gotoHell
+    export VMW_MAGIC
+
+    ###################################
+    #ServerSessions
+    ###################################
+    [ -n "${SERVERLST}" ]&&SERVERLST=`echo "${SERVERLST}"|\
+      awk -v _c1="$_call1" -v _c2="$_call2"  -v f=$_F -v d=$D -v s=$SUBTYPE -v machine="$_machine" -f ${_myPKGBASE_VMW}/serverlst01.awk`
+
+
+    ###################################
+    #ClientSessions
+    ###################################
+    [ -n "${CLIENTLST}" ]&&CLIENTLST=`echo "${CLIENTLST}"|\
+      awk -v _c1="$_call1" -v _c2="$_call2"  -v f=$_F -v d=$D -v s=$SUBTYPE -v machine="$_machine"  -f ${_myPKGBASE_VMW}/clientlst02.awk`
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST "SERVERLST(PROCESSED)=\"${SERVERLST}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+    for i in ${SERVERLST} ${CLIENTLST};do
+        i="${MYHOST};${i}"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_LIST "CURSES=${i}"
+	echo "${i}"
+    done
+}

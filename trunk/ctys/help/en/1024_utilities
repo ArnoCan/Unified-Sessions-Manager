@@ -1,0 +1,179 @@
+
+
+ Utilities:
+ ==========
+
+  Following support-utilities are provided with ctys:
+
+   Online-Tools
+    ------------
+    - ctys-script
+      ffs.
+
+
+   Offline-Tools
+    ------------
+    - ctys-mv
+      ffs.
+
+    - ctys-cp
+      ffs.
+
+    - ctys-rm
+      ffs.
+
+    - ctys-sed
+      ffs.
+
+    - ctys-awk
+      ffs.
+
+
+   Helper-Tools
+    ------------
+
+     ctys-install [<key>[=<value>]] ...
+
+        Basic install and update-script for raw usage from 
+        CLI when installed individually from filesystem.
+
+        The basic operations could be controlled by the 
+        following options and arguments. Two basic 
+        applications could be distinguished:
+
+        1. Individual Install
+           Install by copy of configurations and 
+           lib-subdirectory(default).
+
+             "ctys-install"
+             "ctys-install force"
+             "ctys-install forceall"
+             "ctys-install forceclean"
+
+
+        2. Centralized Install
+           Install configurations and symbolic 
+           links only("linkonly").
+
+             "ctys-install linkonly"
+             "ctys-install linkonly force"
+             "ctys-install linkonly forceall"
+             "ctys-install linkonly forceclean"
+
+        
+        Following options are available:
+
+              [libdir=<default=$HOME/lib>]
+
+              [bindir=<default=$HOME/bin>]
+
+              [remove<default=unset>]
+
+              [force<default=unset>]
+                Checks "ctys -V -X" alphebetically/literally, normally
+                only updates are allowed, but force installs in any case.
+
+                Current users configuration director $HOME/.ctys will be 
+                left unchanged.
+
+              [forceall<default=unset>]
+                Checks "ctys -V -X" alphebetically/literally, normally
+                only updates are allowed, but forceall installs in any case.
+
+                Anthing, else than users configuration directory $HOME/.ctys,
+                will be removed and installed again. The users current 
+                configuration will be moved to $HOME/.ctys.bak.${DATETIME}.
+
+
+              [forceclean<default=unset>]
+                Checks "ctys -V -X" alphebetically/literally, normally
+                only updates are allowed, but force installs in any case.
+
+                Anthing, including current users configuration directory
+                $HOME/.ctys, will be removed and installed again.
+
+              [linkonly<default=unset>]
+                Supress the local copy to  $HOME/lib directory, just 
+                appropriate symbolic links are set to the given source 
+                directory determined by this call.
+
+                Anyhow, the cofiguration is copied and/or preserved as 
+                usual.
+
+
+              [version|--version|-V]
+
+              [-X]
+
+              [help|--help|-help|-h]
+
+
+
+
+     ctys-install1
+
+        Internal call for ctys-install.
+
+
+
+
+     ctys-plugins [-t <plugin-type>] [-T <plugin-preload-typelist>]
+
+        Lists all found plugins and shows their current operational
+        state with verified features for decision.
+
+        [-t <plugin-type>]
+
+          The type of plugin to be set to BUSY(4), this is any SINGLE
+          plugin as applicable by "ctys -t ..." call.
+
+
+        [-T <plugin-preload-typelist>]
+
+          The prefetch list of plugins to be set to IDLE(2), before
+          perforing, this is any comma seperated LIST of plugins as
+          applicable by "ctys -T ..." call.
+
+
+
+
+     getCurOS
+
+        Echoes the name of current OS. Will be used widely for
+        internal execution variant selection during runtime.
+
+
+
+
+     getCurOSRelease
+
+        Echoes the release of current OS. Will be used widely for
+        internal execution variant selection during runtime.
+
+
+
+
+     getCurDistribution
+
+        Echoes the name of current distro. Will be used widely for
+        internal execution variant selection during runtime.
+
+
+
+
+     getCurRelease
+
+        Echoes the release of current distro-release. Will be used widely
+        for internal execution variant selection during runtime.
+
+
+
+
+     pathlist
+
+        Shell interface for "pathSplit" library function, lists each
+        element of common colon seperated search paths line by line.
+
+        Could be used for trouble shooting support when PATH
+        resolution fails.
+

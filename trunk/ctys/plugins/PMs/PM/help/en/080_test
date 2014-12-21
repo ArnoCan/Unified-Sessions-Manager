@@ -1,0 +1,29 @@
+   9.3.1.1. Tests
+    -------------
+
+    Currently operated on:
+
+    1. CentOS
+       CURRENT-PRODUCTIVE:    5.0
+       LAST-PRODUCTIVE:       -
+       CURRENT-TEST-ONLY:     -
+       SHOULD-WORK:           4.x
+
+    2. SuSE-PM 9.3:         
+       CURRENT-PRODUCTIVE:    - 
+       LAST-PRODUCTIVE:       -
+       CURRENT-TEST-ONLY:     9.3
+       SHOULD-WORK:           9.x
+
+    3. SuSE-PM 10.1:         
+       CURRENT-PRODUCTIVE:    -
+       LAST-PRODUCTIVE:       -
+       CURRENT-TEST-ONLY:     -
+       SHOULD-WORK:           10.x
+
+    4. Ubuntu-PM:         
+       CURRENT-PRODUCTIVE:    -
+       LAST-PRODUCTIVE:       -
+       CURRENT-TEST-ONLY:     ffs.
+       SHOULD-WORK:           ffs.
+

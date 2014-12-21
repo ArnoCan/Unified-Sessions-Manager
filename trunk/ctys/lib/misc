@@ -1,0 +1,103 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myLIBNAME_misc="${BASH_SOURCE}"
+_myLIBVERS_misc="01.02.002c01"
+libManInfoAdd "${_myLIBNAME_misc}" "${_myLIBVERS_misc}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  removeLeadZeros
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function removeLeadZeros () {
+  echo ${1}|sed -n 's/^0*\(.*\)\(.\)$/\1\2/p'
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getDateTimeOfInode
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1:  Inode
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getDateTimeOfInode () {
+  [ -n "$1" -a -e "$1" ]&&{ local x=`ls -l --time-style '+%Y%m%d%H%M%S' $1`;x=${x% *};x=${x##* }; }
+  echo -n $x
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMyUGID
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Fetched the User-ID and Group-UID of primary group,
+#  as string in the format:
+#
+#    <uid>;<guid>
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMyUGID () {
+    local _ugid=`id|sed -n  's/[^u]*uid=[0-9]*(\([^\)]*\)) *gid=[0-9]*(\([^\)]*\)).*/\1;\2/p'`
+    echo -n ${_ugid:-;}
+}
+
+
+

@@ -1,0 +1,837 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_EXEC="${BASH_SOURCE}"
+_myPKGVERS_EXEC="01.02.002c02"
+hookInfoAdd "$_myPKGNAME_EXEC" "$_myPKGVERS_EXEC"
+
+
+EXCCALL=""
+EXECLINK=""
+EXECCALLBASE=""
+
+#Arrays containing complete list of execCall-prefixes
+
+#Set of all resulting target hosts after completion of permutation with 
+#user@host-EMail-Form only.
+declare -a EXECCALLS;
+
+
+#Set of user@host specific sessions remote parameters, which would be applied 
+#on the remote host only.
+declare -a EXECOPTIONS;
+
+
+
+#Index for linked-handling of JOB_-arrays.
+#This is the resulting job counter too.
+JOB_IDX=0;
+
+#Set of local clients when the 'ConnectionForwarding' option is choosen and a 
+#local client for the remote server is requested.
+#Storing the client requests in a temporary cache and executing the server
+#requests first completely seems to offer the better overall average 
+#performance.
+#One effort-saving alternative approach would be synchrounous operations, 
+#which technically could be implemented as polling-mode only. This might 
+#lead in case of group starts to sequentialized and long enduring 
+#responce times.
+#The reply is definitive required in order to choose the appropriate 
+#port for "plumbing the tunnel" e.g. towards a vncserver.
+#
+#We do not want to manage ports in distributed environments, because we
+#operate stateless, and in a small autonomous view in "a lot"!!!
+#
+#This array contains just complete calls, to be used as they are.
+declare -a JOB_EXECCLIENTS;
+
+
+#This array is used for statistics, debugging and macro-recording purposes.
+#The evaluated EXECCALL will be stored here, even though this might not be 
+#absolutely neccessary. It makes some administrative tasks for post-processing
+#and post-analysis easier.
+#This array contains just complete calls, to be used as they are.
+#This could be a server-only call as well as a server+client-on-server call.
+declare -a JOB_EXECSERVER;
+
+
+#
+#This is - to be honest - more or less a temporary patchwork.
+#I contains the EXECCALLS entry for each expanded element of the original 
+#EXECCALS entry, so far so good. BUT, the expansion of "-t ALL", which it is
+#primarily, should be done remotely, and not as implemented on client side.
+#Anyhow, for this version other tasks has higher priority. 
+#This solution requires less additional effort, than the target solution.
+#
+declare -a JOB_EXECCALLS;
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  assembleExeccall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Sets up the generic call structure for remote execution.
+#
+#  Currently it seems - and is heavily forced - that no package specific 
+#  details has to be known here. Just "abstract" CLI options are assembled,
+#  package specific options will be passed through transparently by this
+#  dispatcher.
+#
+#  Any specific handling (e.g. geometry of VNC and VMware) should be performed
+#  at the site of execution.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function assembleExeccall () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Prepare remote call"
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "Pre:EXECCALL=\"${EXECCALL}\""
+
+    EXECCALL="${MYCALLNAME} -e   -F \"${VERSION}\" "
+
+#     if [ -n "${CTRL_SESSIONTYPE}" ];then
+#         EXECCALL="${EXECCALL} -t ${CTRL_SESSIONTYPE} "
+#     else
+# 	EXECCALL="${EXECCALL} -t ${DEFAULT_CTRL_SESSIONTYPE} "
+#     fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "after0:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "after0:(DEFAULT_CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE})"
+    if [ -n "${CTRL_SESSIONTYPE}" \
+        -a "${CTRL_SESSIONTYPE}" != "${DEFAULT_CTRL_SESSIONTYPE}" \
+        -a "${CTRL_SESSIONTYPE}" != DEFAULT \
+	];then
+        EXECCALL="${EXECCALL} -t ${CTRL_SESSIONTYPE} "
+#     else
+# 	EXECCALL="${EXECCALL} -t ${DEFAULT_CTRL_SESSIONTYPE} "
+    fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "after1:EXECCALL=\"${EXECCALL}\""
+
+    if [ -n "${CTRL_MODE_ARGS}" ];then
+	EXECCALL="${EXECCALL} -a \"${CTRL_MODE}=${CTRL_MODE_ARGS}\" "
+    else
+	EXECCALL="${EXECCALL} -a \"${CTRL_MODE}${DEFAULT_LIST_CTRL_MODE_ARGS:+=$DEFAULT_LIST_CTRL_MODE_ARGS}\" "                 
+    fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "after2:EXECCALL=\"${EXECCALL}\""
+
+    if [ -n "${CTRL_SCOPE_ARGS}" ];then
+	EXECCALL="${EXECCALL} -s \"${CTRL_SCOPE}=${CTRL_SCOPE_ARGS}\" "
+    else
+	EXECCALL="${EXECCALL} -s \"${CTRL_SCOPE}${DEFAULT_LIST_CTRL_SCOPE_ARGS:+=$DEFAULT_LIST_CTRL_SCOPE_ARGS}\" "
+
+    fi
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "after3:EXECCALL=\"${EXECCALL}\""
+
+    if [ -n "${CTRL_GEOMETRY}" ];then
+	X_OPTS=" ${X_OPTS} -g \"${CTRL_GEOMETRY}\" ";
+    fi
+
+    if [ -n "${CTRL_REMOTERESOLUTION}" ];then
+	X_OPTS=" ${X_OPTS} -r \"${CTRL_REMOTERESOLUTION}\" ";
+    fi
+
+    if [ -n "${CTRL_WMCTRL_DESK}" ];then
+	X_OPTS=" ${X_OPTS} -D \"${CTRL_WMCTRL_DESK}\" ";
+    fi
+
+    EXECCALL="${EXECCALL} ${CTRL_CLIENTLOCATION} ${R_OPTS}  ${X_OPTS} ${R_TEXT}"
+    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "Post:EXECCALL=\"${EXECCALL}\""
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  buildExecCalls
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function prepares the two arrays EXECCALLS and EXECOPTIONS 
+#  for later execution. Therefore the users and targets with specific
+#  suboptions are permutated and stored as ready-to-use entities.
+#
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function buildExecCalls() {
+    #fetch all explicitly given <user@host>
+    #and collect all <host> only for permutation with "-l" option or "$USER" otherwise
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:R_HOSTS=<${R_HOSTS}>"
+    local n=0;
+    local i=x;
+    local _HostOnlyLst=""
+    local _ARGSOPTIND=
+    let _ARGSOPTIND=1;
+
+    while [ -n "${i}" -o ${_ARGSOPTIND} -eq 1 ]  ;do
+        #fetch line-by-line each argument with it's specific arguments, e.g. "...host01(-d 6 -L ServerOnly)..."
+	i="`splitArgsWithOpts ${_ARGSOPTIND} ${R_HOSTS}`"
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "R_HOSTS(i)($n)(${_ARGSOPTIND})=<${i}>"
+
+        #end of list
+        if [ -z "${i}" ];then break;fi
+
+        #Check whether entry has the form user@host, otherwise needs permutation.
+	if [ "${i#*@}" == "${i}" ];then
+            #postpone the context-options handling until permutation, what saves some
+            #intermediary handling effort, which is worth the secondary string analysis.
+	    _HostOnlyLst="${_HostOnlyLst:+$_HostOnlyLst }${i}"
+	    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "Add host for permutation:$i"
+	else
+            #yes, it is an complete entry, just store it for later execution.
+	    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "Add user@host to EXECCALLS:$i"
+            #but store the options seperately
+	    EXECCALLS[$n]="${i%%(*}";
+  	    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "EXECCALLS[$n]:${EXECOPTIONS[$n]}"
+	    local _argopts=`getArgOpts $i`
+
+            #store item's options
+            if [ -n "${_argopts}" ];then
+		EXECOPTIONS[$n]=${_argopts};
+ 		printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "Add argoptions to EXECOPTIONS[$n]:${EXECOPTIONS[$n]}"
+            fi
+	fi
+
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "_HostOnlyLst:$_HostOnlyLst"
+	let _ARGSOPTIND=_ARGSOPTIND+1;
+	let n++;
+    done
+
+
+    if [ -z "${R_USERS}" -a -z "${_HostOnlyLst}" ];then
+        #Nothing to do.
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "No permutation required."
+    else
+        #At least one pair to combine.
+        # 1.) Permutate uncomplete USERS and HOSTS now to <user>@<host> format
+        #     and store them in EXECCALL.
+        # 2.) Copy the host specific options into EXECOPTIONS with same idx.
+        
+        #if no explicit user given current user will be used, else only given
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "R_USERS=${R_USERS}"
+	if [ -z "${R_USERS}" ];then
+	    R_USERS=${USER}
+	fi
+
+        
+#        R_USERS="`for i in ${R_USERS};do echo ${i};done|sort -u`"
+
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Permutating:"
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE " => _HostOnlyLst = $_HostOnlyLst"
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE " => R_USERS      = ${R_USERS}"
+
+        #Now both sets must be present.
+
+	if [ -z "${R_USERS}" -a -n "${_HostOnlyLst}" -o -n "${R_USERS}" -a -z "${_HostOnlyLst}" ];then
+	    ABORT=2;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:One part of permutation set missing."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "->Remote-USERS:${R_USERS}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "->Remote-HOSTS:${_HostOnlyLst}"
+	    gotoHell ${ABORT}
+	fi
+
+
+	i=x;
+	_ARGSOPTIND=1
+        n=0;
+
+        #Now begin to permutate
+	while [ -n "${i}" -o ${_ARGSOPTIND} -eq 1 ]  ;do
+	    i="`splitArgsWithOpts ${_ARGSOPTIND} ${_HostOnlyLst}`"
+	    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "i($n)(${_ARGSOPTIND})=<${i}>"
+            if [ -z "${i}" ];then break;fi
+
+	    local _arghost=`getArg $i`
+	    local _argopts=`getArgOpts $i`
+
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_arghost=${_arghost}"
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_argopts=${_argopts}"
+
+            #Now have host and it's specific arguments available.
+	    for u in ${R_USERS};do
+		printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "u@h=$u@$_arghost"
+
+                #Push user@host to call list
+		EXECCALLS[$n]=$u@$_arghost;
+		if [ -n "${_argopts}" ];then
+                    #well, now the related arg-options for each host could be some more
+                    #easily set into relation to an <user>@<host> entity.
+		    EXECOPTIONS[$n]=${_argopts};
+		    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "ArgOpts=${_argopts}"
+		fi
+	    done
+
+	    let _ARGSOPTIND=_ARGSOPTIND+1;
+	    let n++;
+	done
+
+
+
+        #validate users(ffs.) + hosts, do it unique, which might be in almost
+        #any case faster, even though doing it extra due to SW-structure.
+	local hlst="";
+	local ulst="";
+	local siz=${#EXECCALLS[@]}
+	for (( x=0; x < siz; x++ ));do
+	    printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "x=${x} - siz=${siz} - ${EXECCALLS[$x]}"
+	    ulst="${ulst} ${EXECCALLS[$x]/@*/}"
+	    hlst="${hlst} ${EXECCALLS[$x]/*@/}"
+	done
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "ulst=${ulst}"
+	printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "hlst=${hlst}"
+
+        #check users
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Prepare list of USER for permutation:ulst=${ulst}..."
+	ulst=`for i in $ulst;do echo $i;done|sort -u`
+	if [ -z "{ulst}" ]; then
+	    ABORT=1
+	    printHelp
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing parameter user"      
+	    gotoHell ${ABORT};
+	fi
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "...seems basically OK(TODO: Validation on Kerberos)!"
+
+        #check hosts
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Prepare list of HOST for permutation:hlst=${hlst}..."
+	hlst=`for i in $hlst;do echo $i;done|sort -u`
+	if [ -z "{hlst}" ]; then
+	    ABORT=1
+	    printHelp
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing parameter hostname"      
+	    gotoHell ${ABORT};
+	fi
+	for i in $hlst;do
+	    host $i>>/dev/null
+	    if [ "$?" -ne 0 ]; then
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown host=$i"
+		ABORT=2;
+		gotoHell ${ABORT};
+	    fi       
+	done
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "...seems OK(known by DNS)!"
+    fi
+
+    #
+    #EXECCALLS[] and EXECOPTIONS[] now prepared for execution.
+    #
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  pushExecCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function pushExecCall () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
+    local x=$1;shift
+
+    showEnv "${DBG_LVL_MAINT}"
+
+    local _ST=`getSessionType ${*}`;_ST=${_ST:-$CTRL_SESSIONTYPE};
+
+    #
+    #Check and do the client-server-split if required now.
+    #
+
+    local JOB_IDX=${#JOB_EXECSERVER[@]};
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "EXECCALL=\"${EXECCALL}\""
+
+    if [ -n "${_ST}" -a "${_ST}" != DEFAULT -a "${_ST}" != ALL ];then
+	local _S=`serverRequire${_ST} ${EXECCALL}`
+	if [ -n "$_S" ];then
+	    JOB_EXECSERVER[$JOB_IDX]="${_S}"
+	else
+	    JOB_EXECSERVER[$JOB_IDX]=" "
+	fi
+
+	local _C=`clientRequire${_ST} ${EXECCALL}`
+	if [ -n "$_C" ];then
+	    JOB_EXECCLIENTS[$JOB_IDX]="${_C} ${EXECCALLS[$JOB_IDX]}"
+	else
+	    JOB_EXECCLIENTS[$JOB_IDX]=" "
+	fi
+    else
+	case `getLocation ${EXECCALL}` in
+	    ClientOnly)
+                #HINT: may require host anyhow
+		JOB_EXECSERVER[$JOB_IDX]=" ";
+		JOB_EXECCLIENTS[$JOB_IDX]="${EXECCALL}";
+		;;
+	    *)
+                #option "ConnectionForwarding" is not given, so it is either "-L ServerOnly" 
+                #or a Display Forwarding job.
+		JOB_EXECSERVER[$JOB_IDX]="${EXECCALL}";
+		JOB_EXECCLIENTS[$JOB_IDX]=" ";
+		;;
+	esac
+    fi
+    JOB_EXECCALLS[$JOB_IDX]="${EXECCALLS[$x]}";
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "OnStack:JOB_EXECCALLS[$JOB_IDX] = ${JOB_EXECCALLS[$JOB_IDX]}"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "OnStack:JOB_EXECCLIENTS[$JOB_IDX] = ${JOB_EXECCLIENTS[$JOB_IDX]}"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "OnStack:JOB_EXECSERVER[$JOB_IDX] = ${JOB_EXECSERVER[$JOB_IDX]}"
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  expandExecCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Expands the "ALL" attributes in given jobs and store them on execution 
+#  stack as "single-exec" calls.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function expandExecCall () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    local x=$1;
+    
+    checkVersion ${L_VERS} ${CTRL_MODE}
+
+
+    case ${CTRL_SESSIONTYPE} in
+	ALL|DEFAULT)
+            #Doing the split for session types locally saves implementation effort(priority now),
+            #but costs some performance, ffs.
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Split: CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "  => PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+            case ${CTRL_MODE} in
+		LIST|ENUMERATE|SHOW|INFO)
+		    eval handleGENERIC ACTION ${CTRL_MODE} 
+		    pushExecCall $x
+		    local _match=1;
+		    ;;
+		*)
+                    if [ ${CTRL_SESSIONTYPE} != DEFAULT ];then
+			for i in ${PACKAGES_KNOWNTYPES};do
+			    EXECCALL=;
+			    CTRL_SESSIONTYPE=$i
+			    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+
+			    eval handle${i} ACTION ${CTRL_MODE}
+			    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "EXECCALL=\"${EXECCALL}\""
+ 			    if [ -z "${EXECCALL}" ];then continue;fi
+			    pushExecCall $x
+ 			done
+			CTRL_SESSIONTYPE=ALL
+			local _match=1;
+		    fi
+		    ;;
+	    esac
+	    ;;
+ 	*)
+            for i in ${PACKAGES_KNOWNTYPES};do
+		if [ "${CTRL_SESSIONTYPE}" == $i ];then
+                    local _match=1;
+                    case ${CTRL_MODE} in
+			LIST|ENUMERATE|SHOW|INFO)
+			    eval handleGENERIC ACTION ${CTRL_MODE} 
+			    ;;
+			*)
+			    eval handle${i} ACTION ${CTRL_MODE}
+			    ;;
+		    esac
+		    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "EXECCALL=\"${EXECCALL}\""
+		    pushExecCall $x
+		fi
+            done
+            ;;
+    esac
+    if [ -z "$_match" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  finalizeExecCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  As might be expected, it finalizes the assembley and superpostioning
+#  of all options sets and makes up the resulting set.
+#  This call is stored for further optimization possible only with
+#  focus on groups of jobs or displays/desktops.
+#
+#  Therefore the jobs will be splitted, into client and server part, and 
+#  allocated in the appropriate job-array, when "Connection Forwarding" 
+#  is choosen.
+#
+#  In case of required client execution only for option "ConnectionForwarding" 
+#  choosen with "-a connect.." option, the job will be stored in client 
+#  array only.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function finalizeExecCall () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    local x=$1;shift
+    
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "PutExecPrefix-Pre:JOB_EXECSERVER[$x]=${JOB_EXECSERVER[$x]}"
+
+    #Now the remote execution caller-prefix will be assembled
+    JOB_EXECSERVER[$x]=`echo ${JOB_EXECSERVER[$x]}|sed 's/^ //'`;
+    if [ -n "${JOB_EXECSERVER[$x]}" ];then
+	EXECCALLBASE="`digGetExecLink ${JOB_EXECCALLS[$x]}` "
+        #so local execution for $USER@localhost, change '-L' option for further processing
+	[ $? == 1 ]&&CTRL_CLIENTLOCATION="-L LocalOnly";
+
+        if [ -n "${R_PATH}" ];then
+	    EXECCALLBASE="${EXECCALLBASE} export PATH=${R_PATH}\&\&"
+	fi
+
+ 	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "EXECCALLBASE=${EXECCALLBASE}"
+
+        #Put the call prefix now to assigned server-job
+        JOB_EXECSERVER[$x]="${EXECCALLBASE}${JOB_EXECSERVER[$x]}";
+
+ 	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+        #set locality, if "LocalOnly"
+        if [ "${CTRL_CLIENTLOCATION}" == "-L LocalOnly" ];then
+	    JOB_EXECSERVER[$x]="${JOB_EXECSERVER[$x]/DisplayForwarding/LocalOnly}";
+ 	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "changed CTRL_CLIENTLOCATION"
+	fi
+        
+        
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "JOB_EXECSERVER[$x]=${JOB_EXECSERVER[$x]}"
+    fi
+
+    #Put the call prefix now to assigned client-job
+    JOB_EXECCLIENTS[$x]=`echo ${JOB_EXECCLIENTS[$x]}|sed 's/^ //'`;
+    if [ -n "${JOB_EXECCLIENTS[$x]}" ];then
+        if [ -n "${L_PATH}" ];then
+	    JOB_EXECCLIENTS[$x]="export PATH=${L_PATH}&&${JOB_EXECCLIENTS[$x]}";
+	fi
+
+        #could be a job with local host as controller of a remote-execution, or a copy e.g.
+        if [ "`getLocation ${EXECCALL}`" == "ClientOnly" ];then
+	    JOB_EXECCLIENTS[$x]="${JOB_EXECCLIENTS[$x]} ${JOB_EXECCALLS[$x]}";
+        fi
+    fi
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "PutExecPrefix-Post:JOB_EXECSERVER[$x]=${JOB_EXECSERVER[$x]}"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  doExecCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function doExecCall () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CALL=<${@}>"
+    showEnv ${DBG_LVL_MAINT}
+    if [ -z "${CTRL_NOEXEC}" ];then
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME Do it now:\"eval ...\""
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CALL=<${@}>"
+        #SSH manages asynchronous operations by '-f'
+ 	eval "${@}"       
+    fi
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  doExecCalls
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Ro be accomplished...
+#
+#  REMARKS:
+#    - startup-delay: R_CLIENT_DELAY
+#      After starting the server-only parts an delay is inserted for 
+#      clients to bind to their server during bootstrap.
+#      This might be in most of cases not necessary, but anyhow, 
+#      for convincing new users is seems some more reliable.
+#      Anyhow, be aware that the choosen value could be still too 
+#      short when "big-servers" with intense-comands are started
+#      probably on poor and overloaded hardware, and finally real 
+#      slim clients on real fast hardware, ... 
+#      ...and so on, thus it is an avarage, maybe too long for 
+#      daily buiseness!
+#      This value could be set by environment, and should be done so.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function doExecCalls () {
+    local siz=0;
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Number of pending EXECCALLS[]=$siz"
+
+    L_VERS=${L_VERS:-$VERSION}
+
+    #prepare remote calls for clients and servers
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Prepare call entries and split C/S parts."
+
+    #extend "ALL" attributes
+    siz=${#EXECCALLS[@]};
+    for((x=0;x<${siz};x++));do
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:EXECCALLS[$siz]=${EXECCALLS[$siz]}"
+
+        #If context specific options for remote execution are available superpose them.
+        if [ -n "${EXECOPTIONS[$x]}" ];then
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:EXECOPTIONS[$x]=${EXECOPTIONS[$x]}"
+            #set specific options for current target
+            #be aware, in current implementation the specific options 
+            #are just cumulated by overriding present options,
+            #no previous state is stored or restored.
+            #This might lead to unexpected states, thus be careful.
+            fetchOptions REMOTE ${EXECOPTIONS[$x]}
+	fi
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:EXECCALLS[$x]=${EXECCALLS[$x]}"
+        expandExecCall $x
+    done
+
+    #split and set prefixes
+    siz=${#JOB_EXECSERVER[@]};
+    for((x=0;x<${siz};x++));do
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:JOB_EXECSERVER[$x]=${JOB_EXECSERVER[$x]}"
+        finalizeExecCall $x
+    done
+
+
+
+    #Execute server-only calls, these execute "headless" in background mode, due to shorten overall
+    #user-response-time the ServerOnly parts of ConnectionForwarding will be executed too.
+    #This is, because anytime multiple calls could be required with remote commands, thus sequentialized
+    #access might not be the choice for multiple calls, though will be avoided as general approach.
+    siz=${#JOB_EXECSERVER[@]};
+    for((x=0;x<${siz};x++));do
+	if [ -n "${JOB_EXECSERVER[$x]// /}" -a "`getExecPattern ${JOB_EXECSERVER[$x]}`" == "ServerOnly" ];then
+	    doExecCall ${JOB_EXECSERVER[$x]}
+	fi
+    done
+
+
+
+    #... give them some delay for client binding for 
+    #bootstrap, which might be in most of cases not necessary, but anyhow, 
+    #for convincing new users is seems appropriate.
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "...give client some delay(${R_CLIENT_DELAY})..."
+    sleep ${R_CLIENT_DELAY}
+
+
+
+    ###########################################################################################################
+    #                                                                                                         #
+    #For now optimizing features - structure and stability -  performance and efficiency will follow later!!! #
+    #                                                                                                         #
+    ###########################################################################################################
+
+
+
+    #if no support for multiple desktops is available, which is currently solely on
+    #the tool wmctrl, then just start anything on the current visible desktop.
+    if [ -z "${CTRL_MDESK}" ];then
+ 	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "No support for desktops detected"
+ 	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Requires \"wmctrl\", will only be activated when \"-D\" option is used."
+
+        #DisplayForwarding
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Combined Server-Jobs with coallocated clients - DisplayForwarding"
+	siz=${#JOB_EXECSERVER[@]};
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Server jobs - ConnectionForwarding (siz=${siz})"
+	for((x=0;x<${siz};x++));do
+	    if [ -n "${JOB_EXECSERVER[$x]// /}" \
+                 -a "`getExecPattern ${JOB_EXECSERVER[$x]}`" == "DisplayForwarding" \
+            ];then
+		doExecCall ${JOB_EXECSERVER[$x]}
+	    fi
+	done
+
+        #LocalOnly - doing it here gives some mor time for servers of ConnectionForwarding-Clients
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Combined Server-Jobs to be executed locally - LocalOnly"
+	siz=${#JOB_EXECSERVER[@]};
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Server jobs - LocalOnly (siz=${siz})"
+	for((x=0;x<${siz};x++));do
+	    if [ -n "${JOB_EXECSERVER[$x]// /}" \
+                 -a "`getExecPattern ${JOB_EXECSERVER[$x]}`" == "LocalOnly" \
+            ];then
+		doExecCall ${JOB_EXECSERVER[$x]}
+	    fi
+	done
+
+
+        #ConnectionForwarding
+	siz=${#JOB_EXECCLIENTS[@]};
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Client jobs - ConnectionForwarding (siz=${siz})"
+	for((x=0;x<${siz};x++));do
+	    if [ -n "${JOB_EXECCLIENTS[$x]}" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "JOB_EXECCLIENTS[$x]=${JOB_EXECCLIENTS[$x]}"
+		doExecCall ${JOB_EXECCLIENTS[$x]}
+	    fi
+	done
+
+    else
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Support for desktops detected by \"wmctrl\" available."
+
+        #DisplayForwarding  + ConnectionForwarding - Clients
+        #
+        #This will be done for each desktop together, beacuse a timeout for pop-up of 
+        #windows on desktop is required. So this reduces the response time at least somewhat.
+        #
+	local siz1=${#JOB_EXECSERVER[@]};
+	local siz2=${#JOB_EXECCLIENTS[@]};
+        local match=0;
+        for i in `desktopsGetDeskList`;do
+
+            #DisplayForwarding - Server and/or Clients + LocalOnly
+	    for((x1=0;x1<${siz1};x1++));do
+		if [ -n "${JOB_EXECSERVER[$x1]// /}" ];then
+		    if [ "`getDesktop ${JOB_EXECSERVER[$x1]}`" == "$i" ];then
+                        case "`getExecPattern ${JOB_EXECSERVER[$x1]}`" in
+			    DisplayForwarding|LocalOnly)
+				desktopsChange $i
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "JOB_EXECSERVER[$x1]=${JOB_EXECSERVER[$x1]}"
+				doExecCall ${JOB_EXECSERVER[$x1]}
+				match=1;
+				;;
+			esac
+		    fi
+		fi
+	    done
+
+            #ConnectionForwarding - Clients
+	    for((x2=0;x2<${siz2};x2++));do
+		if [ -n "${JOB_EXECCLIENTS[$x2]// /}" ];then
+		    if [ "`getDesktop ${JOB_EXECCLIENTS[$x2]}`" == "$i" ];then
+			if [ "`getExecPattern ${JOB_EXECCLIENTS[$x2]}`" == "ConnectionForwarding" ];then
+                            desktopsChange $i
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "JOB_EXECCLIENTS[$x2]=${JOB_EXECCLIENTS[$x2]}"
+			    doExecCall ${JOB_EXECCLIENTS[$x2]}
+                            match=1;
+			fi
+		    fi
+		fi
+	    done
+
+            #give them a chance to finish, but only if required - when switching desktop to be performed
+            if [ "$match" == "1" ];then
+                match=0;
+		sleep ${X_DESKTOPSWITCH_DELAY};
+	    fi
+        done
+    fi
+
+
+    #handle local execution on server
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Do local execs now."
+    if [ -z "${ABORT}" -a -n "${CTRL_EXECLOCAL}" ];then
+        expandExecCall 
+	doExecCall ${EXECCALL}
+    fi
+
+
+    #Reset current to the initial face.
+    desktopsSetStarting
+}
+

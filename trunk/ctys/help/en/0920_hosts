@@ -1,0 +1,9 @@
+
+   9.2. Category HOSTs
+   ===================
+
+     This section contains help for the add-on plugins of category
+     HOSTs, which are executed native on OS level.  These are standard
+     remote sessions based on CLI/Console, X11, and VNC, and are
+     executable on VMs as well on PMs.
+

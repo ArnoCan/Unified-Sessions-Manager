@@ -1,0 +1,238 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_ENV="${BASH_SOURCE}"
+_myPKGVERS_ENV="01.02.002c01"
+hookInfoAdd "$_myPKGNAME_ENV" "$_myPKGVERS_ENV"
+
+#FUNCBEG###############################################################
+#NAME:
+#  _showEnv
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function _showEnv () {
+  local _level=${1:-$DBG_LVL_UID};shift
+  local _linePrefix="${1}";shift
+
+
+
+awk -v _r=${_level} '{if(_r!=-2)printf("printVerboseDebug %d $LINENO $BASH_SOURCE \"%s\"\n",_level,$0)}'<< END0
+ 
+------------------------------------------------------------
+|                   Current Environment                    |
+------------------------------------------------------------
+END0
+
+
+awk -v _r=${_level} -v _p="${_linePrefix}"  '
+  {
+    if(_r!=-2) printf("printVerboseDebug %d $LINENO $BASH_SOURCE \" %s\"\n",_level,$0);
+    else       printf("%s%s\n",_p,$0);
+  }
+'<< END1 
+
+MYPROJECT                        =
+AUTHOR                           =
+MAINTAINER                       =
+FULLNAME                         =
+CALLFULLNAME                     =
+LICENCE                          =
+VERSION                          =
+
+------
+
+_SUPRESSVERBOSESTARTUP           = ${_SUPRESSVERBOSESTARTUP}
+
+CTRL_ALLOWAMBIGIOUS              = ${CTRL_ALLOWAMBIGIOUS}
+CTRL_ASYNC                       = ${CTRL_ASYNC}
+CTRL_CLIENTLOCATION              = ${CTRL_CLIENTLOCATION}
+CTRL_EXECLOCAL                   = ${CTRL_EXECLOCAL}
+CTRL_FORCE                       = ${CTRL_FORCE}
+CTRL_GEOMETRY                    = ${CTRL_GEOMETRY}
+CTRL_LISTSES                     = ${CTRL_LISTSES}
+CTRL_MDESK                       = ${CTRL_MDESK}
+CTRL_MODE                        = ${CTRL_MODE}
+CTRL_MODE_ARGS                   = ${CTRL_MODE_ARGS}
+CTRL_NOEXEC                      = ${CTRL_NOEXEC}
+CTRL_PRINTINFO                   = ${CTRL_PRINTINFO}
+CTRL_REMOTE                      = ${CTRL_REMOTE}
+CTRL_REMOTERESOLUTION            = ${CTRL_REMOTERESOLUTION}
+CTRL_SCOPE                       = ${CTRL_SCOPE}
+CTRL_SCOPE_ARGS                  = ${CTRL_SCOPE_ARGS}
+CTRL_SCOPE_CONCAT                = ${CTRL_SCOPE_CONCAT}
+CTRL_SESSIONFLAG                 = ${CTRL_SESSIONFLAG}
+CTRL_SESSIONID                   = ${CTRL_SESSIONID}
+CTRL_SESSIONIDARGS               = ${CTRL_SESSIONIDARGS}
+CTRL_SESSIONTYPE                 = ${CTRL_SESSIONTYPE}
+CTRL_SSH                         = ${CTRL_SSH}
+CTRL_SSH_PSEUDOTTY               = ${CTRL_SSH_PSEUDOTTY}
+CTRL_TERSE                       = ${CTRL_TERSE}
+CTRL_VERBOSE                     = ${CTRL_VERBOSE}
+CTRL_WARNING                     = ${CTRL_WARNING}
+CTRL_WMCTRL_DESK                 = ${CTRL_WMCTRL_DESK}
+CTRL_XTOOLKITOPTS                = ${CTRL_XTOOLKITOPTS}
+CTYS_GROUPS_PATH                 = ${CTYS_GROUPS_PATH}
+
+DATE                             = ${DATE}
+DATETIME                         = ${DATETIME}
+DAYOFWEEK                        = ${DAYOFWEEK}
+DBG_LVL_UI                       = ${DBG_LVL_UI}
+DBG_LVL_UIE                      = ${DBG_LVL_UIE}
+DBG_LVL_UID                      = ${DBG_LVL_UID}
+DBG_LVL_SUPPORT                  = ${DBG_LVL_SUPPORT}
+DBG_LVL_MAINT                    = ${DBG_LVL_MAINT}
+DBG_LVL_OVERKILL                 = ${DBG_LVL_OVERKILL}
+DBG_LVL_HAYSTACK                 = ${DBG_LVL_HAYSTACK}
+DBG_RANGE_MIN                    = ${DBG_RANGE_MIN}
+DBG_RANGE_MAX                    = ${DBG_RANGE_MAX}
+DBPATHLST                        = ${DBPATHLST}
+DEFAULT_CTRL_MODE_ARGS           = ${DEFAULT_CTRL_MODE_ARGS}
+DEFAULT_CTRL_MODE_ARGS_ENUMERATE = ${DEFAULT_CTRL_MODE_ARGS_ENUMERATE}
+DEFAULT_CTRL_MODE_ARGS_LIST      = ${DEFAULT_CTRL_MODE_ARGS_LIST}
+DEFAULT_CTRL_SCOPE               = ${DEFAULT_CTRL_SCOPE}
+DEFAULT_CTRL_SESSIONTYPE         = ${DEFAULT_CTRL_SESSIONTYPE}
+DEFAULT_DBPATHLST                = ${DEFAULT_DBPATHLST}
+DEFAULT_KILL_DELAY_POWEROFF      = ${DEFAULT_KILL_DELAY_POWEROFF}
+DEFAULT_LIST_CONTENT             = ${DEFAULT_LIST_CONTENT}
+
+EXECCALLBASE                     = ${EXECCALLBASE}
+EXECCALL                         = ${EXECCALL}
+EXECLINK                         = ${EXECLINK}
+
+L_VERS                           = ${L_VERS:-$VERSION}
+LOCAL_PORTREMAP                  = ${LOCAL_PORTREMAP}
+
+MYCALLNAME                       = ${MYCALLNAME}
+MYCALLPATH                       = ${MYCALLPATH}
+MYCALLPATHNAME                   = ${MYCALLPATHNAME}
+MYCONFPATH                       = ${MYCONFPATH}
+MYDIST                           = ${MYDIST}
+MYHELPPATH                       = ${MYHELPPATH}
+MYHOST                           = ${MYHOST}
+MYINSTALLPATH                    = ${MYINSTALLPATH}
+MYBOOTSTRAP                      = ${MYBOOTSTRAP}
+MYLANG                           = ${MYLANG}
+MYLIBPATH                        = ${MYLIBPATH}
+MYMACROPATH                      = ${MYMACROPATH}
+MYOPTSFILES                      = ${MYOPTSFILES}
+MYOS                             = ${MYOS}
+MYPKGPATH                        = ${MYPKGPATH}
+MYREL                            = ${MYREL}
+
+PACKAGES_KNOWNTYPES              = ${PACKAGES_KNOWNTYPES}
+PR_OPTS                          = ${PR_OPTS}
+
+R_CALL                           = ${R_CALL}
+R_CLIENT_DELAY                   = ${R_CLIENT_DELAY}
+R_CREATE_MAX                     = ${R_CREATE_MAX}
+R_CREATE_TIMEOUT                 = ${R_CREATE_TIMEOUT}
+R_HOSTS                          = ${R_HOSTS}
+R_OPTS                           = ${R_OPTS}
+R_PATH                           = $R_PATH
+R_TEXT                           = ${R_TEXT}
+R_USERS                          = ${R_USERS}
+
+SSH_ONESHOT_TIMEOUT              = ${SSH_ONESHOT_TIMEOUT}
+
+TARGET_OS                        = ${TARGET_OS}
+TIME                             = ${TIME}
+
+X_DESKTOPSWITCH_DELAY            = ${X_DESKTOPSWITCH_DELAY}
+X_OPTS                           = ${X_OPTS}
+
+VMW_OPT                          = ${VMW_OPT}
+VNCSERVER                        = ${VNCSERVER}
+VNCSERVER_OPT                    = ${VNCSERVER_OPT}
+VNCVIEWER                        = ${VNCVIEWER}
+VNCVIEWER_OPT                    = ${VNCVIEWER_OPT}
+
+
+END1
+
+(
+splitPath         34  "PATH"            "$PATH";
+checkPathElements     PATH              $PATH;
+splitPath         34  "LD_LIBRARY_PATH" "$LD_LIBRARY_PATH";
+checkPathElements     LD_LIBRARY_PATH   "$LD_LIBRARY_PATH";
+)|\
+awk -v _r=${_level} -v _p="${_linePrefix}"  '
+  {
+    if(_r!=-2) printf("printVerboseDebug %d $LINENO $BASH_SOURCE \" %s\"\n",_level,$0);
+    else       printf("%s%s\n",_p,$0);
+  }
+' 
+
+awk -v _r=${_level} '{if(_r!=-2)printf("printVerboseDebug %d $LINENO $BASH_SOURCE \"%s\"\n",_level,$0)}'<< END2
+------------------------------------------------------------
+
+END2
+  
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  showEnv
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function showEnv () {
+  local _level="${1:-$DBG_LVL_UID}";shift
+  local _linePrefix="${1}";shift
+
+  doDebug ${_level} $LINENO $BASH_SOURCE
+  if [ "$?" -eq "0" ];then
+    if [ "${_level}" == "-2" ];then 
+      _showEnv ${_level} "${_linePrefix}";
+    else
+      eval "`_showEnv ${_level} \"${_linePrefix}\"; `";
+    fi
+  fi
+}
+
+
+

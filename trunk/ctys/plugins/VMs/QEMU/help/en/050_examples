@@ -1,0 +1,200 @@
+   9.4.1.3. Examples
+    ---------------
+
+    9.4.1.3.1. Build of QEMU
+     -----------------------
+
+      The QEMU installation itself is quite straight forward, the only
+      point to be careful about is the requirement of a gcc3x, gcc4 is
+      not compatible(for now). This isrequired for the configuration
+      and compilation only, thus the installation could be performed
+      on gcc4x.
+
+      The kqemu component was not installed for now, because some VM
+      stack tests with nested execution are required, and side-effects
+      should have been excluded.
+
+
+      Previous of installation a the build from the sources was
+      executed. Therefor a 3x version of gcc is required. Due to the
+      lack of a native install a VMware installation of SuSE-9.3 was
+      used.
+
+      The installed version is QEMU-0.9.1.
+
+       On SuSE-9.3 with gcc3.x
+
+        1. Install gcc3x and SDL, untar "qemu-0.9.1.tar.gz"
+        2. call "configure"
+        3. call "make"
+        4. copy to CentOS, the paths has to be the same, due to
+           "configure" resolution, so choose a common directory, such
+           as "/tmp" for build.
+
+
+       On target system, here CentOS-5.0 with gcc 4.x:
+
+        5. call "make install"
+
+
+
+    9.4.1.3.2. Installation of QEMU
+     ------------------------------
+
+     9.4.1.3.2.1. Overview
+      --------------------
+
+      The QEMU installation itself is quite straight forward, the only
+      point to be careful about is the requirement of a gcc3x, gcc4 is
+      not compatible(for now). This isrequired for the configuration
+      and compilation only, thus the installation could be performed
+      on gcc4x.
+
+      For additional information refer to previous chapter.
+
+      Now, once the "make install" is performed, the base package of
+      QEMU is installed. As mentioned before, here the kqemu package
+      is not installed, because stacked VMs and heterogeneous CPU
+      environments are going to be tested.
+
+
+      The first thing now is to create a runtime environment and
+      install the BIOS binaries and test examples for later validation
+      of QEMU.
+
+      The expected runtime structure is as described before:
+
+        
+        mkdir -p $HOME/qemu/{ctys,bc-bios/keymap,tst}
+
+        cp -a $HOME/.ctys/templates/qemu/tst/* $HOME/qemu/tst
+
+
+      Check the x-bit of all contained configuration scripts, which
+      are bash-scripts actually to be called as executable.
+
+      Now copy and unpack the appropriate test images from the qemu
+      distribution into the tst-subdirectories.
+
+        - arm-test-0.2.tar.gz
+        - coldfire-test-0.1.tar.bz2
+        - linux-0.2.img.bz2
+        - mipsel-test-0.2.tar.gz
+        - mips-test-0.2.tar.gz
+        - small.ffs.bz2
+        - sparc-test-0.2.tar.gz
+
+      These images are ready-to-use VMs. The only configuration
+      required later is the setting of appropriate IP address, except
+      for the coldfire image, which is based on DHCP. This is only
+      true if you are using DHCP and have set the appropriate MAC
+      addresses of course.
+
+
+      The usage of bridged network with communications via the NIC of
+      the host requires some additional effort. Particularly the
+      creation of the required TAN-device with the frequently
+      mentioned "tunctl" utility from the "UserModeMLInux" was
+      somewhat difficult on CentOS-5. This results particularly from
+      the missing tool "tunctl".
+
+      The package "vde" including a (not-found-documentation-for)"
+      utility "vde_tunctl" was the rescue-belt.
+
+      So proceed as decribed in the common examples section for your
+      matching environment in order to create the required TAP device
+      and the appropriate "vde_switch".
+
+      Now edit the configuration files within the tst subdirectories
+      and adapt the AMC addresses as required. They might be usable
+      as given, if no collisions with existing addresses occur.
+
+      At this point anything might be prepared for successful
+      operations.
+
+      Now test the installation:      
+
+       1. raw-call without network for linux-subdirectory.
+
+           qemu linux-0.2.img
+
+
+       2. raw-call with network
+
+           vdeqemu -vnc :17 -k de -m 512
+                   -hda linux-0.2.img                
+                   -net nic,macaddr=<mac>
+                   -net vde,sock=/var/tmp/vde_switch0.<user>
+
+           Within GuestOS:
+
+             ifconfig eth0 <your-ip>
+             ping -c 5 <known-host>
+
+
+           Should show what you expect. OK, if so, than you've got it!
+
+
+       2. encasulation ctys-script-call
+
+           "./linux.ctys SDL"
+
+          Might work now.
+
+       3. ctys call
+ 
+
+     9.4.1.3.2.2. VDE
+      ---------------
+
+      After the "some hours" of trial-and-error the VDE project was
+      found and installed shortly before giving it up. 
+
+      After some trials for about 15minutes caused by own mistakes,
+      anything worked perfectly. 
+
+      Several combinations of VDE are installed and configured in
+      order to create a TAP device. The various cases are listed due
+      to their generic character within the chapter containing the
+      common examples.
+
+      The following cases are shown in teh examples section:
+
+          - VDE within Xen Dom0
+          - VDE within Xen DomU
+          - VDE within VMware
+          - VDE within Native Unix
+
+
+     9.4.1.3.2.3. QEMU
+      -----------------
+
+      9.4.1.3.2.3.1. PXE-Boot
+       ----------------------
+
+       The following applies to a configured PXE environment based on
+       PXELinux.
+
+        "vdeqemu -vnc :17 -k de -m 512
+                 -hda linux-0.2.img                
+                 -net nic,macaddr=<mac>
+                 -net vde,sock={QEMUSOCK}
+                 -boot n
+                 -option-rom ${QEMUBIOS}/pxe-ne2k_pci.bin
+                 &
+                 "
+ 
+      9.4.1.3.2.3.2. ISO-Image-Boot
+       ----------------------------
+
+       The following applies to a boot CDROM image for installation.
+
+        "vdeqemu -vnc :17 -k de -m 512
+                 -hda linux-0.2.img                
+                 -net nic,macaddr=<mac>
+                 -net vde,sock={QEMUSOCK}
+                 -boot d
+                 -cdrom ${QEMUBASE}/iso/install.iso
+                 &
+                 "
+

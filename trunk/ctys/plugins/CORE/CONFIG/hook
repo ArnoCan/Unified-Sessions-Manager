@@ -1,0 +1,434 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_CONFIG="${BASH_SOURCE}"
+_myPKGVERS_CONFIG="01.02.002c01"
+hookInfoAdd "$_myPKGNAME_CONFIG" "$_myPKGVERS_CONFIG"
+
+
+#default fall back
+CTYSCONF=${CTYSCONF:-/etc/ctys.d/[pv]m.conf}
+hookPackage "`dirname ${_myPKGNAME_CONFIG}`/config.${MYOS}"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getLABEL
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getLABEL () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#LABEL *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getSERNO
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getSERNO () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#SERNO *= *"\([^"]*\)"/\1/p' "${i}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getCATEGORY
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getCATEGORY () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#CATEGORY *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMAGIC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMAGIC () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#MAGICID-'${MYOS}' *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkMAGIC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkMAGIC () {
+    grep -q "#@#MAGICID-${MYOS}" $1
+}
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getUID
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getUID () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#UID *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getGID
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getGID () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#GID *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVNCACCESSPORT
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Number of VNC port.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVNCACCESSPORT () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#VNCACCESSPORT *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVNCBASEPORT
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Number of VNC port.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVNCBASEPORT () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#VNCBASEPORT *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVNCACCESSDISPLAY
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Number of VNC port.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVNCACCESSDISPLAY () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/^#@#VNCACCESSDISPLAY *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkVNCport
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVNCport () {
+    local X=$1
+    local _IP=;
+    for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys";do
+        [ ! -f "$i" ]&&continue;
+	_IP=`sed -n 's/\t//g;/^#/d;s/RemoteDisplay.vnc.port *= *"\([^"]*\)"/\1/p' "${i}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        if [ "$_IP" != "" ];then
+            printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+	    break;
+	fi
+    done
+    echo $_IP
+}
+
