@@ -1,0 +1,466 @@
+.TH "ctys-XEN" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-XEN - XEN Interface\fR
+
+.SH SYNTAX
+.P
+\fBctys-XEN\fR 
+
+
+   ctys -t XEN  -a action[=<suboptions>] ...
+   ctys -T XEN  -a action[=<suboptions>] ...
+   ctys -T ALL  -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+The \fBXEN\fR plugin adds support for sessions to
+\fBVirtualMachines\fR of type 
+\fBXen(TM)\fR.
+The management of the virtual machines include particularly 
+the support of boot and shutdown for local and remote virtual machines
+including an inventory with accessible machines.
+Stored machines on network devices could be accessed by multiple worker\-machines,
+providing a multipath\-registration within the inventory.
+The inventory is populated automatically by scanning the local
+and remote filesystems and collecting the information of detected 
+VMs into a local ASCII file\-database.
+
+.P
+The access to VMs is supported by the full scope of the \fB<machine\-address>\fR,
+thus e.g. a user defined LABEL as a shortcut\-alias could be used.
+The XEN plugin is "\fBVM\-STACK safe\fR" as it handles running embedded virtual machines
+and emulators by propagating state change events(e.g. SHUTDOWN) of the execution platform to
+contained hypervisors and emulators.
+
+.P
+The scope comprises for now the products
+XEN community edition,
+which are all TradeMarks of Citrix Inc.
+The supported product versions are automatically detected, 
+thus no furter parameters for version distinction are required.
+Current version supports the server versions 3.x.
+Updates will be available soon.
+
+.SS OPTIONS
+.TP
+\fB\-a <action>\fR
+
+.P
+For the complete Systax refer to the depicted generic superset 
+within the call\-framework \fBctys(1)\fR.
+
+.TP
+\fBCANCEL\fR
+full <vm\-address> range is supported.
+
+.TP
+\fBCREATE\fR
+All standard parameters not listed here could be applied.
+
+Dependent on the choosen parameter set some specific
+CONSOLE types can \- whereas some cannot \- be applied. 
+
+.TP
+\- \fBCONSOLE:(CLI|XTERM|GTERM|EMACS|VNC|NONE)\fR
+The appropriate settings for the choosen console has to be
+prepared within the related config file.
+
+The default CONSOLE could be pre\-set by the variable
+\fBXEN_CONSOLE_DEFAULT\fR in the xen.conf file. 
+The original default is \fBXTERM\fR.
+The recommended text console for Gnome is GTERM, but any other 
+could be set as default too.
+
+
+.TS
+center, allbox, tab(^); cllrl.
+ \fBNBSP\fR^\fBNBSP\fR^\fBXTERM\fR^\fBNBSP\fR^\fBNBSP\fR
+ \fBNBSP\fR^\fBNBSP\fR^\fBGTERM\fR^\fBNBSP\fR^\fBNBSP\fR
+ \fBNBSP\fR^\fBNBSP\fR^\fBEMACS\fR^\fBNBSP\fR^\fBNBSP\fR
+ \fBNBSP\fR^\fBNBSP\fR^\fBEMACSM\fR^\fBNBSP\fR^\fBNBSP\fR
+ \fBNBSP\fR^\fBNBSP\fR^\fBEMACSA\fR^\fBNBSP\fR^\fBNBSP\fR
+ \fBNBSP\fR^\fBCLI\fR^\fBEMACSAM\fR^\fBVNC\fR^\fBNONE\fR
+ CONNECTIONFORWARDING^\-^\-^X^X
+ DISPLAYFORWARDING^X^X^X^X
+ SERVERONLY^\-^X^\-^X
+ CONNECT^X^X^X^X
+ RECONNECT^X^X^X^X
+ REUSE^X^X^X^X
+ RESUME^X^X^X^X
+ \fB\-b 0\fR \- foreground^B+M^A^A^X
+ \fB\-b 1\fR \- background^\-^X^X^X
+ \fB\-z 2\fR \- pseudotty^M^X^X^X
+.TE
+
+
+.TS
+center, tab(^); l.
+ \fBApplicable forwarding modes and call locations for XEN\fR
+.TE
+
+
+.nf
+  X)   Supported.
+  
+  A.)  Supported, but will block the call-terminal 
+       for the whole session, so might not be used 
+       from a single-console environment.
+  B.)  Blocks the console for other calls, thus 
+       allows for bulk targets serial execution
+       only.
+  M.)  Mandatory, but could be suppressed with 
+       "-z NOPTY" when a terminal with some 
+       drawbacks is sufficient. One of specific
+       than is that the password will be echoed 
+       for some systems in cleartext, anyhow as 
+       a lonely night-rider it might not hurt 
+       you.
+.fi
+
+
+.TP
+_
+
+Types of CONSOLE to be applied depends on the \fB\-b\fR
+parameter for background execution too.
+
+The following behaviour applies:
+
+.RS
+.IP \(bu 3
+\fB\-b 0 \- synchronous foreground execution\fR
+
+In this mode the current execution thread is performed
+synchronous in the foreground, this means particularly
+a CLI based console cannot be detached, when multiple
+tasks are in the queue in order to begin the next. Thus
+it would result to blocking the remaining sessions
+until the current has been finished by the caller.
+
+This parameter is allowed to be applied, but the
+caller has to be aware of the drawbacks, when choosing
+multiple execution targets.
+
+.IP \(bu 3
+\fB\-b 1 \- synchronous background execution\fR
+
+In this mode the DomU will be started by different means
+for XTERM and VNC only.
+
+.IP \(bu 3
+\fBCONSOLE:CLI\fR
+
+Will be generally rejected, because multiple
+execution targets cannot be handled by a single
+physical console, and one target could be perfectly
+handled by *\-b 0*.
+
+.IP \(bu 3
+\fBCONSOLE:GTERM\fR
+
+The \fBgnome\-terminal\fR which is currently simply
+mapped to XTERM.
+
+.IP \(bu 3
+\fBCONSOLE:XTERM\fR
+
+Starts first an xterminal by using the X11 module
+and initiates the startup of the DomU within the
+Xterminal session as a native and synchronous call
+to \fBxm \-c ...\fR. So it is basically the asynchronous
+variant of a CLI call.
+
+.IP \(bu 3
+\fBCONSOLE:EMACS\fR
+
+The \fBEmacs\fR is started in shell\-mode, this supports the full scope
+of edit features on the output buffer.
+The basic principle is similar to any X11 console with an embedded
+CLI interface.
+
+.IP \(bu 3
+\fBCONSOLE:VNC\fR
+
+This case is somewhat different to the previous, in
+the way that two independent calls for the DomU
+itself are required.
+
+.IP \(bu 3
+The DomU has to be started, which is performed by
+calling \fBxm <conf>\fR.
+
+.IP \(bu 3
+The VNCviewer has to be attached to the offered
+port by the DomU.
+Therefore a timeout will be applied, which could
+be controlled by the environment variable
+\fBXEN_CONSOLE_DOMU_INIT_WAIT\fR,
+which is used for a sleep\-call.
+
+So, due to buffer handling some console messages
+could probably be lost.
+
+The client call is in internal call to VNC plugin,
+which is basically completely independent and could
+be applied separately.
+
+.IP \(bu 3
+\fBCONSOLE:NONE\fR
+No console is started, any type could be connected later. 
+\fB\-z 2 \- force allocation of a pty by ssh\fR
+Allocates a pty.
+.RE
+
+.TP
+\fB<callopts>\fR
+
+When <callopts> are given, these will be passed
+through to the call:
+
+.nf
+  xm [-c] <conf-path> <callopts>
+.fi
+
+
+For additional information refer to Xen manual.
+
+.TP
+\fB\-g <geometry>|<geometryExtended>\fR
+
+The geometry has no effect on the server started within the
+DomU. Just the client will be set:
+
+.TP
+\- \fBCLI\fR
+Not appliccable.
+
+.TP
+\- \fBXTERM|GTERM\fR
+
+The size Xsiz and Ysiz provide the UNIT of CHARACTERS only.
+.TP
+\- \fBVNC\fR
+As expected.
+
+.TP
+\fB\-L <execution\-location>\fR
+.nf
+  
+  <execution-location>=(
+     (LOCALONLY|LO)
+     | (CONNECTIONFORWARDING|CF)
+     | (DISPLAYFORWARDING|DF)
+     | (SERVERONLY|SO)
+    )
+  
+.fi
+
+
+.TP
+\fB\-r <resolution>\fR
+Not supported.
+
+.TP
+\fB<xopts>\fR
+
+Refer to common options parts description.
+
+.P
+\&.
+
+.SH NOTES
+.P
+The XEN plugin adds support for XEN sessionswhere the client types 
+\fBCLI\fR, \fBX11\fR, and \fBVNC\fR are supported.
+
+.P
+Any non\-listed standard option of ctys applies as defined. In
+cases of divergent behaviour for similar options, and options
+with specific suboptions these are listed in this section.
+
+.P
+There are some specifics to be recognized and/or applied specific
+to Xen. This is primarily due to it's nature of the hypervisor
+interface, where DomU\-s are children of the one and only Dom0,
+which is not \fBvisible\fR to \fBps\fR as a normal process, but to the
+specific tools \fBxm\fR and \fBvirsh\fR. Where virsh is part of \fBlibvirt\fR
+but prerequired for ctys.
+
+.P
+One main challange in combination of access to restricted system
+resources is the requirement of root permissions for some calls to
+manage DomU\-s. This requires for user\-level on demand 
+\fBCREATE\fR and \fBCANCEL\fR
+the configuration of \fBsudo\fR or \fBksu\fR.
+
+.P
+Some drawbacks for the common applied tricks of ctys, using the
+\fBCLI\fR and \fBps\fR as an dynamic storage and exchange interface for
+runtime information are not working in the altered runtime
+environment. Even though particularly the \fBvirsh dumpxml\fR call
+offers a variety of information. One missing data, that really
+hurts is the missing information of the used configuration file
+for the list\-ed or dumpxml\-ed domain. The \fBsource file\fR is
+available \- which is the virtual boot\-device. But this does not
+allow an back annotation to related configuration file \- this
+could be just safely defined by additional naming convention, what
+is done within ctys for simplicity.
+
+.P
+Another specifics is a legacy of ctys, which is the definition of
+ID as a static unique identifier for a VM and PM entity, which
+does not change, when the entity changes it's state to
+offline. Resulting of this, the
+\fBID\fR is for \fBVMW\fR, \fBPM\fR,
+and \fBXEN\fR the
+fully qualified pathname of the configuration file, which is 
+not necessarily unique, due to NFS mounted shares on multiple PMs
+and/or VMs. This is still not unique, when combining the PMs
+hostname and the pathname of the configuration file, because the
+contained IDs, e.g. TCP/IP address, MAC address, and UUID are now
+available within multiple entities, and thus will be listed as
+though when using administrative management utilities. Anyhow, it
+should be at least guaranteed by the user, that the entities are
+unique within the scope a single node. The toolset is prepared to
+handle various constellations, but it makes the selection by the
+user easier.
+
+.P
+For this the following shortcuts and conventions apply.
+
+.RS
+.IP \(bu 3
+The \fBDomain\-ID\fR as provided by Xen is for now ignored, the
+Domain\-Name is required to be unique, so the LABEL, which is
+the Domain\-Name, is sufficient as selection criteria. This is
+anyhow a static constant identifier, which is not true for the
+Xen\-Domain\-ID.
+
+The Domain\-ID within ctys \- \fBIDS\fR for ctys\-vhost \- is a
+holomorphic identifier, which is for machines \- VMs and PMs \-
+a configuration filepathname, for types of the category HOSTs a
+dynamic system generated ID such as a PID, DISPLAY, or port. 
+
+Therefore the Domain\-ID for Xen within ctys is the filepathname
+of the configuration file. This is particularly important due
+to stored information within the configuration file itself, or
+within the same directory. Due to the only available
+filepathname for the boot\-image of the DomU instance by
+\fBvirsh\fR, the fixed \- maybe already widely applied \- convention
+is defined, that the configuration file has to be coallocated
+within the same directory as the virtual boot device for the
+DomU and to be named the same as the name of the containing
+directory. This has not necessarily to be the LABEL which is
+the Domain\-Name of the DomU, but could be. SO boot devices,
+which are physical, not virtual files, are not supported for
+now.
+
+.IP \(bu 3
+\fBNO SPACES\fR within ANY entry are supported.
+
+.IP \(bu 3
+When multiple LAN interfaces are configured, the MAC\-addresses
+are indexed by their actual order\-increment, beginning from 0.
+These are permuttated with any provided TCP address of the same index.
+E.g. MAC0 => eth0 => {IP0=10.1.1.1, IP0=11.1.1.1}.
+
+.IP \(bu 3
+Due to the variety of consoles \- CLIENTS \- which could be
+attached and are not simply correlated, the LIST action only
+displays the SERVER components, which are Dom0/DomU, the
+clients has to be listed by an extra call to CLI, X11, and/or
+VNC.
+
+.IP \(bu 3
+The execution of the creation by \fBxm\fR and some \fBvirsh\fR access
+permissions has to be activated and required to be with root
+permissions. Therefore the configuration file \fB/etc/sudoers\fR
+and/or \fB/root/.k5users\fR has to be configured. The access
+privileges by \fBsudo\fR and \fBksu \-e\fR will be checked and set
+appropriately. The variable \fBXENCALL\fR and \fBVIRSHCALL\fR could be
+preconfigured.
+
+.IP \(bu 3
+The execution of XEN requires in any case the VNC module.
+
+.IP \(bu 3
+The version supported by XEN is the 3.x version. The tested and
+verified version is Xen\-3.0.3 of the CentOS\-5.0 distribution,
+even though any 3.x version might work. The version evaluation
+is done by usage of rpm or xm or virsh or xmtrace. The
+installation paths are evaluated by which call and should be
+prepared for execution by PATH.
+
+.IP \(bu 3
+Due to the warning\-output of some tools, this is fetched as
+ctys \embox{WARNING}, which could be fully activated by 
+\fB\-d\fR option.
+.IP \(bu 3
+Particularly the \fBD_SYS\fR debug\-level, which traces all system calls,
+might be helpful for tracing permission settings.
+
+\-  The XEN plugin is stack\-aware, though prepared to propagate
+CREATE and CANCEL actions, same for LIST. 
+
+.IP \(bu 3
+\fBXEN_CONSOLE_DOMU_INIT_WAIT\fR
+This variable contains the sleep value after \fBxm create ...\fR
+and before calling a \fBgnome\-terminal\fR or \fBxterm\fR. Therefore in
+case of a machine which has difficulties due it's performance
+the value could be adjusted. The current value of 8seconds
+seems to be safe for initialization of created DomU.
+.RE
+
+.P
+Templates and recipes for installation of Xen on CentOS\-5 are
+available in 
+XEN\-Install.
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR, \fIctys\-uc\-XEN(7)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vhost(1)\fR, \fIvirsch(18)\fR, \fIxm(1)\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-XEN.t2t -o /tmpn/0/ctys/bld/01.11.005/doc-tmp/BASE/en/man/man1/ctys-XEN.1
+

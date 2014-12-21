@@ -1,0 +1,20 @@
+#
+#This groups contains all machines supporting VMs to be used by user acue.
+#
+#Almost any machine is currently accessible by NFS, thus allows a simple
+#means of load-balancing throughout the memgers of this group.
+#
+#The only distinction has to be done by type of VM, which depends on the actual
+#running kernel.
+#
+#
+CONTEXT'(-d 2,s:16,w:0,p -b sync,par -c off -C on)'
+
+
+
+#root@lab01
+root@lab02
+root@lab03
+#root@lab04
+
+

@@ -1,0 +1,391 @@
+.TH "ctys-VNC" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-VNC - Virtual Network Console Interface\fR
+
+.SH SYNTAX
+.P
+\fBctys-VNC\fR 
+
+
+   ctys -t VNC -a action[=<suboptions>] ...
+   ctys -T VNC -a action[=<suboptions>] ...
+   ctys -T ALL -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+This plugin manages VNC sessions to LINUX/UNIX OS.
+It encapsulates and handles the complete interaction with the local and remote
+components provided by the VNC variants \fBRealVNC\fR and \fBTightVNC\fR.
+
+.P
+SSH based connections are the only one supported. The sessions are generally categorized 
+into two basic configurations, the coallocated client and server 
+component \- \fBDISPLAYFORWARDING\fR \- and the distributed client and server component \- \fBCONNECTIONFORWARDING\fR.
+In the latter case an intermediary SSH tunnel is created.
+Therefore a vncserver is started and managed on the target server, whereas a vncviewer could
+be started on the target host or on any client by "Display Forwarding" or "Connection Forwarding".
+Another feature offers the intermixed usage of VNC, where the vncviewer is connected to a VM,
+this is the case e.g. for Xen or VMware\-WS.
+
+.P
+A particular advance is the introduction of a generic addressing schema based on the
+<machine\-address>.
+This offers the definition of dynamic LABELs as an alias to an arbitrary session. 
+This LABEL is from than on a fully valid address identifier which could be used
+within the whole ctys toolset.
+The management of distributed port numbers as well as e.g. the multiplexing of VNC connections into
+one SSH tunnel is handled by this module.
+
+.SH OPTIONS
+.TP
+\fB\-a action[=<suboptions>]\fR
+
+.TP
+\fBCANCEL\fR
+.nf
+  
+  CANCEL=(<machine-address>)\e{1,n\e}
+    |ALL
+    (
+      [FORCE|STACK][,]
+      [SELF][,]
+      [
+        RESET|REBOOT
+        |(INIT:<init-state>)
+        |(PAUSE|S3)|(SUSPEND|S4)
+        |((POWEROFF|S5)[:<timeoutBeforeKillVM>]
+      ][,]
+    [CLIENT|SERVER|BOTH]
+    )
+  
+.fi
+
+
+.TP
+
+\fB<machine\\-address>\fR
+For VNC the following parts of a <machine\-address> are applicable:
+ID|I, LABEL|L
+
+When the VNCviewer/VNCserver is used in the default shared\-mode,
+the address applies to all sharing VNCclients/vncviewer are handled
+as one logical unit and CANCEL is applied to all at once.
+
+The address could be supported with multiple instances.
+
+.TP
+
+\fBALL|BOTH|CLIENT|SERVER\fR
+
+ALL and BOTH kill clients and servers on local machine.
+Remote clients by CONNECTIONFORWARDING might be exiting
+when server\-loss is detected.
+.RS
+.IP \(bu 3
+The \fBSERVER\fR scope 
+is actually for VNC the same as ALL or
+BOTH, this is due to the default (non\-server) behaviour
+of attached clients, which exit when detecting a
+server\-loss.
+.IP \(bu 3
+The \fBCLIENT\fR scope 
+just kills all client processes by
+means of OS, which is simply calling kill on their
+PID. The server processes remain untouched.
+
+.RE
+.TP
+
+\fBREBOOT|RESET|INIT|SUSPEND\fR
+These methods just behave as a "soft\-kill" which is a
+more or less soft shutdown, for VNC only! Application
+shutdown is not supported.
+So in this case first all clients are killed, following
+a call to "vncserver \-kill :<id>"
+for all matched. No additional action is performed in case of a
+failure.
+
+.TP
+
+\fBPOWEROFF\fR
+These method could be seen as a "hard\-kill" which is a
+trial to "soft\-kill" and an immediate following process
+kill by means of native OS. Thus there might be
+definetly no difference to a controlled shutdown of VNC
+managing unprepared applications.
+
+The session(s) are basically just killed, so the caller
+is resposible for appropriate handling of contained jobs.
+
+.TP
+\fBCREATE\fR
+.nf
+  CREATE=[<machine-address>]
+     [REUSE|CONNECT|RECONNECT|RESUME]
+     [CONSOLE:<>]
+     [(CALLOPTS|C):<callopts>]
+     [(XOPTS|X):<xopts>]
+     [(SHELL|S):<shell>]
+     [(CMD):<cmd>]
+     [(VNCDESKIDLIST|VDIL):<list-of-xstartup-custom-ids>]
+.fi
+
+
+.RS
+.IP \(bu 3
+\fB<machine\-address>\fR
+For VNC the following parts of a \embox{<machine\-address>} are applicable:
+LABEL|L
+
+When the VNCviewer/VNCserver is used in shared\-mode, the
+address applies to all sharing VNCclients/vncviewers.
+The LABEL suboption is here mandatory.
+
+.IP \(bu 3
+\fBBOOTMODE\fR
+Not applicable.
+
+.IP \(bu 3
+\fBCONNECT\fR
+Almost the same as \embox{REUSE}, but no new server will be
+started if missing.
+
+.IP \(bu 3
+\fBCONSOLE\fR
+Not applicable.
+
+.IP \(bu 3
+\fBPING\fR
+Not applicable.
+
+.IP \(bu 3
+\fBRECONNECT\fR
+Similiar to REUSE, with the difference, that any
+previous active client will be killed before attaching
+ONE new client. Therefore in shared mode, when multiple
+clients could simultaneously share one server, all
+sharing clients are handled as one logical unit and will
+be thus killed together.
+Specific exchange of a single client is not supported.
+
+.IP \(bu 3
+\fBRESUME\fR
+Not applicable.
+
+.IP \(bu 3
+\fBREUSE\fR
+When a server process with matching ID or LABEL is
+already running it will be used, else a new one will be
+started.
+In case of non\-shared\-mode operations of VNC any running
+vncviewer will be killed by disconnecting through the
+VNCserver. This is almost the same behaviour as for
+RECONNECT.
+When running in shared\-mode, just an additional
+vncviewer will be attached to the server.
+
+.IP \(bu 3
+\fBSSHPING\fR
+Not applicable.
+
+.IP \(bu 3
+\fBUSER\fR
+Not applicable.
+.RE
+
+.RS
+.IP \(bu 3
+\fBVNCDESKIDLIST\fR
+
+A list of custom IDs, which could be preconfigured desktops and/or 
+destop\-parts within the \fB$HOME/.vnc/xstartup\fR file of VNC.
+The list defines parts of a pre\-configured desktop to be actually started
+so it is possible to start specific GUI environments.
+For an realworld example refer to the installed file, either in the installed package 
+.nf
+  ${CTYS_LIBPATH}/ctys-01_10_013/conf/vnc/xstartup
+.fi
+
+or when actually installed in 
+.nf
+  $HOME/.vnc/xstartup.
+.fi
+
+
+Various desktops within the VNC session could be pre\-configured
+and utilized call\-by\-call at runtime.
+
+This option is supported for VNC sessions only, pre\-requisite 
+is the execution of the \fBxstartup\fR file, which is by now not
+performed for KVM, QEMU, XEN and VMW\-WS sessions.
+Currently pre\-configured values are:
+.RS
+.IP \(bu 3
+demo1
+.IP \(bu 3
+demo2
+.IP \(bu 3
+demo3
+.IP \(bu 3
+demo4
+.IP \(bu 3
+demo5
+
+The seperator is the standard seperator character '%'.
+.RE
+.RE
+
+.RS
+.IP \(bu 3
+\fBVNCBASE\fR
+Base port as new offset for port calculations from the
+DISPLAY number. Standard value is 5900.
+
+.RS
+.IP \(bu 3
+\fBVNCPORT\fR
+Port to be used literally, required for several VMs with
+fixed Server\-Ports.
+
+.IP \(bu 3
+\fBWAITC:<delay\-after\-viewer\-call>\fR
+Delay after start of vncviewer, internally used as delay before
+check of PID for JOBDATA.
+Might not be really required to be varied, but provided for
+completeness.
+
+.IP \(bu 3
+\fBWAITS:<delay\-before\-viewer\-call>\fR
+Delay for start of vncviewer, required when the
+execution is too fast for the \embox{VNCserver} to finish it's init.
+
+The practical application could be the usage within a GROUP and/or
+MACRO, where for security reasons a password based access to
+multiple <exec\-targets> is provided, e.g. for root accounts within
+a admin group.
+With setting of this parameter the initial output of VNCviewer is
+delayed due to it's own delay, thus a series of password requests
+occur without beeing poisoned by trace messages of the parallel
+executed VNCviewer.
+
+.RE
+\fBWM:<window\-manager\-enum>\fR.IP \(bu 3
+
+A single window manager to be used for current session.
+The values are preconfigured for specific distributions and operating systems
+within the \fBxstartup\fR file of VNC. 
+The provided examples could be customized as required.
+Currently pre\-configured values are:
+.RS
+.IP \(bu 3
+DTWM
+.IP \(bu 3
+FVWM
+.IP \(bu 3
+FVWM2
+.IP \(bu 3
+GNOME
+.IP \(bu 3
+KDE
+.IP \(bu 3
+TWM
+.IP \(bu 3
+X11
+.IP \(bu 3
+XFCE
+.RE
+.RE
+
+.P
+The appropriate software packages are required to be pre\-installed before application.
+
+.RS
+.IP \(bu 3
+\fBBULK:[0\-9]{1,3}\fR
+This is a bulk counter for automatic handling of given
+number of sessions.
+Mainly used for test purposes.
+It extends automatically the supported standard <label>
+with three leading\-zero\-digits, for each instance. 
+Which could be DEFAULT.
+The default limiting maximum is set to 20.
+<bulk> could be used for CREATE only.
+.RE
+
+.TP
+\fBENUMERATE\fR
+Not applicable.
+
+.TP
+\fBLIST\fR
+Almost the same output as common standard, with following
+changes in semantics.
+
+\fBid\fR: The DISPLAY used by the vncviewer and/or vncserver.
+For the actual display of the server two cases has to be
+distinguished:
+
+.RS
+.IP \(bu 3
+\fBDISPLAYFORWARDING\fR
+The DISPLAY of vncviewer and vncserver are identical.
+.IP \(bu 3
+\fBCONNECTIONFORWARDING\fR
+The DISPLAY of vncviewer and vncserver are different, this is due to
+the intermediate tunnel, which handles the port\-forwarfing and an has
+to do a remapping due to ambiguity within the network scope.
+The following values are not applicable:
+.nf
+  uuid, mac, tcp
+.fi
+
+.RE
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR, \fIctys\-uc\-VNC(7)\fR, \fIctys\-plugins(1)\fR, \fIvncpasswd(1)\fR, \fIvncviewer(1)\fR, \fIvncserver(1)\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-VNC.t2t -o /tmpn/0/ctys/bld/01.11.005/doc-tmp/BASE/en/man/man1/ctys-VNC.1
+
