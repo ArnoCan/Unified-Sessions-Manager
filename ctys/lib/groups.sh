@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_GROUPS="${BASH_SOURCE}"
-_myPKGVERS_GROUPS="01.11.007"
+_myPKGVERS_GROUPS="01.11.008"
 libManInfoAdd "$_myPKGNAME_GROUPS" "$_myPKGVERS_GROUPS"
 
 
@@ -132,12 +132,13 @@ function fetchGroupMembers () {
 	gotoHell ${ABORT} 
     fi
 
+    local _matchone=;
     for i in ${CTYS_GROUPS_PATH//:/ };do
 	if [ ! -d "${i}" ];then
 	    ABORT=1
 	    printWNG 2 $LINENO $BASH_SOURCE 0 "Missing directory:CTYS_GROUPS_PATH(${i})"
 	else
-	    local _matchone=1;
+	    _matchone=1;
 	fi
     done
 
@@ -289,7 +290,6 @@ function fetchGroupMembers () {
 function expandGroups () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:ARGV=${*}"
     local _hostlst=$*;
-
     if [ ! -d "${CTYS_GROUPS_TMPPATH}" ];then
 	mkdir -p "${CTYS_GROUPS_TMPPATH}"
 	if [ ! -d "${CTYS_GROUPS_TMPPATH}" ];then
@@ -416,7 +416,6 @@ function expandGroups () {
 
 		printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_hostlst=${_hostlst}"
 
-
  		echo "${_myTmpSubName##*/}">${_myTmpSubNameA}
  		echo "${_myTmpSubName##*/}.${_myKey}">${_myTmpSubName}
 
@@ -507,6 +506,7 @@ function expandGroups () {
 	fi
     done
     _hostlst=`echo $_hostlst|sed 's/} *{/ /g;s/["'\''](/(/g;s/)["'\'']/)/g;s/(/"(/g;s/)/)"/g;s/  *)/)/g'`
+
     _hostlst=`eval echo -e ${_hostlst}`
     _hostlst="${_hostlst//-_-_/ }";
     _hostlst="${_hostlst//\\,/,}";
@@ -519,8 +519,7 @@ function expandGroups () {
     printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "  => _hostlst=<${_hostlst}>"
 
     #quick - check it
-    _hostlst=$(echo " $_hostlst "|sed 's/\([^\\]\)[{}]/\1 /g;')
-
+    _hostlst=$(echo " $_hostlst "|sed 's/\([^\\]\)[{}]/\1 /g;s/^ *([^)]*) *//')
     if [ -n "${_hostlst// /}" ];then
 	echo ${_hostlst}
     fi

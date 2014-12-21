@@ -172,6 +172,15 @@ function desktopsGetId () {
 	[ $? -ne 0 ]&&return 1
     fi
 
+    if [ -z "${CTYS_WMCTRL}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${CTYS_WMCTRL}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-W\" does not work on local console"
+	unset DESKTOPS_STARTING;
+	unset C_MDESK;
+	return 1;
+    fi
+
     local _ret=`${CTYS_WMCTRL} -d|awk -v lb=${1} '$NF==lb{print $1}'`
     printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 
@@ -226,6 +235,15 @@ function desktopsGetLabel () {
 	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
+    fi
+
+    if [ -z "${CTYS_WMCTRL}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${CTYS_WMCTRL}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-W\" does not work on local console"
+	unset DESKTOPS_STARTING;
+	unset C_MDESK;
+	return 1;
     fi
 
     case "${1}" in
@@ -289,6 +307,16 @@ function desktopsGetCurrentId () {
 	[ $? -ne 0 ]&&return 1
     fi
 
+    if [ -z "${CTYS_WMCTRL}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${CTYS_WMCTRL}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-W\" does not work on local console"
+	unset DESKTOPS_STARTING;
+	unset C_MDESK;
+	return 1;
+    fi
+
+
     local _ret=`${CTYS_WMCTRL} -d|awk '$2~/\*/{print $1}'`
     printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
     case "${_ret}" in
@@ -338,6 +366,16 @@ function desktopsChange () {
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
+
+    if [ -z "${CTYS_WMCTRL}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${CTYS_WMCTRL}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-W\" does not work on local console"
+	unset DESKTOPS_STARTING;
+	unset C_MDESK;
+	return 1;
+    fi
+
 
     local _id=$1
     case "${_id}" in
@@ -415,6 +453,15 @@ function desktopsGetDeskList () {
 	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
+    fi
+
+    if [ -z "${CTYS_WMCTRL}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${CTYS_WMCTRL}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-W\" does not work on local console"
+	unset DESKTOPS_STARTING;
+	unset C_MDESK;
+	return 1;
     fi
 
     local _ret=`${CTYS_WMCTRL} -d|awk '{print $1}'`

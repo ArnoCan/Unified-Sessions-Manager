@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_008alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VBOX_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VBOX_SESSION="01.11.006alpha"
+_myPKGVERS_VBOX_SESSION="01.11.008alpha"
 hookInfoAdd $_myPKGNAME_VBOX_SESSION $_myPKGVERS_VBOX_SESSION
 _myPKGBASE_VBOX_SESSION="`dirname ${_myPKGNAME_VBOX_SESSION}`"
 
@@ -209,7 +209,7 @@ function startSessionVBOX () {
     local _label=$1;
     local _pname=$2;
     local _myVM=$3;
-    local _conty=$4;
+    local _conty=${4:-$CTYS_VBOX_DEFAULTCONTYPE};
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL     =$_label"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME     =$_pname"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:VM-TCP/IP =$_myVM"
@@ -505,7 +505,8 @@ function connectSessionVBOX () {
     local _label=${2}
     local _actaccessID=${3}
     local _myVM=$4;
-    local _myCon=$5;
+    local _myCon=${5:-$CTYS_VBOX_DEFAULTCONTYPE_CONNECT};
+
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:ID        =$_pname"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL     =$_label"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:ACCESSID  =$_actaccessID"
@@ -784,9 +785,11 @@ function connectSessionVBOXRDP () {
     printDBG $S_VBOX ${D_FRAME} $LINENO $BASH_SOURCE "OK:_id=${_id} - _label=${_label}"
     #
     #Now shows name+id in title, id could not be set for server as default.
-    local _vieweropt="-T '${_label}:${_id}' ${RDPRDESK_OPT} ${C_GEOMETRY:+ -geometry=$C_GEOMETRY} "
+    local _rdpgeometry="${C_GEOMETRY:+ -g $C_GEOMETRY} "
+    _rdpgeometry="${_rdpgeometry%%+*}"
+    local _vieweropt="-T '${_label}:${_id}' ${RDPRDESK_OPT} ${_rdpgeometry} "
     #
-    local CALLER="${RDPRDESK} ${C_DARGS} ${_vieweropt} 127.0.0.1:${_id}"
+    local CALLER="${RDPRDESK} ${_vieweropt} 127.0.0.1:${_id}"
     printDBG $S_VBOX ${D_FRAME} $LINENO $BASH_SOURCE "${CALLER}"
     printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
     export C_ASYNC;

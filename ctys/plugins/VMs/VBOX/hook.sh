@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_008alpha
 #
 ########################################################################
 #
@@ -25,8 +25,10 @@ VBOX_DEFAULTOPTS="-x -q"
 VBOX_PREREQ=;
 VBOX_PRODVERS=;
 
+VBOX_SERVER=;
+
 _myPKGNAME_VBOX="${BASH_SOURCE}"
-_myPKGVERS_VBOX="01.11.006alpha"
+_myPKGVERS_VBOX="01.11.008alpha"
 hookInfoAdd $_myPKGNAME_VBOX $_myPKGVERS_VBOX
 
 _myPKGBASE_VBOX="`dirname ${_myPKGNAME_VBOX}`"
@@ -441,9 +443,17 @@ function setVersionVBOX () {
     else
 	VBOX_PREREQ="${VBOX_PREREQ} RDP-ValidatedBy(hookInfoCheckPKG)"
     fi
-
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:verified pre-requisites:RDP"
 
+    if [ "$C_EXECLOCAL" == 1 ];then
+	if  [ -z "$VBOXMGR" -o -z "$VBOXMGR" -o -z "$VBOXHEADLESS" -o -z "$VBOXSDL" ];then
+	    return ${ABORT}
+	fi
+    else
+	VBOX_STATE=ENABLED;
+	VBOX_MAGIC=RELAY;
+	return
+    fi
 
     local _verstrg=;
     if [ -n "$VBOXEXE" ];then
@@ -485,10 +495,12 @@ function setVersionVBOX () {
 		return ${ABORT}
 	    fi
 	fi
+    else
+	VBOX_SERVER=ENABLED;
     fi
 
+
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "VirtualBox"
-#    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "  VBOXEXE=${_CALLEXE}"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "  VBOXEXE=\"${VBOXEXE}\""
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "  VBOXMGR=\"${VBOXMGR}\""
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "  _verstrg=${_verstrg}"

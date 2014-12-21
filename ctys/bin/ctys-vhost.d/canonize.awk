@@ -6,16 +6,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 ########################################################################
 #
-#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -122,6 +122,7 @@ BEGIN{mx=0;
  perror("dsp      ="dsp);
  perror("execloc  ="execloc);
  perror("gateway  ="gateway);
+ perror("gid      ="gid);
  perror("h        ="h);
  perror("hwcap    ="hwcap);
  perror("hwreq    ="hwreq);
@@ -148,6 +149,7 @@ BEGIN{mx=0;
  perror("tcp      ="tcp);
  perror("title    ="title);
  perror("titleidx ="titleidx);
+ perror("uid      ="uid);
  perror("ustr     ="ustr);
  perror("uu       ="uu);
  perror("vb       ="vb);
@@ -218,6 +220,8 @@ titleidx==1{
  if(vcpu>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU(41)";          }
  if(cstr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg(42)";    }
  if(ustr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(43)";      }
+ if(uid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(44)";      }
+ if(gid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(45)";      }
  printf("%s\n",outbuf);
  exit;        
 }
@@ -266,6 +270,8 @@ titleidx==2{
  if(vcpu>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU(AO-41)";          }
  if(cstr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg(AP-42)";    }
  if(ustr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(AQ-43)";      }
+ if(uid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(AR-44)";      }
+ if(gid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(AS-45)";      }
  printf("%s\n",outbuf);
  exit;        
 }
@@ -314,6 +320,8 @@ title==1{
  if(vcpu>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU";          }
  if(cstr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg";    }
  if(ustr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg";      }
+ if(uid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID";      }
+ if(gid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID";      }
  printf("%s\n",outbuf);
  exit;        
 }
@@ -390,6 +398,8 @@ $0~/^$/{exit;}
  if(vcpu>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $41;}
  if(cstr>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $42;}
  if(ustr>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $43;}
+ if(uid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $44;}
+ if(gid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $45;}
  perror("output="outbuf);
  printf("%s\n",outbuf);
 }

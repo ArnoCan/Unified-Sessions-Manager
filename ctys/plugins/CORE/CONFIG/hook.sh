@@ -1012,6 +1012,7 @@ function getIPlst () {
             [ "$_IP" != "" ]&&break;
 	fi
     done
+    _IP=" ${_IP%% }"
     echo -n -e "${_IP##* }"
 }
 

@@ -36,6 +36,9 @@ case $CUROS in
 		Fedora) #Tested for:Fedora 8
 		    CURREL=`rpm -q fedora-release|sed -n 's/^fedora-release-\([0-9]\+\)-\([0-9]\+\).*$/\1\.\2/p'`
 		    ;;
+		EnterpriseLinux) #Tested for:Oracle Enterprise Linux 5.4
+		    CURREL=`rpm -q enterprise-release|sed -n 's/^enterprise-release-\([0-9]\+\)-\([0-9.]\+\).*$/\1\.\2/p'`
+		    ;;
 		*) 
 		    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
 		    ;;

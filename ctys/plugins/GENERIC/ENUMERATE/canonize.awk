@@ -165,6 +165,9 @@ BEGIN{mx=0;
     ptrace("gateway    ="gateway);
     ptrace("relay      ="relay);
 
+    ptrace("uid        ="uid);
+    ptrace("gid        ="gid);
+
     ptrace("exep       ="exep);
     ptrace("acc        ="acc);
     ptrace("hrx        ="hrx);
@@ -221,6 +224,8 @@ titleidx==1{
     if(vcpu>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU(41)";          }
     if(contextstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg(42)";    }
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(43)";      }
+    if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(44)";        }
+    if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(45)";        }
 
     printf("%s\n",outbuf);
     exit;        
@@ -272,6 +277,8 @@ titleidx==2{
     if(vcpu>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU(AO-41)";          }
     if(contextstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg(AP-42)";    }
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(AQ-43)";      }
+    if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(AR-44)";        }
+    if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(AS-45)";       }
 
     printf("%s\n",outbuf);
     exit;        
@@ -324,6 +331,8 @@ title==1{
     if(vcpu>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU";          }
     if(contextstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg";    }
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg";      }
+    if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID";        }
+    if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID";       }
 
     printf("%s\n",outbuf);
     exit;        
@@ -440,6 +449,8 @@ $0~/^$/||$19!~mstat{
     if(vcpu>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $41;}
     if(contextstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $42;}
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $43;}
+    if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $44;}
+    if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $45;}
 
     ptrace("output="outbuf);
     printf("%s\n",outbuf);

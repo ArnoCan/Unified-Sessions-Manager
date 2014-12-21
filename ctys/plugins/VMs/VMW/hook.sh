@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -24,9 +24,10 @@ VMW_ACCELERATOR=;
 VMW_DEFAULTOPTS="-x -q"
 VMW_PREREQ=;
 VMW_PRODVERS=;
+VMW_SERVER=;
 
 _myPKGNAME_VMW="${BASH_SOURCE}"
-_myPKGVERS_VMW="01.11.005"
+_myPKGVERS_VMW="01.11.008"
 hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
 
 _myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
@@ -244,8 +245,6 @@ function clientRequireVMW () {
 			    VMW_P[2]*)_res=;_ret=1;;
 			    VMW_S[2]*)_res=${*};_ret=1;;
 			    VMW_WS[7]*)_res=${*};_ret=0;;
-
-#4TEST
 			    VMW_RC)_res=${*};_ret=0;;
                         esac
 			;;
@@ -272,8 +271,6 @@ function clientRequireVMW () {
 			    VMW_P[2]*)_res=;_ret=1;;
 			    VMW_S[2]*)_res=${*};_ret=0;;
 			    VMW_WS[7]*)_res=${*};_ret=0;;
-
-#4TEST
 			    VMW_RC)_res=${*};_ret=0;;
                         esac
 			;;
@@ -375,6 +372,10 @@ function setVersionVMW () {
 	_verstrg=`callErrOutWrapper $LINENO $BASH_SOURCE $VMWEXE -v`
 	if [ $? -ne 0 -o "${_verstrg//vmware-config.pl/}" != "${_verstrg}" ];then
 	    _verstrg=;
+	else
+	    #4TEST:REMINDER:check "callErrOutWrapper" for redirection
+	    #4TEST:REMINDER:get rid of "MIT-MAGIC-COOKIE..." in stdio!!!
+	    _verstrg=$(echo "$_verstrg"|awk 'x!="NO"{print;x="NO";}' )
 	fi
     fi
 
@@ -419,6 +420,7 @@ function setVersionVMW () {
 	    VMW_PRODVERS="P-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_DEFAULTOPTS="";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
             local _buf1="${_verstrg#VMware Player }"
             _buf1="${_buf1% build*}"
             _cap="${_cap}%vmw/player-${_buf1}-`getExecArch /usr/lib/vmware/bin/vmplayer`"
@@ -432,6 +434,7 @@ function setVersionVMW () {
 	    VMW_PRODVERS="P-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_DEFAULTOPTS="";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
             local _buf1="${_verstrg#VMware Player }"
             _buf1="${_buf1% build*}"
             _cap="${_cap}%vmw/player-${_buf1}-`getExecArch /usr/lib/vmware/bin/vmplayer`"
@@ -445,6 +448,7 @@ function setVersionVMW () {
 	    VMW_PRODVERS="P-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_DEFAULTOPTS="";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
             local _buf1="${_verstrg#VMware Player }"
             _buf1="${_buf1% build*}"
             _cap="${_cap}%vmw/player-${_buf1}-`getExecArch /usr/lib/vmware/bin/vmplayer`"
@@ -457,6 +461,7 @@ function setVersionVMW () {
 	    VMW_MAGIC=VMW_S104;
 	    VMW_PRODVERS="S-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
 	    VMW_DEFAULTOPTS="-x -q -l";
             local _buf1="${_verstrg#VMware Server }"
             _buf1="${_buf1% build*}"
@@ -471,6 +476,7 @@ function setVersionVMW () {
 	    VMW_MAGIC=VMW_S20;
 	    VMW_PRODVERS="S-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
 	    VMW_DEFAULTOPTS="-x -q -l";
             local _buf1="${_verstrg#VMware Server }"
             _buf1="${_buf1% build*}"
@@ -486,6 +492,7 @@ function setVersionVMW () {
 		. ${MYLIBPATH}/lib/libVMWserver2.sh
 	    else
 		VMW_STATE=DISABLED
+		VMW_SERVER=;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing vmrun for detected Server Version-2.x"
 	    fi
 	    ;;
@@ -495,9 +502,8 @@ function setVersionVMW () {
 	    VMW_PRODVERS="S-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_STATE=ENABLED
 	    VMW_DEFAULTOPTS="-x -q -l";
-            local _buf1="${_verstrg#VMware Server }"
+            local _buf1="${_verstrg// /_}"
             _buf1="${_buf1% build*}"
-            _cap="${_cap}%vmw/server-${_buf1}-`getExecArch /usr/bin/vmware`"
 	    _ret=0;
 
             #switch to VMRUN
@@ -509,17 +515,22 @@ function setVersionVMW () {
 
 		. ${MYLIBPATH}/lib/libVMWserver2.sh
 	    else
-		#reminder: VMW_STATE=RELAY
-#4TEST
-#		VMW_STATE=DISABLED
-		VMW_STATE=ENABLED
+		if [ "$C_EXECLOCAL" != 1 ];then
+		    VMW_STATE=ENABLED
+		    VMW_MAGIC=VMW_RC;
+		    _cap="${_cap} ${_buf1}"
 
-		printWNG 2 $LINENO $BASH_SOURCE 0 "'Remote Console' plugin is present without Server installation."
-		printWNG 2 $LINENO $BASH_SOURCE 0 "For now console is supported in DISPLAYFORWARDING only."
+		    printWNG 2 $LINENO $BASH_SOURCE 0 "'Remote Console' plugin is present without Server installation."
+		    printWNG 2 $LINENO $BASH_SOURCE 0 "For now console is supported in DISPLAYFORWARDING only."
+		else
+		    VMW_STATE=DISABLED
+		    VMW_MAGIC=VMW_RC;
+		    _cap="${_cap} ${_buf1}"
 
-		#temporary - replace with client-only!
-#4TEST		VMW_MAGIC=VMW_GENERIC;
-		VMW_MAGIC=VMW_RC;
+		    printWNG 2 $LINENO $BASH_SOURCE 0 "'Remote Console' plugin is present without Server installation."
+		    printWNG 2 $LINENO $BASH_SOURCE 0 "For now console is supported in DISPLAYFORWARDING only."
+
+		fi
 	    fi
 	    ;;
 
@@ -527,6 +538,7 @@ function setVersionVMW () {
 	    VMW_MAGIC=VMW_WS6;
 	    VMW_PRODVERS="W-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
 	    VMW_DEFAULTOPTS="-x -q -n";
             local _buf1="${_verstrg#VMware Workstation }"
             _buf1="${_buf1% build*}"
@@ -539,6 +551,7 @@ function setVersionVMW () {
 	    VMW_MAGIC=VMW_WS7;
 	    VMW_PRODVERS="W-$(echo ${_verstrg}|sed 's/^[^0-9]*//;s/ *build//')";
 	    VMW_STATE=ENABLED
+	    VMW_SERVER=ENABLED;
 	    VMW_DEFAULTOPTS="-x -q -n";
             local _buf1="${_verstrg#VMware Workstation }"
             _buf1="${_buf1% build*}"

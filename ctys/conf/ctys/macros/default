@@ -65,19 +65,19 @@ F_SPORT     = 10_sport_5_L
 #GID(13);
 #C/S-Type(14)
 #
-F_PID       = 11_pid_5
-F_UID       = 12_uid_8
-F_GID       = 13_gid_8
-F_CST       = 14_cst_1
-F_JOBID     = 15_jobid_30
+F_L_PID           = 11_pid_5
+F_L_UID           = 12_uid_8
+F_L_GID           = 13_gid_8
+F_L_CST           = 14_cst_1
+F_L_JOBID         = 15_jobid_30
 
-F_RESERVED0 = 16_res0_4
-F_RESERVED1 = 17_res1_4
-F_CONTEXTSTRG = 18_context_20
-F_EXECPATH    = 19_exepath_20
-F_HYPERRELRUN = 20_hyprel_10
-F_ACCELERATOR = 21_accel_5
-F_ARCH        = 22_arch_5
+F_L_IFNAME        = 16_ifn_4
+F_L_RESERVED1     = 17_res_4
+F_L_CONTEXTSTRG   = 18_context_20
+F_L_EXECPATH      = 19_exepath_20
+F_L_HYPERRELRUN   = 20_hyprel_10
+F_L_ACCELERATOR   = 21_accel_5
+F_L_ARCH          = 22_arch_5
 ##########################################################
 #
 #Specific additional MACROS for ENUMERATE
@@ -215,7 +215,7 @@ TAB_HWCAP=tab_gen:macro:F_LABEL%%macro:F_STYPE%%21_HWcap_70_B
 TAB_HWREQ=tab_gen:macro:F_LABEL%%macro:F_STYPE%%22_HWreq_70_B
 
 
-ehwstate=-a enumerate={macro:TAB_HWTAT}
+ehwstate=-a enumerate={macro:TAB_HWSTAT}
 ehw=-a enumerate={macro:TAB_HWSTAT}
 
 vhosthwstate=-o {macro:TAB_HWSTAT}
@@ -231,7 +231,7 @@ vhwreq=-o {macro:TAB_HWREQ}
 #
 # LABEL STYPE  DISP  CPORT  SPORT  PID PM  TCP
 #
-TAB_LST_CONNPID=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_CST%%macro:F_DISP%%macro:F_CPORT%%macro:F_SPORT%%macro:F_PID%%macro:F_PM%%macro:F_TCP
+TAB_LST_CONNPID=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_L_CST%%macro:F_DISP%%macro:F_CPORT%%macro:F_SPORT%%macro:F_L_PID%%macro:F_PM%%macro:F_TCP
 connpid=macro:TAB_LST_CONNPID
 listconnpid=-a list=macro:TAB_LST_CONNPID
 
@@ -294,7 +294,7 @@ vid=-o macro:TAB_ENUMLIST_ID
 #
 # LABEL STYPE  JOBID PID UID GID
 #
-TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_ACCELERATOR%%macro:F_CST%%macro:F_JOBID%%macro:F_PID%%macro:F_UID%%macro:F_GID
+TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_L_ACCELERATOR%%macro:F_L_CST%%macro:F_L_JOBID%%macro:F_L_PID%%macro:F_L_UID%%macro:F_L_GID
 
 jobs=macro:TAB_LST_JOBS
 listjobs=-a list=macro:TAB_LST_JOBS

@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VMW_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_ENUMERATE="01.06.001a09"
+_myPKGVERS_VMW_ENUMERATE="01.11.008"
 hookInfoAdd $_myPKGNAME_VMW_ENUMERATE $_myPKGVERS_VMW_ENUMERATE
 _myPKGBASE_VMW_ENUMERATE="`dirname ${_myPKGNAME_VMW_ENUMERATE}`"
 
@@ -231,7 +231,8 @@ function enumerateMySessionsVMW () {
 		_out3="${_out3};`getOSREL ${X}`";
 		_out3="${_out3};`getVERNO ${X}`";
 		_out3="${_out3};`getSERNO ${X}`";
-		_out3="${_out3};`getCATEGORY ${X}`";
+		#_out3="${_out3};`getCATEGORY ${X}`";
+		_out3="${_out3};VM";
 		_out3="${_out3};`getVMSTATE ${X}`";
 		_out3="${_out3};`getHYPERREL ${X}`";
 		_out3="${_out3};`getSTACKCAP ${X}`";
@@ -259,10 +260,10 @@ function enumerateMySessionsVMW () {
 		_out7="${_out7};`getGUESTPLATFORM ${X}`";
 		_out7="${_out7};`getVMWGUESTVRAM ${X}`";
 		_out7="${_out7};`getVMWGUESTVCPU ${X}`";
-
-		_out7="${_out7};VERSION:${VMW_PRODVERS},${_cont}`getCONTEXTSTRING ${X}`";
+#		_out7="${_out7};VERSION:${VMW_PRODVERS},${_cont}`getCONTEXTSTRING ${X}`";
+		_out7="${_out7};VERSION:${VMW_PRODVERS}";
+		_out7="${_out7},${_cont}`getCONTEXTSTRING ${X}`";
 		_out7="${_out7%,}";
-
 		_out7="${_out7};`getUSERSTRING ${X}`";
 
 		local i=0;
@@ -304,12 +305,12 @@ function enumerateMySessionsVMW () {
 
 			local _myNetName=$(netGetNetName "${A[0]}")
 
-			_out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}"
+			_out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7};${MYUID};${MYGID}"
 			printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 			echo -e "${_out}"
 		    done
 		else
-		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}"
+		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7};${MYUID};${MYGID}"
   		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		    echo -e "${_out}"
 		fi

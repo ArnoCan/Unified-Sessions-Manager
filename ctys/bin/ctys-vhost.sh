@@ -903,6 +903,7 @@ function myFetchOptions () {
 			DNS|D)                            _dns=1;_outputset=1;;
 			EXECLOCATION)                     _execloc=1;_outputset=1;;
 			GATEWAY)                          _gateway=1;_outputset=1;;
+			GROUPID|GID)                      _gid=1;_outputset=1;;
 			HWCAP)                            _hwcap=1;_outputset=1;;
 			HWREQ)                            _hwreq=1;_outputset=1;;
 			HYPERREL|HYREL)                   _hyrel=1;_outputset=1;;
@@ -933,6 +934,7 @@ function myFetchOptions () {
 			TITLEIDX)                         _titleidx=1;;
 			STYPE|ST)                         _st=1;_outputset=1;;
 			USERSTRING|USTRG)                 _ustr=1;_outputset=1;;
+			USERID|UID)                       _uid=1;_outputset=1;;
 			UUID|U)                           _uuid=1;_outputset=1;;
 			VCPU)                             _vcpu=1;_outputset=1;;
 			VERSION|VER|VERNO)                _ver=1;_outputset=1;;
@@ -1427,6 +1429,7 @@ function myFetchOptions () {
         _execloc=1;_gateway=1;_hwcap=1;_hwreq=1;_ifname=1;
         _sshport=1;_netname=1;
         _netmask=1;_relay=1;_reloccap=1;_ctysrel=1;
+        _uid=1;_gid=1;
     fi
 }
 
@@ -1934,6 +1937,7 @@ function applyPreSelectionFilter () {
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v relay=$_relay -v reloccap=$_reloccap -v sshport=$_sshport"
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v netname=$_netname "
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v ctysrel=$_ctysrel -v complement=$_complement"
+    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v uid=$_uid -v gid=$_gid"
 
 
     local IFS="
@@ -1972,6 +1976,7 @@ function applyPreSelectionFilter () {
                 -v execloc="$_execloc" -v gateway="$_gateway" -v hwcap="$_hwcap" \
                 -v hwreq="$_hwreq" -v ifname="$_ifname" -v netmask="$_netmask" \
                 -v relay="$_relay" -v reloccap="$_reloccap" -v sshport=$"_sshport" \
+                -v uid="$_uid" -v gid="$_gid" \
                 -v netname="$_netname" \
 		-f ${MYLIBEXECPATH}/${MYCALLNAME}.d/ctys-vhost-presel.awk \
 		|sed 's/; */;/g'
@@ -2385,8 +2390,7 @@ for _db in ${DBPATHLST//:/ };do
     fi
     applyPreSelectionFilter "${DBWORK}" ${_arglst}
     if [ -n "${MULTIDB}" ];then
-	_COLLECT="${_COLLECT:+$_COLLECT
-}${RESULTLST}"
+	_COLLECT="${_COLLECT:+$_COLLECT}${RESULTLST}"
     fi
 done
 
@@ -2442,6 +2446,7 @@ function applyFilter () {
         -v relay="$_relay" -v reloccap="$_reloccap" -v sshport=$"_sshport" \
         -v netname="$_netname" \
         -v distrel=$_distrel -v osrel=$_osrel  -v ctysrel="$_ctysrel" \
+        -v uid=$_uid -v gid=$_gid \
 	-v cols="$_TABARGS" \
         \
  	-f ${2} \

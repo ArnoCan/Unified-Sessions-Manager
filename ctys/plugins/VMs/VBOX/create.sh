@@ -211,8 +211,6 @@ function createConnectVBOX () {
 				    RDPVIEWER|RDP)
 					printWNG 2 $LINENO $BASH_SOURCE 0 "Requires support on destination for ${_conty}"
 					local _rdp=1;
-					printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RDPviewer"
-					R_OPTS="$R_OPTS -T RDP,VBOX"
 					;;
 
 				    NONE)
@@ -431,6 +429,14 @@ function createConnectVBOX () {
 		printERR $LINENO $BASH_SOURCE ${_ret} "  (label|l|dname|d) EXOR (fname|f) EXOR (pname|p)EXOR (uuid|u)"
  		gotoHell ${_ret}               
             fi
+
+	    case ${_conty} in
+		RDPVIEWER|RDP)
+		    local _rdp=1;
+		    R_OPTS="$R_OPTS -T RDP,VBOX"
+		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RDPviewer set: -T RDP,VBOX"
+		    ;;
+	    esac
 	    ;;
 
 	ASSEMBLE)
@@ -682,12 +688,12 @@ function createConnectVBOX () {
 			    _actionuserVBOX="${ARG}";
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "ACTION-USER=${_actionuserVBOX}"
 			    VBOX_SESSION_USER=${_actionuserVBOX%% *}
-			    VBOXMGR="${VBOXMGR} -u ${VBOX_SESSION_USER} "
+# 			    VBOXMGR="${VBOXMGR} -u ${VBOX_SESSION_USER} "
 			    VBOX_SESSION_CRED=${_actionuserVBOX#* }
-			    if [ "${VBOX_SESSION_CRED}" != "${_actionuserVBOX}" ];then
-				VBOXMGR="${VBOXMGR} -p ${VBOX_SESSION_CRED} "
-			    else
+ 			    if [ "${VBOX_SESSION_CRED}" == "${_actionuserVBOX}" ];then
 				VBOX_SESSION_CRED=;
+# 			    else
+# 				VBOXMGR="${VBOXMGR} -p ${VBOX_SESSION_CRED} "
 			    fi
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "VBOXMGR=${VBOXMGR}"
 			    ;;
@@ -768,6 +774,22 @@ function createConnectVBOX () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing PNAME, required from client due to \"-c LOCAL,ONLY...\""
  		gotoHell ${ABORT}
 	    fi
+
+
+	    case ${_conty} in
+		RDP)
+		    if [ -z "`hookInfoCheckPKG RDP`" ];then
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "This feature reuqires RDP plugin ${ACTION}=${KEY}"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T\" for client and server"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-V\""
+ 			gotoHell ${ABORT};
+		    fi
+		    local _rdp=1;
+		    local _console=$_conty;
+		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "rdesktop"
+		    ;;
+	    esac
 
 
             #
@@ -888,6 +910,8 @@ function createConnectVBOX () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
+#4TEST:01_11_008
+		local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
 
 		case ${C_NSCACHELOCATE} in
 		    0)#off
@@ -1031,10 +1055,11 @@ function createConnectVBOX () {
 			connectSessionVBOX "${_pname}" "${_label}" "${_RDP_CLIENT_MODE}" "${_tcp}"  "${_conty}"
 		    fi
 		else
-		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "Session already exists ID=${_IDx} - LABEL=${_label}"
 		    ABORT=1
+		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "Session already exists ID=${_IDx} - LABEL=${_label}"
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Session already exists ID=${_IDx} - LABEL=${_label}"
-		    printERR $LINENO $BASH_SOURCE ${ABORT} "  Choose \"REUSE\" if you want connect-only when existing"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  Choose \"REUSE\" and \"RDP\" console if you want connect-only to an"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  existing session. Requires RDP access to be enabled before."
 		    gotoHell ${ABORT}
 		fi
 	    else

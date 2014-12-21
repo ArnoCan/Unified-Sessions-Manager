@@ -408,7 +408,7 @@ while [ -n "$1" ];do
 		    _listmembers=3;
 		    ;;
 		*)
-		    shift;_listmembers=3;
+		    _listmembers=3;
 		    ;;
 	    esac
             ;;
@@ -573,7 +573,7 @@ if [ -n "$_listmembers" ];then
     esac
 
    if [ -n "${argLst}" ];then
-	argLst=":${argLst}"
+	argLst=":${argLst# }"
     else
 	argLst=" ."
     fi

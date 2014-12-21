@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_008
 #DESCRIPTION:
 #  Main untility of project ctys for generation of nameservice DB.
 #
@@ -649,23 +649,161 @@ initPackages "${MYROOTHOOK}"
 #prepare execution                                                              #
 #################################################################################
 
-#extract basepath
-_t=`echo " $* "| sed -n 's/.*--base=["'\'']*\([^ "'\'']*\)[ "'\'']*.*/\1/p;'`
-if [ -n "${_t}" ];then
 
-    BASEPATHLST="${_t}"
-    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:BASEPATHLST=$BASEPATHLST"
+progressFilter=0;
 
-    #clear remaining
-    _cli=`echo " $* "| sed -n 's/--base=["'\'']*\([^ "'\'']*\)[ "'\'']//p;'`
-    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:clear \"--base\" => _cli=\"$_cli\""
-else
-    _cli=$*;
+
+
+
+INSTTYPE=;
+INSTDIR=;
+LNKDIR=;
+TARGETLST=;
+RUSER=;
+_doctrans=;
+
+_ARGS=;
+_ARGSCALL=$*;
+_RUSER0=;
+LABEL=;
+
+NEWARGS=;
+
+_splitted=1;
+#unset _splitted;
+
+#unset _splitted_keep_files=1;
+unset _splitted_keep_files;
+
+tmax=${CTYS_VDBGEN_PARTARGETS}
+
+argLst=;
+while [ -n "$1" ];do
+    if [ -z "${_ARGS}" ];then
+	case $1 in
+	    '--base='*)
+		BASEPATHLST="${1#*=}";
+		printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:BASEPATHLST=$BASEPATHLST"
+		;;
+
+	    '--cacheDB='*)
+		_dbfilepath="${1#*=}";
+		;;
+
+
+	    "--append")
+		_appendmode=1;
+		;;
+
+	    "--replace")
+		unset _appendmode;
+		_replacemode=1;
+		;;
+
+	    "--stdio")
+		_stdiomode=1;
+		;;
+
+	    "--filecontext")
+		filecontext=1;
+		;;
+
+	    "--no-splitted")
+		unset _splitted;
+		;;
+
+	    "--progressall")
+		progressFilter=1;
+		;;
+
+	    "--progress")
+		progressFilter=2;
+		;;
+
+	    "--splitted")
+		_splitted=1;
+		;;
+
+	    "--splitted-keep-files")
+		_splitted_keep_files=1;
+		;;
+
+	    '--threads='*)
+		tmax="${1#*=}";
+		;;
+
+	    "--scan-all-states")
+		_scanall=1;
+		;;
+
+
+	    "-t")
+		shift;_tOpt=$1;
+		;;
+
+	    "-T")
+		shift;_TOpt=$1;
+		;;
+
+	    "-b")
+		shift;_bOpt=$1;
+		;;
+
+	    "-c")
+		shift;_cOpt=$1;
+		;;
+
+	    "-C")
+		shift;_COpt=$1;
+		;;
+
+
+	    '-d')shift;;
+	    '-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
+	    '-h'|'--help'|'-help')_showToolHelp=1;;
+	    '-V')_printVersion=1;;
+	    '-X')C_TERSE=1;_BYPASSARGS="${_BYPASSARGS} $1";;
+
+            '--')_ARGS=" ";;
+	    '-'*)
+		_BYPASSARGS="${_BYPASSARGS} $1";
+		case $1 in
+ 		    '-b')shift;_BYPASSARGS="${_BYPASSARGS} $1";_SET_B=$(echo "$1"|tr 'a-z' 'A-Z');;
+
+ 		    '-a'|'-A'|'-b'|'-d'|'-D'|'-c'|'-C'|'-F'|'-g'|'-j')shift;_BYPASSARGS="${_BYPASSARGS} $1";;
+		    '-p'|'-r'|'-s'|'-S'|'-k'|'-l'|'-L'|'-M'|'-o'|'-O')shift;_BYPASSARGS="${_BYPASSARGS} $1";;
+		    '-t'|'-T'|'-W'|'-x'|'-z'|'-Z')                    shift;_BYPASSARGS="${_BYPASSARGS} $1";;
+
+		    '-H'|'-E'|'-f'|'-h'|'-n'|'-v'|'-V'|'-w'|'-X'|'-y'|'Y'|'-z');;
+		esac
+		;;
+#             *)_ARGS="${_ARGS} $1";;
+	esac
+	shift
+    else
+        _ARGS="${_ARGS} $1";
+	shift
+    fi
+done
+
+if [ -z "${_ARGS}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing arguments: <target-hosts>"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Do not forget the double-hyphen seperator. "
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  ${0} .... -- <target-hosts>"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "For local scan use localhost:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  ${0} .... -- localhost"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  ${0} .... -- scanUser@localhost"
+    gotoHell ${ABORT}
+
 fi
 
-#extract cacheDB
-_t=`echo " $_cli "| sed -n 's/.*--cacheDB=["'\'']*\([^ "'\'']*\)[ "'\'']*.*/\1/p;'`
-if [ -z "$_t" ];then
+
+###############
+#
+#cacheDB
+#
+if [ -z "$_dbfilepath" ];then
     if [ -n "${DEFAULT_VDBGEN_DB}" ];then
 	_dbfilepath=${DEFAULT_VDBGEN_DB}
 	echo "Require DB-PATH,        USE: DEFAULT_VDBGEN_DB=\"${_dbfilepath}\""
@@ -675,15 +813,10 @@ if [ -z "$_t" ];then
 	    echo "Require DB-PATH,        USE: DEFAULT_DBPATHLST=\"${_dbfilepath}\""
 	fi
     fi
-else
-    #clear remaining
-    _cli=`echo " $_cli "| sed -n 's/--cacheDB=["'\'']*\([^ "'\'']*\)[ "'\'']//p;'`
-    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:clear \"--cacheDB\" => _cli=\"$_cli\""
-    _dbfilepath=${_t}
-    echo "Require DB-PATH,        USE: -o => \"${_dbfilepath}\""
-    echo "Stripped CLI            CLI:    => \"${_cli}\""
 fi
-
+if [ -n "$_dbfilepath" ];then
+    echo "Require DB-PATH,        USE: -o => \"${_dbfilepath}\""
+fi
 if [ -z "$_dbfilepath" ];then
     ABORT=1;
     printERR $LINENO $BASH_SOURCE ${ABORT} "At least default for DB-file required."
@@ -731,23 +864,52 @@ if [ ! -d "$_dbfilepath" ];then
 fi
 _dbfilepath=$_dbfilepath/enum.fdb
 
-printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_cli=$_cli"
-NEWARGS1=$_cli
 
-NEWARGS=${NEWARGS1//--append/}
-if [ "${NEWARGS}" != "${NEWARGS1}" ];then
-    _appendmode=1;
+
+#################
+#
+#TARGETS
+#
+if [ -z "${_ARGS}" ];then
+    _ARGS=localhost
+fi
+if [ -n "${RUSER}" -a "${_ARGS//@}" != "${_ARGS}" ];then
+    echo "ERROR:\"-l\" option and EMail style addresses \"<USER>@<HOST>\"">&2
+    echo "ERROR:cannot be used intermixed.">&2
+    echo "  RUSER     = ${RUSER}">&2
+    echo "  _ARGS = ${_ARGS}">&2
+    exit 1
+fi
+
+
+if [ -n "$_HelpEx" ];then
+    printHelpEx "${_HelpEx}";
+    exit 0;
+fi
+if [ -n "$_showToolHelp" ];then
+    showToolHelp;
+    exit 0;
+fi
+if [ -n "$_printVersion" ];then
+    printVersion;
+    exit 0;
+fi
+
+
+
+################
+#
+#append/replace
+#
+if [ "${_appendmode}" == 1 ];then
     echo "APPEND mode                : ON(1)"
 else
-    unset _appendmode;
-    echo "APPEND mode off => REPLACE : OFF(0)"
-    NEWARGS=${NEWARGS1//--replace/}
-    if [ "${NEWARGS}" != "${NEWARGS1}" ];then
-	_replacemode=1;
+    if [ "${_replacemode}" == 1 ];then
+	echo "APPEND mode off => REPLACE : OFF(0)"
 	echo "REPLACE mode on            : ON(1)"
     else
-	unset _replacemode;
-	echo "IMPLICIT REPLACE mode on   : ON(0)"
+	_replacemode=1;
+	echo "IMPLICIT REPLACE mode on   : ON(1)"
 	if [ -e "${_dbfilepath}" ];then
 	    ABORT=1;
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "\"IMPLICIT REPLACE\" is only allowed when \"enum.fdb\" is absent,"
@@ -757,70 +919,105 @@ else
     fi
 fi
 
-NEWARGS1=${NEWARGS//--stdio/}
-if [ "${NEWARGS}" != "${NEWARGS1}" ];then
-    _stdiomode=1;
+
+
+################
+#
+#stdio
+#
+if [ "${_stdiomode}" == 1 ];then
     echo "STDIO mode on              : ON(1)"
-    NEWARGS=${NEWARGS1}
 else
-    unset _stdiomode;
     echo "STDIO mode off             : OFF(0)"
 fi
 
-if [ "${_cliorg//--filecontext/}" != "${_cliorg}"  ];then
+
+
+
+################
+#
+#filecontext
+#
+if [ "${filecontext}" == 1  ];then
     echo "Set for Filecontext     ON: "
-    filecontext=1;
-    NEWARGS="${NEWARGS//--filecontext/ }"
 fi
 
 
-if [ -z "${filecontext}" ];then
-    if [ "${_cliorg//-t}" == "${_cliorg}"  ];then
-	echo "Set TYPE scope          ADD: DEFAULT=\"-t ALL\""
-	NEWARGS="-t ALL ${NEWARGS}"
-    fi
 
-    if [ "${_cliorg//-T}" == "${_cliorg}"  ];then
-	echo "Preload TYPE set        ADD: DEFAULT=\"-T ALL\""
-	NEWARGS="-T ALL ${NEWARGS}"
-    fi
 
-    if [ "${_cliorg//-b}" == "${_cliorg}"  ];then
-	echo "Should speed-up         ADD: DEFAULT=\"-b sync,parallel \""
-	NEWARGS="-b sync,parallel ${NEWARGS}"
-    fi
-
-    if [ "${_cliorg// -c }" == "${_cliorg}"  ];then
-	echo "Nameservice cache       OFF: DEFAULT=\"-c off \""
-	NEWARGS="-c off ${NEWARGS}"
-    fi
-
-    if [ "${_cliorg// -C }" == "${_cliorg}" ];then
-	echo "Data cache              OFF: DEFAULT=\"-C off \""
-	NEWARGS="-C off ${NEWARGS}"
-    fi
-fi
-
-progressFilter=0;
-if [ "${_cliorg//--progressall/}" != "${_cliorg}"  ];then
+#
+#progressall
+#
+if [ "${progressFilter}" == 1  ];then
     echo "Set Progress Trace All  ON: DEFAULT=\"\""
     echo "  Requires on targets     :\"(-d 2,s:16:w:0,p)\""
-    NEWARGS="${NEWARGS//--progressall/ }"
-    progressFilter=1;
 fi
 
-if [ "${_cliorg//--progress/}" != "${_cliorg}"  ];then
+
+
+#
+#progress
+#
+if [ "${progressFilter}" == 2  ];then
     echo "Set Progress Final      ON: DEFAULT=\"\""
     echo "  Requires on targets     :\"(-d 2,s:16,w:0,p)\""
-    NEWARGS="${NEWARGS//--progress/ }"
-    progressFilter=2;
 fi
 
 
+#
+#
+#
+if [ -z "${filecontext}" ];then
 
+    if [ -n "${_tOpt}" ];then
+	echo "Set TYPE scope          ADD: DEFAULT=\"-t ${_tOpt}\""
+#Reminder:	NEWARGS="-t $_tOpt  ${NEWARGS}"
+    else
+	echo "Set TYPE scope          ADD: DEFAULT=\"-t ALL\""
+        _tOpt=ALL
+#Reminder:	NEWARGS="-t ALL  ${NEWARGS}"
+    fi
+
+
+    if [ -n "${_TOpt}" ];then
+	echo "Preload TYPE set        ADD: DEFAULT=\"-T ${_TOpt}\""
+	NEWARGS="-T $_TOpt  ${NEWARGS}"
+    else
+	echo "Preload TYPE set        ADD: DEFAULT=\"-T ALL\""
+	NEWARGS="-T ALL  ${NEWARGS}"
+    fi
+
+    if [ -n "${_bOpt}" ];then
+	echo "Should speed-up         ADD: DEFAULT=\"-b ${_bOpt} \""
+#Reminder: 	NEWARGS="-t $_bOpt  ${NEWARGS}"
+    else
+ 	echo "For splitted operations ADD: DEFAULT=\"-b sync,seq \""
+#Reminder:  	NEWARGS="-b sync,seq  ${NEWARGS}"
+    fi
+
+    if [ -n "${_cOpt}" ];then
+	echo "Nameservice cache       OFF: DEFAULT=\"-c ${_cOpt} \""
+	NEWARGS="-t $_cOpt  ${NEWARGS}"
+    else
+	echo "Nameservice cache       OFF: DEFAULT=\"-c off \""
+	NEWARGS="-c off  ${NEWARGS}"
+    fi
+
+    if [ -n "${_COpt}" ];then
+	echo "Data cache              OFF: DEFAULT=\"-C ${_cOpt} \""
+	NEWARGS="-t $_COpt  ${NEWARGS}"
+    else
+	echo "Data cache              OFF: DEFAULT=\"-C off \""
+	NEWARGS="-C off  ${NEWARGS}"
+    fi
+else
+    echo "filecontext is set, ignoring: -c, .-C, -b, -T, -t"
+fi
 
 echo
-_t=`echo "${NEWARGS}"| sed -n '/[eE][nN][uU][mM][eE][rR][aA][tT][eE]/p'`
+
+
+_t=`echo "${_BYPASSARGS}"| sed -n '/[eE][nN][uU][mM][eE][rR][aA][tT][eE]/p'`
 if [ -z "${_t}" ];then
     _srchpath=;
     echo -n "Resulting ENUMERATE     ADD: DEFAULT=\""
@@ -841,12 +1038,19 @@ if [ -z "${_t}" ];then
     _srcpath="`echo ${_srcpath}|sed -n 's/^ *\([^ ].*[^ ]\) *$/\1/;s/  */%/g;p'`";
 
     if [ -z "${filecontext}" ];then
-	NEWARGS="-a enumerate=matchvstat:active%disabled%empty,machine${_srcpath:+,b:$_srcpath} ${NEWARGS}"
+	NEWARGS="-a enumerate=matchvstat:${_scanall:+all%}active%disabled%empty,machine${_srcpath:+,b:$_srcpath} ${NEWARGS}"
     else
 	NEWARGS=" ${NEWARGS}"
     fi
-    echo "${NEWARGS}\""
+
+    echo "\"${NEWARGS}\""
 fi
+
+
+
+#
+NEWARGS=" ${NEWARGS} ${_BYPASSARGS}"
+NEWARGS=" ${NEWARGS} "
 
 
 #prepare stats
@@ -860,46 +1064,129 @@ fi
 _ssumtime=`getCurTime`;
 echo
 {
-    if [ -n "$_stdiomode" ];then
-	echo "RESULTING CALL:\"${MYLIBEXECPATH}/ctys.sh ${NEWARGS}\""
-	echo
-	echo "-> generate DB(may take a while)..."
-	echo "-----------------------------------"
-	echo "START:${_ssumtime}"
-	echo "------"
-    else
-	echo "RESULTING CALL:\"${MYLIBEXECPATH}/ctys.sh ${NEWARGS}${_appendmode:+>}>${_dbfilepath}\""
-	echo
-	echo "-> generate DB(may take a while)..."
-	echo "-----------------------------------"
-	echo "START:${_ssumtime}"
-	echo "------"
-    fi
+    echo "-> generate DB(may take a while)..."
+    echo "-----------------------------------"
+    echo "START:${_ssumtime}"
+    echo "------"
+    echo
 }
 {
     if [ -n "$_stdiomode" ];then
-	${MYLIBEXECPATH}/ctys.sh ${NEWARGS}
+	echo "RESULTING CALL:\"${MYLIBEXECPATH}/ctys.sh -t ${_tOpt} ${NEWARGS} ${_ARGS} \""
+	${MYLIBEXECPATH}/ctys.sh -t ${_tOpt} ${NEWARGS} ${_ARGS}
     else
-	if [ -n "${_appendmode}" ];then
-	    ${MYLIBEXECPATH}/ctys.sh ${NEWARGS}>${_dbfilepath}.tmp
-	    fetchedRecsRaw=$(cat ${_dbfilepath}.tmp|wc -l)
-	    fetchedRecsUnique=$(cat ${_dbfilepath}.tmp|sort -u|wc -l)
-	    sort -u ${_dbfilepath}.tmp >>${_dbfilepath}
+	if [ -z "$_splitted" -o -n "${_bOpt}" ];then
+	    if [ -n "${_bOpt}" ];then
+ 		NEWARGS="-b ${_bOpt}  ${NEWARGS}"
+	    else
+ 		NEWARGS="-b sync,par  ${NEWARGS}"
+	    fi
+	    if [ "${progressFilter}" -ne 0 ];then
+		_ARGS="-- '(-d 2,s:16:w:0,p)' ${_ARGS}"
+	    fi
+ 	    echo "RESULTING CALL:\"${MYLIBEXECPATH}/ctys.sh -t ${_tOpt} ${NEWARGS}${_appendmode:+>} ${_ARGS} >${_dbfilepath}\""
+	    if [ -n "${_appendmode}" ];then
+		${MYLIBEXECPATH}/ctys.sh -t ${_tOpt} ${NEWARGS} ${_ARGS}>${_dbfilepath}.tmp
+		fetchedRecsRaw=$(cat ${_dbfilepath}.tmp|wc -l)
+		fetchedRecsUnique=$(cat ${_dbfilepath}.tmp|sort -u|wc -l)
+		sort -u ${_dbfilepath}.tmp >>${_dbfilepath}
+	    else
+		${MYLIBEXECPATH}/ctys.sh -t ${_tOpt} ${NEWARGS} ${_ARGS}>${_dbfilepath}.tmp
+		fetchedRecsRaw=$(cat ${_dbfilepath}.tmp|wc -l)
+		sort -u ${_dbfilepath}.tmp >${_dbfilepath}
+		fetchedRecsUnique=$(cat ${_dbfilepath}|wc -l)
+	    fi
 	else
-	    ${MYLIBEXECPATH}/ctys.sh ${NEWARGS}>${_dbfilepath}.tmp
+ 	    NEWARGS="-b sync,seq  ${NEWARGS}"
+	    TARGETS=$( ${MYLIBEXECPATH}/ctys-groups.sh -X -m 5 ${_ARGS});
+	    if [ -z "${TARGETS}" ];then
+		TARGETS="${_ARGS}";
+	    else
+		_m5=1;
+	    fi
+	    idx=0;
+	    tcnt=0;
+
+	    OFS=$IFS
+	    if [ "$_m5" == 1 ];then
+	        IFS="
+"
+   	    fi
+	    NFS=$IFS
+	    for rtarget in ${TARGETS} LAST;do
+		IFS=$OFS 
+		if [ -z "$rtarget" ];then
+		    continue
+		fi
+		if [ "$_m5" == 1 ];then
+		    rtarget="${rtarget#ctys}"
+		fi
+		if [ "$rtarget" != LAST ];then
+		    let idx++;
+		    rf="$( IFS=$OFS fetchGroupMemberHosts ${rtarget}).${idx}.${DATETIME}"
+		    rf="${rf// /}"
+		    if [ "${progressFilter}" -ne 0 -a "${rtarget#--}" == "${rtarget}" ];then
+			rtarget="-- '(-d 2,s:16:w:0,p)' ${rtarget}"
+		    fi
+
+		    _call=" ${MYLIBEXECPATH}/ctys.sh -t $_tOpt ${NEWARGS} ${rtarget} >${_dbfilepath}.${rf}.tmp  "
+
+		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
+		    eval ${_call} &
+		    let tcnt++;
+		fi
+		if [ $tcnt -ge $tmax -o "$rtarget" == LAST ];then
+		    wait
+		    let tcnt=tcnt-tmax;
+		fi
+		IFS=$NFS 
+	    done
+
+	    #wait for fclose???!!!
+	    sleep 1
+
+	    IFS=$OFS
+	    if [ -n "${_replacemode}" ];then
+		rm -f ${_dbfilepath}
+	    fi
+	    rm -f ${_dbfilepath}.tmp
+
+	    for fl in ${_dbfilepath}.*.${DATETIME}.tmp;do
+		cat ${fl} >>${_dbfilepath}.tmp
+		if [ -z "$_splitted_keep_files" ];then
+		    rm -f ${fl}
+		fi
+	    done
+
+	    #wait for fclose???!!!
+	    sleep 1
+
 	    fetchedRecsRaw=$(cat ${_dbfilepath}.tmp|wc -l)
-	    sort -u ${_dbfilepath}.tmp >${_dbfilepath}
-	    fetchedRecsUnique=$(cat ${_dbfilepath}|wc -l)
+ 	    if [ -n "${_appendmode}" ];then
+		fetchedRecsUnique=$(cat ${_dbfilepath}.tmp|sort -u|wc -l)
+		sort -u ${_dbfilepath}.tmp >>${_dbfilepath}
+	    else
+		sort -u ${_dbfilepath}.tmp >${_dbfilepath}
+		fetchedRecsUnique=$(cat ${_dbfilepath}|wc -l)
+	    fi
 	fi
-	rm -f ${_dbfilepath}.tmp
     fi
 } 2>&1|\
 if [ -z "$_stdiomode" ];then
-  awk -F'-' -v prog="$progressFilter" '
+  awk -F'-' -v prog="$progressFilter"  '
     BEGIN{
+        head=1;
+        idx=0;
+      }
+    $1~/^RESULTING/{
+        printf(".\n");
+        printf("%s\n\n",$0);
+        next;
+      }
+    head==1{
+        head=0;
         printf("%05s|%-35s|%-10s|%-8s|%-8s|%-8s\n","Index","Machine","SType","Start","End","Duration");
         printf("-----+-----------------------------------+----------+--------+--------+--------\n");
-        idx=0;
       }
     $1~/:scan4sessions:START$/{
       if(prog==1){

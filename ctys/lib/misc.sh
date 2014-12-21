@@ -143,7 +143,6 @@ function getCurTime () {
 #
 #OUTPUT:
 #  RETURN:
-
 #    0: OK
 #    1: NOK
 #  VALUES:
@@ -154,6 +153,10 @@ function getDiffTime () {
   echo "$2:$1"|awk -F':' '{
     end=$4*3600+$5*60+$6
     sta=$1*3600+$2*60+$3
+
+    #assume midnight, and max-diff=24h
+    if($4<$1){end=end+24*3600;}
+
     dif=end-sta
 
     s=dif%60

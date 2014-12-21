@@ -367,7 +367,7 @@ fi
 
 
 
-PROGRESS=;
+PROGRESS=1;
 TSTFS=;
 ROUNDS=;
 
@@ -791,6 +791,8 @@ while [ -n "$1" ];do
 	'-M')shift;mac=$1;;
 
 	--progress)PROGRESS=1;;
+
+	--no-progress)PROGRESS=;;
 
 
 	--testfs|--testfs=*)

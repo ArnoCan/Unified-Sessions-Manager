@@ -325,33 +325,6 @@ function startSessionXEN () {
     export XEN
     export XEN_MAGIC
 
-    case ${XEN_MAGIC} in
-	XEN_30) #verified to work
-	    ;;
-	XEN_303) #verified to work
-	    ;;
-	XEN_31*) #verified to work
-	    ;;
-	XEN_3*)
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, "
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:but any version \"3.x\" should work."
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
-	    ;;
-	XEN_GENERIC)
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:When you see this, something went wrong."
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
-	    ;;
-	*)
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, "
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:you cannot really expect it to work properly."
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
-	    ;;
-    esac
-
-
     #get free for forced set
     VNCACCESSDISPLAY=`getFirstFreeVNCDisplay "${VNC_BASEPORT}"`;
     let VNCACCESSPORT=VNCACCESSDISPLAY-VNC_BASEPORT;

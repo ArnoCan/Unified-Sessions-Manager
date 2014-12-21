@@ -166,6 +166,9 @@ BEGIN{mx=0;
     ptrace("gateway    ="gateway);
     ptrace("relay      ="relay);
 
+    ptrace("uid        ="uid);
+    ptrace("gid        ="gid);
+
     ptrace("exep       ="exep);
     ptrace("acc        ="acc);
     ptrace("hrx        ="hrx);
@@ -288,6 +291,8 @@ $0~/^$/||!($19~mstat){
     if(vcpu>0)       {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU,41,"$41; }
     if(contextstrg>0){    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg,42,"$42; }
     if(userstr>0)    {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43"$43; }
+    if(uid>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43"$44; }
+    if(gid>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43"$45; }
 
     ptrace("output="outbuf);
     printf("%s\n",outbuf);

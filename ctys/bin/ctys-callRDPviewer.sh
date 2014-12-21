@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_005
+VERSION=01_11_008
 #DESCRIPTION:
 #  Wrapper schript for calling rdesktop.
 #
@@ -420,6 +420,6 @@ else
     if [ -z "${C_CHECK}" ];then
 	OUTPUT="${OUTPUT}"
 	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "EXEC:${OUTPUT} &"
-	exec ${BASHEXE} -c "${OUTPUT}"
+	exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
     fi
 fi

@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_QEMU_INFO="${BASH_SOURCE}"
-_myPKGVERS_QEMU_INFO="01.01.001a00pre"
+_myPKGVERS_QEMU_INFO="01.11.008"
 hookInfoAdd $_myPKGNAME_QEMU_INFO $_myPKGVERS_QEMU_INFO
 _myPKGBASE_QEMU_INFO="`dirname ${_myPKGNAME_QEMU_INFO}`"
 
@@ -45,8 +45,11 @@ _myPKGBASE_QEMU_INFO="`dirname ${_myPKGNAME_QEMU_INFO}`"
 function infoQEMU4Action () {
     local _allign=$1
 
+    local QEMU_ALL=QEMU${QEMUKVM:+/KVM}
+
     printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " \
-         "`setStatusColor ${QEMU_STATE} QEMU`:" "Plugin Version:${_myPKGVERS_QEMU}"
+         "`setStatusColor ${QEMU_STATE} ${QEMU_ALL}`:" "Plugin Version:${_myPKGVERS_QEMU}"
+
     printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "" \
          "Operational State:`setStatusColor ${QEMU_STATE} ${QEMU_STATE}`"
 

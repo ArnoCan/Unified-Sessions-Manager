@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_007
+VERSION=01_11_008
 #DESCRIPTION:
 #  Install script for ctys.
 #
@@ -258,6 +258,7 @@ MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
 
 . ${MYLIBPATH}/lib/base.sh
 . ${MYLIBPATH}/lib/libManager.sh
+
 #
 #Germish: "Was the egg or the chicken first?"
 #
@@ -354,7 +355,6 @@ fi
 
 ################################################################
 
-
 if [ -z "${HOME}" ];then
     ABORT=1;
     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory variable:HOME"
@@ -397,6 +397,7 @@ function fetchInstallOpts () {
     TEMPLATEDIR=${TEMPLATEDIR:-$HOME/ctys}
     BINDIR=${BINDIR:-$HOME/bin}
     UTILDIR=${UTILDIR:-$HOME/utils}
+    SCRIPTDIR=${SCRIPTDIR:-$MYCONFPATH/scripts}
 
 
     while [ -n "${1}" ];do
@@ -419,6 +420,10 @@ function fetchInstallOpts () {
             [uU][tT][iI][lL][dD][iI][rR]=*)
                    UTILDIR=${1/*=}
                    UTILDIR=${UTILDIR//\"/}
+                   ;;
+            [sS][cC][rR][iI][tT][dD][iI][rR]=*)
+                   SCRIPTDIR=${1/*=}
+                   SCRIPTDIR=${SCRIPTDIR//\"/}
                    ;;
             [tT][eE][mM][pP][lL][aA][tT][eE][dD][iI][rR]=*)
                    TEMPLATEDIR=${1/*=}
@@ -488,6 +493,7 @@ function fetchInstallOpts () {
     done
     BINDIR=${BINDIR//\"}
     UTILDIR=${UTILDIR//\"}
+    SCRIPTDIR=${SCRIPTDIR//\"}
 }
 
 
@@ -625,7 +631,10 @@ function verify2 () {
 	echo "#                                                       #"
 	echo "#########################################################"
 	echo "#                                                       #"
-	echo "#  add:PATH=\${PATH}:${BINDIR}:${UTILDIR}"
+	echo "#  add:PATH=\${PATH}"
+	echo "#  add:PATH=\${PATH}:\${BINDIR}"
+	echo "#  add:PATH=\${PATH}:\${UTILDIR}"
+	echo "#  add:PATH=\${PATH}:\${CTYS_SCRIPT_PATH}"
 	echo "#                                                       #"
 	echo "#########################################################"
 	echo "#                                                       #"
@@ -710,6 +719,15 @@ if [ ! -d "${UTILDIR}" ];then
     fi
 fi
 
+if [ ! -d "${SCRIPTDIR}" ];then
+    mkdir -p "${SCRIPTDIR}"
+    if [ ! -d "${SCRIPTDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:SCRIPTDIR=\"${SCRIPTDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
 if [ -n "${TEMPLATEDIR}" -a ! -d "${TEMPLATEDIR}" ];then
     mkdir -p "${TEMPLATEDIR}"
     if [ ! -d "${TEMPLATEDIR}" ];then
@@ -729,6 +747,8 @@ BIN1="${BINS1}/$(basename ${MYBOOTSTRAP})"
 printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "BIN1    = <${BIN1}>"
 DOCDIR=${DOCDIR:-$LIBS/doc}
 printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "DOCDIR  = <${DOCDIR}>"
+HELPDIR=${HELPDIR:-$LIBS/help}
+printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "HELPDIR = <${HELPDIR}>"
 
 if [ -z "${MANDIR}" ];then
     for imp in ${DOCDIR}/*/man;do
@@ -743,63 +763,62 @@ if [ -n "${BINDIR}" ];then
     CTYSCALL="${BINDIR}/ctys.sh"
     CTYSPLUGINS="${BINDIR}/ctys-plugins.sh"
 
-    LNKLSTBIN="${BINDIR}/ctys.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vdbgen.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vhost.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vping.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-wakeup.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-extractMAClst.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-extractARPlst.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-genmconf.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-macmap.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-dnsutil.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-smbutil.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-plugins.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncviewer.sh"
+    LNKLSTBIN=;
+
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-beamer.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncserver.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-macros.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-groups.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncviewer.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-createConfVM.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-distribute.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-dnsutil.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-extractARPlst.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-extractMAClst.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-genmconf.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-getMasterPid.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-getNetInfo.sh"
-
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-beamer.sh"
-
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-distribute.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-groups.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-install.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-install1.sh"
-
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-macros.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-macmap.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-plugins.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-scripts.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-setupVDE.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-smbutil.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vdbgen.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vboxutils.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vhost.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vmw2utils.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vping.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-wakeup.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-xen-network-bridge.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCPUinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurArch.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurCTYSRel.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurDistribution.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurGID.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurOS.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurOSRel.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurDistribution.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurRelease.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/pathlist.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getSolarisUUID.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCPUinfo.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getMEMinfo.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getFSinfo.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getGeometry.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getHDDinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getHDDtemp.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getFSinfo.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getMEMinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getPerfIDX.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getSolarisUUID.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getVMinfo.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getGeometry.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/pathlist.sh"
 
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurGID.sh"
-
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-xen-network-bridge.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-setupVDE.sh"
-
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vmw2utils.sh"
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vboxutils.sh"
-
-    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-createConfVM.sh"
 
 fi
 printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "LNKLSTBIN = <${LNKLSTBIN}>"
 
 LNKLSTUTIL="${UTILDIR}/ctys-distBuild.sh"
 LNKLSTUTIL="${LNKLSTUTIL} ${UTILDIR}/ctys-distBuild.d"
+
+LNKLSTUTIL="${LNKLSTUTIL} ${UTILDIR}/gnome-starter.sh"
 
 
 CTYSTEMPLATES="${TEMPLATEDIR}"
@@ -810,6 +829,7 @@ CTYSTEMPLATESINST="${LIBS}/ctys"
 #
 CTYSCONF="${HOME}/.ctys"
 CTYSCONFINST="${LIBS}/conf/ctys"
+
 
 #
 #top configuration files
@@ -828,6 +848,9 @@ case ${MYDIST} in
 	;;
     OpenBSD)
 	VNCCONFINST="${LIBS}/conf/vnc-OpenBSD"
+	;;
+    OpenSolaris)
+	VNCCONFINST="${LIBS}/conf/vnc-OpenSolaris"
 	;;
     *)
 	VNCCONFINST="${LIBS}/conf/vnc"
@@ -1086,7 +1109,7 @@ if [ -z "${OLDVER}"  -o "${NEWVER}" \> "${OLDVER}" -o -n "${FORCE}" -o -n "${FOR
 	    ln -s "${L0}" "${L1%.sh}"
 	done
 	for L in ${LNKLSTUTIL};do
-	    L0=${LIBS}/bin${L#$BINDIR};
+	    L0=${LIBS}/bin${L#$UTILDIR};
 	    L0=${L0//\"};
 	    L1=${L//\"};
 
@@ -1317,12 +1340,12 @@ else
 	    echo "if [ -z \"\${CTYS_INI}\" ];then">>"${fn}"
 	    case ${MYOS} in
 		SunOS)
-		    _myPATH=${BINDIR}:${UTILDIR}:/usr/xpg4/bin:/opt/sfw/bin:$PATH;
-		    echo "  PATH=${BINDIR}:${UTILDIR}:/usr/xpg4/bin:/opt/sfw/bin:\$PATH">>"${fn}"
+		    _myPATH=${BINDIR}:${UTILDIR}:${CTYS_SCRIPT_PATH}:/usr/xpg4/bin:/opt/sfw/bin:$PATH;
+		    echo "  PATH=${BINDIR}:${UTILDIR}:${CTYS_SCRIPT_PATH}:/usr/xpg4/bin:/opt/sfw/bin:\$PATH">>"${fn}"
 		    ;;
 		*)
-		    _myPATH=${BINDIR}:${UTILDIR}:$PATH;
-		    echo "  PATH=${BINDIR}:${UTILDIR}:\$PATH">>"${fn}"
+		    _myPATH=${BINDIR}:${UTILDIR}:${CTYS_SCRIPT_PATH}:$PATH;
+		    echo "  PATH=${BINDIR}:${UTILDIR}:${CTYS_SCRIPT_PATH}:\$PATH">>"${fn}"
 		    ;;
 	    esac
 	    echo "  MANPATH=${MANDIR}:\${MANPATH};export MANPATH">>"${fn}"

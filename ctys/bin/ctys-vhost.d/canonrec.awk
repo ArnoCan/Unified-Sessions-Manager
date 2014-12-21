@@ -6,7 +6,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -122,6 +122,7 @@ BEGIN{mx=0;
  perror("dsp      ="dsp);
  perror("execloc  ="execloc);
  perror("gateway  ="gateway);
+ perror("gid      ="gid);
  perror("h        ="h);
  perror("hwcap    ="hwcap);
  perror("hwreq    ="hwreq);
@@ -148,6 +149,7 @@ BEGIN{mx=0;
  perror("tcp      ="tcp);
  perror("title    ="title);
  perror("titleidx ="titleidx);
+ perror("uid      ="uid);
  perror("ustr     ="ustr);
  perror("uu       ="uu);
  perror("vb       ="vb);
@@ -251,6 +253,8 @@ $0~/^$/{exit;}
  if(vcpu>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"VCPU,41,"$41;}
  if(cstr>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"ContextStg,42,"$42;}
  if(ustr>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"UserStrg,43,"$43;}
+ if(uid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"UID,44,"$44;}
+ if(gid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"GID,45,"$45;}
 
  perror("output="outbuf);
  printf("%s\n",outbuf);

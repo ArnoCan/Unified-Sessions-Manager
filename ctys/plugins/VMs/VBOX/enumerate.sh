@@ -228,7 +228,8 @@ function enumerateMySessionsVBOX () {
 	    _out3="${_out3};`getOSREL ${X}`";
 	    _out3="${_out3};`getVERNO ${X}`";
 	    _out3="${_out3};`getSERNO ${X}`";
-	    _out3="${_out3};`getCATEGORY ${X}`";
+	    #_out3="${_out3};`getCATEGORY ${X}`";
+	    _out3="${_out3};VM";
 
 	    local _vs=`getVMSTATE ${X}`;
 	    if [ -n "${_vs}" ];then
@@ -274,7 +275,7 @@ function enumerateMySessionsVBOX () {
 	    _myMAC=`getMAClst_VBOX ${X}`;
 	    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myMAC=${_myMAC}";
 
-	    _myIP=`getIPlst ${X}`;
+	    _myIP="$(getIPlst ${X})";
 	    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myIP=${_myIP}";
 
 	    local _myIFlst=`getIFlst INTERFACES "${_myMAC}" "${_myIP}"`
@@ -308,12 +309,12 @@ function enumerateMySessionsVBOX () {
 
 		    local _myNetName=$(netGetNetName "${A[0]}")
 
-		    _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}"
+		    _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7};${MYUID};${MYGID}"
 		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		    echo -e "${_out}"
 		done
 	    else
-		_out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}"
+		_out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7};${MYUID};${MYGID}"
   		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		echo -e "${_out}"
 	    fi

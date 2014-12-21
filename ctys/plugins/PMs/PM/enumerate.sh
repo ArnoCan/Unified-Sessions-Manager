@@ -225,12 +225,12 @@ function enumerateMySessionsPM () {
 			 A[5]=${i3%%\%*};
 
 			 local _myNetName=`netGetNetName "${A[0]}"`
-			 _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}"
+			 _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7};${MYUID};${MYGID}"
 			 printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 			 echo -e "${_out}"
 		    done
 		else
-		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}"
+		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7};${MYUID};${MYGID}"
 		    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		    echo -e "${_out}"
  		fi

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_008alpha
 #
 ########################################################################
 #
@@ -123,10 +123,13 @@ function checkVBOXVMSTATE () {
 #
 #FUNCEND###############################################################
 function getVBOXMAClst () {
+    local _f=${1};
+    local _fx=${1//.ctys/.vdi}
     local _IP=;
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	local _v=$(${VBOXMGR} showvminfo -machinereadable  "$_f" 2>/dev/null|awk -F'=' '
+
+    if [ -f "${_fx}" ];then
+	_fx=${_fx##*/};_fx=${_fx%.*}
+	local _IP=$(${VBOXMGR} showvminfo -machinereadable  "$_fx" 2>/dev/null|awk -F'=' '
                  /^macaddress[0-9]*/{
                       gsub(" ","",$2);gsub("\"","",$2);
                       z=gsub(":",":",colsA[5]);
@@ -139,15 +142,15 @@ function getVBOXMAClst () {
                           new=new":"substr($2,11,2);
                       }
                       gsub("^[^0-9]*","",$1);
-                      x=x" "$1"="new
+                      x=x" "$1-1"="new
                  }
                  END{print x;}
              ');
-	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_v=$_v"
-	echo "$_v"
-	return 0
+	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=$_IP"
     fi
-    return 1
+    [ "$_IP" == "" ]&&_IP=`getMAClst ${_f}`;
+    [ "$_IP" == "" ]&&return 1;
+    echo "$_IP"
 }
 
 

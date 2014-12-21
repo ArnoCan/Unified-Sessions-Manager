@@ -2,12 +2,12 @@
 #PROJECT:Unified Sessions Manager
 #AUTHOR: Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
 #LICENCE:GPL3
-#VERSION:01_06_001a13
+#VERSION:01_11_008
 #
 
 ########################################################################
 #
-#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -197,6 +197,7 @@ BEGIN{
     perror("execloc    ="execloc);
     perror("first      ="first);
     perror("gateway    ="gateway);
+    perror("gid        ="gid);
     perror("h          ="h);
     perror("hwcap      ="hwcap);
     perror("hwreq      ="hwreq);
@@ -237,6 +238,7 @@ BEGIN{
     perror("title      ="title);
     perror("titleidx   ="titleidx);
     perror("u          ="u);
+    perror("uid        ="uid);
     perror("user       ="user);
     perror("ustr       ="ustr);
     perror("uu         ="uu);
@@ -380,6 +382,8 @@ mach!=1{
     if(vcpu==1){if(mx==1)cache=cache";";cache=cache $41;mx=1;}
     if(cstr==1){if(mx==1)cache=cache";";cache=cache $42;mx=1;}
     if(ustr==1){if(mx==1)cache=cache";";cache=cache $43;mx=1;}
+    if(uid==1){if(mx==1)cache=cache";";cache=cache $44;mx=1;}
+    if(gid==1){if(mx==1)cache=cache";";cache=cache $45;mx=1;}
 }
 first==1&&mx==1{accessCheck();exit;}
 all==1&&mx==1  {accessCheck();}

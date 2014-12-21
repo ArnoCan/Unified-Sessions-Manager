@@ -455,6 +455,8 @@ _timeout=;
 _RUSER0=;
 _RHOSTS0=;
 
+NTHREADS=1;
+
 for i in $*;do
     case $1 in
 	'-d')shift;shift;;
@@ -471,6 +473,7 @@ for i in $*;do
 	'--ssh-trials='*)_sshTrials=${1#*=};shift;;
 	'--ssh-timeout='*)_sshTimeout=${1#*=};shift;;
 
+	'--threads='*)NTHREADS=${1#*=};shift;;
 
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";shift;;
 	'-h'|'--help'|'-help')_showToolHelp=1;shift;;
@@ -549,10 +552,21 @@ _SSH=6;
 _TCP=27;
 _TCP0=$_TCP;
 _MACH=;
+_tidx=6;
 _idx=4;
 _lvl=3;
-_FRM1="%-${_idx}s %-${_lvl}s%s %-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
+_FRM1="%-${_tidx}s %s %-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
 _user=${_user:-$USER}
+
+
+
+NTARGETS_RAW=$(echo "${hostlist}"|wc -w)
+if [ -z "${_ssh}" ];then
+    hostlist=$(for _ia0 in ${hostlist};do echo "${_ia0#*@}";done|sort -u)
+else
+    hostlist=$(for _ia1 in ${hostlist};do echo "${_ia1}";done|sort -u)
+fi
+NTARGETS=$(echo "${hostlist}"|wc -w)
 
 
 if [ "${C_TERSE}" != 1 ];then
@@ -573,13 +587,14 @@ if [ "${C_TERSE}" != 1 ];then
 	echo "<<-------------"
 	echo
     fi
-    printf "${_FRM1}" "idx" "lvl" "" "TCP/IP"  "ping"  "ssh"  " DB entry"
-    echo "------------------------------------------------------------------------------------------"
+    printf "${_FRM1}" "thread" "" "TCP/IP"  "ping"  "ssh"  " DB entry"
+    echo "----------------------------------------------------------------------------------------------"
 fi
 
 function processHostList () {
     idx=${idx:-0};
     local pidx=$idx;
+    local  _curbunch=${1:-0};shift
     local  _currec544=${1:-0};shift
     local hlst=$*;
     local _h=;
@@ -592,12 +607,6 @@ function processHostList () {
 	return 1
     fi
 
-    if [ -z "${_ssh}" ];then
-	hlst=$(for _ia0 in ${hlst};do echo "${_ia0#*@}";done|sort -u)
-    else
-	hlst=$(for _ia1 in ${hlst};do echo "${_ia1}";done|sort -u)
-    fi
-
     for _ia in ${hlst};do
 	if [ "$_recurse" == 1 ];then
 	    local _memb=$(fetchGroupMemberHosts "${_ia}")
@@ -608,9 +617,9 @@ function processHostList () {
 		pidx=$idx;
 	    fi
 	    if [ "$_currec544" == 0 ];then
-		_FRM1="%-${_idx}s %-${_lvl}s%s%-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
+		_FRM1="%-${_tidx}s %s%-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
 	    else
-		_FRM1="%-${_idx}s %-${_lvl}s%-$((1+2*_currec544))s%-$((_TCP0-2*_currec544))s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
+		_FRM1="%-${_tidx}s %-$((1+2*_currec544))s%-$((_TCP0-2*_currec544))s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
 	    fi
 	fi
 
@@ -624,15 +633,16 @@ function processHostList () {
 	fi
 
 	if [ "$_machine" == 1 ];then
-	    M=$(${MYLIBEXECPATH}/ctys-vhost.sh -o CTYS F:1:$_h E:28:1)
+#	    M=$(${MYLIBEXECPATH}/ctys-vhost.sh -o CTYS F:1:$_h E:28:1 )
+	    M=$(${MYLIBEXECPATH}/ctys-vhost.sh -o PM F:1:$_h E:28:1 )
             #clear multi-IP e.g. vbridges with XEN
-	    for mm in $M;do M=$mm;done
+ 	    for mm in $M;do M=$mm;done
 	fi
 	M=${M:--}
 
 	if [ -n "${_nocheck}" ];then
 	    if [ "${C_TERSE}" != 1 ];then
-		printf "${_FRM1}"  "${pidx}" "${_currec544}" " "  "${_ia}" "-"  "?"  "${M}"
+		printf "${_FRM1}"  "${_curbunch}" " "  "${_ia}" "-"  "?"  "${M}"
 	    else
 		case ${outform} in
 		    TCP)res="${res} ${_ia}";;
@@ -655,7 +665,7 @@ function processHostList () {
 		    fi
 		    if [ $? -eq 0 ];then
 			if [ "${C_TERSE}" != 1 ];then
-			local _xt=$(printf "${_FRM1}" "${pidx}" "${_currec544}" " "  "$_mtx" "+"  "+"  "${M}")
+			local _xt=$(printf "${_FRM1}" "${_curbunch}" " "  "$_mtx" "+"  "+"  "${M}")
 			setFontAttrib FGREEN "${_xt}";echo
 			else
 			    case ${outform} in
@@ -664,11 +674,11 @@ function processHostList () {
 			    esac
 			fi
 		    else
-			printf "${_FRM1}" "${pidx}" "${_currec544}" " "  "${_mtx}" "+"  "-"  "${M}"
+			printf "${_FRM1}" "${_curbunch}" " "  "${_mtx}" "+"  "-"  "${M}"
 		    fi
 		else
 		    if [ "${C_TERSE}" != 1 ];then
-			local _xt=$(printf "${_FRM1}" "${pidx}" "${_currec544}" " "  "$_ia" "+"  "?"  "${M}")
+			local _xt=$(printf "${_FRM1}" "${_curbunch}" " "  "$_ia" "+"  "?"  "${M}")
 			setFontAttrib FGREEN "${_xt}";echo
 		    else
 			case ${outform} in
@@ -678,7 +688,8 @@ function processHostList () {
 		    fi
 		fi
 	    else
-		printf "${_FRM1}" "${pidx}" "${_currec544}" " " "${_ia}" "-"  "?"  "${M}"
+		local _xt1=$(printf "${_FRM1}" "${_curbunch}" " " "${_ia}" "-"  "?"  "${M}")
+		echo -e "$_xt1"
 	    fi
 	fi
 	let idx++;
@@ -689,13 +700,45 @@ function processHostList () {
 	    fi
 	fi
     done
-    if [ "${C_TERSE}" != 1 ];then
-	if((_currec544==0));then
-	    echo
-	fi
-    else
+    if [ "${C_TERSE}" == 1 ];then
 	echo -n -e "${res}"
     fi
 }
 
-processHostList 0 ${hostlist}
+
+
+if((NTHREADS>NTARGETS));then
+    NTHREADS=NTARGETS;
+    hbunch=1;
+else
+    let hbunch=NTARGETS/NTHREADS;
+fi
+hidx=0;
+tidx=0;
+for h in ${hostlist} LAST;do
+    if [ "$h" != LAST ];then
+	hl="$hl $h"
+	if((hidx==hbunch));then
+	    if [ -n "${hl}" ];then 
+		if((hbunch==1));then 
+		    processHostList "$tidx" 0 ${hl}
+		else
+		    processHostList "$tidx" 0 ${hl}&
+		fi
+		let tidx++;
+	    fi	    
+	    hidx=0;
+	    hl=;
+	fi
+	let hidx++;
+    else
+	if [ -n "${hl}" ];then 
+	    processHostList "$tidx" 0 ${hl}&
+	    let tidx++;
+	fi
+    fi
+done
+wait
+if [ "${C_TERSE}" != 1 ];then
+    echo
+fi
