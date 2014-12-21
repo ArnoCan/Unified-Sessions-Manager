@@ -1,0 +1,1216 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a10
+#
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-extractMAClst
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="CTYS Extract MAC-Address List from dhcpd.conf"
+#
+#CALLFULLNAME:
+CALLFULLNAME="ctys-setupVDE"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_06_001a10
+#DESCRIPTION:
+#  Configures the VDE based TAP device and virtual switch.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#  -b <virtual-bridge>
+#     Virtual bridge connected to the external network to be attached by TAP device.
+#     Default is to use the first bridge detected by brctl.
+#
+#  -s <ALTERNATE-QEMUSOCK>
+#     A file-socket to be used for communications peer via virtual switch.
+#     Default is set by common QEMUSOCK configuration.
+#
+#  -S <ALTERNATE-QEMUMGMT>
+#     A file-socket to be used for management console of virtual switch.
+#     Default is set by common QEMUMGMT configuration.
+#
+#  -u <non-privileged-user>[.<group>]
+#     Owner of the created TAP device.
+#     Default is current user.
+#
+#
+#  -h
+#     Print help.
+#
+#  -V
+#     Version.
+#
+#
+# (create|cancel|info|ports)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    Standard output is screen.
+#
+#FUNCEND###############################################################
+
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+
+C_EXECLOCAL=1;
+
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+    exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
+if [ ! -f "${MYBOOTSTRAP}" ];then
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+    exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+#path for various loads: libs, help, macros, plugins
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+    exit 1
+fi
+
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+    exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+    exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux: CentOS/RHEL(5+), SuSE-Professional 9.3"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work for any dist.):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome + fvwm"
+
+#to be tested - coming soon
+TARGET_WM_SOON="xfce"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+
+. ${MYLIBPATH}/lib/help/help
+. ${MYLIBPATH}/lib/security
+. ${MYLIBPATH}/lib/network/network
+
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux);;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
+#path to directory containing the default mapping db
+if [ -d "${HOME}/.ctys/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/.ctys/db/default}
+fi
+
+#path to directory containing the default mapping db
+if [ -d "${MYCONFPATH}/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
+fi
+
+
+_myHint="${MYCONFPATH}/systools.conf.${MYDIST}"
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+    . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+    . "${MYCONFPATH}/ctys.conf"
+fi
+
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
+else
+
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+
+#Requires some shared settings with QEMU
+if [ -f "${HOME}/.ctys/qemu/qemu.conf.${MYOS}" ];then
+    . "${HOME}/.ctys/qemu/qemu.conf.${MYOS}"
+fi
+if [ -f "${MYCONFPATH}/qemu/qemu.conf.${MYOS}" ];then
+    . "${MYCONFPATH}/qemu/qemu.conf.${MYOS}"
+fi
+
+
+
+
+###############################
+#verify presence of required tools
+###############################
+function showVDERef() {
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Refer for additonal Information to:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  \"http://wiki.virtualsquare.org/index.php/VDE_Basic_Networking\""
+
+}
+
+function initSetupVDE () {
+    ABORT=1;
+    if [ -z "$CTYS_IFCONFIG" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get pathname for system tool \"ifconfig\", check your system."
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$CTYS_BRCTL" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get pathname for system tool \"brctl\", check your system."
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$VDE_TUNCTL" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get pathname for VDE tool \"vde_tunctl\", check your system."
+	showVDERef
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$VDE_SWITCH" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get pathname for VDE tool \"vde_switch\", check your system."
+	showVDERef
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$VDE_UNIXTERM" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get pathname for VDE tool \"unixterm\", check your system."
+	showVDERef
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$CTYS_NETCAT" ];then
+	printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Use fall-back \"unixterm\", please install \"nc\" soon."
+# 	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get pathname for \"netcat - nc\", check your system."
+# 	showVDERef
+# 	gotoHell ${ABORT}  
+    fi
+
+
+
+    ###############################
+    #verify required parameters
+    ###############################
+    ABORT=1;
+
+    if [ -z "${_interface}" ];then
+	_interface=`netGetFirstIf`;
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Scanned first interface=${_interface}"
+    fi
+    export _interface
+    printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Use interface=${_interface}"
+
+    export _user=${_user:-$USER};
+    if [ -z "$_group" ];then
+	_group=`getGroup ${_user}`
+    fi
+
+    if [ -n "$_group" -a -n "$_sbitgroup" ];then
+	if [ "$_group" != "$_sbitgroup" ];then
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Group for sbit has to be the same as the GROUP of the USER."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "$_group != $_sbitgroup"
+	    gotoHell ${ABORT}  
+	fi
+    fi
+
+
+    if [ -z "$_user" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Aha, missing USER - do something???!!!"
+	gotoHell ${ABORT}  
+    else
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Ownership for sockets USER=$_user GROUP=$_group"
+
+	if [ -z "${_ssock}" ];then
+	    export _ssock=${_ssock:-$QEMUSOCK};
+	    export _ssock=${_ssock%\.*}.${_user};
+	fi
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Use _ssock=${_ssock}"
+
+	if [ -z "${_msock}" ];then
+	    export _msock=${_msock:-$QEMUMGMT};
+	    export _msock=${_msock%\.*}.${_user};
+	fi
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Use _msock=${_msock}"
+    fi
+
+
+    _mybridge=ctysbr0
+    if [ -n "$_bridge" ];then
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Bridge for TAN attachment _bridge=$_bridge"
+    else
+	_bridge=`netListBridges`
+	if [ -n "${_bridge}" ];then
+	    printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Detected _bridge=<${_bridge}>"
+	    _bridge="${_bridge%% *}"
+	    printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Use first detected _bridge=<${_bridge}>"
+	else
+	    _bridge=${_mybridge}
+	    printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Use default _bridge name:$_bridge"
+	fi
+    fi
+    export _bridge
+
+
+    export _ssock=${_ssock:-$QEMUSOCK};
+    if [ -z "$_ssock" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing socket for virtual switch, provide \"-s\" or QEMUSOCK"
+	gotoHell ${ABORT}  
+    else
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Socket for virtual switch QEMUSOCK=$_ssock"
+    fi
+
+    export _msock=${_msock:-$QEMUMGMT};
+    if [ -z "$_msock" ];then
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing management socket for virtual switch, provide \"-S\" or QEMUMGMT"
+	gotoHell ${ABORT}  
+    else
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Management-Socket for virtual switch QEMUMGMT=$_msock"
+    fi
+
+
+    #hard-coded for now
+    export _pfile=/var/run/${_msock##*\/}
+
+
+    #should be preset
+    BRIDGE_FORWARDDELAY=${BRIDGE_FORWARDDELAY:-0};
+
+
+    ###########
+    #'guess we're armed now. Ignore resource permissions here for now.
+    ###########
+}
+
+
+function createBridge () {
+    local _bridge=${1}
+    local _interface=${2}
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:new bridge=${_bridge} and exchange with interface:${_interface}"
+
+    #not performance critical
+    local _ip=`netGetIP ${_interface}`;
+    local _nm=`netGetMask ${_interface}`;
+    local _bc=`netGetBroadcast ${_interface}`;
+
+    if [ -z "$_ip" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch IP"
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$_bc" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch broadcast"
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -z "$_nm" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch netmask"
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -n "$SSH_TTY" ];then
+	if [ -z "$_force" ];then
+	    ABORT=0
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "You are executing the creation of a bridge via "
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "a network connection. This will probably disconnect"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "your session for a short time or longer, maybe"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "forever."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Thus call \"${MYCALLNAME}\" with the \"-f\" option"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "if you really want to proceed."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Else choose a local user - with local storage."
+	    gotoHell ${ABORT};
+ 	fi
+    fi
+
+#This might not occur:
+#     if netCheckIsXen ; then
+# 	${MYCALLPATH}/ctys-xen-network-bridge ${C_DARGS} start bridge="${_bridge}" netdev="${_interface}"
+# 	return
+#     fi
+
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_BRCTL addbr $_bridge
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_BRCTL stp   $_bridge on
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_BRCTL setfd $_bridge ${BRIDGE_FWDELAY:-0}
+
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_SYSCTL -w "net.bridge.bridge-nf-call-arptables=0"
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_SYSCTL -w "net.bridge.bridge-nf-call-ip6tables=0"
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_SYSCTL -w "net.bridge.bridge-nf-call-iptables=0"
+
+    #disable ipv6 by small mtu refer to xen-net-script
+    mtu=$(checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_IP link show ${_bridge} | sed -n 's/.* mtu \([0-9]\+\).*/\1/p')
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_IP link set ${_bridge} mtu 68
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_IP link set ${_bridge} up
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_IP link set ${_bridge} mtu ${mtu:-1500}
+
+
+    if netCheckIsBonding $_interface ; then
+	local xx=`netGetBondSlaves $_interface`;
+    fi
+
+
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_IFCONFIG $_bridge up
+    netTransferAddr  "${_interface}" "${_bridge}"
+    netTransferRoute "${_interface}" "${_bridge}"
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL CTYS_BRCTL addif $_bridge $_interface
+
+    #some behave very individual, let's do te workaround
+    if netCheckIsBonding $_interface ; then
+        local _ret=0;
+	for ifx in $xx;do
+	    if ! netCheckIfIs UP "${ifx}" 20;then let _ret++;fi
+	done
+	if [ $_ret -eq 0 ];then
+	    if  netCheckIfIs UP "${_interface}" 20;then 
+		return
+	    fi
+	fi
+
+	local ifx=;
+	checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $_interface down
+	netCheckIfIs DOWN "${_interface}" 20
+	
+	for ifx in $xx;do
+	    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $ifx down
+	    netCheckIfIs DOWN "${ifx}" 20
+	done
+        sleep 2
+	for ifx in $xx;do
+	    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $ifx up
+	    netCheckIfIs UP "${ifx}" 20
+	done
+	checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $_interface up
+	netCheckIfIs UP "${_interface}" 20
+	netClearRoute INTERFACE $_interface
+    fi
+}
+
+
+
+function cancelBridge () {
+    local _bridge=${1}
+    printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:remove standard-created bridge:$_bridge == $_mybridge"
+
+    if [ -z "${_bridge}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAMMissing option bridge"
+	return ${ABORT}  
+    fi
+
+
+    #not performance critical
+    local _ip=`netGetIP ${_bridge}`;
+    local _nm=`netGetMask ${_bridge}`;
+    local _bc=`netGetBroadcast ${_bridge}`;
+
+    #back transform network interface
+    #could have been done before, anyhow... should be one only now.
+    for i in `netListBridgePorts $_bridge`;do
+	checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_BRCTL  delif $_bridge $i
+	if netCheckIsBonding $i ; then
+	    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $i down
+	    netCheckIfIs DOWN "${i}" 20
+	    local ifx=;
+	    for ifx in `netGetBondSlaves $i`;do
+		checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $ifx up
+		netCheckIfIs UP "${ifx}" 20
+	    done
+	    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $i up
+	    netCheckIfIs UP "${i}" 20
+	fi
+    done
+    netClearRoute INTERFACE $_interface
+    netTransferRoute "${_bridge}" "${_interface}"
+
+    #remove bridge
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_IFCONFIG $_bridge down
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_BRCTL  delbr $_bridge
+}
+
+
+
+
+function createSwitch () {
+    local _bridge=${1}
+    local _interface=${2}
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:attach switch to bridge:<${_bridge}> interface:<${_interface}>"
+
+    if ! netCheckBridgeExists ${_bridge} ; then
+	createBridge ${_bridge} ${_interface}
+    else
+        printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:use present bridge:$_bridge"
+    fi
+
+    local VDECALL=;
+    local _myTap=`checkedSetSUaccess  retry norootpreference display1 "${_myHint}" VDECALL  VDE_TUNCTL -b -u ${_user}`
+    if [ -z "${_myTap// /}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Failed to create a new TAP device, check:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "$VDECALL  $VDE_TUNCTL -b -u ${_user}"
+	gotoHell ${ABORT}  
+    fi
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:new device TAP=$_myTap for USER=$_user"
+
+    #This is for completeness of tests only, DO NOT configure ksu/sudo for chmod/chown!!!
+    #If so, only for your admin, with reliable PATH!!!
+    local CALLCHOWN=;
+    local CALLCHMOD=;
+    local CHOWN=`getPathName $LINENO $BASH_SOURCE WARNINGEXT chown /bin`;
+    local CHMOD=`getPathName $LINENO $BASH_SOURCE WARNINGEXT chmod /bin`;
+    _group=${_group// /}
+    local UG=$_user${_group:+.$_group}
+
+    checkedSetSUaccess  retry norootpreference "${_myHint}" VDECALL  CTYS_IFCONFIG $_myTap 0.0.0.0 up
+    if [ $? -ne 0 ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Failed to setup a TAP device:${_myTap}."
+        #no rollback
+	gotoHell ${ABORT}  
+    fi
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:new interface TAP=$_myTap for USER=$_user"
+
+    local BRCTLCALL=;
+    if [ -n "$_bridge" ];then
+	checkedSetSUaccess  retry norootpreference "${_myHint}" BRCTLCALL  CTYS_BRCTL  addif $_bridge $_myTap
+	if [ $? -ne 0 ];then
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "ATTACH failed:TAP=$_myTap to bridge=$_bridge"
+	    gotoHell ${ABORT}
+	fi
+	printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:attach TAP=$_myTap to bridge=$_bridge"
+    else
+	printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "Non-bridged direct attachment of TAP=$_myTap"
+    fi
+
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:new switch $_myTap $_ssock $_msock"
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE: ...may require a short while:"
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:    BRIDGE_FORWARDDELAY=${BRIDGE_FORWARDDELAY}sec"
+    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  VDE_SWITCH -d -t $_myTap -s $_ssock -M $_msock -p $_pfile
+    checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHOWN  CHOWN -R $UG $_pfile
+    checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHOWN  CHOWN -R $UG $_msock
+    checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHOWN  CHOWN -R $UG $_ssock
+
+    checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHMOD  CHMOD -R g-rwxs $_ssock
+    checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHMOD  CHMOD -R o-rwxs $_ssock
+
+
+    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:grant switch-access by chown for USER=$_user GROUP=$_group"
+
+    if [ -n "$_sbitgroup" ];then
+	printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "CREATE:extend switch-access by chmod s-bit for GROUP=$_group"
+	checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHMOD  CHMOD -R g+s  $_ssock
+	checkedSetSUaccess retry norootpreference "${_myHint}" CALLCHMOD  CHMOD -R g+s $_msock
+    fi
+}
+
+
+function cancelSwitch () {
+    local VDECALL=;
+
+    if [ ! -S $_msock ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing management socket for vde_switch=\"${_msock}\""
+	gotoHell ${ABORT}  
+    fi
+
+    if [ -n "${CTYS_NETCAT}" ];then
+	local _myTap=`{
+          if [ "$USER" == root ];then
+	    callErrOutWrapper $LINENO $BASH_SOURCE echo "port/print"|$CTYS_NETCAT -U $_msock 
+          else
+	    checkedSetSUaccess  "${_myHint}" BRCTLCALL  CTYS_NETCAT -h
+            callErrOutWrapper $LINENO $BASH_SOURCE echo "port/print"|$CTYS_NETCAT -U $_msock 
+          fi
+        }|awk '/tuntap/{print $NF}'
+        `
+    else
+	local _myTap=`{
+	    callErrOutWrapper $LINENO $BASH_SOURCE $VDE_UNIXTERM $_msock <<EOF
+port/print
+EOF
+        }|awk '/tuntap/{print $NF}'
+	`
+    fi
+
+
+    if [ -n "$_myTap" ];then
+	checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  VDE_UNIXTERM $_msock <<EOF
+shutdown
+EOF
+	echo
+    else
+	if [ -e "$_pfile" ];then
+	    local _mypid=`cat ${_pfile}`
+	    if [ -z "$_mypid" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot get PID from:_pfile=\"${_pfile}\""
+		gotoHell ${ABORT}  
+	    fi
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot find run-file:_pfile=\"${_pfile}\""
+	    gotoHell ${ABORT}  
+	fi
+
+	local _myTap=`${PS} ${PSEF}|grep -v grep|grep ${_mypid}|sed -n 's/.* -t \([^ ]*\) .*/\1/p'`
+	if [ -n "$_force" ];then
+	    checkedSetSUaccess  retry norootpreference "${_myHint}" BRCTLCALL  KILL ${_mypid}
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Failed to \"shutdown\" vde_switch for TAP=\"${_myTap}\"."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "by it's management interface MSOCK=\"${_msock}\"."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Use \"-f\" for forced kill of the process by it's PID=${_mypid}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "The UNIX-Domain socket may have to be deleted manually."
+	    gotoHell ${ABORT}  
+	fi
+    fi
+    printINFO 2 $LINENO $BASH_SOURCE 0 "CANCEL:virtual switch for TAP=\"$_myTap\" on QEMUMGMT=\"$_msock\""
+    printINFO 2 $LINENO $BASH_SOURCE 0 "This version ignores present ports!!!"
+
+    #
+    #if there is one, it is the one used in earlier create call
+    #
+    if [ -z  "${_bridge}" ];then
+        printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:Search bridge"
+	for i in `netListBridges`;do
+	    if [ "$i" == "$_mybridge" ];then
+		_bridge=$_mybridge;
+	    fi
+	done
+    else
+        printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:User provided bridge=$_bridge"
+    fi
+
+    local BRCTLCALL=;
+    if [ -n "$_bridge" ];then
+        printINFO 1 $LINENO $BASH_SOURCE 0  "CANCEL:bridge=$_bridge remove TAP=\"$_myTap\""
+	checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  CTYS_BRCTL  delif $_bridge $_myTap
+    else
+	printINFO 2 $LINENO $BASH_SOURCE 0 "Non-bridged direct attachment of TAP=$_myTap"
+    fi
+
+    printINFO 2 $LINENO $BASH_SOURCE 0 "CANCEL ifconfig for TAP=\"${_myTap}\""
+    checkedSetSUaccess retry norootpreference "${_myHint}" VDECALL  CTYS_IFCONFIG $_myTap down
+    if [ $? -ne 0 ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Failed to CANCEL interface for TAP=\"${_myTap}\""
+	gotoHell ${ABORT}  
+    else
+        printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:interface shutdown TAP=\"$_myTap\""
+    fi
+
+    printINFO 2 $LINENO $BASH_SOURCE 0 "CANCEL TAP=\"${_myTap}\""
+
+    local _myTap=`checkedSetSUaccess retry norootpreference display1 "${_myHint}" VDECALL  VDE_TUNCTL -d ${_myTap}`
+    if [ $? -ne 0 ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Failed to CANCEL TAP=\"${_myTap}\""
+	gotoHell ${ABORT}  
+    else
+        printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:device remove TAP=\"$_myTap\""
+    fi
+
+    #
+    #only implicit generated bridges are canceled, else has to do manually.
+    #
+    if [ "$_bridge" != "$_mybridge" ];then
+        printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:keep pre-present/non-standard bridge:$_bridge != $_mybridge"
+    else
+        printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:remove standard-created bridge:$_bridge == $_mybridge"
+	local _inUse=0;
+	local _nonTapCount=0;
+
+	for i in `netListBridgePorts $_bridge`;do
+            #assume only one non-tap device is within the own self-created-bridge,
+            #the _myTap is deleted above, thus none should remain
+	    if [ "${i##tap}" == "${i}" ];then
+		_interface=$i;
+		let _nonTapCount++;
+	    else
+		let _inUse++;
+	    fi
+	done
+
+        if((_inUse>0));then
+            printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:Still in use(${_inUse}) bridge:$_bridge"
+	    return
+	fi
+        if((_nonTapCount>1));then
+            printINFO 1 $LINENO $BASH_SOURCE 0 "CANCEL:Matched more non-TAP interfaces(${_nonTapCount}=>1) than expected bridge:$_bridge"
+	    return
+	fi
+	cancelBridge "$_bridge"
+    fi
+}
+
+
+function listPortsSwitch () {
+    local VDECALL=;
+    if [ "${MYARCH}" == i386 ];then
+	printINFO 1 $LINENO $BASH_SOURCE 0  "on i386 difficulties may occur, if nothing is displayed "
+	printINFO 1 $LINENO $BASH_SOURCE 0  "use \"unixterm\" interactively."
+    fi
+    if [ ! -e "$_msock" ] ;then
+	printWNG 2 $LINENO $BASH_SOURCE 1 "Missing UNIX socket:$_msock"
+	return 1
+    fi
+    echo "SWITCH-PORTS:"
+
+    if [ -n "$CTYS_NETCAT" ];then
+	if [ "$USER" == root ];then
+	    callErrOutWrapper $LINENO $BASH_SOURCE echo "port/print"|$CTYS_NETCAT -U $_msock 
+	else
+	    checkedSetSUaccess  "${_myHint}" BRCTLCALL  CTYS_NETCAT -h 
+	    callErrOutWrapper $LINENO $BASH_SOURCE echo "port/print"|$CTYS_NETCAT -U $_msock 
+	fi
+    else
+	callErrOutWrapper $LINENO $BASH_SOURCE $VDE_UNIXTERM $_msock <<EOF
+port/print
+EOF
+    fi
+    echo
+}
+
+
+function checkPorts () {
+    local portList=$(listPortsSwitch | awk '/endpoint/{print $NF;}');
+    local tapOK=0;
+    local sockOK=0;
+    local switchOK=0;
+    local switchProc4Tap=0;
+    local switchProc=0;
+
+    local _i=;
+    for _i in $portList;do
+	printINFO 2 $LINENO $BASH_SOURCE 1 "Port:<$_i>"
+	case $_i in
+	    tap*)
+		${CTYS_IFCONFIG} $_i 2>&1 >/dev/null
+		if [ $? -eq 0 ];then
+		    let tapOK++;
+		    local _x=$(${PS} ${PSEF}|awk -v t="$_i" '$0!~/awk/&&/vde_switch/&&$0~t{print;}' 2>/dev/null)
+		    if [ -n "$_x" ];then
+			let switchOK++;
+			_x=;
+		    else
+			let switchProc4Tap++;
+		    fi
+		fi
+		;;
+	    *)
+		if [ -S ${i#SOCK=} ];then
+		    let sockOK++;
+		fi
+		;;
+	esac
+    done
+    local _tapExist=0;
+    _tapExist=$(${CTYS_IFCONFIG}|awk 'BEGIN{t=0;}$1~/tap[0-9]/{t++;}END{printf("%d",t);}');
+    switchProc=$(${PS} ${PSEF}|awk 'BEGIN{s=0;}$0!~/awk/&&/vde_switch/{s++;}END{printf("%d",s);}')
+
+    if [ "$C_TERSE" != 1 ];then
+	if((switchOK==0||switchOK!=tapOK));then
+	    ABORT=1;
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "switchNOK for USER=\"${_user}\": #tap=$(setSeverityColor WNG $tapOK)  => [$(setSeverityColor WNG NOK)]"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " Missing #switchProc4Tap = ${switchProc4Tap}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " Present #tap            = ${_tapExist}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " Present #switchProc     = ${switchProc}"
+	else
+	    printINFO 2 $LINENO $BASH_SOURCE 0 "switchOK for USER=\"${_user}\":#tap=$(setSeverityColor INF $tapOK)  => [$(setSeverityColor INF OK)]"
+	fi
+
+	if((sockOK==0));then
+	    printWNG 2 $LINENO $BASH_SOURCE 0 "#sockNOK for USER=\"${_user}\":<$(setSeverityColor WNG $sockOK)> => [$(setSeverityColor WNG NOK)]"
+	else
+	    printINFO 2 $LINENO $BASH_SOURCE 0 "#sockOK for USER=\"${_user}\":<$(setSeverityColor INF $sockOK)> => [$(setSeverityColor INF OK)]"
+	fi
+    fi
+
+    if((tapOK==0));then
+	return 1;
+    fi
+    if [ "$C_TERSE" != 1 ];then
+	printINFO 1 $LINENO $BASH_SOURCE 0 "VDE environment  for USER=\"${_user}\" => [$(setSeverityColor INF OK)]"
+    fi
+    return 0
+}
+
+function infoSwitch () {
+    local VDECALL=;
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME"
+    if [ "${MYARCH}" == i386 ];then
+	printINFO 1 $LINENO $BASH_SOURCE 0 "on i386 difficulties may occur, if nothing is displayed "
+	printINFO 1 $LINENO $BASH_SOURCE 0 "use \"unixterm\" interactively."
+    fi
+
+    if [ ! -e "$_msock" ] ;then
+	printWNG 2 $LINENO $BASH_SOURCE 1 "Missing UNIX socket QEMUMGMT/_msock=$_msock"
+	return 1
+    fi
+    echo "SWITCH-INFO:"
+
+    if [ -n "$CTYS_NETCAT" ];then
+	if [ "$USER" == root ];then
+	    callErrOutWrapper $LINENO $BASH_SOURCE "echo showinfo|$CTYS_NETCAT -U \"$_msock\""
+	else
+	    checkedSetSUaccess  "${_myHint}" BRCTLCALL  CTYS_NETCAT "-h 2>&1|grep -q -e '-D'"
+	    callErrOutWrapper $LINENO $BASH_SOURCE "echo showinfo|$CTYS_NETCAT -U \"$_msock\""
+	fi
+    else
+	if [ "$USER" == root ];then
+	    callErrOutWrapper $LINENO $BASH_SOURCE $VDE_UNIXTERM $_msock <<EOF
+showinfo
+EOF
+	else
+	    checkedSetSUaccess  "${_myHint}" BRCTLCALL  VDE_UNIXTERM $_msock <<EOF
+showinfo
+EOF
+	fi
+    fi
+    echo
+}
+
+
+function listSwitches () {
+    if [ -z "${_ssock}" ];then
+	export _ssock=${_ssock:-$QEMUSOCK};
+	export _ssock=${_ssock%\.*}.${_user};
+	printINFO 1 $LINENO $BASH_SOURCE 0 "Use standard path derived from QEMUSOCK=${_ssock}"
+    fi
+
+    local _basedir=${_ssock%$USER}
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "Use PREFIX=${_basedir}"
+    printINFO 2 $LINENO $BASH_SOURCE 0 "Use PREFIX=${_basedir}"
+    ls -ld $_basedir*|\
+      awk -v h="${MYHOST}" '
+         $NF!~/.[0-9]+-[0-9]+$/{
+           x=$NF;gsub("^.*/","",x);
+           printf("%-30s|%-12s|%-12s|%-12s|%-s\n",x,$3,$4,$1,h);
+      }'
+}
+
+
+function listSwitchesAll () {
+    if [ -z "${_ssock}" ];then
+	export _ssock=${_ssock:-$QEMUSOCK};
+	export _ssock=${_ssock%\.*}.${_user};
+	printINFO 1 $LINENO $BASH_SOURCE 0 "Use standard path derived from QEMUSOCK=${_ssock}"
+    fi
+
+    local _basedir=${_ssock%$USER}
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "Use PREFIX=${_basedir}"
+    printINFO 2 $LINENO $BASH_SOURCE 0 "Use PREFIX=${_basedir}"
+    ls -ld $_basedir*|\
+      awk -v h="${MYHOST}" '{x=$NF;gsub("^.*/","",x);printf("%-30s|%-12s|%-12s|%-12s|%-s\n",x,$3,$4,$1,h);}'
+}
+
+
+
+function execSwitchAction () {
+    _ex=0
+    case $SWITCH_ACTION in
+
+	CREATE) 
+            x=`infoSwitch|grep Success`
+	    if [ -z "$x" ];then
+		createSwitch "${_bridge}" "${_interface}"
+		_ex=$?;
+	    else
+		printINFO 1 $LINENO $BASH_SOURCE 0 "A functional switch is already present, reuse it."
+	    fi
+	    ;;
+
+	CANCEL) 
+            x=`infoSwitch|grep Success`
+	    if [ -n "$x" ];then
+		cancelSwitch
+		_ex=$?;
+	    else
+		printINFO 1 $LINENO $BASH_SOURCE 0 "No switch found, nothing to do."
+	    fi
+	    ;;
+
+	CHECK) 
+	    checkPorts
+            _ex=$?;
+	    ;;
+
+	LIST) 
+	    listSwitches
+            _ex=$?;
+	    ;;
+
+	LISTALL) 
+	    listSwitchesAll
+            _ex=$?;
+	    ;;
+
+	PORTS) 
+	    listPortsSwitch
+            _ex=$?;
+	    ;;
+
+	INFO) 
+	    infoSwitch
+            _ex=$?;
+	    ;;
+
+	*)
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown SWITCH_ACTION=$SWITCH_ACTION"
+            showToolHelp
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown SWITCH_ACTION=$SWITCH_ACTION"
+	    gotoHell ${ABORT}  
+	    ;;
+    esac
+}
+
+
+
+
+
+##########################
+##########################
+_ex=0
+SWITCH_ACTION=;
+ACTIONCHK=0;
+_ARGS=;
+_ARGSCALL=$*;
+
+#
+#pre-fetch su-settings for initial plugin bootstrap
+#
+fetchSUaccessOpts ${*}
+
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGSCALL=${_ARGSCALL}"
+
+while [ -n "$1" ];do
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:1=${1}"
+    case $1 in
+	'-b')shift;_bridge=$1;;
+	'-f')_force=1;;
+	'-i')shift;_interface=$1;;
+	'-s')shift;_ssock=${1};;
+	'-S')shift;_msock=${1};;
+	'-g')shift;_sbitgroup=${1##.*};;
+	'-u')shift;_user=${1%%.*};
+	    if [ "${1}" != "${1##.*}" ];then
+		_group=${1##.*}
+	    fi
+	    ;;
+
+	'-n')_nohead=1;;
+
+	'-V')printVersion;exit 0;;
+	'-h')showToolHelp;exit 0;;
+	'-X')C_TERSE=1;;
+	'-Z')shift;;
+	'-d')shift;;
+	*)
+	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS=${_ARGS}"
+	    case $1 in
+		[cC][hH][eE][cC][kK])     SWITCH_ACTION=CHECK;let ACTIONCHK++;;
+		[cC][rR][eE][aA][tT][eE]) SWITCH_ACTION=CREATE;let ACTIONCHK++;;
+		[cC][aA][nN][cC][eE][lL]) SWITCH_ACTION=CANCEL;let ACTIONCHK++;;
+		[pP][oO][rR][tT][sS])     SWITCH_ACTION=PORTS;let ACTIONCHK++;;
+		[iI][nN][fF][oO])         SWITCH_ACTION=INFO;let ACTIONCHK++;;
+		[lL][iI][sS][tT][aA][lL][lL])
+                    SWITCH_ACTION=LISTALL;let ACTIONCHK++;;
+		[lL][iI][sS][tT])         SWITCH_ACTION=LIST;let ACTIONCHK++;;
+
+		*)
+   		    _ARGS="${_ARGS} $1"
+		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS=${_ARGS}"
+		    ;;
+	    esac
+	    ;;
+    esac
+    shift
+done
+
+if((ACTIONCHK>1));then
+    printERR $LINENO $BASH_SOURCE 1 "Single actions are suppored only:$_ARGSCALL"
+    gotoHell 1
+fi
+
+if [ -n "$*" ];then
+    printERR $LINENO $BASH_SOURCE 1 "Remaining arguments:$_ARGSCALL"
+    gotoHell 1
+fi
+
+# initSetupVDE
+# execSwitchAction
+# gotoHell $_ex
+
+_RARGS=${_ARGSCALL//$_ARGS/}
+_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
+
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
+_RARGS=${_RARGS// /\%}
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_MYLBL=<$_MYLBL>"
+
+function printHead () {
+    [ -n "$_nohead" ]&&return;
+    case $SWITCH_ACTION in
+	LISTALL|LIST) 
+	    echo
+	    echo "switch                        |UID         |GID         |access      |machine-address"
+	    echo "------------------------------+------------+------------+------------+-------------------------"
+	    ;;
+    esac
+}
+
+if [ -z "${_ARGS}" ];then
+    initSetupVDE
+    printHead
+    execSwitchAction
+    gotoHell $_ex
+else
+    _RARGS="${_RARGS}%-n"
+    if [ "$C_TERSE" != 1 ];then
+	printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution on:${_ARGS}"
+    fi
+    printHead
+    ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}%${_RARGS} ${_ARGS} 
+fi
+

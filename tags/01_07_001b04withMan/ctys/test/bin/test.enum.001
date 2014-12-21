@@ -1,0 +1,171 @@
+#!/bin/bash
+
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+function now () {
+    date +%Y%m%d%H%M%S
+}
+
+CURDATE=`now`
+
+#testees
+TSTHOSTS1="delphi olymp app2 app1 ws1 ws2 lab00 "
+TSTHOSTS=${TSTHOSTS:-$TSTHOSTS1}
+
+#results
+OUTBASE=/tmp/ctys/tst.${CURDATE}
+if [ ! -d "${OUTBASE}" ];then
+    mkdir -p "${OUTBASE}"
+fi
+
+echo
+echo
+echo "###########################################"
+echo "#        TEST: tst.${OUTBASE}             #"
+echo "###########################################"
+echo
+echo
+
+
+#1. collect
+echo "*******************************************"
+echo "*      ENUMERATE - collect data           *"
+echo "*******************************************"
+#
+OUTDIR=${OUTBASE}/enum
+#
+for i in $TSTHOSTS;do
+    curout="${OUTDIR}/${i}"
+    echo "-------------------------------------------------"
+    echo "$i:start:`now`"
+    echo "-------------------------------------------------"
+    mkdir -p "${curout}"
+    ctys -a enumerate=matchvstat:testdummy,label,machine,b:~/ctys/test/testdummy -C off -c off -b sync,parallel -T ALL -t ALL  -- '(-d 2,w:0,s:16,p)' ${i} 3>&2 2>&1 1>&3 >${curout}/enum.fdb |tee ${curout}/enumerate.log
+    cut -d ';' -f 1 --complement ${curout}/enum.fdb >${curout}/enum-cut.fdb
+    echo "$i:end:`now`"
+    echo
+done
+
+
+#
+#2. analyse
+#
+echo "*******************************************"
+echo "*      ENUMERATE - analyse data           *"
+echo "*******************************************"
+#
+STAT=0;
+for i in $TSTHOSTS;do
+    for j in $TSTHOSTS;do
+	if [ "$i" == "$j" ];then
+	    continue
+	fi
+        I=${OUTDIR}/${i}/enum-cut.fdb
+        J=${OUTDIR}/${j}/enum-cut.fdb
+	echo -n "${i} <> ${j} =>"
+	diff -q ${I} ${J} >/dev/null
+        if [ $? -eq 0 ];then
+	    echo "OK"
+	else
+	    echo "NOK"
+            let STAT++;
+	fi
+    done
+done
+echo "Cumulative STATE=${STAT}"
+
+
+#
+#3. collect
+#
+echo "*******************************************"
+echo "*        vdbgen - collect data            *"
+echo "*******************************************"
+#
+OUTDIR=${OUTBASE}/vdbgen
+#
+for i in $TSTHOSTS;do
+    curout="${OUTDIR}/${i}"
+    echo "-------------------------------------------------"
+    echo "$i:start:`now`"
+    echo "-------------------------------------------------"
+    mkdir -p "${curout}"
+    ctys-vdbgen -o ${curout} -a enumerate=matchvstat:testdummy,label,machine,b:~/ctys/test/testdummy -C off -c off -b sync,parallel -T ALL -t ALL  -- '(-d 2,w:0,s:16,p)' ${i} 3>&2 2>&1 1>&3  |tee ${curout}/enumerate.log
+    cut -d ';' -f 1 --complement ${curout}/enum.fdb >${curout}/enum-cut.fdb
+    echo "$i:end:`now`"
+    echo
+done
+
+
+#
+#4. analyse
+#
+echo "*******************************************"
+echo "*       vdbgen - analyse data             *"
+echo "*******************************************"
+#
+for i in $TSTHOSTS;do
+    for j in $TSTHOSTS;do
+	if [ "$i" == "$j" ];then
+	    continue
+	fi
+        I=${OUTDIR}/${i}/enum-cut.fdb
+        J=${OUTDIR}/${j}/enum-cut.fdb
+	echo -n "${i} <> ${j} =>"
+	diff -q ${I} ${J} >/dev/null
+        if [ $? -eq 0 ];then
+	    echo "OK"
+	else
+	    echo "NOK"
+            let STAT++;
+	fi
+    done
+done
+echo "Cumulative STATE=${STAT}"
+
+
+
+
+
+#
+#5. analyse
+#
+echo "*******************************************"
+echo "*  cross ENUMERATExvdbgen - analyse data  *"
+echo "*******************************************"
+#
+for i in $TSTHOSTS;do
+    for j in $TSTHOSTS;do
+	if [ "$i" == "$j" ];then
+	    continue
+	fi
+        I=${OUTBASE}/enum/${i}/enum-cut.fdb
+        J=${OUTBASE}/vdbgen/${j}/enum-cut.fdb
+	echo -n "enum:${i} <> vdbgen${j} =>"
+	diff -q ${I} ${J} >/dev/null
+        if [ $? -eq 0 ];then
+	    echo "OK"
+	else
+	    echo "NOK"
+            let STAT++;
+	fi
+    done
+done
+echo "Cumulative STATE=${STAT}"

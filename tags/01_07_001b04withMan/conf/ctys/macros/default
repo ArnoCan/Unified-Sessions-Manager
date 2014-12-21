@@ -1,0 +1,294 @@
+#!/bin/bash #4syncolors
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a13
+#
+########################################################################
+#
+# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+##########################################################
+#
+#Atoms with appropriate sizes.
+#
+#
+#ContainingMachine(1);
+#SessionType(2);
+#Label(3);
+#ID(4);
+#UUID(5);
+#MAC(6);
+#TCP(7);
+#DISPLAY(8);
+#ClientAccessPort(9);
+#VNCbasePort(10);
+#
+F_PM        = 1_PM_15
+F_STYPE     = 2_stype_10
+F_LABEL     = 3_label_10
+F_ID        = 4_ID_25_L
+F_UUID      = 5_UUID_32
+F_MAC       = 6_MAC_18
+F_TCP       = 7_TCP_15
+F_DISP      = 8_DISP_4
+F_CPORT     = 9_cport_5_L
+F_SPORT     = 10_sport_5_L
+
+##########################################################
+#
+#Specific additional MACROS for LIST
+#PID(11);
+#UID(12);
+#GID(13);
+#C/S-Type(14)
+#
+F_PID       = 11_pid_5
+F_UID       = 12_uid_8
+F_GID       = 13_gid_8
+F_CST       = 14_cst_1
+F_JOBID     = 15_jobid_30
+
+
+##########################################################
+#
+#Specific additional MACROS for ENUMERATE
+#
+#VNCbaseport(11);
+#Distro(12);
+#Distrorel(13);
+#OS(14);
+#OS(15);
+#VersNo(16);
+#SerialNo(17);
+#Category(18)
+#VMstate(19)
+#hyperrel(20)
+#StackCap(21)
+#StackReq(22)
+#HWcap(23)
+#HWreq(24)
+#execloc(25)
+#reloccap(26)
+#SSH(27)
+#netname(28)
+#rsrv(29)
+#rsrv(30)
+#rsrv(31)
+#rsrv(32)
+#rsrv(33)
+#CTYSrel(34)
+#netmask(35)
+#Gateway(36)
+#Relay(37)
+#Arch(38)
+#Platform(39)
+#VRAM(40)
+#VCPU(41)
+#ContextStg(42)
+#UserStrg(43)
+#
+F_VNCBASE   = 11_vncbase_7
+F_DIST      = 12_distro_12
+F_DISTREL   = 13_distrorel_15
+F_OS        = 14_os_10
+F_OSREL     = 15_osrel_10
+F_VERNO     = 16_verno_9
+F_SERNO     = 17_serno_14
+F_CATEGORY  = 18_category_8
+F_VMSTATE   = 19_VMstate_9
+F_HYPERREL  = 20_hyperrel_15
+F_STACKCAP  = 21_StackCap_15_B
+F_STACKREQ  = 22_StackReq_15_B
+F_HWCAP     = 23_HWcap_60_B
+F_HWREQ     = 24_HWreq_25_B
+F_EXECLOC   = 25_execloc_15
+F_RELOCCAP  = 26_reloccap_8
+F_SSHPORT   = 27_SSH_5
+F_NETNAME   = 28_netname_16
+F_RSRV7     = 29_r_1
+F_RSRV8     = 30_r_1
+F_RSRV9     = 31_r_1
+F_RSRV10    = 32_r_1
+F_IFNAME    = 33_if_7
+F_CTYSREL   = 34_CTYSrel_10
+F_NETMASK   = 35_netmask_15
+F_GATEWAY   = 36_Gateway_15
+F_RELAY     = 37_Relay_15
+F_ARCH      = 38_Arch_7
+F_PLATFORM  = 39_Platform_10
+F_VRAM      = 40_VRAM_13
+F_VCPU      = 41_VCPU_5
+F_CSTRG     = 42_ContextStg_20_B
+F_USTRG     = 43_UserStrg_20_B
+
+
+F_STACKCAP1  = 21_StackCap_30_B
+F_STACKREQ1  = 22_StackReq_30_B
+
+##########################################################
+#
+#DEFAULT for ctys-vhost, when no "-o" option is selected.
+#Change this carefully, otherwise ctys-vhost might come 
+#into trouble.
+#
+TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_IFNAME%%macro:F_TCP
+
+listdefault=-a list=macro:TAB_CTYS_VHOST_DEFAULT
+ldefault=-a list=macro:TAB_CTYS_VHOST_DEFAULT
+
+enumdefault=-a enumerate=macro:TAB_CTYS_VHOST_DEFAULT
+edefault=-a enumerate=macro:TAB_CTYS_VHOST_DEFAULT
+
+vhostdefault=-o macro:TAB_CTYS_VHOST_DEFAULT
+vdefault=-o macro:TAB_CTYS_VHOST_DEFAULT
+
+
+##########################################################
+#
+#Basic hypervisor state
+#
+TAB_HYPER=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_VMSTATE%%macro:F_OS%%macro:F_OSREL%%macro:F_ARCH%%macro:F_VCPU%%macro:F_VRAM
+
+enumhyper=-a enumerate={macro:TAB_HYPER}
+ehyper=-a enumerate={macro:TAB_HYPER}
+
+vhosthyper=-o {macro:TAB_HYPER}
+vhyper=-o {macro:TAB_HYPER}
+
+
+##########################################################
+#
+#Basic stack state
+#
+TAB_STACKSTAT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_VMSTATE%%macro:F_OS%%macro:F_OSREL%%macro:F_STACKCAP%%macro:F_STACKREQ
+TAB_STACKSTAT1=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_STACKCAP1%%macro:F_STACKREQ1
+TAB_STACKCAP=tab_gen:macro:F_LABEL%%macro:F_STYPE%%21_StackCap_70_B
+TAB_STACKREQ=tab_gen:macro:F_LABEL%%macro:F_STYPE%%22_StackReq_70_B
+
+enumstack=-a enumerate=macro:TAB_STACKSTAT
+estack=-a enumerate=macro:TAB_STACKSTAT
+
+vhoststack=-o macro:TAB_STACKSTAT
+vstack=-o macro:TAB_STACKSTAT
+vstack1=-o macro:TAB_STACKSTAT1
+vstackcap=-o macro:TAB_STACKCAP
+vstackreq=-o macro:TAB_STACKREQ
+
+##########################################################
+#
+#Basic HW state
+#
+
+TAB_HWSTAT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_CATEGORY%%macro:F_ARCH%%macro:F_PLATFORM%%macro:F_VRAM%%macro:F_VCPU
+TAB_HWSTAT1=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_HWCAP%%macro:F_HWREQ
+
+TAB_HWCAP=tab_gen:macro:F_LABEL%%macro:F_STYPE%%21_HWcap_70_B
+TAB_HWREQ=tab_gen:macro:F_LABEL%%macro:F_STYPE%%22_HWreq_70_B
+
+
+ehwstate=-a enumerate={macro:TAB_HWTAT}
+ehw=-a enumerate={macro:TAB_HWSTAT}
+
+vhosthwstate=-o {macro:TAB_HWSTAT}
+vhw=-o {macro:TAB_HWSTAT}
+vhw1=-o {macro:TAB_HWSTAT1}
+vhwcap=-o {macro:TAB_HWCAP}
+vhwreq=-o {macro:TAB_HWREQ}
+
+
+##########################################################
+#
+#connections with PID
+#
+# LABEL STYPE  DISP  CPORT  SPORT  PID PM  TCP
+#
+TAB_LST_CONNPID=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_CST%%macro:F_DISP%%macro:F_CPORT%%macro:F_SPORT%%macro:F_PID%%macro:F_PM%%macro:F_TCP
+connpid=macro:TAB_LST_CONNPID
+listconnpid=-a list=macro:TAB_LST_CONNPID
+
+
+##########################################################
+#
+#connections
+#
+# LABEL STYPE  DISP  CPORT  SPORT  PM  TCP
+#
+TAB_ENUMLST_CONNECT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_DISP%%macro:F_CPORT%%macro:F_SPORT%%macro:F_PM%%macro:F_IFNAME%%macro:F_TCP
+conn=macro:TAB_ENUMLST_CONNECT
+lconn=-a list=macro:TAB_ENUMLST_CONNECT
+econn=-a enumerate=macro:TAB_ENUMLST_CONNECT
+vconn=-o macro:TAB_ENUMLST_CONNECT
+
+
+##########################################################
+#
+#interfaces
+#
+# LABEL STYPE  PM  TCP MAC
+#
+TAB_ENUMLIST_INTERFACES=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_PM%%macro:F_IFNAME%%macro:F_NETNAME%%macro:F_TCP%%macro:F_MAC
+interfaces=macro:TAB_ENUMLIST_INTERFACES
+lif=-a list=macro:TAB_ENUMLIST_INTERFACES
+eif=-a enumerate=macro:TAB_ENUMLIST_INTERFACES
+vif=-o macro:TAB_ENUMLIST_INTERFACES
+
+
+##########################################################
+#
+#conffiles
+#
+# LABEL STYPE  TCP  MAC  ID
+#
+TAB_ENUMLIST_CONF=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_TCP%%macro:F_MAC%%4_ID_50_L
+conf=macro:TAB_ENUMLIST_CONF
+lconf=-a list=macro:TAB_ENUMLIST_CONF
+econf=-a enumerate=macro:TAB_ENUMLIST_CONF
+vconf=-o macro:TAB_ENUMLIST_CONF
+
+
+##########################################################
+#
+#ids
+#
+# LABEL STYPE  TCP  MAC  UUID  ID
+#
+TAB_ENUMLIST_ID=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_TCP%%macro:F_MAC%%macro:F_UUID%%macro:F_ID
+id=macro:TAB_ENUMLIST_ID
+lid=-a list=macro:TAB_ENUMLIST_ID
+eid=-a enumerate=macro:TAB_ENUMLIST_ID
+vid=-o macro:TAB_ENUMLIST_ID
+
+
+##########################################################
+#
+#jobs with PID
+#
+# LABEL STYPE  JOBID PID UID GID
+#
+TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_CST%%macro:F_JOBID%%macro:F_PID%%macro:F_UID%%macro:F_GID
+
+jobs=macro:TAB_LST_JOBS
+listjobs=-a list=macro:TAB_LST_JOBS
