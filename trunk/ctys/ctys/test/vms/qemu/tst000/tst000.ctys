@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a10
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
@@ -425,17 +425,7 @@ QCALL="${QCALL} -L ${QEMUBIOS} "
 QCALL="${QCALL} -net nic,macaddr=${MAC0} "
 QCALL="${QCALL} -net vde,sock=${QEMUSOCK} "
 QCALL="${QCALL} -name \"${LABEL}\" "
-case ${QEMU_MAGIC} in
-    QEMU_090)
-        #disable for 0.9.0: QCALL="${QCALL} -no-kqemu "
-	;;
-    QEMU_091)
-	QCALL="${QCALL} -no-kqemu "
-	;;
-    QEMU_09*)
-	QCALL="${QCALL} -no-kqemu "
-	;;
-esac
+QCALL="${QCALL} -no-kqemu "
 
 #
 #Could be ntp, but should be kept.
@@ -541,7 +531,10 @@ case ${CONSOLE} in
         ;;
 
     NONE)
-	printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "NONE:no conlsole"
+        QCALL="${QCALL} -serial mon:unix:${MYQEMUMONSOCK},server,nowait "
+	QCALL="${QCALL} -daemonize "
+	QCALL="${QCALL} -std-vga "
+	QCALL="${QCALL} -vnc :${VNCACCESSDISPLAY}  ${ARGSADD} ${LASTPATH}"
 	;;
 
     *)

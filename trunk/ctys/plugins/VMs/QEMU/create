@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b01
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_QEMU_CREATE="${BASH_SOURCE}"
-_myPKGVERS_QEMU_CREATE="01.01.001a00pre"
+_myPKGVERS_QEMU_CREATE="01.07.001b05"
 hookInfoAdd $_myPKGNAME_QEMU_CREATE $_myPKGVERS_QEMU_CREATE
 _myPKGBASE_QEMU_CREATE="`dirname ${_myPKGNAME_QEMU_CREATE}`"
 
@@ -99,22 +99,42 @@ function createConnectQEMU () {
 				let _unambigCON+=1;
 				local _connect=1;
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "CONNECT"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 			    REUSE)
 				let _unambigCON+=1;
 				local _reuse=1;
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "REUSE="
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 			    RECONNECT)
 				local _reuse=1;
 				local _reconnect=1;
 				let _unambigCON+=1;
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "RECONNECT"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 			    RESUME)
 				local _resume=1;
 				let _unambigCON+=1;
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "RESUME"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
                      #####################
                      # <machine-address> #
@@ -447,6 +467,14 @@ function createConnectQEMU () {
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "The following sub-opts are EXOR applicable only:"
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "  (CONNECT|REUSE) EXOR (RECONNECT|REPLACE)"
  		    gotoHell ${ABORT}
+		fi
+
+		if [ "${_conty}" == SDL ];then
+		    if((_connect+_reuse+_reconnect!=0));then
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "SDL could be used as initial CONSOLE only"
+ 			gotoHell ${ABORT}
+		    fi
 		fi
             fi
             if((_unambig==0&&_idgiven!=1));then
@@ -1051,7 +1079,7 @@ function createConnectQEMU () {
                         #check now for reconnect, if so kill whole competition
 			if [ -n "${_reconnect}" ];then
                             #So it is all to be killed: ID might be available here.
-			    _history=`${MYCALLPATH}/ctys -T CLI,X11,VNC -a list=CLIENT,FULLPATH,TERSE,LABEL,ID,PID,SITE \
+			    _history=`${MYCALLPATH}/ctys -T CLI,X11,VNC -a list=CLIENT,TERSE,LABEL,ID,PID,SITE \
                                 -b 0 ${C_DARGS} ${C_DARGS:+-- "($C_DARGS)"}|\
                                        awk -F';' -v l="${_label}" '$1~l{print $0 }'`
 

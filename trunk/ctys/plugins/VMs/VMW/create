@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b01
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_CREATE="01.07.001b01"
+_myPKGVERS_VMW_CREATE="01.07.001b05"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VMW_CREATE
 _myPKGBASE_VMW_CREATE="`dirname ${_myPKGNAME_VMW_CREATE}`"
 
@@ -92,12 +92,22 @@ function createConnectVMW () {
 				local _reuse=1;
 				local _connect=1;
 				printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "CONNECT=>connect only if present"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 
 			    REUSE)
 				let _unambigCON+=1;
 				local _reuse=1;
 				printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "REUSE=>connect or create"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 
 			    RECONNECT)
@@ -106,6 +116,11 @@ function createConnectVMW () {
 				local _reconnect=1;
 				let _unambigCON+=1;
 				printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RECONNECT=>CANCEL running clients first"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 
 			    RESUME)
@@ -113,6 +128,11 @@ function createConnectVMW () {
 				local _resume=1;
 				let _unambigCON+=1;
 				printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RESUME=>Applicable for state SUSPENDED"
+				if [ -n "${ARG}" ]; then
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 				    gotoHell ${ABORT}
+				fi
 				;;
 
 
@@ -395,14 +415,6 @@ function createConnectVMW () {
 		    printERR $LINENO $BASH_SOURCE ${_ret} "  (CONNECT|REUSE) EXOR (RECONNECT|RESUME)"
  		    gotoHell ${_ret}               
 		fi
-
-		if [ -n "${_vnc}" -a -z "$_connect" ];then
-		    _ret=1;
-		    printERR $LINENO $BASH_SOURCE ${_ret} "REASON=VNCviewer used for startup."
-		    printERR $LINENO $BASH_SOURCE ${_ret} "VNCviewer could only be used for \" -a CREATE=CONNECT,... \""
-		    printERR $LINENO $BASH_SOURCE ${_ret} "on a running session. Start it with Workstation-Frontend."
- 		    gotoHell ${_ret}               
-		fi
             fi
 
             if((_unambig==0&&_idgiven!=1));then
@@ -435,7 +447,20 @@ function createConnectVMW () {
 		    -o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
 		    ];then
 		    case $KEY in
-			CONNECT|REUSE)
+			CONNECT)
+			    case ${VMW_MAGIC} in
+				VMW_P105)
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "VMplayer does not support ${ACTION}=${KEY},..."
+ 				    gotoHell ${ABORT};
+				    ;;
+			    esac
+                            local _connect=1;
+                            local _reuse=1;
+			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "REUSE=>try CONNECT before CREATE"
+			    ;;
+
+			REUSE)
 			    case ${VMW_MAGIC} in
 				VMW_P105)
 				    ABORT=1;
@@ -504,9 +529,10 @@ function createConnectVMW () {
 			    ;;
 
 			ID|PATHNAME|PNAME|P)
-                            if [ -n "${_pname}" ];then
+                            if [ -n "${_pname}" -a "${_pname}" != "${ARG}" ];then
 				ABORT=1;
-				printERR $LINENO $BASH_SOURCE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+				printERR $LINENO $BASH_SOURCE ${ABORT} "This version supports just ONE KEY=<${KEY}> "
+				printERR $LINENO $BASH_SOURCE ${ABORT} "for each ACTION=<${ACTION}> call"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID(1)=${_pname}"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID(2)=${ARG}"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Will be extended soon."
@@ -518,7 +544,7 @@ function createConnectVMW () {
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${ARG}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${_pname:+$_pname|}${ARG}";
+                            local _pname="${ARG}";
 			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RANGE:PATHNAME=${_pname}"
 			    ;;
 
@@ -553,7 +579,7 @@ function createConnectVMW () {
 					VMW_WS6);;
 					*)
 					    ABORT=1;
-					    printERR $LINENO $BASH_SOURCE ${ABORT} "WS>=6.x required for ${ACTION}=${KEY}"
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "WS>=6.x required for VNC:${ACTION}=${KEY}"
  					    gotoHell ${ABORT};
 					    ;;
 				    esac
@@ -978,8 +1004,19 @@ function createConnectVMW () {
                         #check now for reconnect, if so kill whole competition
 			if [ -n "${_reconnect}" ];then
                             #So it is all to be killed: ID might be available here.
-			    _history=`listMySessions CLIENT,FULLPATH,TERSE,LABEL,ID,UUID,PID,SITE|\
-                                              awk -F';' -v i="${_IDx}" '$2~i{print $1 ";" $2 ";" $4 ";" $5}'`
+
+			    if [ "${VMW_MAGIC}" == VMW_WS6 ];then
+				hookPackage VNC
+				printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "_VNC_CLIENT_MODE=\"${_VNC_CLIENT_MODE}\""
+				if [ -z "${_VNC_CLIENT_MODE// /}" ];then
+				    local _VNC_CLIENTS=`getVNCport "${_pname}"`
+				else
+				    local _VNC_CLIENTS="${_VNC_CLIENT_MODE}"
+				fi
+				printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "_VNC_CLIENTS=\"${_VNC_CLIENTS}\""
+			    fi
+			    _history=`listMySessions CLIENT,MACHINE,PKG:VMW%VNC|\
+                               awk -F';' -v i="${_IDx}" -v p="${_VNC_CLIENTS}" '$4~i||$8~p||$9~p{print $3 ";" $4 ";" $11 ";" $14}'`
 
                             #kill clients, guess the caller knows what he is doing, particularly
                             #has assured a stateless server!!!
@@ -993,6 +1030,7 @@ function createConnectVMW () {
 				kill $_pid
 				echo
 			    done
+
 			fi
                         #trust for now - any garbage is removed
 			connectSessionVMW "${_pname}" "${_label}" "${_VNC_CLIENT_MODE}" "${_tcp}"

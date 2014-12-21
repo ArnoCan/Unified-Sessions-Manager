@@ -33,20 +33,34 @@
 Release Notes:
 ==============
 
-01.08.001b04 / 20080817
+01.07.001b05 / 20080825
+-----------------------
+  1. Minor editorial changes of documents.
+  2. VMW:
+     - WS+Player start was broken, fixed.
+     - Added initial VNCviewer as CONSOLE, 
+       without required frontend.
+     - CONNECT:VNC
+     - RECONNECT: Clear mixed clients.
+  3. QEMU:
+     - Fixed VNCviewer as initial CONSOLE.
+     - RECONNECT.
+  4. Fixed filenames for online-help.
+
+01.07.001b04 / 20080817
 -----------------------
   1. Minor editorial changes on documents.
   2. Additional short-documents extracted from the User-Manual
      for installation and first usage.
 
 
-01.08.001b03 / 20080812
+01.07.001b03 / 20080812
 -----------------------
   1. Minor editorial changes on documents.
   2. Withdrawn website, due to problems with generated HTML-Code.
 
 
-01.08.001b02 / 20080806
+01.07.001b02 / 20080806
 -----------------------
 
   1. First beta-version to be used publicly for non-critical production

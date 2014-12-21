@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -24,7 +24,7 @@ VMW_DEFAULTOPTS="-x -q"
 VMW_PREREQ=;
 
 _myPKGNAME_VMW="${BASH_SOURCE}"
-_myPKGVERS_VMW="01.06.001a13"
+_myPKGVERS_VMW="01.07.001b05"
 hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
 
 _myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
@@ -371,6 +371,9 @@ function setVersionVMW () {
             _buf1="${_buf1% build*}"
             _cap="${_cap}%vmw/server-${_buf1}-`getExecArch /usr/lib/vmware/bin/vmware`"
 	    _ret=0;
+
+            #check for "register", but is not mandatorily required.
+            checkedSetSUaccess  "${MYCONFPATH}/vmw/vmw.conf.${MYOS}" VMWCALL VMWMGR -l
 	    ;;
 	"VMware Workstation 6"*)
 	    VMW_MAGIC=VMW_WS6;

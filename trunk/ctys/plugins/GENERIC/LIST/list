@@ -210,9 +210,10 @@ function listMySessions () {
       printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME"
       printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
       printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "PKG-CONSTRAINTS=${C_SESSIONTYPE}"
+      local _matched=0;
       for y in ${PACKAGES_KNOWNTYPES} DIGGER;do
-	  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE}"
-	  if [ "${C_SESSIONTYPE}" == $y -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == DEFAULT ];then
+	  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE} - y=${y}"
+	  if [ "${C_SESSIONTYPE}" == $y -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == DEFAULT -o -n "${_pkgargs}" ];then
 	      if [ "${_pkg}" == "1" ];then
 		  local _blacklist=1;
 		  local _ip=;
@@ -225,6 +226,8 @@ function listMySessions () {
 		  if [ "${_blacklist}" == "1" ];then
 		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "IGNORED:\"${y}\"!=\"${_ip}\""
 		      continue;
+		  else
+		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "USE:\"${y}\"==\"${_ip}\""
 		  fi
 	      fi
 	      _matched=1;
@@ -483,7 +486,6 @@ function listMySessions () {
 	  esac
       fi
 
-      local _matched=0;
 
       if [ \( "$C_CACHEONLY" == 0 -a "$C_CACHEDOP" == 0 -a "$_epilogue"  == 0  \) \
 	  -o \( "$C_CACHEONLY" == 0 -a "$_epilogue"  == 0 \) \

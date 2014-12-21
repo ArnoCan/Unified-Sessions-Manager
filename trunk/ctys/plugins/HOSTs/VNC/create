@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VNC_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VNC_CREATE="01.03.001b01"
+_myPKGVERS_VNC_CREATE="01.07.001b05"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VNC_CREATE
 _myPKGBASE_VNC_CREATE="`dirname ${_myPKGNAME_VNC_CREATE}`"
 
@@ -135,14 +135,29 @@ function createConnectVNC () {
 		case $KEY in
                     REUSE)
 			local _reuse=1;
+			if [ -n "${ARG}" ]; then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 			    gotoHell ${ABORT}
+			fi
 			;;
 
                     CONNECT)
 			local _connect=1;
+			if [ -n "${ARG}" ]; then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 			    gotoHell ${ABORT}
+			fi
 			;;
 
                     RECONNECT)
 			local _reconnect=1;
+			if [ -n "${ARG}" ]; then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
+ 			    gotoHell ${ABORT}
+			fi
 			;;
 
                     RESUME)
