@@ -1,0 +1,57 @@
+
+NAME
+====
+
+ctys-groups -  lists groups from groups DB and groups caches
+
+SYNTAX
+======
+
+ctys-groups
+
+
+   [-c]
+   [-d <level>]
+   [-D <deepness-level>]
+   [-F]
+   [-h]
+   [-H <help-options>]
+   [-l <remote-user>]
+   [-L <remote-user>]
+   [-m <1|2|3>]
+   [-R <remote-hosts>]
+   [-S]
+   [-V]
+   [-X]
+   [<group-list>]
+
+
+
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H help
+
+     displays available online help options.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL for license conditions,
+
+This document is created with: latex and text2tags
+
+
+
+
+
+

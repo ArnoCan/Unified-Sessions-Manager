@@ -1,0 +1,59 @@
+
+NAME
+====
+
+ctys-macros - searches and list macros
+
+SYNTAX
+======
+
+ctys-macros
+
+
+   [-a]
+   [-c]
+   [-d <debug-level>*]
+   [-D <deepness-level>]
+   [-E]
+   [-F]
+   [-f <macro-file>]
+   [-h]
+   [-H <help-options>]
+   [-L <remote-user>]
+   [-l]
+   [-N]
+   [-R <remote-hosts>]
+   [-S]
+   [-V]
+   [-X]
+   [<macro-list>]
+
+
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H help
+
+     displays available online help options.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL for license conditions,
+
+This document is created with: latex and text2tags
+
+
+
+
+
+

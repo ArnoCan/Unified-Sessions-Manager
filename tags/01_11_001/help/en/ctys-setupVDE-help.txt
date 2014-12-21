@@ -1,0 +1,62 @@
+
+NAME
+====
+
+ctys-setupVDE - manages on-the-fly network configuration
+
+SYNTAX
+======
+
+ctys-setupVDE
+
+
+   [-b <virtual-bridge>]
+   [-d <level>]
+   [-f]
+   [-g <sbit-group>*]
+   [-h]
+   [-H <help-options>]
+   [-i <interface>]
+   [-L <remote-user>]
+   [-l <remote-user>]
+   [-R <remote-hosts>]
+   [-r <remote-hosts>]
+   [-s <ALTERNATE-QEMUSOCK>]
+   [-S <ALTERNATE-QEMUMGMT>]
+   [-u <non-privileged-user>[.<group>]]
+   [-n]
+   [-V]
+   [-X]
+   [-Z <set-sudo-ksu>]
+   (cancel|check|create|info|ports|list|listall)
+
+
+
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H help
+
+     displays available online help options.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL for license conditions,
+
+This document is created with: latex and text2tags
+
+
+
+
+
+

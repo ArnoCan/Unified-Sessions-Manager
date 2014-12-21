@@ -1,0 +1,38 @@
+
+NAME
+====
+
+ctys-xen-network-bridge - adapted from the original script
+
+SYNTAX
+======
+
+ctys-xen-network-bridge
+
+
+
+    ctys-xen-network-bridge [options] [<action-arguments>] 
+
+
+DESCRIPTION
+===========
+
+Refer to man pages.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL for license conditions,
+
+This document is created with: latex and text2tags
+
+
+
+
+
+
