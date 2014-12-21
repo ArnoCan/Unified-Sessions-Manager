@@ -15,11 +15,9 @@ ctys-extractARPlst
    [-n|-i|-m]
    [-h]
    [-H <help-options>]
-   [-L <remote-user>]
    [-p <db-dir-path>]
    [-P]
    [-q]
-   [-R <remote-host>]
    [-V]
    [-X]
    <ping-hostlist-in-same-segment>

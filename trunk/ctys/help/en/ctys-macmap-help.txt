@@ -14,9 +14,7 @@ ctys-macmap
    [-n|-i|-m]
    [-h]
    [-H <help-options>]
-   [-L <remote-login>]
    [-p <db-dir-path-list>]
-   [-R <remote-host>]
    [-V]
    [-X]
    <simple awk-regexpr>

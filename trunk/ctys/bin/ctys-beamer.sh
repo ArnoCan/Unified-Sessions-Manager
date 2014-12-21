@@ -397,7 +397,7 @@ function beamMeUp0 () {
     if [ "$C_TERSE" != 1 ];then
 	printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_rh}"
     fi
-    _ARGS="${_ARGS:+ -- $_ARGS}"
+    _ARGS="${_ARGS:+ --%--$_ARGS}"
     _ARGS="${_ARGS// /%}"
 
     _call="ctys ${C_DARGS} -t cli ${_BYPASSARGS} -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS}${_ARGS}"
@@ -764,6 +764,7 @@ if [ -n "${_RUSER0}" -a "${_RHOSTS0//@}" != "${_RHOSTS0}" ];then
 fi
 
 
+echo "4TEST:$MYHOST:_ARGS=<${_ARGS}>"
 if [ -z "${_ARGS}" ];then
     echo "ERROR:Missing remote call">&2
     echo "  _ARGSCALL     = <${_ARGSCALL}>">&2
@@ -793,6 +794,7 @@ case $_MODE in
 
     CTYS-HOPS|CH|0)
 	beamMeUp
+	_ARGS=$(echo ${_ARGS}|sed 's/--[% ]/ /g;')
 	printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_ARGS}"
 	eval ${_ARGS}
 	exit
@@ -818,15 +820,10 @@ case $_MODE in
 	exit
 	;;
 
-
-
-
     *)
 	ABORT=1
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown MODE=\"$_MODE\""
 	gotoHell ${ABORT}
 	;;
 esac
-
-
 

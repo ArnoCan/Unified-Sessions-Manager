@@ -15,8 +15,6 @@ ctys-plugins
    [-h]
    [-H <help-options>]
    [-l <remote-user>]
-   [-L <remote-user>]
-   [-R <remote-host>]
    [-t <plugin-type>]
    [-T <plugin-preload-typelist>]
    [-V]

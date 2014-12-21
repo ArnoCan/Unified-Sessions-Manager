@@ -13,9 +13,7 @@ ctys-vmw2utils
    [-d <debug-options>]
    [-h]
    [-H <help-options>]
-   [-L <remote login>]
    [-n]
-   [-R <remote-hosts>]
    [-V]
    [-X]
    [

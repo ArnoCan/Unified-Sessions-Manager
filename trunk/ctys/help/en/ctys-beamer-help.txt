@@ -25,7 +25,6 @@ ctys-beamer
    [-H <help-options>]
    [-L <remote-login>]
    [-R <remote-host-list>:=<relay-chain>[,<remote-host-list>]]
-   ]
    [-V]
    [-X]
    [<bypassed-ctys-options>]

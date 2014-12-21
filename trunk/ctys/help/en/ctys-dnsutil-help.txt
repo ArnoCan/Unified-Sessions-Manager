@@ -17,7 +17,6 @@ ctys-dnsutil
    [-H <help-options>]
    [-i]
    [-l <USER>]
-   [-L <remote-user>]
    [-n]
    [--reverse <runtime states> 
          =
@@ -25,7 +24,6 @@ ctys-dnsutil
          PING|SSH
          [,PM|VM]
        ]
-   [-R <remote-host>]
    [-V]
    [-X]
    [<dns-server-list>]

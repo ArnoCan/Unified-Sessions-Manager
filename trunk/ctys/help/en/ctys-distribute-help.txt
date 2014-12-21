@@ -16,7 +16,6 @@ ctys-distribute
    [-h]
    [-H <help-options>]
    [-l <remote login>]
-   [-L <remote-login>]
    [-M <access-mask>]
    [-P (
        UserHomeCopy
@@ -25,7 +24,6 @@ ctys-distribute
       |SharedAnyLinkonly,<subopts>
       |AnyDirectory,<subopts>
       )]
-   [-R <remote-host>]
    [-V]
    [-X]
    <list-of-target-acounts>
