@@ -1,0 +1,109 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+
+
+For installation following steps are required.
+==============================================
+
+  - User specific manual installation:
+
+    1. Unpack archive in temporary directory.
+
+    2. Call "ctys-install" within the bin subdirectory.
+       Call of "ctys-install -h" provides additional information.
+
+    3. Add install directory of symbolic link "ctys" to PATH.
+
+       Default installs to:
+
+         $HOME/lib/ctys.<version>
+           The runtime components.
+
+         $HOME/bin/bootstrap/bootstrap.<version>
+           Bootstrap-preamble for loading and initalizing dynamic
+           loader. Additional script-modules will be chain-loaded
+           initially. The file keeps a version suffix, in order to 
+           be shared with other projects.
+
+         $HOME/bin/ctys
+           Symbolic link to "$HOME/lib/ctys.<version>/bin/ctys".
+
+
+        During install "ctys -v" is called, gwhich gives a load
+        snapshot for version information and operability checks.
+
+        You may try "ctys -v -T all" for loading all available plugins
+        initally, gwhich might fail due to exhausted resources.
+        This could happen particularly for many huge plugins. This is
+        not a general limit, it just limits the amount of sessions
+        types utilized within one call. If this happens, whether
+        initially or later by on-demand-chain-loaded modules, split
+        the used types to multiple calls.
+
+
+
+Basic authentication - Security
+===============================
+
+ctys is founded on SSH/OpenSSH only. The encryption as well as the
+inherent X11-port-forwarding are essential concepts ctys relies on.
+So called "tunnels" are the only supported communications channels for
+DISPLAYFORWARDING and CONNECTIONFORWARDING - try "ctys -H '-L'" for
+additional help.
+
+
+Therefore any remote access, gwhich is basically a "localhost" access
+too, requires authentication by means of OpenSSH. Particulraly for
+CONNECTIONFORWARDING, additional intermediate remote-access is
+required, gwhich - of course - requires SSH authentication. This could
+become cumbersome, when you use multiple targets within one call and
+do your login by node based password-challange. 
+
+So any means of SSH for network authentication should be established.
+I recommend using kerberos in combination with LDAP and automount as
+common SSO for GUESTS and HOSTS, but this is of course somewhat
+advanced. Even though it becomes a real smart solution once
+established.
+
+So at least Kerberos only or the key distribution of SSH should be
+utilized.
+
+ctys is implemented as a set of open scripts with a framework for
+dynamic load of custom plugings just by detection. No security checks
+are implemented. So once a bad-guy gets access to your machine, no
+means will counter him. Whereas the whole inter-node communications is
+encrypted only by SSH, and could be seen as secure for practical
+cases.
+
+So, don't provide access! This is particularly true, when an SSO is
+established, because ctys has a number of inherited means for
+enumeration and access to remote VMs and their configuration data.
+
+This is for what it is designed - smart access for your daily business
+to any of your VM and PM.
+
+
+
+
+
+
+
+
+
+
+    

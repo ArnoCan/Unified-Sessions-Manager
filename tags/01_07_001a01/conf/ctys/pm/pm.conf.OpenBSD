@@ -1,0 +1,51 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
+
+
+#Extend this when required, 
+#e.g. PATH=${PATH}:/usr/sbin
+
+
+CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
+CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
+CTYS_POWEROFF=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT shutdown /sbin`
+CTYS_INIT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT init /sbin`
+
+[ -z "$CTYS_IFCONFIG" ]&&CTYS_IFCONFIG=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT ifconfig /sbin`
+[ -z "$CTYS_ETHTOOL" ]&&CTYS_ETHTOOL=`getPathName   $LINENO $BASH_SOURCE WARNINGEXT ethtool /sbin`
+[ -z "$CTYS_WOL" ]&&CTYS_WOL="${MYCALLPATH}/ctys-wakeup"
+
+
+
+#to be replaced later
+[ -z "$CTYS_WOL_LOCAL" ]&&CTYS_WOL_LOCAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT ether-wake /sbin`
+
+
+
+#Call for Remote-IP-Console.
+CONSOLE_IPC=
+
+#Call for Serial attached console.
+CONSOLE_SERIAL=
+
+
+#delay bevor executing POWEROFF
+PM_POWOFFDELAY=${PM_POWOFFDELAY:-30}
+

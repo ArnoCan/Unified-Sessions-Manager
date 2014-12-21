@@ -1,0 +1,46 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a03
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+#***********************************************************************
+#@#MAGICID-IGNORE
+#***********************************************************************
+
+
+#@#-----------------------------------------------------------
+#@#Created by      = "MANUAL-PATCH"
+#@#VERSION         = "20080427002200"
+#@#DATE            = "20080427002200"
+#@#-----------------------------------------------------------
+
+#@#The next entry is required as literally "#@#MAGICID-<plugin>"
+#@#where <plugin> is the enumerating plugin name.
+#@#MAGICID-XEN
+##@#HOST            = "tst100.soho"
+##@#LABEL           = "tst100"
+##@#ID              = 
+##@#UUID            = "6842caf91e3e43249ed596b8b9f2c5c2"
+##@#MAC             = "00:50:56:13:11:40"
+#@#IP               = "192.168.1.220"
+#@#VNCPORT          = 
+#@#VNCBASE          = 
+#@#VNCDISPLAY       = 
+#@#DIST             = "CentOS"
+#@#DISTREL          = "5"
+#@#OS               = "Linux"
+#@#OSREL            = "2.6.18"
+#@#SERNO            = "20080427002200"
+#@#CATEGORY         = "VM"
+

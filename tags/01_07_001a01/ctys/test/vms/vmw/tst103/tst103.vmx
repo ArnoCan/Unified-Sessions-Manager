@@ -1,0 +1,68 @@
+#!/usr/bin/vmware
+
+#------------------------------------
+#@#MAGICID-IGNORE
+#------------------------------------
+
+config.version = "8"
+virtualHW.version = "6"
+scsi0.present = "TRUE"
+scsi0.virtualDev = "lsilogic"
+memsize = "768"
+MemAllowAutoScaleDown = "FALSE"
+scsi0:0.present = "TRUE"
+scsi0:0.fileName = "tst103.vmdk"
+ide1:0.present = "TRUE"
+ide1:0.autodetect = "TRUE"
+ide1:0.deviceType = "cdrom-raw"
+floppy0.startConnected = "FALSE"
+floppy0.autodetect = "TRUE"
+usb.present = "TRUE"
+ehci.present = "TRUE"
+sound.present = "TRUE"
+sound.fileName = "-1"
+sound.autodetect = "TRUE"
+svga.autodetect = "TRUE"
+pciBridge0.present = "TRUE"
+guestOS = "other26xlinux"
+nvram = "tst103.nvram"
+deploymentPlatform = "windows"
+virtualHW.productCompatibility = "hosted"
+RemoteDisplay.vnc.port = "0"
+tools.upgrade.policy = "useGlobal"
+
+floppy0.fileName = "/dev/fd0"
+extendedConfigFile = "tst103.vmxf"
+
+ide1:0.startConnected = "FALSE"
+uuid.location = "56 4d 32 1c 47 de f9 5c-21 dd ae ed 6c ef b7 7e"
+uuid.bios = "56 4d 70 7f c6 20 25 9c-68 44 c6 bb 56 9d 80 a4"
+scsi0:0.redo = ""
+pciBridge0.pciSlotNumber = "17"
+scsi0.pciSlotNumber = "16"
+sound.pciSlotNumber = "33"
+ehci.pciSlotNumber = "34"
+sound.startConnected = "FALSE"
+
+
+displayName = "tst103"
+
+#Ethernet0.virtualDev = "e1000"
+ethernet0.present = "TRUE"
+ethernet0.wakeOnPcktRcv = "FALSE"
+ethernet0.addressType = "static"
+ethernet0.address = "00:50:56:13:11:43"
+
+#---@#CTYS-IP0=linux001
+#@#IP0="192.168.1.223"
+#@#DIST="Fedora"
+#@#DISTREL="8"
+#@#OS="Linux"
+#@#OSREL="2.6"
+#@#VERSION="01.01.001"
+#@#SERNO="20080415053100"
+#@#CATEGORY="VM"
+#@#VMSTATE="ACTIVE"
+
+ethernet0.pciSlotNumber = "32"
+tools.remindInstall = "TRUE"

@@ -1,0 +1,65 @@
+#!/usr/bin/vmware
+
+#---------------------------------------------
+#@#MAGICID-IGNORE
+#--------------------------------------------
+
+config.version = "8"
+virtualHW.version = "6"
+scsi0.present = "TRUE"
+scsi0.virtualDev = "lsilogic"
+memsize = "256"
+MemAllowAutoScaleDown = "FALSE"
+scsi0:0.present = "TRUE"
+scsi0:0.fileName = "tst002.vmdk"
+ide1:0.present = "TRUE"
+ide1:0.autodetect = "TRUE"
+ide1:0.deviceType = "cdrom-raw"
+floppy0.startConnected = "FALSE"
+floppy0.autodetect = "TRUE"
+usb.present = "TRUE"
+ehci.present = "TRUE"
+sound.present = "TRUE"
+sound.fileName = "-1"
+sound.autodetect = "TRUE"
+svga.autodetect = "TRUE"
+pciBridge0.present = "TRUE"
+guestOS = "other26xlinux"
+nvram = "tst002.nvram"
+deploymentPlatform = "windows"
+virtualHW.productCompatibility = "hosted"
+RemoteDisplay.vnc.port = "0"
+tools.upgrade.policy = "useGlobal"
+
+floppy0.fileName = "/dev/fd0"
+extendedConfigFile = "tst002.vmxf"
+
+
+
+displayName = "tst002"
+ethernet0.present = "TRUE"
+ethernet0.addressType = "static"
+ethernet0.address = "00:50:56:13:11:32"
+
+#---@#CTYS-IP0=linux001
+#@#IP0="192.168.1.132"
+#@#DIST="9.3"
+#@#DISTREL="9.3"
+#@#OS="Linux"
+#@#OSREL="2.6"
+#@#VERSION="01.01.001"
+#@#SERNO="20080417075800"
+#@#CATEGORY="VM"
+
+uuid.location = "56 4d a7 b7 67 37 2d f0-d8 c4 6b ad eb 33 bb bb"
+uuid.bios = "56 4d a7 b7 67 37 2d f0-d8 c4 6b ad eb 33 bb bb"
+scsi0:0.redo = ""
+pciBridge0.pciSlotNumber = "17"
+scsi0.pciSlotNumber = "16"
+ethernet0.pciSlotNumber = "32"
+sound.pciSlotNumber = "33"
+ehci.pciSlotNumber = "34"
+tools.remindInstall = "TRUE"
+
+#@#VMSTATE            = "TEMPLATE"
+#

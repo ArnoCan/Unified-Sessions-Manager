@@ -1,0 +1,67 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a11
+#
+########################################################################
+#
+# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+
+#required by vncserver
+[ -z "$X11XAUTH" ]&&X11AUTH=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xauth /usr/openwin/bin`
+
+[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/openwin/bin`
+[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
+[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm2 /opt/sfw/bin`
+[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce /opt/sfw/bin`
+[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce /opt/sfw/bin`
+
+[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/openwin/bin`
+[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+
+#ffs
+[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
+[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+
+
+if [ -n "$X11EMACXEXE" ];then
+    X11EMACSVERS=`${X11EMACXEXE} -version 2>&1|awk '/GNU Emacs/&&$3~/[0-9.]/{print $3}'`
+fi
+
+
+[ -z "$X11_XTERM_BASH" ]&&X11_XTERM_BASH=`getPathName $LINENO $BASH_SOURCE WARNINGEXT bash /usr/bin`
+
+
+X11_DEFAULT_OPTS="${X11_DEFAULT_OPTS}";
+X11_DEFAULT_OPTS_GTERM="${X11_DEFAULT_OPTS_GTERM}";
+X11_DEFAULT_OPTS_XTERM="${X11_DEFAULT_OPTS_XTERM:- -sb -bg white -fg black}";
+
+if [ -n "`gwhich gnome-terminal 2>/dev/null`" ];then
+    X11_XTERM_DEFAULT="${X11GTERMEXE} ";
+    X11_WM_OPTPRE="--";
+else
+    X11_XTERM_DEFAULT="${X11XTERMEXE} ";
+    X11_WM_OPTPRE="-";
+fi
+X11_XTERM_SHELL_DEFAULT="${X11_XTERM_SHELL_DEFAULT:-$X11_XTERM_BASH -i}";
+X11_XTERM_SHELL_DEFAULT="${X11_XTERM_SHELL_DEFAULT:-$CLI_SHELL_DEFAULT}";
+X11_XTERM_SHELL_DEFAULT="${X11_XTERM_SHELL_DEFAULT:-$CLIEXE}";
+
+

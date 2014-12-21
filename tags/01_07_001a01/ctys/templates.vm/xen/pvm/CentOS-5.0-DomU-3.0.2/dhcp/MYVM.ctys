@@ -1,0 +1,48 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+#***********************************************************************
+#                        Don't forget to activate                      *
+#***********************************************************************
+#@#MAGICID-IGNORE
+#***********************************************************************
+
+
+#@#-----------------------------------------------------------
+#@#Created by      = "%MYGENERATOR%"
+#@#VERSION         = "%MYGENERATORVERSION%"
+#@#DATE            = "%TIMESTAMP%"
+#@#-----------------------------------------------------------
+
+#@#The next entry is required as literally "#@#MAGICID-<plugin>"
+#@#where <plugin> is the enumerating plugin name.
+#@#MAGICID-XEN
+##@#HOST            = "%MYHOST%"
+##@#LABEL           = "%MYVM%"
+##@#ID              = 
+##@#UUID            = "%MYUUID%"
+##@#MAC             = "%MYMAC%"
+#@#IP               = "%MYIP%"
+#@#VNCPORT          = 
+#@#VNCBASE          = 
+#@#VNCDISPLAY       = 
+#@#DIST             = "%MYDIST%"
+#@#DISTREL          = "%MYDISTREL%"
+#@#OS               = "%MYOS%"
+#@#OSREL            = "%MYOSREL%"
+#@#SERNO            = "%SERNO%"
+#@#CATEGORY         = "VM"
+
