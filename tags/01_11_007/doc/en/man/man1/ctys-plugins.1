@@ -1,0 +1,469 @@
+.TH "ctys-plugins" 1 "June, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-plugins - verifiescurrent install status of ctys\fR
+
+.SH SYNTAX
+.P
+\fBctys-plugins\fR 
+
+
+   [-d <common-debug-option>]
+   [-E ]
+   [-h]
+   [-H <help-options>]
+   [-l <remote-user>]
+   [--quick-list]
+   [--quick-tab]
+   [-t <plugin-type>]
+   [-T <plugin-preload-typelist>]
+   [-V]
+   [-X]
+   [-Z <set-sudo-ksu>]
+   <list-of-target-acounts>
+
+
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-plugins\fR is a test\-tool for verification and analysis of the 
+current status of the installation of ctys and present plugins.
+
+.TS
+center, tab(^); l.
+ \fBRefer to PDF/HTML for figure: ctys SW\-Layers and Plugins\fR
+.TE
+
+
+.P
+Due to some restrictions it operates partly on a basic level, involving some specific
+pre\-defined trace levels for output control. 
+The required options are documented in the following sections. 
+Extended trace\-levels neccessarily require some deeper
+familiarity with internal design, which is normally not
+required for top\-level handling.
+
+.P
+The utility could be performed locall or remotel by full support of
+ctys\-addressing but without context options on the command line. If
+for whatever reasons remote context options are reuqired, than could
+be applied to macro definitions only.
+For now the following main tasks are performed by ctys\-plugin:
+
+.RS
+.IP \(bu 3
+Display of operational states and capabilities of plugins
+.IP \(bu 3
+Distinguish the check\-scope of verified features by "\-E" for client\-site call\-RELAY and server\-site final\-EXECUTION
+.IP \(bu 3
+Display of called system tools with the actual resolved path\-prefix
+.IP \(bu 3
+Display of the actual access permissions as configured by one of:
+.nf
+  /etc/sudoers
+  $HOME/.k5users
+  $HOME/.k5login
+.fi
+
+.IP \(bu 3
+display of any level of system initialization traces during call bootstrap, refer to common ctys\-standard "\-d" option
+.RE
+
+.P
+The output is splitted into \fB3 sections\fR:
+
+.RS
+.IP \(bu 3
+The \fBfirst section\fR is the \fBbootstrap of the tool itself\fR, this includes the basic intialization of the framework, where only framework specific options are evaluated. Typical for this is the "\-d" option, which is prefetched by the library itself.
+.RE
+
+.RS
+.IP \(bu 3
+The \fBsecond section\fR contains the trace output during \fBinitialisation of the plugins\fR. The content dependes on the choosen debug level. Error messages are displayed in any case.
+
+.nf
+  Checking PLUGINS-STATEs now...
+  ------------------------------
+  <trace-output>
+  ------------------------------
+  \&...results to:
+.fi
+
+
+.IP \(bu 3
+The \fBthird section\fR contains the \fBprocessed results\fR of the evaluated raw component states. Therefore an basic overview of the hosting system is given, followed by a sum\-up of the variuos sets of plugings related to the different operational states. The final list contains the operational details for each inidividual plugin.
+.RE
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-plugins\fR 
+
+.TP
+\fB\-d  <debug\-options>\fR
+This option is the common analysis and debugging facility of the
+UnifiedSessionsManager. Due to the wide scope it is maybe somewhat
+"like a developer interface".
+
+Anyhow, the \fBmost important application\fR is for installation
+and first time systems configuration by  
+\fBanalysis of the called system utilities\fR. 
+The difficulties with the bunch of utilized systems calls frequently
+leads to some trouble, which becomes immediately obvious, once the
+output of the following call is displayed:  
+
+\fB"ctys\-plugins \-d 64,P \-T all \-E"\fR
+
+This call checks all system calls for the 
+\fBcurrent node as a final execution location\fR. 
+The availability as well as (some) access
+permissions are evaluated. When things don't work, this call is the
+first instance to "ask".
+The "\-d" option activates a bit\-pattern style debug\-level by "P"
+suboption. Than the bit "64" is set, which is the predefined variable
+"D_SYS", tracing the internal call\-wrapper, almost exclusively used
+for system calls. When not appropriate, the workaround is implemented
+in a neatless style.
+The "\-T" option sets simply "all" plugings to be loaded and initialized.
+The "\-E" option executes a final destination call, instead of an
+initial or intermediary RELAY\-call.
+
+The following call performs almost the same, but as 
+\fBthe current node as a client or RELAY\fR.
+
+.nf
+  "ctys-plugins -d 64,P -T all"
+.fi
+
+
+.TP
+\fB\-E\fR
+Check for \fBlocal host as final execution target\fR, this forces full verification.
+If "\-E" is not set, only required functionality for a client role is
+validated, which could be for some packages almost the same and though
+treated as. 
+
+.TP
+
+This is e.g. the case for PM.
+.TP
+
+This is e.g. not the case for XEN, which obviously requires a completly different runtime environment for it's clients than within the server as Dom0/DomU
+.TP
+
+This e.g. could be or not the case for VMW, depends on type of product + version + requested type of client.
+
+.TP
+\fB\-h\fR
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-l <remote\-user>\fR
+The remote user.
+
+.TP
+\fB\-\-quick\-list\fR
+Displays a short list of overall states for selected plugins on each target.
+
+.nf
+  
+  ctys-plugins -E -T all --quick-list localhost
+  
+.fi
+
+
+.nf
+  Hostname    Plugin   Accelerator  Version          MAGIC-ID     State     
+  ------------------------------------------------------------------------------
+  acue@ws2    CLI                   01.06.001a09     CLIBASH      ENABLED   
+  acue@ws2    RDP                   01.11.007alpha   RDPRD        ENABLED   
+  acue@ws2    VNC                   01.10.013        VNCR4        ENABLED   
+  acue@ws2    X11                   01.06.001a09     X11          ENABLED   
+  acue@ws2    QEMU     QEMU         01.10.013        QEMU_091     DISABLED  
+  acue@ws2    VBOX                  01.11.006alpha   NOLOC        DISABLED  
+  acue@ws2    VMW                   01.11.005        VMW_GENERIC  DISABLED  
+  acue@ws2    XEN                   01.10.013        DISABLED     DISABLED  
+  acue@ws2    PM       VMX          01.10.008        PM_Linux     ENABLED   
+.fi
+
+
+.TP
+\fB\-\-quick\-tab\fR
+Displays a short table  of overall states for selected plugins.
+
+The following call contains the 'ctys\-groups' call for stripping off
+context arguments, which in some cases are valid, thus could not
+be dropped in general.
+When this is not done, some might be detected as valid and lead to execution.
+In future releases a new scanner and parser are foreseen to be provided, 
+which will clear this specific.
+
+.nf
+  
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all)
+  
+.fi
+
+
+.P
+For limitation of error messages and some ssh info the error channel should be redirected.
+
+.nf
+  
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all) 2>/dev/null
+  
+.fi
+
+.P
+This results to the following list, where the output order may vary call\-by\-call
+due to parallel execution.
+
+.nf
+  
+  Hostname              | PM     | CLI  X11  VNC  RDP  | KVM    QEMU   VBOX   VMW    XEN 
+  ----------------------+--------+---------------------+---------------------------------
+  root@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
+  root@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
+  root@hydra.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
+  root@olymp.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@app1.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@app2.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@lab04            | VMX    | x    x    x    x    | -      -      -      W7     -   
+  acue@lab04            | VMX    | x    x    x    x    | -      QEMU   -      W7     -   
+  vadmin@delphi.soho    | VMX    | x    x    x    x    | -      -      -      S1     -   
+  acue@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
+  acue@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
+  acue@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
+  root@lab03            | PAE    | x    x    x    x    | -      -      -      -      HVM 
+  root@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      PARA
+  5000@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      -   
+  acue@lab03            | PAE    | x    x    x    x    | -      -      -      -      -   
+  acue@app1.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  acue@app2.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  
+.fi
+
+
+.P
+Where the fields have the semantics as given by following list, the values are forseen to be
+expanded for more details:
+
+.RS
+.IP 1. 3
+PM: Type of CPU support
+.RS
+.IP \(bu 3
+VMX: Intel VT\-X
+.IP \(bu 3
+SVN: AMD SVN
+.IP \(bu 3
+PAE: Extended Mem by PAE
+
+.RE
+.IP 2. 3
+HOSTS: CLI, X11, VNC, RDP
+.RS
+.IP \(bu 3
+x: ENABLED
+.IP \(bu 3
+else: DISABLED
+
+.RE
+.IP 3. 3
+VMs: KVM, QEMU, VBOX, VMW, XEN
+.RS
+.IP \(bu 3
+Common: 
+.RS
+.IP \(bu 3
+V: ENABLED
+.IP \(bu 3
+\-: DISABLED
+.RE
+.IP \(bu 3
+KVM: Fully ENABLED, else check
+.RS
+.IP \(bu 3
+Module
+.IP \(bu 3
+VDE\-Switch
+.RE
+.IP \(bu 3
+QEMU: ENABLED without KVM\-Support, else check
+.RS
+.IP \(bu 3
+Module
+.IP \(bu 3
+VDE\-Switch
+.RE
+.IP \(bu 3
+VMW
+.RS
+.IP \(bu 3
+P[123]: Player
+.IP \(bu 3
+S[12]:  Server
+.IP \(bu 3
+W[67]:  Workstation
+.RE
+.IP \(bu 3
+XEN
+.RS
+.IP \(bu 3
+HVM: Fully ENABLED, else check
+.RS
+.IP \(bu 3
+Kernel
+.IP \(bu 3
+Access: sudo, ksu
+.RE
+.IP \(bu 3
+PARA: ENABLED with para\-virtualisation only, else check
+.RS
+.IP \(bu 3
+Kernel
+.IP \(bu 3
+Access: sudo, ksu
+.RE
+.RE
+.RE
+.RE
+
+.P
+The output displays that e.g. 
+
+.RS
+.IP \(bu 3
+On app1+app2: The user acue has access to KVM and QEMU, but not root.
+This is due to missing VDE\-switch for root, which has to be setup 
+by 'ctys\-setupVDE' 
+.IP \(bu 3
+On lab03: The user acue has no access to XEN, but root has.
+This is due to access permission by sudo for user acue.
+.RE
+
+.TP
+\fB\-t <plugin\-type>\fR
+The type of plugin to be set to BUSY(4), this is any SINGLE plugin as
+applicable by "ctys \-t ..." call.
+
+.TP
+\fB\-T <plugin\-preload\-typelist>\fR
+The prefetch list of plugins to be set to IDLE(2), before performing,
+this is any comma seperated LIST of plugins as  applicable by "ctys \-T ..." call.
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+Terse output format, effects "\-V" when set left\-of.
+
+.TP
+\fB\-Z <set\-sudo\-ksu>\fR
+Sets appropriate \fBaccess permissions by sudoers and/or kerberos/ksu\fR. For
+additonal information refer to Z\-OPTION.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.P
+An optional list of <execution\-target>. When the "\-P" option is
+choosen, the remote files will be updated, when suffitient permissions
+are available, else the output is collected locally. The call is
+simply mapped to a call of the CLI plugin with the option CMD, thus
+works syncronuous and sequential.
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(7)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-genmconf(1)\fR
+
+.TP
+\fBsystem executables\fR
+\fIdmidecode(8)\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.007/doc-tmp/BASE/en/man/man1/ctys-plugins.1
+
