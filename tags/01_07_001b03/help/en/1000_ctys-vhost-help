@@ -1,0 +1,1955 @@
+  
+  
+  
+  
+Name:
+
+  ctys-vhost
+  
+  
+Usage:
+  
+  
+  
+    ctys-vhost [options] <awk-regexpr>[ <awk-regexpr>[ <...>]]
+  
+  
+  
+    ATTENTION: Default behaviour is no output, thus
+  
+    you need to select one, e.g. "-o ...".
+  
+  
+  
+Description:
+  
+  ctys-vhost  is the basic address resolution inter-
+  
+  face for runtime execution of commands based on ctys addressing.
+  
+  
+  
+  The similarity of UNIX "host" function is expanded with several fea-
+  
+  tures, which take into account the roaming of VMs and thus changing
+  
+  their actual execution path within a so called "execution stack" assem-
+  
+  bled by PMs, VMs, and HOSTs.
+  
+  
+  
+  Due to technical reasons the locator functionality required for building
+  
+  complete fully qualioed ctys-addresses of execution stacks, which could
+  
+  be seen as a UNIX "ping" similarity, is included.
+  
+  
+  
+  Particularly a basic load-balancing is included, which is very basic of
+  
+  course, but could be extended easily.  The current version requires at
+  
+  least one of the potential ExecTargets to be active, which could be a
+  
+  PM for execution of a VM to perform a command, or a VM for execu-
+  
+  tion of a command only, no automatic start of deactivated sessions are
+  
+  performed.
+  
+  
+  
+  The main task of this tool is supporting a scripting-IF as a link with an
+  
+  convenient name-binding scheme between a GuestOS and it's contain-
+  
+  ing VM and PM by an open and GuestOS-Native interface. The whole
+  
+  access and security facility of VMs and PMs including HOSTs(e.g.
+  
+  VNC) is handled by encrypted connections only.  It is designed and
+  
+  implemented as a seamless SSH-based authorization and authentica-
+  
+  tion system.  The authors environment utilizes Kerberos, LDAP, and
+  
+  SSH with automount for SSO. The ctys-vhost supports mainly the glue
+  
+  for seamless binding of roaming VMs on a homogeneous UNIX plat-
+  
+  form.
+  
+  
+  
+  Simplicity and common extendibility by widely used bash is another
+  
+  present feature.
+  
+  
+  
+  Due to targeted simplicity and eOEciency the address resolution is based
+  
+  on simple unstructured pattern matching by regular expressions onyl
+  
+  whenever possible(which is almost for each call). Even though the line-
+  
+  record is structured by oelds as given by "-a LIST=MACHINE" and
+  
+  "-a ENUMERATE=MACHINE", the match itself will be performed as
+  
+  a simple regexpr by "awk-match". Whereas the output is performed on
+  
+  the level of oelds. Multiple regexprs are supported and will be iterative
+  
+  applied on the intermediary results.  The reduction of the output as
+  
+  requested by the "-o" option is performed on the onal set of resulting
+  
+  records only.
+  
+  
+  
+  This ots perfectly, as long as the given IDs are kept unique, when am-
+  
+  biguity occurs, the match will be taken as deoned by "-M" option.
+  
+  
+  
+  REMARK:
+  
+       This AEat-and-simple approach works as good or better to say much
+  
+       better than any "Attribute-Value-Assertion" or any other kind of
+  
+       an Object-Tree based access. And the best is, you can implement
+  
+       it within some days, without any framework to be used!!!
+  
+  
+  
+       But yes, some selection scope could be tricky, anyhow, for almost
+  
+       any practical relevant query it works one. As could be seen.
+  
+  
+  
+  Ambiguity occurs frequently when using a VM with NFS(or an other
+  
+  some more secure network ole system) from multiple machines and us-
+  
+  ing the nodes as processing-capacity-only. Accessing the same oles and
+  
+  enumerating them for selection of the appropriate execution machine
+  
+  could be a mandatory requirement for load-distribution policies. In this
+  
+  case a basic COST option "-C" supports the very basic "-M" option
+  
+  for some quite usable load distribution within execution-groups.
+  
+  
+  
+  In most other cases uniqueness should be given, e.g.  the key UUID
+  
+  is deoned to be unique, but could be tampered e.g.  by co-allocated
+  
+  backups. For avoiding of backup-access the "-M orst" option might be
+  
+  helpful.
+  
+  
+  
+  Anyhow, the management of up to some hundred VMs might not be a
+  
+  challange by the current ole-DB and not really performance-optimized
+  
+  toolset. One of the next versions will additionally support LDAP based
+  
+  nameservices,  targeting an enterprise environment with "unlimited"
+  
+  and "volatile" distributed services to be managed.
+  
+  
+  
+  When a MAC-IPAddress-HostName mapping table a.k.a.  "macmap-
+  
+  DB" is present this will be used for open mappings which are not con-
+  
+  ogured within the VM conoguration oles a.k.a. enum-DB. Particularly
+  
+  any IP or PM/Hostname address for given MAC-Address will be re-
+  
+  solved when not present within the enum-DB.
+  
+  
+  
+  The address resolution will be performed by the following steps:
+  
+  
+    1. Check the static list of given ExecGroup for possible candidates.
+  
+  
+    2. List the active sessions on the given ExecGroup.
+  
+  
+    3. Take the appropriate PM/VM by utilising "-C" and/or "-M" op-
+  
+       tion.
+  
+  
+  For additional help refer to online help within "ctys" to the section
+  
+  "NAMESERVICE-BASE".
+  
+  
+  
+  Now some real beneots when using ctys-vhost as interactive tool instead
+  
+  of using id from scripts:
+  
+  
+     o Given partial strings, e.g.  "192.168.1" lists all machines of that
+  
+       subnet.  When the "-M active" option is choosen, all currently
+  
+       active sessions within that subnet are listed.
+  
+  
+     o Any string could be used as partial pattern, e.g.  parts of MAC-
+  
+       Ids of fragments of UUIDs.  The given string will be matched
+  
+       against complete record, mostly an awk-regexpr, thus any part,
+  
+       even spanning multiple FIELDS could be used. But currently not
+  
+       regexpr, just literal characters are supported.
+  
+  
+     o The database founding the mapping information of ctys-vhost
+  
+       could be altered by "-p" option for handling of multiple sets, e.g.
+  
+       for test-purposes.
+  
+  
+     o The databases enum-DB and macmap-DB are populated just with
+  
+       the native information provided by their main sources, dhcpd.conf
+  
+       and the conog-oles of supported VMs.  Therefore not any infor-
+  
+       mation might be present in each of them, e.g. the IP-Address of
+  
+       the GuestOS might be present within the macmap-DB, but not
+  
+       within the VM-conog. The "-S" option allows the combined usage
+  
+       of multiple sources, e.g. by values "all", "macmap", or "enum".
+  
+  
+     o ctys  specioc  conogurations-extensions  as  described  for  the  "-a
+  
+       ENUMERATE" option are fully supported. This includes partic-
+  
+       ularly the storage of GuestOS information within the VM-conog
+  
+       by specioc ctys-Preoxes(#@#) and some helpful keywords.
+  
+  
+  The format of the generated data records is literally the same as the
+  
+  MACHINE output of the ENUMERATE action.
+  
+  
+  
+  Additionally to the AEat-matching by simple regular expressions some
+  
+  additional keywords are deoned. The are [it:vhostAND]AND , [it:vhostOR]OR
+  
+  ,  [it:vhostNOT]NOT ,  [it:vhostE]E: ,and  [it:vhostF]F: , which are de-
+  
+  scribed within the section related to the arguments.
+  
+Options:
+  
+  
+  
+   -c <spent cost on execution environment>
+  
+       Cost as for load distribution when selecting a target.
+  
+       <spent cost on execution environment>=MINCNT_MAXCNT
+  
+  
+         MINCNT     Gives minimum loaded target, number of given types
+  
+                  are simply counted.
+  
+         MAXCNT      Gives maximum loaded target, number of given types
+  
+                  are simply counted.
+  
+            CNT   Lists each target with it's TYPE-COUNT.
+  
+  
+       Companion options apply to resulting set of equal cost.
+  
+  
+   -C <DB sources>
+  
+       Limits the generation of the cache DB to the for mapping-resolution
+  
+       to the listed sources. Default is to use all. Only available databases
+  
+       will be used, missing are silently ignored.
+  
+       Due to some performance issues when repetitively accessing same
+  
+       temporary runtime data, some internal caches are deoned. These
+  
+       can be controlled, and reused or cleared by usage of some of the
+  
+       following keywords.  But additionally some automatic checks ap-
+  
+       ply.
+  
+  
+            For data from static information, which has to be pre-
+  
+            processed a local cache-DB is created.  This cache-DB
+  
+            will be checked for modiocation time of it's sources be-
+  
+            fore each access and updated when outdated.
+  
+  
+  
+            The modiocation time of the cache oles will be checked
+  
+            additionally for their age. When these exceeds the value
+  
+            deoned by CACHECLEARPERIOD, which is by default
+  
+            3600seconds, the caches are forced-cleared and rebuild
+  
+            silently by next call.
+  
+  
+       The following data sources are utilized:
+  
+  
+        ENUM
+  
+            Enumaration results only, as supplied by cached local"enum.fdb".
+  
+        MACMAP
+  
+            DHCP information for MAC resolution, the macmap-DB should
+  
+            be available, but is otherwise simply ignored.
+  
+  
+  
+            This will be utilized in conjunction with an enumeation re-
+  
+            sult, e.g. ENUM.
+  
+        GROUPS
+  
+            Adds caching of GROUPS for all group oles from the current
+  
+            CTYS_GROUPS_PATH variable. Therefore each group ole
+  
+            will be completely expanded by nested evaluation and re-
+  
+            placement of "#include" statements and stored by replacing
+  
+            each resulting entry with it's MACHINE format entry from
+  
+            the staticCacheDB.
+  
+  
+  
+            Each group will be cached within an ole by it's own, thus the
+  
+            access could be performed by just one ole-selection for the
+  
+            complete nested resolution of it's entities.
+  
+  
+  
+       <DB sources>=
+  
+       OFF_
+  
+       CLEARTMP_
+  
+       CLEARALL_
+  
+       GROUPS_
+  
+       KEEPALL_
+  
+       LIST_
+  
+       LISTARGETS_
+  
+       LISTGROUPS_
+  
+       MEMBERSDB_
+  
+       MACMAPONLY_
+  
+       MACMAP_
+  
+       REBUILDCACHE
+  
+  
+  
+       This group of keywords controls the runtime behaviour, which has
+  
+       an impact to the overall performance.
+  
+  
+        OFF
+  
+            Bypasses the usage of caches.
+  
+  
+  
+        MACMAPONLY
+  
+            Uses the macmap.fdb only for mapping, this is just senseful
+  
+            for mappings between DNS, MAC, and TCP. The request
+  
+            will be rejected, when "-o" option contains any other input.
+  
+  
+  
+            For matching entities within MACMAP this might be the
+  
+            fastest approach.  It is the only applicable approach, when
+  
+            the target is not yet populated in standard DB, for example
+  
+            due to pre-initial conditions.
+  
+  
+  
+        MACMAP
+  
+            Activates the raw usage of macmap.fdb for DNS, MAC, and
+  
+            TCP as preferred source of resolution.
+  
+  
+  
+            This has two AEavours, depending from selected output at-
+  
+            tributes:
+  
+             1. Only one of, or all: TCP_MAC_DNS
+  
+                In this case the MACMAP DB will be utilized within
+  
+                the "bigger awk", due complete probable containment of
+  
+                information thus orst a raw access to MACMAP will be
+  
+                tried. When no result was found, the general script with
+  
+                DNS/Bind access will be performed.  In standard man-
+  
+                ner(due to SW architecture, ignoring previous trial).
+  
+  
+  
+             2. Additional output requested:
+  
+                In this case particularly the oeld positions of the result-
+  
+                ing output can not be handled in a smart manner for
+  
+                an independent pre-olter, though the standard execution
+  
+                path is performed.
+  
+  
+  
+            When the macmap.fdb is properly maintained and contains
+  
+            the complete scope of mapping information, this enhances
+  
+            the performance, else it could have an negative impact, even
+  
+            though it will not be dramatic, or for small amounts almost
+  
+            not recognizable.
+  
+  
+  
+            A second aspect to be aware of is, that the two dioeerent
+  
+            databases might diverge. Particularly the order of the stored
+  
+            records could not be relied on to be the same.  When using
+  
+            the option "-M all" the order might not be relevant, but for
+  
+            "-M orst"(default) and for "-M last" the results might fre-
+  
+            quently be dioeerent.
+  
+  
+  
+            The basic dioeerence of the contents is the fact,  that the
+  
+            macmap.fdb (let us say!) contains any networked host, whereas
+  
+            the standard enum.fdb the registered VMs only, so might be
+  
+            a subset of macmap.fdb.
+  
+  
+  
+            The correlation of both will be performed, when a cache is
+  
+            build and addressing references are resolved for faster access.
+  
+  
+  
+        GROUPS
+  
+            Activates the usage of GROUPS and it's related cache data
+  
+            which is due to performance issues deactivated for now by
+  
+            default.
+  
+  
+  
+       The following additional keywords control and support the man-
+  
+       agement of internal caches.
+  
+  
+  
+        LISTCACHE
+  
+            Lists all current caches.
+  
+            This call terminates immediately after performing, so any re-
+  
+            maining options are ignored.
+  
+  
+  
+        LISTTARGETS
+  
+            Lists all current cached targets.
+  
+  
+  
+            This call terminates immediately after performing, so any re-
+  
+            maining options are ignored.
+  
+  
+  
+        LISTGROUPS
+  
+            Lists all current cached groups.
+  
+            This call terminates immediately after performing, so any re-
+  
+            maining options are ignored.
+  
+  
+  
+        MEMBERSDB
+  
+            Displays a list of all current staticCacheDB members in ctys-
+  
+            stacked-address notation.
+  
+  
+  
+        CLEARTMP
+  
+            Clear it's internal temporary caches orst and rebuild on de-
+  
+            mand.
+  
+  
+  
+        CLEARALL
+  
+            Clear all it's internal caches orst and rebuild on demand.
+  
+  
+  
+            This includes a directory-wildcard-clear, which includes prob-
+  
+            ably the caches of other tasks, so use it considerably.
+  
+  
+  
+            This call terminates immediately after performing, so any re-
+  
+            maining options are ignored.
+  
+  
+  
+        REBUILDCACHE
+  
+            The static data to be concatenated from static assembly databases,
+  
+            for now the enum-DB and the macmap-DB is cached within
+  
+            a static database and concatenated with the volatile RT data
+  
+            into the RTCACHE.
+  
+  
+  
+            The requirement of rebuild for the static data is checked by
+  
+            modiocation time of it's components, and when required up-
+  
+            dated silently.
+  
+  
+  
+            When setting this AEag, the data is rebuild in any case.
+  
+  
+       Additional information is available from description of:
+  
+  
+          o NAMESERVICES of "ctys -H"
+  
+          o "ctys -a ENUMERATE...."
+  
+          o "ctys-extractMAClst"
+  
+          o "ctys-vdbgen"
+  
+  
+  
+   [it:optd]-d <debug-level>
+  
+       Same as ctys.
+  
+  
+   [it:opth]-h
+  
+       help
+  
+  
+   -i <input-list>
+  
+       Options controlling input content for specioc cases.
+  
+  
+  
+       <input-list>=[CTYSADDRESS_CTYS]
+  
+  
+        [it:coredatCTYSADDRESS]CTYSADDRESS_CTYS
+  
+            A fully qualioed address is supported for mapping of one of
+  
+            the given output attributes.
+  
+  
+   -I <0-9>
+  
+       Interactive, gives summarised display of progress for main values.
+  
+       The degree of display depends on the choosen level:
+  
+  
+          o 0
+  
+            For completeness only, switches the display OFF, same as
+  
+            omitting the option at all.
+  
+          o 1
+  
+            Activates a moderate level with display of basic benchmark
+  
+            data.
+  
+          o 2
+  
+            Activates a more informative level with intermediate QUERY
+  
+            data reduction pattern. This particularly supports the design
+  
+            of multi-key selection queries for perfomance optimization.
+  
+            ctys-vhost <in-out-options> <arg1> <arg2> <agr3>
+  
+  
+       For the display of the actual contents of a specioc intermediate
+  
+       step in addition to it's draft performance-overview, just drop all
+  
+       following olters/arguments from the call, what will display the
+  
+       requested result as onal.  This result is identical to the covered
+  
+       intermediate result when using it within a chained set of olters.
+  
+  
+   [it:coredatUID]-l <USER>
+  
+       Remote user to be used for SSH-access-checks, when the "-R" op-
+  
+       tion is activated.
+  
+  
+  
+       DEFAULT=CTYS"_NETACCOUNT(DEFAULT->USER)
+  
+  
+   -M <result-set-output-reduction>
+  
+       Restricts a set of multiple results with additional constrains for
+  
+       output:
+  
+  
+  
+       <result-set-output-reduction>=FIRST_LAST_ALL
+  
+  
+          FIRST   First matching entity.
+  
+           LAST   Last matching entity.
+  
+             ALL  All matching entities.
+  
+  
+  
+         COMPLEMENT
+  
+                  All entities NOT matching.
+  
+  
+  
+           SORT   Final result is sorted by "sort".
+  
+         USORT    Final result is sorted by "sort -u".  Only full matches
+  
+                  are reduced.
+  
+  
+  
+         UNIQUE     Final result is sorted by "sort -u" but only displayed
+  
+                  when actually one record only results. When multiple
+  
+                  records are matched, an empty string is returned and
+  
+                  the exit value is set to "1".
+  
+  
+   -o <output-list>
+  
+       Options controlling output content.  Values of all given options
+  
+       are listed as one RECORD per line for each matched entity. The
+  
+       keywords are not case sensitive and could be used as a comma-
+  
+       seperated list.  Shortcuts are applicable mostly as one-character
+  
+       alternatives as listed.
+  
+  
+  
+       The default output when this option is not provided is to dis-
+  
+       play a   pre-conogured table   stored as a
+  
+       MACRO  in the default-macros ole with
+  
+       the name
+  
+  
+            TAB_CTYS_VHOST_DEFAULT
+  
+  
+       This table could be customized as required, but should be han-
+  
+       deled carefully.
+  
+  
+  
+       <output-list>=
+  
+       (
+  
+          (
+  
+            (
+  
+              [ARCH][,]
+  
+              [CATEGORY_CAT][,]
+  
+              [CONTEXTSTRING_CSTRG][,]
+  
+              [CPORT_VNCPORT][,]
+  
+              [CTYSADDRESS_CTYS][,]
+  
+              [CTYSRELEASE][,]
+  
+              [DIST][,]
+  
+              [DISTREL][,]
+  
+              [EXECLOCATION][,]
+  
+              [GATEWAY][,]
+  
+              [HWCAP][,]
+  
+              [HWREQ][,]
+  
+              [HYPERREL_HYREL][,]
+  
+              [IDS_ID][,]
+  
+              [IFNAME][,]
+  
+              [LABEL_L][,]
+  
+              [MAC_M][,]
+  
+              [NETMASK][,]
+  
+              [TYPE_STYPE_ST][,]
+  
+              [OS][,]
+  
+              [OSREL][,]
+  
+              [PLATFORM_PFORM][,]
+  
+              [PM_HOST][,]
+  
+              [PNAME_P][,]
+  
+              [RELAY][,]
+  
+              [RELOCCAP][,]
+  
+              [SERIALNUMBER_SERNO][,]
+  
+              [SERVERACCESS_SPORT_S][,]
+  
+              [SSHPORT][,]
+  
+              [STACKCAP_SCAP][,]
+  
+              [STACKREQ_SREQ][,]
+  
+              [TCP_T][,]
+  
+              [USERSTRING_USTRG][,]
+  
+              [UUID_U][,]
+  
+              [VCPU][,]
+  
+              [VERSION_VERNO_VER][,]
+  
+              [VMSTATE_VSTAT][,]
+  
+              [VNCBASE][,]
+  
+              [VNCDISPLAY_DISP][,]
+  
+              [VRAM][,]
+  
+            )
+  
+            [TITLE_TITLEIDX_TITLEIDXASC][,]
+  
+            [MACHINE_MAXKEY][,]
+  
+          )
+  
+          _ TAB_GEN[:<tab-args>]
+  
+       )
+  
+       [IP_DNS][,]
+  
+       [,SORT[:<sort-args>]]
+  
+  
+  
+       The previous keywords for specioc oelds set the related bit for
+  
+       output.  These will be OR-ed to the resulting output.  Thus the
+  
+       MACHINE keyword includes all oelds, whether individually set
+  
+       or not.
+  
+  
+  
+       The format keys IP and DNS change the representation of the IP
+  
+       oeld.
+  
+  
+  
+        [it:coredatARCH]ARCH
+  
+            The architecture presented by the hypervisor to the GuestOS.
+  
+        [it:coredatCATEGORY]CATEGORY_CAT
+  
+            The category of the plugin, which could be for now one of:
+  
+            HOSTs, PMs VMs.
+  
+        [it:coredatCONTEXTSTRING]CONTEXTSTRING_CSTRG
+  
+            A string stored for the use by responsible the plugin.
+  
+        [it:coredatCTYSADDRESS]CTYSADDRESS_CTYS
+  
+            A fully qualioed address to be used within ctys.  This in-
+  
+            cludes the complete address for the whole execution-stack of
+  
+            the destination instance, beginning with hosting PM.
+  
+  
+  
+            Whereas almost any other output is just a subset of the gen-
+  
+            erated static database, this value is the result of the assembly
+  
+            of multiple items to a complete address for an unambiguous
+  
+            execution path.  The namespace could be the private net-
+  
+            work or even the global network, when globally unique PM
+  
+            addresses as FQDN are used.
+  
+        [it:coredatCTYSRELEASE]CTYSRELEASE
+  
+            The release of ctys used for creation of the VM.
+  
+        [it:coredatDIST]DIST
+  
+            Output of distribution installed within VMs guest.
+  
+        [it:coredatDISTREL]DISTREL
+  
+            Release of distribution.
+  
+        [it:coredatDNS]DNS
+  
+            Output of TCP/IP address (any valid for the VM). This op-
+  
+            tion supports the name representation as reported by DNS,
+  
+            for the numerical representation refer to IP.
+  
+  
+  
+            ATTENTION:       Only the orst match will be listed when mul-
+  
+                tiple addresses are present for the same entity.
+  
+        [it:coredatEXECLOCATION]EXECLOCATION
+  
+            The location of execution for the VM. Either a keyword, or
+  
+            a list of hosts/groups.
+  
+        [it:coredatGATEWAY]GATEWAY
+  
+            The TCP gateway to be used for the current interface, which
+  
+            is for the standard case the one for the whole multihomed
+  
+            node.
+  
+        [it:coredatHWCAP]HWCAP
+  
+            The ooeered hardware capacity by the VM to the GuestOS.
+  
+        [it:coredatHWREQ]HWREQ
+  
+            The required hardware capacity of the VM from the PM,
+  
+            which could be a lower peer VM within a stack.
+  
+        [it:coredatHYPERREL]HYPERREL_HYREL
+  
+            The release of the hypervisor the current VM is created with.
+  
+            E.g. "Xen-3.0-x86_64".
+  
+        [it:coredatID]IDS_ID_I
+  
+            Output of static ID, which is a pathname for VMs, and a run-
+  
+            time ID for HOSTs.  The IDs are (foreseen to be!?)  unique
+  
+            within the namespace of their PM or VM. This should be
+  
+            considered when roaming VMs between PMs.
+  
+  
+  
+            Following current exceptions apply:
+  
+             XEN
+  
+                The value is the conoguration path statically unique on
+  
+                local host, common to IDs of other VMs.
+  
+  
+  
+                The domain-ID is handled - due to hypervisor architec-
+  
+                ture and structural and dynamic means of accessibility -
+  
+                similar to an ordinary "UNIX-pid", but not considered
+  
+                within ctys.
+  
+             HOST
+  
+                For plugins of type HOST, which are more or less sim-
+  
+                ple processes ooeering specioc services, the "UNIX-ID" is
+  
+                utilized.
+  
+  
+  
+                The "UNIX-ID" could consist of several kinds of entries.
+  
+                A common example is VNC, where the entries semantic
+  
+                could be one of:
+  
+                 o  DISPLAY = VNC-port-ooeset
+  
+                 o  DISPLAY = VNC-port
+  
+  
+  
+                 o  Any of above could be context-specioc, and utilized
+  
+                    more or less correlated by any other FBP-aware appli-
+  
+                    cation too.  E.g.  vncviewer for XEN and WMWare-
+  
+                    Workstation 6.
+  
+                In addition, for a plugin a ctys specioc ID might be de-
+  
+                oned, e.g. based on "UNIX-PID".
+  
+  
+  
+                So, ... it is just an abstract ID, no generic overall-algorithm
+  
+                applicable.
+  
+  
+  
+        [it:coredatIP]IP
+  
+            Output of TCP/IP address. This option supports the numer-
+  
+            ical representation, for the DNS name representation refer to
+  
+            DNS.
+  
+        [it:coredatLABEL]LABEL_L
+  
+            Output of LABEL.
+  
+        [it:coredatMAC]MAC_M
+  
+            Output of MAC address.
+  
+  
+  
+            ATTENTION:       Only the orst match will be listed when mul-
+  
+                tiple addresses are present for the same entity.
+  
+  
+  
+        [it:coredatMACHINE]MACHINE
+  
+            Complete records matching the <regexpr-list> in terse for-
+  
+            mat for postprocessing.
+  
+        [it:coredatMAXKEY]MAXKEY
+  
+            The maximum common set of attributes for LIST and ENU-
+  
+            MERATE.
+  
+        [it:coredatNETMASK]NETMASK
+  
+            The TCP netmask of current interface.
+  
+        [it:coredatOS]OS_O
+  
+            Output of OS as conogured.
+  
+        [it:coredatOSREL]OSREL
+  
+            Release of OS.
+  
+        [it:coredatPLATFORM]PLATFORM_PFORM
+  
+            The HW platform provided for the GuestOS.
+  
+        [it:coredatPM]PM_HOST_H
+  
+            Output  of  TCP/IP  address  of  the  PM-Physical  Machine,
+  
+            which is the hosting machine.
+  
+        [it:coredatPNAME]PNAME_P
+  
+            The same as <ID_I>, this is due to the usage of olepath-
+  
+            name of the conoguration as an unique ID at least within the
+  
+            namespace of a sigle hosts olesystem.
+  
+        [it:coredatRELAY]RELAY
+  
+            The relay interface, device, virtual bridge, virtual switch, or
+  
+            virtual hub, the VM is interconnected too witin it's PM/lower-
+  
+            stack-peer.
+  
+        [it:coredatRELOCCAP]RELOCCAP
+  
+            The available capacity for relocation of the VM, either to
+  
+            another compatible virtual PM as a stack-entity, or an actual
+  
+            physical PM. The destination container has to provide the
+  
+            required HWREQ and STACKREQ of the VM, which has
+  
+            to be compatible with the HWCAP and STACKCAP ot the
+  
+            target.
+  
+        [it:coredatSERNO]SERIALNUMBER_SERNO
+  
+            An arbitrary serial number for the VM stored in the conog-
+  
+            uration ole. This number should be unambigiuos.
+  
+        [it:coredatSERVERACCESS]SERVERACCESS_SPORT_S
+  
+            Server access port for execution of a TCP/IP connect. This is
+  
+            the raw port to be used for server specioc admin tools, which
+  
+            is dioeerent from user's client access.  This port is currently
+  
+            rarely supported, namely not utilized due to security reasons,
+  
+            e.g. in case of XEN.
+  
+  
+  
+            The main intention of ctys is to avoid propriatery interfaces
+  
+            as much as possible, and support "bare support tools" only.
+  
+            This interface could only be propriatery.  So being honest,
+  
+            'do not really like that!
+  
+  
+  
+                                     1
+  
+  
+  
+  
+        [it:coredatSSHPORT]SSHPORT
+  
+            A list of provided SSH ports on this interface.  Currently
+  
+            supported for OpenSSH only.
+  
+        [it:coredatSORT]SORT
+  
+            Enables the post-sort olter.
+  
+  
+            <sort-args>=[ALL_EACH][%UNIQUE][%<sort-key>]
+  
+  
+             UNIQUE
+  
+                Activates a pre-onal olter for call of "sort -u".
+  
+             <sort-key>
+  
+                Deones a sort key as "-k" option for "sort -k <sort-key>".
+  
+        [it:coredatSTACKCAP]STACKCAP_SCAP
+  
+            The capacity ooeered by the hypervisor to nested VMs.
+  
+        [it:coredatSTACKREQ]STACKREQ_SREQ
+  
+            The capacity required by the hypervisor as a nested VM itself.
+  
+        [it:coredatTYPE]STYPE_ST
+  
+            Output of the session type, either of category VM, PM, or a
+  
+            HOST by it's plugin name.
+  
+        [it:coredatTABGEN]TAB_GEN:<tab-args>
+  
+            Refer to common format for additional information.
+  
+        [it:coredatTCP]TCP_T
+  
+            The ip address of the VM in stored format.
+  
+  
+  
+            ATTENTION:       In case of multiple interfaces and/or addresses
+  
+                for each address of a so called "multi-homed" machine a
+  
+                sepereate entry is generated, thus it is listed as a seperate
+  
+                host entry.
+  
+        [it:coredatTITLE]TITLE
+  
+            The title for any selected oeld within the output.
+  
+        [it:coredatTITLEIDX]TITLEIDX
+  
+            The title with the related indexes as required and enumerated
+  
+            for input into the generic table.
+  
+        [it:coredatTITLEIDXASC]TITLEIDXASC
+  
+            The title with the related indexes as required and enumer-
+  
+            ated for input into the generic table. In addition the ASC-II
+  
+            values of column indexes for common spreadsheet forms are
+  
+            displayed.
+  
+        [it:coredatUSERSTRING]USERSTRING_USTRG
+  
+            A free editablecustomizable string from the user.
+  
+        [it:coredatUUID]UUID_U
+  
+            Output of UUID.
+  
+        [it:coredatVCPU]VCPU
+  
+            The number of pre-assigned VCPUs.
+  
+        [it:coredatVERSION]VERSION_VERNO_VER
+  
+            Version of conog.
+  
+        [it:coredatVMSTATE]VMSTATE_VSTAT
+  
+            The conogured state of the VM. Current aupported values
+  
+            are: ACTIVE, BACKUP.
+  
+        [it:coredatVNCBASE]VNCBASE
+  
+            Base port for calculations of ports from display and vice
+  
+            versa. The default is 5900.
+  
+        [it:coredatVNCDISPLAY]VNCDISPLAY_DISP
+  
+            DISPLAY to be used by XClients, which in case of VNC is
+  
+            already calculated by usage of context-specioc PortOoeset.
+  
+        [it:coredatVNCPORT]VNCPORT_CPORT
+  
+            Client access port for execution of a TCP/IP connect. This
+  
+            is the raw port to be used for vncviewer or proprietary clients
+  
+            with their own MuxDemux-dispatcher.
+  
+  
+  
+            All conogured VNC access ports for any VM could be listed
+  
+            as:
+  
+            ctys-vhost -o cport,l -M all '59"[0-9"]"[0-9"]'
+  
+            Where a standard baseport of 5900 is assumed.
+  
+        [it:coredatVRAM]VRAM
+  
+            The amount of pre-assigned VRAM.
+  
+  
+   -p <db-directory-path-list>
+  
+       Comma seperated path list to directories containing the name-
+  
+       resolution DBs, same for each <db-directory-path> as for ctys-
+  
+       vdbgen.
+  
+  
+  
+       ctys-vhost could handle multiple mapping-DBs for virtual con-
+  
+       catenation. The advantage of this is the ability of substructuring
+  
+       VMs and PMs into access-groups by ctys-vdbgen and using them
+  
+       in combinations as required during runtime.  This ooeers particu-
+  
+       larly advantages when performing ctys-vhost for loadbalancing by
+  
+       usage of cost-option "-C".
+  
+  
+   -r
+  
+       Activates the common usage of dynamic runtime data.  Without
+  
+       this option only some distinct functions like load-distribution uti-
+  
+       lize selective calls of runtime-data-evaluation for further restrict-
+  
+       ing their intermediate results. This is e.g. obviously the count of
+  
+       actual executed instances on a PM for the case of cost evaluation
+  
+       on a potential distribution target.
+  
+  
+  
+       When runtime data evaluation is activated in general, the "-R"
+  
+       option alplies to any result as a further constraint.
+  
+  
+  
+       The usage of runtime data evaluation cost performance of course.
+  
+       This could become dominant, when huge clusters are evaluated,
+  
+       thus should be considered whether really required, and applied
+  
+       to reasonable sets only.  But anyhow, when some bigger sets are
+  
+       required by deonition, caching of data with dioeerent strategies
+  
+       could be applied.
+  
+  
+  
+   -R <runtime states>
+  
+       Restricts a set of multiple results with additional constrains for
+  
+       output.
+  
+  
+  
+       Only the possible targets which are actually operational are listed.
+  
+       This includes the actual running VM with it's hosting PM, and
+  
+       in addition all other operational machines, where the current VM
+  
+       is available too.  This case is the most common for NFS based
+  
+       exec-pools, where a single VM could be accessed remotely by a
+  
+       number of PMs. This particularly ooeers the advantage of copyless-
+  
+       migration of online and oOine VMs.
+  
+  
+  
+       Very handy, and in companion with others probably one of the
+  
+       most important internal top-level-calls for GuestOS-Command-
+  
+       Execution.
+  
+  
+  
+       <runtime states>=
+  
+       [MARK_(REVERSE_R_-),]PING_SSH[,PM_VM]
+  
+  
+        MARK
+  
+            A match for any of the following keywords is simply made
+  
+            with a preox as running by "R;", instead of just showing the
+  
+            resulting set.
+  
+  
+  
+            The remaining will be formatted with "-;" as preox for align-
+  
+            ment.
+  
+  
+  
+        REVERSE_R_-
+  
+            This reverses the resulting set, thus the "not matching" states
+  
+            only will be shown.
+  
+        PING
+  
+            A RUNNING session is simply "ping-ed".
+  
+  
+  
+            Resulting statement of operational mode may result on ap-
+  
+            plied security policies, but not exclusively on the state of the
+  
+            running OS's IP-stack.
+  
+        SSH
+  
+            A RUNNING session is additionally checked for SSH-connect
+  
+            by a dummy-interconnect.
+  
+  
+  
+            This might be really senseful, once SSO is established.
+  
+  
+  
+            "ssh" is the only and one state, which is a viable conormation
+  
+            for the ability of establishing ctys connections.
+  
+        PM
+  
+            Checks only PM for accesibility,  which is the default be-
+  
+            haviour.
+  
+  
+  
+            PM accessibility is deoned as the accessibility of the running
+  
+            OS on PM.
+  
+        VM
+  
+            Checks VM for accesibility, this is particularly related to the
+  
+            SSH key.
+  
+  
+  
+            VM accessibility is deoned as the accessibility of the running
+  
+            OS on VM.
+  
+  
+  
+   -s
+  
+       Set when ctys-vhost is used as an internal subcall for another
+  
+       master-tool. In this case some automatic triggered tasks such as
+  
+       the time-driven rebuild of caches are suppressed.  Instead a hint
+  
+       for required re-sync is printed as warning.
+  
+       Urgent tasks will be worked out, even if they might take some
+  
+       minutes. This is the case when no cache is present, of the caches
+  
+       dioeer in their age.
+  
+       All tools using this as an internal system call should set this AEag.
+  
+  
+   -S <BasicDataManagementSupport>
+  
+       The "-W" option represents some basic management interfaces for
+  
+       the additional entity class GROUPS and the entity characteristics
+  
+       CONTAINMENT. Where the containment is applied to the whole
+  
+       set of stored entities.
+  
+  
+  
+       These interfaces allow some smart listing and display of current
+  
+       supported data, the handling of data as deletion and creation is
+  
+       handeled by the ctys-vhost command as appropriate.
+  
+  
+  
+       <BasicManagementSupport>=
+  
+       LISTALL_
+  
+       LIST_
+  
+       LISTDB_
+  
+       MEMBERSDB_
+  
+       LISTGROUP_
+  
+       MEMBERSGROUP[23]
+  
+  
+  
+       The following keywords may be applied.
+  
+  
+        LISTALL
+  
+            Displays a list of all current available data sources.
+  
+        LIST
+  
+            Displays a list of all current data sources, the same as
+  
+                LIST = LISTDB + LISTGROUP
+  
+        LISTDB
+  
+            Displays a list of current ole-databases.
+  
+        MEMBERSDB
+  
+            Displays a list of all current staticCacheDB members in ctys-
+  
+            stacked-address notation.
+  
+        LISTGROUP
+  
+            List all current groups from the
+  
+            CTYS_GROUPS_PATH.
+  
+  
+  
+            The output format is as follows:
+  
+                " <size> <#lrec>/<#incs> <#srec> <group>"
+  
+            <size>   Size n kBytes.
+  
+            <#lrecs>     The overall number of target entities without res-
+  
+                olution of nesting, so just the current ole is evaluated.
+  
+            <#incs>     The  overall  number  of  include-statements  con-
+  
+                tained within current ole.
+  
+            <#srecs>     The overall number of target entities with reso-
+  
+                lution of all nested includes.
+  
+            <group>     The name of current group, which is the olename
+  
+                too. When "-X" option is set (LEFT of this option), than
+  
+                the basename is shown only, else the full olepathname.
+  
+        MEMBERSGROUP[:<group-list>]
+  
+            Lists members of scanned groups.  When no <group-list>
+  
+            is provided, the variable CTYS_GROUPS_PATH           is decom-
+  
+            posed and similar to the PATH variable, any resulting direc-
+  
+            tory is scanned for all existing group oles.  The members of
+  
+            found groups are displayed.
+  
+  
+  
+            The nested containment hierarchy by "include" is expanded
+  
+            before output.
+  
+  
+  
+            In case of provided <group-list> the listed groups are dis-
+  
+            played only. The format of <group-list> is:
+  
+  
+  
+            <group-list> =: <group-name>[%<group-list>]
+  
+  
+  
+            Two types of storage are shown:
+  
+              o Raw group oles, which may contain target entities, include-
+  
+                statements and comment lines.
+  
+              o Cache group oles, which contain the whole resolved set of
+  
+                containment tree as AEat target entity recorded from the
+  
+                statCacheDB.
+  
+        (MEMBERSGROUP2_MEMBERSGROUP3)[:<group-list>]
+  
+            Same as MEMBERSGROUP, but with slightly dioeerent out-
+  
+            put format.
+  
+  
+  
+       Additional information is available from description of:
+  
+  
+          o NAMESERVICES of "ctys -H"
+  
+          o "ctys -a ENUMERATE...."
+  
+          o "ctys-extractMAClst"
+  
+          o "ctys-vdbgen"
+  
+  
+   -T <type-list>
+  
+       Types to be recognized when calculating target.  For additional
+  
+       information refer to "-T" option of ctys.
+  
+  
+   [it:optV]-V
+  
+       Shows version.
+  
+  
+   [it:optX]-X
+  
+       See ctys, terse for machine output.
+  
+  
+       REMARK:      Due to order dependency of options evaluation, set
+  
+            this as orst/leftmost option.
+  
+  
+  
+Arguments:
+  
+  It is recommended to try the  [it:vhostOptI]"-I 2"  option for some
+  
+  performance analysis of order dependency for multiple-selection queries.
+  
+  
+   <awk-regexpr>[ <awk-regexpr>[ <...>]]
+  
+       A list of simple awk regular expression, for matching based on $0.
+  
+       This is called here "AEat-matching", though no structural informa-
+  
+       tion like in case of attribute-value assertion, is recognized for the
+  
+       pattern match.
+  
+  
+  
+       The given lists are matched each on the resulting set of complete
+  
+       records from the previous pattern-matching.  The last olter ap-
+  
+       plied will be accompanied by reduction of oelds of onal matching
+  
+       records as selected by "-o" option.
+  
+  
+  
+       The main advantage of this approach is the simplicity of data
+  
+       structures and the utilization of common tools and data struc-
+  
+       tures. Some performance gain is another advantage.
+  
+  
+  
+       The drawback is, that in some cases the regexpr has to be choosen
+  
+       thoroughly.
+  
+  
+  
+       Some Examples:
+  
+  
+        . (a single dot)
+  
+            All items within the database.
+  
+        inst
+  
+            All items which contain any string "inst"
+  
+        '#nst'
+  
+            All items, which start with "inst", where the orst oeld in a
+  
+            record is the hostname.
+  
+        '*inst'
+  
+            All items, which end with "inst".
+  
+        'xen_qemu'
+  
+            All items containing 'xen' or 'qemu'.
+  
+  
+   AND
+  
+  
+  
+       The AND operator is the the same as a simple space-operator("
+  
+       "), which causes the keyword to be applied as selective olter on the
+  
+       previous intermediate result. The result is matched based on the
+  
+       internal MACHINE format, which might lead to dioeerent results
+  
+       than the requested onal output format only.
+  
+  
+   E:<#oeld0>:<#oeld1>
+  
+       Compares two oelds given by their canonical numbers. The most
+  
+       important application might be the quer for a specioc PM record,
+  
+       where the "netname" has to be matched by "PM", which is the
+  
+       "uname -n"  .  Be aware, that only substrings and equal strings
+  
+       match, for local networks using DNS, the "netname" has an addi-
+  
+       tional point "." at the end, thus order of numbers are signiocant
+  
+       for a match.
+  
+  
+  
+       The "$<#oeld0>" is the canonical number as presented by [it:coredatTITLEID*
+   *X]TITLEIDX
+  
+       .
+  
+  
+   F:<#oeld0>:<content-match>
+  
+       Queries for a specioc FIELD with provided number to be com-
+  
+       pared by awk-function "match($<#oeld0>,<content-match>)".
+  
+       Be aware, that only substrings and equal strings match.
+  
+  
+  
+       The "$<#oeld0>" is the canonical number as presented by [it:coredatTITLEID*
+   *X]TITLEIDX
+  
+       .
+  
+  
+   NOT
+  
+       The NOT operator replaces the current composite state for the
+  
+       next argument only, operators are skipped.  It should be recog-
+  
+       nized,  that the NOT operator replaces only the current state,
+  
+       thus no chained evaluation of previous operators is applied. Any-
+  
+       how, dioeerent operators, which are independant, such as NOT
+  
+       and AND, are superposed.
+  
+  
+   OR
+  
+  
+  
+       The OR operator adds to the previous intermediate result a ol-
+  
+       tered subset of the last "AND-result". This sounds maybe a little
+  
+       strange, but simply said, a number of grouped OR operators just
+  
+       imply a parentheses/brace around all OR-ed elements. The over-
+  
+       all operations is simple from-left-to-right.
+  
+  
+  
+       The reason for omitting group-operators is just simplicity of im-
+  
+       plementation and grant of a resonable overall performance. When
+  
+       more operators are required, a full set of syntax might be imple-
+  
+       mented.
+  
+  
+  Exit Values:
+  
+  
+  
+     o 0: OK
+  
+       Result is valid.
+  
+  
+     o 1: NOK:
+  
+       Erroneous parameters.
+  
+  
+     o 2: NOK:
+  
+       Missing an environment element like oles or databases.
+  
+  
+     o 7: NOK:
+  
+       Missing cacheDB directory.
+  
+  
+     o 8: NOK:
+  
+       Missing stat cache.
+  
+  
+     o 9: NOK:
+  
+       Missing groups cache.
+  
+  
+     o 10: NOK:
+  
+       Missing "macmap.fdb"
+  
+  
+     o 11: NOK:
+  
+       Unambiguity was requested by "-M unique", but query result is
+  
+       ambiguous.
+  
+  
+  
+Author:
+  
+  
+  Arno-Can Uestuensoez.
+  
+  
+  
+Reporting Bugs:
+  
+  
+  Report bugs to <acue_sf1@sourceforge.net>
+  
+  
+  
+Copyright:
+  
+  
+  Copyright (C) 2007 Arno-Can Uestuensoez (UnioedSessionsManager.org)
+  
+  
+  
+  This program comes with ABSOLUTELY NO WARRANTY; for de-
+  
+  tails refer to provided documentation. This is free software, and you are
+  
+  welcome to redistribute it under certain conditions. For details refer to
+  
+  "GNU General Public License - version 3" <http://www.gnu.org/licenses/>.
+  
+  
+  
+See also:
+  
+  
+  ctys User-Manual.
+  
+  
+  
+  Generated by "dvi2tty" from the unique LaTex sources.
+  
+  
+  
+                                     2

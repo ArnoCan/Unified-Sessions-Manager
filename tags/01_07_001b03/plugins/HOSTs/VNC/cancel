@@ -1,0 +1,320 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_03_001b01
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_VNC_CANCEL="${BASH_SOURCE}"
+_myPKGVERS_VNC_CANCEL="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VNC_CANCEL $_myPKGVERS_VNC_CANCEL
+_myPKGBASE_VNC_CANCEL="`dirname ${_myPKGNAME_VNC_CANCEL}`"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  cancelVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function cancelVNC () {
+    local _CSB=${1:-BOTH};shift
+    local ACT=${1:-POWEROFF};shift
+    local SLST=${@};
+
+    #anyhow, build client and server caches of form: "<id>:<pid>"
+    #prefix and postfix spaces are REQUIRED for following regexpr!!!
+    local _clientPidCache=" `listMySessions ID,PID,CLIENT,TERSE` "
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "_clientPidCache=<${_clientPidCache}>"
+
+    local _serverPidCache=" `listMySessions ID,PID,SERVER,TERSE` "
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "_serverPidCache=<${_serverPidCache}>"
+
+
+
+    function killRequiredVNC () {
+	printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+	local _CSB=${1:-BOTH};shift
+	local ACT=${1:-POWEROFF};shift
+	local ID=${1#*:};shift
+	ID=${ID// };
+	printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:ID=$ID"
+
+
+        #check it, even though it seems not required,
+        #an error might be difficult to find else.
+	if [ -n "${ID//[0-9]}" ];then
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Invalid ID:<${1}>"
+	    gotoHell ${ABORT}
+	fi
+
+	echo 
+	printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:ID=$ID"
+
+        #first kill clients in any case
+        #multiple clients for a shared server will be handled by default as one logical unit
+ 	local _cx=;
+	local _clientPid=`for _cx in ${_clientPidCache};do echo ${_cx}|sed -n 's/^.* *'$ID';\([0-9]*\) *.*$/\1/gp';done`
+	printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_clientPid=$_clientPid"
+	if [ -n "${_clientPid}" ];then
+	    for _cx in ${_clientPid};do
+		printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CLIENT:kill ${_cx}"
+		echo "kill client:${ID}=>PID=${_cx}"
+
+		case ${ACT} in
+		    POWEROFF)kill -9  ${_cx};;
+		    *)kill ${_cx};;
+		esac
+	    done
+	fi
+
+
+        #now the backends if not CLIENT only.
+	if [ "${_CSB}" != CLIENT ];then
+	    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:SERVER:vncserver -kill :${ID}"
+            case ${ACT} in
+		POWEROFF*)
+		    local _poweroffdelay=${ACT//*:}
+                    local _serverPid=`echo ${_serverPidCache}|sed -n 's/^.* *'$ID';\([0-9]*\) *.*$/\1/p'`
+
+		    ABORT=1
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "POWEROFF could even require a reboot due to open-dengling resources"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "of VNC server, blocking(!!!???...ffs.) any further VNC starts."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "So now trying a graceful \"vncserv -kill\" first with a timeout afterwards."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " "
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "When requiring a list or all to POWEROFF, call each seperately,"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "now they will be processed sequentially."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " "
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "BECAUSE we DO NOT WANT \"sleeping killers\" for a reused PID!!!"
+
+		    echo -n "server:<id:${ID}=>pid:${_serverPid}>:"
+
+ 		    echo "first-call-vncserver-kill=>"
+ 		    vncserver -kill :"${ID}"
+
+                    local _idPid="`fetchID4PID ${_serverPid}`"
+                    if [ -n "${_idPid}" ];then
+			if [ "${_idPid}" == "${ID}" ];then
+			    echo "final-kill-9:"
+			    if [ -z "${_poweroffdelay}" ];then
+  				printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Delayed \"kill -9\" now: DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF} seconds"
+				sleep ${DEFAULT_KILL_DELAY_POWEROFF}
+			    else
+  				printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Delayed \"kill -9\" now: KILL_DELAY_POWEROFF=${_poweroffdelay} seconds"
+				sleep ${_poweroffdelay}
+			    fi
+			    local _idPid="`fetchID4PID ${_serverPid}`"
+			    if [ -n "${_idPid}" ];then
+				if [ "${_idPid}" == "${ID}" ];then
+				    kill -9  ${_serverPid}
+				else
+				    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not apply kill, target changed or disappeared:"
+				    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}   ${_serverPid} != ${ID}"
+				fi
+			    fi
+			else
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not apply kill, target changed or disappeared:"
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}   ${_serverPid} != ${ID}"
+			fi
+		    fi
+		    echo " OK, POWEROFF finished."
+		    ;;
+		*)
+		    echo -n "server:kill-vncserver=>${ID}:"
+		    vncserver -kill :"${ID}"
+		    ;;
+	    esac
+	fi
+    }
+
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "SLST=<${SLST}>"
+    local _il=;
+    for _il in $SLST;do
+        killRequiredVNC ${_CSB:-BOTH} ${ACT:-POWEROFF} ${_il}
+    done
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  cutCancelSessionVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Supports: POWEROFF, CANCEL, CUT, LEAVE
+#
+#  Due to lack of inherent-suspend-awareness of VNC the only applicable
+#  procedure is "kill", just the distinction between CLIENT, and BOTH
+#  is made.
+#
+#  The consequences are completeley within the responsibility of the 
+#  caller.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function cutCancelSessionVNC () {
+  local OPMODE=$1;shift
+  local ACTION=$1;shift
+
+  local A;
+  local KEY;
+  local ARG;
+
+  local _CSB=BOTH;
+  unset _softonly;
+  unset _poweroff;
+
+
+  case ${OPMODE} in
+      CHECKPARAM)
+	  ;;
+
+      ASSEMBLE)
+	  ;;
+
+      EXECUTE)
+          if [ -n "${R_TEXT}" ];then
+	      echo "${R_TEXT}"|sed 's/-T//'
+          fi
+              #Killing server alone is senseless, so client else both is applicable.
+	  local _CSB=BOTH;
+	  local SLST=;
+
+          printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=<${C_MODE_ARGS}>"
+	  A=`cliSplitSubOpts ${C_MODE_ARGS}`;
+          for i in ${A};do
+	      KEY=`cliGetKey ${i}`
+	      ARG=`cliGetArg ${i}`
+	      case $KEY in
+
+                   ##################
+                   # Common methods #  
+                   ##################
+                  REBOOT|RESET|INIT|SUSPEND|PAUSE|S3|S4)
+		      printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "SOFTONLY"
+                      local _softonly=1;
+		      ;;
+
+                  POWEROFF|S5)
+		      printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "POWEROFF"
+                      local _poweroff=1;
+                      local _powoffdelay="${ARG}";
+		      ;;
+
+                   #####################
+                   # <machine-address> #
+                   #####################
+		  BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|PATHNAME|PNAME|P)
+		      ABORT=1
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
+		      gotoHell ${ABORT}
+		      ;;
+
+                  I|ID)
+		      ARGLST=`echo ${ARG}|sed 's/,/ /g' `
+		      printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "ARGLST=${ARGLST}"
+              	      SLST="${SLST} ${ARGLST}";
+		      ;;
+
+		  L|LABEL)
+		      local _lbl=${ARG};
+		      if [ -z "${C_NOEXEC}" ];then
+              		  SLST1="`fetchID4Label ${_lbl}`"
+			  if [ -z "${SLST1}" ];then
+			      ABORT=1
+			      printERR $LINENO $BASH_SOURCE ${ABORT} "ID could not be evaluated for label(${_lbl})"
+			      printERR $LINENO $BASH_SOURCE ${ABORT} "HINT: Not present or you are not the process owner."
+			      gotoHell ${ABORT}
+			  fi
+			  printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "SLST1=${SLST1}"
+              		  SLST="${SLST} ${SLST1}"
+		      fi
+		      ;;
+
+
+                   #####################
+                  ALL)
+		      SLST="`listMySessions ID,BOTH,TERSE|awk '{if(follow)printf(\" i:%s\",$1);else printf(\"i:%s\",$1);follow=1;}'`"
+		      printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "SLST(ALL)=${SLST}"
+		      SLST=`for i in ${SLST};do echo "$i ";done|sort -u`
+		      printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "SLST(CORRELATED)=${SLST}"
+		      ;;
+
+                  CLIENT)
+                      _CSB=CLIENT;
+		      ;;
+
+                  SERVER)
+                      _CSB=SERVER;
+		      ;;
+
+                  BOTH)
+                      _CSB=BOTH;
+		      ;;
+
+		  *)
+		      ABORT=1
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown suboption:<${i}>"
+		      gotoHell ${ABORT}
+		      ;;
+	      esac
+          done
+
+	  printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "SLST=<${SLST}>"
+	  if [ -n "${_softonly}" -a -n "${_poweroff}" ];then
+	      ABORT=1
+	      printERR $LINENO $BASH_SOURCE ${ABORT} "Suboptions CUT|POWEROFF|REBOOT|RESET|SUSPEND has to be used exclusive."
+	      gotoHell ${ABORT}
+	  fi
+	  if [ -n "${_poweroff}" ];then
+	      local X=POWEROFF
+	  else
+	      local X=SOFTONLY
+	  fi
+
+          #currently the only and one for VNC, might be extended.
+          local _il=;
+	  for _il in $SLST;do
+              cancelVNC ${_CSB:-BOTH} ${X:-POWEROFF:$_powoffdelay} ${_il}
+	  done
+          gotoHell 0
+	  ;;
+  esac
+}
