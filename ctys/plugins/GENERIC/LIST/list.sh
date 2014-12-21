@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_GENERIC_LIST="${BASH_SOURCE}"
-_myPKGVERS_GENERIC_LIST="01.10.013"
+_myPKGVERS_GENERIC_LIST="01.11.018"
 hookInfoAdd "$_myPKGNAME_GENERIC_LIST" "$_myPKGVERS_GENERIC_LIST"
 _myPKGBASE_GENERIC_LIST="`dirname ${_myPKGNAME_GENERIC_LIST}`"
 
@@ -259,8 +259,14 @@ function listMySessions () {
 		  fi
 	      fi
 	      _matched=1; 
-	      [ "$_U" == 1 ]&&_Ux=UUID
-	      SESLST="${SESLST} `listMySessions${y} ${_site}`"
+	      [ "$_U" == 1 ]&&_Ux=UUID;
+              local _yx="${y}_STATE";
+              _yx=$(eval echo \${${_yx}})
+	      printINFO 9 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:<$(getCurTime)>:${y}:${_yx}"
+              if [ "${_yx}" == ENABLED ];then
+                    eval handle${y} PROLOGUE LIST
+                    SESLST="${SESLST} `listMySessions${y} ${_site}`"
+              fi
 	  fi
       done
       if((_matched==0));then

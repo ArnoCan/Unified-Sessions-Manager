@@ -210,85 +210,92 @@ Additional options are transparently bypassed to the internal 'ctys' call.
 This is particularly the case for the '\-Y' option activating 
  \fB'ForwardAgent yes'/'\-A'\fR of OpenSSH.
 
-.TP
-\fB\-b <background\-mode\-args>\fR
+.SS -b <background-mode-args>
+.P
 Refer to "ctys" generic options for additional information.
 
-.TP
-\fB\-\-ctys\-predetach\-holdtime=<timeout\-secs>\fR
+.SS --ctys-predetach-holdtime=<timeout-secs>
+.P
 The holdtime before closing local foreground process.
 This applies in case of '\-\-mode=CTYSHOPS' in order to prevent
 the early release of current tunnel for display of remote output.
 The default value is 10seconds, which should suit in almost any case.
 In almost any case about 5seconds should be OK.
 
+.P
 The parameter is not senceful applicable in case of synchrounous operations
 by bypassed '\-b' option of ctys..
 
-.TP
-\fB\-d <debug\-args>\fR
+.SS -d <debug-args>
+.P
 Refer to "ctys" generic options for additional information.
 
-.TP
-\fB\-\-display\-only\fR
+.SS --display-only
+.P
 This deactivates the actual final execution and displays the results only when e.g. '\-d pf'
 is activated.
 The intermediate calls, e.g. for remote evaluation of free ports for an SSH tunnel are
 evaluated.
 
-.TP
-\fB\-\-getfreeport\fR
+.SS --getfreeport
+.P
 This returns the first available free port on the execution site.
 Some configuration parameters like the SEED for handling the random 
 generation within a range are provided.
 
-.TP
-\fB\-h\fR
+.SS -h
+.P
 Print help, refer to "\-H" for additional information.
 
-.TP
-\fB\-H <help\-option>\fR
+.SS -H <help-option>
+.P
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
 This comprises the man pages and installed manuals.
 
+.P
 For additional help refer to the documents or type \fBctys \-H help\fR.
 
-.TP
-\fB\-L <remote login>\fR
+.SS -L <remote login>
+.P
 The remote user for the inherent beamer function to place the execution immediately
 on an arbitrary execution relay.
 The semantics is somewhat different from the ordinary remote operations, which is 
 application specific, whereas this 'beam\-up' is a generic pre\-execution forwarding.
 
-.TP
-\fB\-\-mode=<tunnel\-mode>\fR
+.SS --mode=<tunnel-mode>
+.P
 Sets the mode for the encryption tunnel to be created for remote execution.
 Current version supports only one mode.
 
+.P
 \fBCTYSHOPS|CH|0\fR 
 
+.P
 The encryption is performed in assembled sections, where the intermediate
 peers provide sections of the segment.
 The executable used is \fBctys\fR, thus \fBssh\fR is used as internal call only.
 The security of the intermediate hops has basically still to be assured,
 but the internode communications ist peer\-to\-peer encrypted.
 
+.P
 \fBSSHCHAIN|SC|1\fR 
 
+.P
 The encryption is performed in assembled sections, where the intermediate
 peers provide sections of the segment.
 The security of the intermediate hops has basically still to be assured,
 but the internode communications ist peer\-to\-peer encrypted.
 
-.TP
-\fB\-R <remote\-host\-list>\fR
+.SS -R <remote-host-list>
+.P
 The remote hosts including the relays on the way to be used.
 This enables the call of multiple execution hosts as well as an arbitrary
 chain of relays to be actually passed.
 The main advance of this funtion is to pearce multi\-level firewall solution 
 with chained DMZs, and still provide reliable and secure connections.
 
+.P
 The relay chain could be opened and terminated by the optional
 assignment of access and termination ports, else the first free within the 
 defined range is used.
@@ -297,7 +304,9 @@ for availability, when automatic assigment for intermediate ports is choosen(def
 free ports are assigned as available.
 The port assignment may not be applicable to any mode of interconnection.
 
+.P
 Valid calls are:
+
 .nf
   ctys-beamer -R :3333%hop1%hop2%target ....
   ctys-beamer -R :3333%hop1%hop2:3333%target ....
@@ -305,9 +314,11 @@ Valid calls are:
 .fi
 
 
+.P
 Another closely related advance is to circumvent the routing of TCP/IP by 
 usage of well\-defined hops with stil reliable access by OpenSSH.
 
+.P
 In case of multiple chains these are seperated by a \fB','\fR, which terminates the previous 
 and starts another definition of a chain of hops.
 Each chain starts at the current node and takes the given path of hops.
@@ -319,27 +330,27 @@ E.g. in case of required uniqe identifiers exactly\-cloned parallel execution th
 impractical, whereas a multiple ping measuremen of one target from 100 hosts initiated by
 one single call may fit quite well.
 
-.TP
-\fB\-\-ssh\-hop\-holdtime=<#timeout>\fR
+.SS --ssh-hop-holdtime=<#timeout>
+.P
 In case of CTYS\-modes with applied asynchronous background mode the channel will be
 hold in idle mode at least for the assigned time.
 The value could be a numeric value in seconds, or provided with a valid 'sleep' unit\-postfix.
 
-.TP
-\fB\-\-ssh\-tunnel\-holdtime=<#timeout>\fR
+.SS --ssh-tunnel-holdtime=<#timeout>
+.P
 In case of SSH\-modes this is the timeout value for the final termination point of a one\-shot tunnel.
 The value could be a numeric value in seconds, or provided with a valid 'sleep' unit\-postfix.
 
-.TP
-\fB\-V\fR
+.SS -V
+.P
 Version.
 
-.TP
-\fB\-\-x11\fR
+.SS --x11
+.P
 This parameter activates the X11Forwarding for ssh\-tunnels '\-\-mode=SC'.
 
-.TP
-\fB\-X\fR
+.SS -X
+.P
 Terse output format, effects "\-V" when set left\-of.
 
 .P
@@ -385,7 +396,7 @@ tab(^); ll.
 
 .SH COPYRIGHT
 .P
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno\-Can Uestuensoez
 
 .P
 This is software and documentation from \fBBASE\fR package,
@@ -404,5 +415,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-beamer.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/man/man1/ctys-beamer.1
+.\" cmdline: txt2tags -t man -i ctys-beamer.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/man/man1/ctys-beamer.1
 

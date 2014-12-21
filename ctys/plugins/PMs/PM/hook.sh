@@ -797,17 +797,6 @@ function clientServerSplitSupportedPM () {
 }
 
 
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_PM}/session.sh"
-hookPackage "${_myPKGBASE_PM}/enumerate.sh"
-hookPackage "${_myPKGBASE_PM}/list.sh"
-hookPackage "${_myPKGBASE_PM}/info.sh"
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handlePM
@@ -845,6 +834,52 @@ function handlePM () {
   local ACTION=$1;shift
 
   case ${ACTION} in
+
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_PM}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_PM}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_PM}/session.sh"
+		  hookPackage "${_myPKGBASE_PM}/list.sh"
+		  hookPackage "${_myPKGBASE_PM}/enumerate.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
+
       CREATE) 
 	  case ${OPMODE} in
               PROLOGUE)
@@ -855,7 +890,13 @@ function handlePM () {
 		  hookPackage "${_myPKGBASE_PM}/create.sh"
 		  createConnectPM ${OPMODE} ${ACTION} 
 		  ;;
-	      EXECUTE|ASSEMBLE)
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_PM}/create.sh"
+		  createConnectPM ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_PM}/session.sh"
+		  hookPackage "${_myPKGBASE_PM}/list.sh"
 		  hookPackage "${_myPKGBASE_PM}/create.sh"
 		  createConnectPM ${OPMODE} ${ACTION} 
 		  ;;
@@ -887,7 +928,13 @@ function handlePM () {
 		  hookPackage "${_myPKGBASE_PM}/cancel.sh"
 		  cutCancelSessionPM ${OPMODE} ${ACTION} 
 		  ;;
-	      EXECUTE|ASSEMBLE)
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_PM}/cancel.sh"
+		  cutCancelSessionPM ${OPMODE}  ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_PM}/session.sh"
+		  hookPackage "${_myPKGBASE_PM}/list.sh"
 		  hookPackage "${_myPKGBASE_PM}/cancel.sh"
 		  cutCancelSessionPM ${OPMODE}  ${ACTION} 
 		  ;;

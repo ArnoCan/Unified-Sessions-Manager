@@ -909,7 +909,17 @@ function createConnectQEMU () {
 	    fi
 
 
-
+	    #
+	    #find the correct db entry
+	    #
+ 	    local _targetHost=${R_HOSTS#*@};
+ 	    _targetHost=${_targetHost%%[({\'\"]*};
+	    if [ -z "${_actionuserQEMU}" ];then
+		    _actionuserQEMU="${R_HOSTS%%@*}";
+		    if [ "${R_HOSTS}" == "${_actionuserQEMU}" ];then
+			_actionuserQEMU="${MYUID}";
+		    fi
+	    fi
 
             #
             #0. Try cache - DB-INDEX
@@ -930,7 +940,7 @@ function createConnectQEMU () {
             #
             if [ -z "${_pname// /}" ];then
 		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE"
-		_pname=`cacheGetUniquePname "${_base}" "${MYHOST}" QEMU ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname}`
+		_pname=`cacheGetUniquePname "${_base}" "${_targetHost}" QEMU ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname} ${_actionuserQEMU}`
 		if [ $? -ne 0 ];then
 		    ABORT=1;
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch unique pathname"
@@ -949,6 +959,9 @@ function createConnectQEMU () {
 		    local _stime=`getCurTime`;
 		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_stime):No CACHE hit by \"ctys-vhost.sh\", scanning filesystem now."
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "Update your database with \"ctys-vdbgen.sh\"."
+
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/enumerate.sh"
 
                     #starts in $HOME
                     _base=${_base:-$HOME}
@@ -990,18 +1003,22 @@ function createConnectQEMU () {
 		    fi
 		fi
 		local _etime=`getCurTime`;
-		local _dtime=`getDiffTime $_etime $_stime`;
+		local _dtime=`getDiffTime $_stime $_etime`;
 
                 #should have find one
 		if [ -z "${_pname// /}" ];then
 		    _ret=1;
  		    printERR $LINENO $BASH_SOURCE ${_ret} "($_etime):Cannot evaluate ID/PNAME, input seems to be erroneous  =>${_dtime}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  BASE        = ${_base}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL       = ${_label}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  UUID        = ${_uuid}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MAC         = ${_mac}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  TCP         = ${_tcp}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME    = ${_fname}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  BASE            = ${_base}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL           = ${_label}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  UUID            = ${_uuid}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MAC             = ${_mac}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  TCP             = ${_tcp}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME        = ${_fname}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  R_HOSTS         = ${R_HOSTS}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MYHOST          = ${MYHOST}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  _targetHost     = ${_targetHost}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  _actionuserQEMU = ${_actionuserQEMU}"
 		    gotoHell ${_ret};
 		else
 		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_etime):FILE-MATCH:\"${_pname}\" =>${_dtime}"
@@ -1114,7 +1131,7 @@ function createConnectQEMU () {
 			    local _tcp=`${_VHOST}  R:${DBREC}`
 			else
 			    local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			fi
 			;;
 		    2)#local
@@ -1123,7 +1140,7 @@ function createConnectQEMU () {
 				local _tcp=`${_VHOST}  R:${DBREC}`
 			    else
 				local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1133,7 +1150,7 @@ function createConnectQEMU () {
 				local _tcp=`${_VHOST}  R:${DBREC}`
 			    else
 				local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1293,7 +1310,7 @@ function createConnectQEMU () {
  		    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
 		    if [ -z "${_lport}" ];then	  
  			printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "No tunnel found, create a new one."
-			digLocalPort QEMU "$R_HOSTS" "${_label}" "$_pname">/dev/null
+			digLocalPort QEMU "${_targetHost}" "${_label}" "$_pname" "" "$_actionuserQEMU" >/dev/null
 		    fi
                     #check it once again
  		    local _lport=`digGetLocalPort ${_label} QEMU`
@@ -1301,7 +1318,7 @@ function createConnectQEMU () {
                         #Something went wrong!!!???                                      
 			ABORT=1
 			printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot allocate CONNECTIONFORWARDING"
-			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <QEMU> <$R_HOSTS> <$i>"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <QEMU> <${_targetHost}> <$i> <> <$_actionuserQEMU>"
 			gotoHell ${ABORT}
 		    fi
 

@@ -14,9 +14,42 @@ pre  { background-color:#d6bc8f ;}
 August, 2010
 </FONT></CENTER>
 
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+  <UL>
+  <LI><A HREF="#toc1">NAME</A>
+  <LI><A HREF="#toc2">SYNTAX</A>
+  <LI><A HREF="#toc3">DESCRIPTION</A>
+  <LI><A HREF="#toc4">OPTIONS</A>
+    <UL>
+    <LI><A HREF="#toc5">-d  &lt;debug-options&gt;</A>
+    <LI><A HREF="#toc6">-E</A>
+    <LI><A HREF="#toc7">-h</A>
+    <LI><A HREF="#toc8">-H &lt;help-option&gt;</A>
+    <LI><A HREF="#toc9">-l &lt;remote-user&gt;</A>
+    <LI><A HREF="#toc10">--quick-list</A>
+    <LI><A HREF="#toc11">--quick-tab</A>
+    <LI><A HREF="#toc12">-t &lt;plugin-type&gt;</A>
+    <LI><A HREF="#toc13">-T &lt;plugin-preload-typelist&gt;</A>
+    <LI><A HREF="#toc14">-V</A>
+    <LI><A HREF="#toc15">-X</A>
+    <LI><A HREF="#toc16">-Z &lt;set-sudo-ksu&gt;</A>
+    </UL>
+  <LI><A HREF="#toc17">ARGUMENTS</A>
+  <LI><A HREF="#toc18">EXIT-VALUES</A>
+  <LI><A HREF="#toc19">SEE ALSO</A>
+  <LI><A HREF="#toc20">AUTHOR</A>
+  <LI><A HREF="#toc21">COPYRIGHT</A>
+  </UL>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
 <P>
 .
 </P>
+<A NAME="toc1"></A>
 <H1>NAME</H1>
 <P>
 <B>ctys-plugins - verifies current install status of ctys</B>
@@ -24,6 +57,7 @@ August, 2010
 <br />
 <br />
 </P>
+<A NAME="toc2"></A>
 <H1>SYNTAX</H1>
 <P>
  <br /> 
@@ -51,6 +85,7 @@ August, 2010
 <br />
 <br />
 </P>
+<A NAME="toc3"></A>
 <H1>DESCRIPTION</H1>
 <P>
 <B>ctys-plugins</B> is a test-tool for verification and analysis of the 
@@ -125,25 +160,30 @@ The output is splitted into <B>3 sections</B>:
 <P>
 .
 </P>
+<A NAME="toc4"></A>
 <H1>OPTIONS</H1>
 <P>
 <B>ctys-plugins</B> 
 </P>
-<DL>
-<DT><B>-d  &lt;debug-options&gt;</B></DT><DD>
+<A NAME="toc5"></A>
+<H2>-d  &lt;debug-options&gt;</H2>
+<P>
 This option is the common analysis and debugging facility of the
 UnifiedSessionsManager. Due to the wide scope it is maybe somewhat
 "like a developer interface".
-<P></P>
+</P>
+<P>
 Anyhow, the <B>most important application</B> is for installation
 and first time systems configuration by  
 <B>analysis of the called system utilities</B>. 
 The difficulties with the bunch of utilized systems calls frequently
 leads to some trouble, which becomes immediately obvious, once the
 output of the following call is displayed:  
-<P></P>
+</P>
+<P>
   <B>"ctys-plugins -d 64,P -T all -E"</B>
-<P></P>
+</P>
+<P>
 This call checks all system calls for the 
 <B>current node as a final execution location</B>. 
 The availability as well as (some) access
@@ -157,68 +197,69 @@ in a seamless style.
 The "-T" option sets simply "all" plugings to be loaded and initialized.
 The "-E" option executes a final destination call, instead of an
 initial or intermediary RELAY-call.
-<P></P>
+</P>
+<P>
 The following call performs almost the same, but as 
 <B>the current node as a client or RELAY</B>.
-<P></P>
+</P>
 <PRE>
   "ctys-plugins -d 64,P -T all"
 </PRE>
-</DL>
-
+<P></P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-E</B></DT><DD>
+<A NAME="toc6"></A>
+<H2>-E</H2>
+<P>
 Check for <B>local host as final execution target</B>, this forces full verification.
 If "-E" is not set, only required functionality for a client role is
 validated, which could be for some packages almost the same and though
 treated as. 
-<P></P>
-<DT></DT><DD>
-This is e.g. the case for PM.
-<DT></DT><DD>
-This is e.g. not the case for XEN, which obviously requires a completly different runtime environment for it's clients than within the server as Dom0/DomU
-<DT></DT><DD>
-This e.g. could be or not the case for VMW, depends on type of product + version + requested type of client.
-</DL>
+</P>
+<UL>
+<LI>This is e.g. the case for PM.
+<LI>This is e.g. not the case for XEN, which obviously requires a completly different runtime environment for it's clients than within the server as Dom0/DomU
+<LI>This e.g. could be or not the case for VMW, depends on type of product + version + requested type of client.
+</UL>
 
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-h</B></DT><DD>
+<A NAME="toc7"></A>
+<H2>-h</H2>
+<P>
 Print help, refer to "-H" for additional information.
-</DL>
-
+</P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-H &lt;help-option&gt;</B></DT><DD>
+<A NAME="toc8"></A>
+<H2>-H &lt;help-option&gt;</H2>
+<P>
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
 This comprises the man pages and installed manuals.
-<P></P>
+</P>
+<P>
 For additional help refer to the documents or type <B>ctys -H help</B>.
-</DL>
-
+</P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-l &lt;remote-user&gt;</B></DT><DD>
+<A NAME="toc9"></A>
+<H2>-l &lt;remote-user&gt;</H2>
+<P>
 The remote user.
-</DL>
-
+</P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>--quick-list</B></DT><DD>
+<A NAME="toc10"></A>
+<H2>--quick-list</H2>
+<P>
 Displays a short list of overall states for selected plugins on each target.
-<P></P>
+</P>
 <PRE>
   
   ctys-plugins -E -T all --quick-list localhost
@@ -240,39 +281,42 @@ Displays a short list of overall states for selected plugins on each target.
   acue@ws2 PM     VMX         01.10.008      PM_Linux    ENABLED
   
 </PRE>
-</DL>
-
+<P></P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>--quick-tab</B></DT><DD>
+<A NAME="toc11"></A>
+<H2>--quick-tab</H2>
+<P>
 Displays a short table  of overall states for selected plugins.
-<P></P>
+</P>
+<P>
 The following call contains the 'ctys-groups' call for stripping off
 context arguments, which in some cases are valid, thus could not
 be dropped in general.
 When this is not done, some might be detected as valid and lead to execution.
 In future releases a new scanner and parser are foreseen to be provided, 
 which will clear this specific.
-<P></P>
+</P>
 <PRE>
   
   ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all)
   
 </PRE>
 <P></P>
+<P>
 For limitation of error messages and some ssh info the error channel should be redirected.
-<P></P>
+</P>
 <PRE>
   
   ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all)\
     2&gt;/dev/null
   
 </PRE>
+<P>
 This results to the following list, where the output order may vary call-by-call
 due to parallel execution.
-<P></P>
+</P>
 <PRE>
   
   Hostname          | PM  | CLI X11 VNC RDP | KVM  QEMU  VBOX VMW  XEN
@@ -299,9 +343,10 @@ due to parallel execution.
   
 </PRE>
 <P></P>
+<P>
 Where the fields have the semantics as given by following list, the values are foreseen to be
 expanded for more details:
-<P></P>
+</P>
  <OL>
  <LI>PM: Type of CPU support
   <UL>
@@ -356,6 +401,8 @@ expanded for more details:
    </UL>
   </UL>
  </OL>
+
+<DL>
 <DT>.</DT><DD>
 The output display shows e.g. that:
   <UL>
@@ -370,47 +417,52 @@ The output display shows e.g. that:
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-t &lt;plugin-type&gt;</B></DT><DD>
+<A NAME="toc12"></A>
+<H2>-t &lt;plugin-type&gt;</H2>
+<P>
 The type of plugin to be set to BUSY(4), this is any SINGLE plugin as
 applicable by "ctys -t ..." call.
-</DL>
-
+</P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-T &lt;plugin-preload-typelist&gt;</B></DT><DD>
+<A NAME="toc13"></A>
+<H2>-T &lt;plugin-preload-typelist&gt;</H2>
+<P>
 The prefetch list of plugins to be set to IDLE(2), before performing,
 this is any comma seperated LIST of plugins as  applicable by "ctys -T ..." call.
-</DL>
-
+</P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-V</B></DT><DD>
+<A NAME="toc14"></A>
+<H2>-V</H2>
+<P>
 Version.
-<P></P>
-<br />
-<DT><B>-X</B></DT><DD>
-Terse output format, effects "-V" when set left-of.
-</DL>
-
+</P>
 <P>
 <br />
 </P>
-<DL>
-<DT><B>-Z &lt;set-sudo-ksu&gt;</B></DT><DD>
+<A NAME="toc15"></A>
+<H2>-X</H2>
+<P>
+Terse output format, effects "-V" when set left-of.
+</P>
+<P>
+<br />
+</P>
+<A NAME="toc16"></A>
+<H2>-Z &lt;set-sudo-ksu&gt;</H2>
+<P>
 Sets appropriate <B>access permissions by sudoers and/or kerberos/ksu</B>. For
 additonal information refer to Z-OPTION.
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 .
 </P>
+<A NAME="toc17"></A>
 <H1>ARGUMENTS</H1>
 <P>
 An optional list of &lt;execution-target&gt;. When the "-P" option is
@@ -422,6 +474,7 @@ works syncronuous and sequential.
 <P>
 .
 </P>
+<A NAME="toc18"></A>
 <H1>EXIT-VALUES</H1>
 <DL>
 <DT> 0: OK:</DT><DD>
@@ -437,6 +490,7 @@ Missing an environment element like files or databases.
 <br />
 </DL>
 
+<A NAME="toc19"></A>
 <H1>SEE ALSO</H1>
 <DL>
 <DT><B>ctys plugins</B></DT><DD>
@@ -459,6 +513,7 @@ Missing an environment element like files or databases.
 <br />
 </DL>
 
+<A NAME="toc20"></A>
 <H1>AUTHOR</H1>
 <P>
 Written and maintained by Arno-Can Uestuensoez:
@@ -495,9 +550,10 @@ Written and maintained by Arno-Can Uestuensoez:
 <br />
 <br />
 </P>
+<A NAME="toc21"></A>
 <H1>COPYRIGHT</H1>
 <P>
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
 </P>
 <P>
 This is software and documentation from <B>BASE</B> package,
@@ -518,5 +574,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/html/man1/ctys-plugins.html -->
+<!-- cmdline: txt2tags -t html -\-toc -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/html/man1/ctys-plugins.html -->
 </BODY></HTML>

@@ -44,6 +44,8 @@ export _myLIBBASE_VBOX="`dirname ${_myLIBNAME_VBOX}`"
 #
 #FUNCEND###############################################################
 function fetchState  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
@@ -82,6 +84,8 @@ function fetchState  {
 #
 #FUNCEND###############################################################
 function fetchMAC  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
@@ -116,6 +120,8 @@ function fetchMAC  {
 #
 #FUNCEND###############################################################
 function fetchUUID  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
@@ -154,6 +160,8 @@ function fetchUUID  {
 #
 #FUNCEND###############################################################
 function fetchNAME  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
@@ -192,6 +200,8 @@ function fetchNAME  {
 #
 #FUNCEND###############################################################
 function fetchCFGFile  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
@@ -230,6 +240,8 @@ function fetchCFGFile  {
 #
 #FUNCEND###############################################################
 function fetchCTYSFile  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myNAME=$(fetchNAME $1);
     if [ -z "${myNAME}" ];then
 	return 1
@@ -317,12 +329,14 @@ function fetchCTYSDir  {
 #
 #FUNCEND###############################################################
 function getRDPport  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
 	myID="${myID%.*}";
     fi
-
+                    
     local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/vrdpport=/{gsub(\"\\\"\",\"\",\$2);printf(\"%s\",\$2);}'"
     printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
     if [ -n "$myID" ];then
@@ -356,6 +370,8 @@ function getRDPport  {
 #
 #FUNCEND###############################################################
 function getRDPportlst  {
+    [ -z "${VBOXMGR}" ]&&return 1;
+
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";

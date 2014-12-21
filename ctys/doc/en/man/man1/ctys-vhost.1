@@ -352,35 +352,36 @@ section related to the \fBARGUMENTS\fR.
 \&.
 
 .SH OPTIONS
-.TP
-\fB\-c <spent cost on execution environment>\fR
+.SS -c <spent cost on execution environment>
+.P
 Cost as for load distribution when selecting a target.
 Companion options apply to resulting set of equal cost.
 
+.P
 <spent cost on execution environment>=(MINCNT|MAXCNT|CNT)
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBMINCNT\fR: 
 Gives minimum loaded target, number of given types are simply counted.
 
-.TP
-
+.IP \(bu 3
 \fBMAXCNT\fR: 
 Gives maximum loaded target, number of given types are simply counted.
 
-.TP
-
+.IP \(bu 3
 \fBCNT\fR: 
 Lists each target with it's TYPE\-COUNT.
+.RE
 
-.TP
-\fB\-C <DB sources>\fR
+.SS -C <DB sources>
+.P
 Limits the generation of the cache DB to the for
 mapping\-resolution to the listed sources. Default is to use
 all. Only available databases will be used, missing are
 silently ignored.
 
+.P
 Due to some performance issues when repetitively accessing same
 temporary runtime data, some internal caches are defined. These
 can be controlled, and reused  or cleared by usage of some of
@@ -396,21 +397,28 @@ defined by CACHECLEARPERIOD, which is by default 3600seconds,
 the caches are forced\-cleared and rebuild silently by next
 call.
 
+.P
 The following data sources are utilized:
 
+.P
 \fBENUM\fR 
 
+.P
 Enumaration results only, as supplied by cached local"enum.fdb".
 
+.P
 \fBMACMAP\fR 
 
+.P
 DHCP information for MAC resolution, the macmap\-DB
 should be available, but is otherwise simply ignored.
 This will be utilized in conjunction with an enumeation
 result, e.g. ENUM. 
 
+.P
 \fBGROUPS\fR
 
+.P
 Adds caching of GROUPS for all group files from the
 current CTYS_GROUPS_PATH variable. Therefore each
 group file will be completely expanded by nested
@@ -418,6 +426,7 @@ evaluation and replacement of "#include" statements
 and stored by replacing each resulting entry with it's
 MACHINE format entry from the staticCacheDB.
 
+.P
 Each group is cached within an file by it's own,
 thus the access could be performed by just one
 file\-selection for the complete nested resolution of
@@ -444,23 +453,22 @@ it's entities.
 .fi
 
 
+.P
 This group of keywords controls the runtime behaviour, which
 has an impact to the overall performance.
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBADJUST\fR 
 clears enum.fdb from redundant records of multiple scans.
 This is not neccessarily required because the \fBREBUILDCACHE\fR clears 
 redundant records before importing the current set.
 
-.TP
-
+.IP \(bu 3
 \fBOFF\fR 
 bypasses the usage of caches.
 
-.TP
-
+.IP \(bu 3
 \fBMACMAPONLY\fR 
 uses the macmap.fdb only for mapping, this is just
 senseful for mappings between DNS, MAC, and TCP. The
@@ -472,8 +480,7 @@ fastest approach. It is the only applicable approach,
 when the target is not yet populated in standard DB,
 for example due to pre\-initial conditions.
 
-.TP
-
+.IP \(bu 3
 \fBMACMAP\fR 
 activates the raw usage of macmap.fdb for DNS, MAC,
 and TCP as preferred source of resolution.
@@ -523,8 +530,7 @@ cache is build and addressing references are resolved
 for faster access.
 
 .RE
-.TP
-
+.IP \(bu 3
 \fBGROUPS\fR 
 activates the usage of GROUPS and it's related cache
 data which is due to performance issues deactivated
@@ -533,42 +539,36 @@ for now by default.
 The following additional keywords control and support the
 management of internal caches.
 
-.TP
-
+.IP \(bu 3
 \fBLISTCACHE\fR 
 lists all current caches.
 This call terminates immediately after performing, so
 any remaining options are ignored.
 
-.TP
-
+.IP \(bu 3
 \fBLISTTARGETS\fR 
 lists all current cached targets.
 
 This call terminates immediately after performing, so
 any remaining options are ignored.
 
-.TP
-
+.IP \(bu 3
 \fBLISTGROUPS\fR 
 lists all current cached groups.
 This call terminates immediately after performing, so
 any remaining options are ignored.
 
-.TP
-
+.IP \(bu 3
 \fBMEMBERSDB\fR 
 displays a list of all current staticCacheDB members
 in ctys\-stacked\-address notation.
 
-.TP
-
+.IP \(bu 3
 \fBCLEARTMP\fR 
 clear it's internal temporary caches first and
 rebuild on demand.
 
-.TP
-
+.IP \(bu 3
 \fBCLEARALL\fR 
 clear all it's internal caches first and rebuild on demand.
 This includes a directory\-wildcard\-clear, which
@@ -578,8 +578,7 @@ considerably.
 This call terminates immediately after performing, so
 any remaining options are ignored.
 
-.TP
-
+.IP \(bu 3
 \fBREBUILDCACHE\fR 
 the static data to be concatenated from static
 assembly databases, for now the enum\-DB and the
@@ -605,25 +604,27 @@ NAMESERVICES of "ctys \-H"
 .IP \(bu 3
 "ctys\-vdbgen"
 .RE
+.RE
 
-.TP
-\fB\-d <debug\-level>\fR
+.SS -d <debug-level>
+.P
 Same as ctys.
 
-.TP
-\fB\-h\fR
+.SS -h
+.P
 Print help, refer to '\-H' for additional information.
 
-.TP
-\fB\-H <help\-option>\fR
+.SS -H <help-option>
+.P
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
 This comprises the man pages and installed manuals.
 
+.P
 For additional help refer to the documents or type \fBctys \-H help\fR.
 
-.TP
-\fB\-i <input\-list>\fR
+.SS -i <input-list>
+.P
 Options controlling input content for specific cases.
 
 .nf
@@ -631,27 +632,26 @@ Options controlling input content for specific cases.
 .fi
 
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBCTYSADDRESS|CTYS\fR
 A fully qualified address is supported for mapping of one
 of the given output attributes.
+.RE
 
-.TP
-\fB\-I <0\-9>\fR
+.SS -I <0-9>
+.P
 Interactive, gives summarised display of progress for main values.
 The degree of display depends on the choosen level:
 
-.TP
-
+.RS
+.IP \(bu 3
 0
 For completeness only, switches the display OFF, same as omitting the option at all.
-.TP
-
+.IP \(bu 3
 1
 Activates a moderate level with display of basic benchmark data.
-.TP
-
+.IP \(bu 3
 2
 Activates a more informative level with intermediate QUERY data
 reduction pattern.
@@ -666,16 +666,17 @@ addition to it's draft performance\-overview, just drop all following
 filters/arguments from the call, what will display the requested result as final.
 This result is identical to the covered intermediate result when
 using it within a chained set of filters.
+.RE
 
-.TP
-\fB\-l <login\-name>\fR
-The users, which will be used for hosts without an exlicitly given
-user. The hosts/groups entries provide the common EMail\-Style
-"<user>@<execution\-target>". 
-The default is "$USER", when neither "\-l", nor an explicit user is provided.
+.SS -l <login-name>
+.P
+  The users, which will be used for hosts without an exlicitly given
+  user. The hosts/groups entries provide the common EMail\-Style
+  "<user>@<execution\-target>". 
+  The default is "$USER", when neither "\-l", nor an explicit user is provided.
 
-.TP
-\fB\-L <USER>\fR
+.SS -L <USER>
+.P
 Remote user to be used for SSH\-access\-checks, when the "\-x"
 option is activated.
 
@@ -684,73 +685,72 @@ option is activated.
 .fi
 
 
-.TP
-\fB\-M <record\-filter>\fR
+.SS -M <record-filter>
+.P
 Restricts a set of multiple results with additional 
 constrains for output:
+
 .nf
   <result-set-output-reduction>
      =(FIRST|LAST|ALL|COMPLEMENT|SORT|USORT|UNIQUE)
 .fi
 
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBFIRST\fR
 First matching entity.
 
-.TP
-
+.IP \(bu 3
 \fBLAST\fR
 Last matching entity.
 
-.TP
-
+.IP \(bu 3
 \fBALL\fR
 All matching entities.
 
-.TP
-
+.IP \(bu 3
 \fBCOMPLEMENT\fR
 All entities NOT matching.
 
-.TP
-
+.IP \(bu 3
 \fBSORT\fR
 Final result is sorted by "sort".
 
-.TP
-
+.IP \(bu 3
 \fBUSORT\fR
 Final result is sorted by "sort \-u".
 Only full matches are reduced.
 
-.TP
-
+.IP \(bu 3
 \fBUNIQUE\fR
 Final result is sorted by "sort \-u" but only displayed when actually
 one record only results. 
 When multiple records are matched, an empty string is returned and
 the exit value is set to "1".
+.RE
 
-.TP
-\fB\-o <output\-list>\fR
+.SS -o <output-list>
+.P
 Options controlling output content. Values of all given options are
 listed as one RECORD per line for each matched entity. The keywords
 are not case sensitive and could be used as a comma\-seperated list.
 Shortcuts are applicable mostly as one\-character alternatives as
 listed.
 
+.P
 The default output when this option is not provided is to display a
 pre\-configured table
 stored as a
 MACRO
 in the default\-macros file with the name
+
 .nf
   TAB_CTYS_VHOST_DEFAULT
 .fi
 
 
+.P
 This table could be customized as required, but should be handeled
 carefully.
 
@@ -822,36 +822,34 @@ carefully.
 .fi
 
 
+.P
 The previous keywords for specific fields set the related bit for
 output. 
 These will be OR\-ed to the resulting output.
 Thus the MACHINE keyword includes all fields, whether individually set
 or not.
 
+.P
 The format keys IP and DNS change the representation of the IP field.
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBACCELLERATOR\fR
 The accelerator as configured.
 
-.TP
-
+.IP \(bu 3
 \fBARCH\fR
 The architecture presented by the hypervisor to the GuestOS.
 
-.TP
-
+.IP \(bu 3
 \fBCATEGORY|CAT\fR
 The category of the plugin, which could be for now one of: HOSTs, PMs VMs.
 
-.TP
-
+.IP \(bu 3
 \fBCONTEXTSTRING|CSTRG\fR
 A string stored for the use by responsible the plugin.
 
-.TP
-
+.IP \(bu 3
 \fBCTYSADDRESS|CTYS\fR
 A fully qualified address to be used within ctys. This
 includes the complete address for the whole execution\-stack
@@ -864,23 +862,19 @@ unambiguous execution path. The namespace could be the
 private network or even the global network, when globally
 unique PM addresses as FQDN are used.
 
-.TP
-
+.IP \(bu 3
 \fBCTYSRELEASE\fR
 The release of ctys used for creation of the VM.
 
-.TP
-
+.IP \(bu 3
 \fBDIST\fR
 Output of distribution installed within VMs guest. 
 
-.TP
-
+.IP \(bu 3
 \fBDISTREL\fR
 Release of distribution.
 
-.TP
-
+.IP \(bu 3
 \fBDNS\fR
 Output of TCP/IP address (any valid for the VM). This
 option supports the name representation as reported by DNS,
@@ -891,52 +885,43 @@ Only the first match will be listed when
 multiple addresses are present for the same
 entity.
 
-.TP
-
+.IP \(bu 3
 \fBEXECLOCATION\fR
 The location of execution for the VM.
 Either a keyword, or a list of hosts/groups.
 
-.TP
-
+.IP \(bu 3
 \fBEXEPATH\fR
 The location of executable for starting the VM.
 
-.TP
-
+.IP \(bu 3
 \fBGATEWAY\fR
 The TCP gateway to be used for the current interface, which is
 for the standard case the one for the whole multihomed node.
 
-.TP
-
+.IP \(bu 3
 \fBGROUPID\fR
 The group id of user that created this entry.
 
-.TP
-
+.IP \(bu 3
 \fBHWCAP\fR
 The offered hardware capacity by the VM to the GuestOS.
 
-.TP
-
+.IP \(bu 3
 \fBHWREQ\fR
 The required hardware capacity of the VM from the PM, which could be
 a lower peer VM within a stack.
 
-.TP
-
+.IP \(bu 3
 \fBHYPERREL\fR
 The release of the hypervisor the current VM is created with.
 E.g. "Xen\-3.0\-x86_64".
 
-.TP
-
+.IP \(bu 3
 \fBHYPERRELRUN\fR
 The release of the present hypervisor when this record was created.
 
-.TP
-
+.IP \(bu 3
 \fBIDS|ID|I\fR
 Output of static ID, which is a pathname for VMs, and a
 runtime ID for HOSTs. The IDs are (foreseen to be!?) unique
@@ -980,6 +965,7 @@ defined, e.g. based on "UNIX\-PID".
 
 So, ... it is just an abstract ID, no generic
 overall\-algorithm applicable.
+.RE
 .RE
 .RE
 
@@ -1225,12 +1211,13 @@ Generates output format in XML format for ease of postprocessing.
 Refer to common format of generic tables for additional information.
 .RE
 
-.TP
-\fB\-p <db\-directory\-path\-list>\fR
+.SS -p <db-directory-path-list>
+.P
 Comma seperated path list to directories containing the
 name\-resolution DBs, same for each <db\-directory\-path> as for
 ctys\-vdbgen. 
 
+.P
 ctys\-vhost could handle multiple mapping\-DBs for virtual
 concatenation. The advantage of this is the ability of
 substructuring VMs and PMs into access\-groups by ctys\-vdbgen 
@@ -1238,13 +1225,13 @@ and using them in combinations as required during runtime. This
 offers particularly advantages when performing ctys\-vhost for
 loadbalancing by usage of cost\-option "\-C".      
 
-.TP
-\fB\-R <remote\-hosts>\fR
+.SS -R <remote-hosts>
+.P
 List of remote hosts for execution.
 Either a list of valid hostnames, ipaddresses, or EMail\-Format hostnames.
 
-.TP
-\fB\-r\fR
+.SS -r
+.P
 Activates the common usage of dynamic runtime data. Without this
 option only some distinct functions like load\-distribution
 utilize selective calls of runtime\-data\-evaluation for further
@@ -1252,9 +1239,11 @@ restricting their intermediate results. This is e.g. obviously
 the count of actual executed instances on a PM for the case of
 cost evaluation on a potential distribution target.
 
+.P
 When runtime data evaluation is activated in general, the "\-R"
 option alplies to any result as a further constraint.
 
+.P
 The usage of runtime data evaluation cost performance of
 course. This could become dominant, when huge clusters are
 evaluated, thus should be considered whether really required,
@@ -1262,26 +1251,28 @@ and applied to reasonable sets only. But anyhow, when some
 bigger sets are required by definition, caching of data with
 different strategies could be applied.
 
-.TP
-\fB\-s\fR
+.SS -s
+.P
 Set when ctys\-vhost is used as an internal subcall for another
 master\-tool. In this case some automatic triggered tasks such as
 the time\-driven rebuild of caches are suppressed. Instead a hint
 for required re\-sync is printed as warning.
 
+.P
 Urgent tasks will be worked out, even if they might take some
 minutes. This is the case when no cache is present, of the
 caches differ in their age.
 All tools using this as an internal system call should set this
 flag.
 
-.TP
-\fB\-S <BasicDataManagement>\fR
+.SS -S <BasicDataManagement>
+.P
 The "\-W" option represents some basic management interfaces for
 the additional entity class GROUPS and the entity
 characteristics CONTAINMENT. Where the containment is applied to
 the whole set of stored entities.
 
+.P
 These interfaces allow some smart listing and display of current
 supported data, the handling of data as deletion and creation is
 handeled by the ctys\-vhost command as appropriate.
@@ -1303,15 +1294,15 @@ handeled by the ctys\-vhost command as appropriate.
 .fi
 
 
+.P
 The following keywords may be applied.
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBLISTALL\fR
 Displays a list of all current available data sources.
 
-.TP
-
+.IP \(bu 3
 \fBLIST\fR
 Displays a list of all current data sources, the same as
 
@@ -1320,20 +1311,17 @@ Displays a list of all current data sources, the same as
 .fi
 
 
-.TP
-
+.IP \(bu 3
 \fBLISTDB\fR
 Displays a list of current file\-databases.
 
-.TP
-
+.IP \(bu 3
 \fBMEMBERSDB\fR
 Displays a list of all current staticCacheDB members
 in ctys\-stacked\-address notation.
 
-.TP
-
-\fBLISTGROUP[:<group\\-list>]\fR
+.IP \(bu 3
+\fBLISTGROUP[:<group\-list>]\fR
 List all current groups from the 
 CTYS_GROUPS_PATH.
 The output format is as follows:
@@ -1369,6 +1357,7 @@ The name of current group, which is the
 filename too. When "\-X" option is set
 (LEFT of this option), than the basename
 is shown only, else the full filepathname.
+.RE
 .RE
 
 .RS
@@ -1441,20 +1430,21 @@ Unique list of MEMBERSGROUP8.
 .RE
 .RE
 
-.TP
-\fB\-T <type\-list>\fR
+.SS -T <type-list>
+.P
 Types to be recognized when calculating target.
 For additional information refer to "\-T" option of ctys.
 
-.TP
-\fB\-V\fR
+.SS -V
+.P
 Shows version.
 
-.TP
-\fB\-x <runtime states>\fR
+.SS -x <runtime states>
+.P
 Restricts a set of multiple results with additional 
 constrains for output.
 
+.P
 Only the possible targets which are actually operational are
 listed. This includes the actual running VM with it's hosting
 PM, and in addition all other operational machines, where the
@@ -1463,16 +1453,18 @@ NFS based exec\-pools, where a single VM could be accessed
 remotely by a number of PMs. This particularly offers the
 advantage of copyless\-migration of online and offline VMs.
 
+.P
 Very handy, and in companion with others probably one 
 of the most important internal top\-level\-calls for 
 GuestOS\-Command\-Execution.
+
 .nf
   <runtime states>
     =[MARK|(REVERSE|R|-),]PING|SSH[,PM|VM]
 .fi
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBMARK\fR
 A match for any of the following keywords is simply
 made with a prefix as running by "R;", instead of
@@ -1481,14 +1473,12 @@ just showing the resulting set.
 The remaining are formatted with the prefix "\-;" 
 for alignment.
 
-.TP
-
-\fBREVERSE|R|\\-\fR
+.IP \(bu 3
+\fBREVERSE|R|\-\fR
 This reverses the resulting set, thus the "not
 matching" states only will be shown.
 
-.TP
-
+.IP \(bu 3
 \fBPING\fR
 A RUNNING session is simply "ping\-ed".
 
@@ -1496,8 +1486,7 @@ Resulting statement of operational mode may result on
 applied security policies, but not exclusively on the 
 state of the running OS's IP\-stack.
 
-.TP
-
+.IP \(bu 3
 \fBSSH\fR
 A RUNNING session is additionally checked for 
 SSH\-connect by a dummy\-interconnect.
@@ -1507,26 +1496,26 @@ This might be really senseful, once SSO is established.
 confirmation for the ability of establishing ctys 
 connections.
 
-.TP
-
+.IP \(bu 3
 \fBPM\fR
 Checks only PM for accesibility, which is the
 default behaviour.
 PM accessibility is defined as the accessibility of
 the running OS on PM.
 
-.TP
-
+.IP \(bu 3
 \fBVM\fR
 Checks VM for accesibility, this is
 particularly related to the SSH key.
 VM accessibility is defined as the accessibility of
 the running OS on VM.
+.RE
 
-.TP
-\fB\-X\fR
+.SS -X
+.P
 See ctys, terse for machine output.
 
+.P
 \fBREMARK\fR: 
 Due to order dependency of options evaluation, set this
 as first/leftmost option.
@@ -2030,7 +2019,7 @@ tab(^); ll.
 
 .SH COPYRIGHT
 .P
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno\-Can Uestuensoez
 
 .P
 This is software and documentation from \fBBASE\fR package,
@@ -2049,5 +2038,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-vhost.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/man/man1/ctys-vhost.1
+.\" cmdline: txt2tags -t man -i ctys-vhost.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/man/man1/ctys-vhost.1
 

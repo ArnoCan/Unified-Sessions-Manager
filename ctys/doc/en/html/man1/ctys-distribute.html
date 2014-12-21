@@ -14,9 +14,40 @@ pre  { background-color:#d6bc8f ;}
 November, 2010
 </FONT></CENTER>
 
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+  <UL>
+  <LI><A HREF="#toc1">NAME</A>
+  <LI><A HREF="#toc2">SYNTAX</A>
+  <LI><A HREF="#toc3">DESCRIPTION</A>
+  <LI><A HREF="#toc4">OPTIONS</A>
+    <UL>
+    <LI><A HREF="#toc5">-d &lt;debug-args&gt;</A>
+    <LI><A HREF="#toc6">-F (1|2|3|force|forceclean|forceall)</A>
+    <LI><A HREF="#toc7">-h</A>
+    <LI><A HREF="#toc8">-H &lt;help-option&gt;</A>
+    <LI><A HREF="#toc9">-l &lt;remote login&gt;</A>
+    <LI><A HREF="#toc10">-M &lt;access-mask&gt;</A>
+    <LI><A HREF="#toc11">--menu-create=(PRIVATE|SHARED)</A>
+    <LI><A HREF="#toc12">-P &lt;pkg-type&gt;</A>
+    <LI><A HREF="#toc13">-V</A>
+    <LI><A HREF="#toc14">-X</A>
+    </UL>
+  <LI><A HREF="#toc15">ARGUMENTS</A>
+  <LI><A HREF="#toc16">EXIT-VALUES</A>
+  <LI><A HREF="#toc17">SEE ALSO</A>
+  <LI><A HREF="#toc18">AUTHOR</A>
+  <LI><A HREF="#toc19">COPYRIGHT</A>
+  </UL>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
 <P>
 .
 </P>
+<A NAME="toc1"></A>
 <H1>NAME</H1>
 <P>
 <B>ctys-distribute - local and remote installation, bulk-distribution</B>
@@ -24,6 +55,7 @@ November, 2010
 <br />
 <br />
 </P>
+<A NAME="toc2"></A>
 <H1>SYNTAX</H1>
 <P>
 <br />
@@ -55,6 +87,7 @@ November, 2010
 <br />
 <br />
 </P>
+<A NAME="toc3"></A>
 <H1>DESCRIPTION</H1>
 <P>
 <B>ctys-distribute</B> is the main interface for local and  remote installation.
@@ -230,65 +263,70 @@ call path has to be provided explicitly:
 <P>
 .
 </P>
+<A NAME="toc4"></A>
 <H1>OPTIONS</H1>
 <P>
 <B>ctys-distribute</B> 
 </P>
-<DL>
-<DT><B>-d &lt;debug-args&gt;</B></DT><DD>
+<A NAME="toc5"></A>
+<H2>-d &lt;debug-args&gt;</H2>
+<P>
 Refer to "ctys" generic options for additional information.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-F (1|2|3|force|forceclean|forceall)</B></DT><DD>
+</P>
+<A NAME="toc6"></A>
+<H2>-F (1|2|3|force|forceclean|forceall)</H2>
+<P>
 Bypassed to ctys-install1.sh
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-h</B></DT><DD>
+</P>
+<A NAME="toc7"></A>
+<H2>-h</H2>
+<P>
 Print help, refer to "-H" for additional information.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-H &lt;help-option&gt;</B></DT><DD>
+</P>
+<A NAME="toc8"></A>
+<H2>-H &lt;help-option&gt;</H2>
+<P>
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
 This comprises the man pages and installed manuals.
-<P></P>
+</P>
+<P>
 For additional help refer to the documents or type <B>ctys -H help</B>.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-l &lt;remote login&gt;</B></DT><DD>
+</P>
+<A NAME="toc9"></A>
+<H2>-l &lt;remote login&gt;</H2>
+<P>
 The remote USER to be used as a EMail style prefix for all given
 remote hostnames within the &lt;list-of-target-acounts&gt;.
 This option is supported with hostname-only targets, it
 cannot be intermixed with EMail style &lt;USER&gt;@&lt;HOST&gt; targets.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-M &lt;access-mask&gt;</B></DT><DD>
+</P>
+<A NAME="toc10"></A>
+<H2>-M &lt;access-mask&gt;</H2>
+<P>
 Access mask for post-chmod, where the value is literally passed to:
-<P></P>
+</P>
+<P>
  "chmod -R &lt;access-mask&gt; &lt;base-lib-dir&gt;"
-<P></P>
+</P>
+<P>
 The user-local file access permissions remain unmodified.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>--menu-create=(PRIVATE|SHARED)</B></DT><DD>
+</P>
+<A NAME="toc11"></A>
+<H2>--menu-create=(PRIVATE|SHARED)</H2>
+<P>
 Creates menu entries during installation by call of <B>ctys-xdg</B>.
 The creation of SHARED manus requires root permissions.
 The <B>--force</B> option is not provided, thus the entries could be installed
@@ -296,19 +334,21 @@ on supported and verified desktops only.
 For the remaining the tool <B>ctys-xdg</B> has to be called manually.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-P &lt;pkg-type&gt;</B></DT><DD>
+</P>
+<A NAME="toc12"></A>
+<H2>-P &lt;pkg-type&gt;</H2>
+<P>
 This option supports the selection of prepared installation packages,
 which are automated by preconfigured parameters or to be finished by
 interactive dialogue from the command line interface.
-<P></P>
+</P>
+<P>
 The packages are prepared during build operations within the local
 "packages" directory for the current version.
-<P></P>
+</P>
+<P>
 For system directory appropriate access permissions are required.
-<P></P>
+</P>
  <UL>
  <LI><B>(UserHomeCopy|UHC)</B>:
  <P></P>
@@ -355,25 +395,25 @@ Directory for installation of non-user specific files.
 <br />
   </UL>
  </UL>
-</DL>
 
-<DL>
-<DT><B>-V</B></DT><DD>
+<A NAME="toc13"></A>
+<H2>-V</H2>
+<P>
 Version.
 <br />
 <br />
-</DL>
-
-<DL>
-<DT><B>-X</B></DT><DD>
+</P>
+<A NAME="toc14"></A>
+<H2>-X</H2>
+<P>
 Terse output format, effects "-V" when set left-of.
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 .
 </P>
+<A NAME="toc15"></A>
 <H1>ARGUMENTS</H1>
 <DL>
 <DT><B>&lt;list-of-target-acounts&gt;</B></DT><DD>
@@ -393,6 +433,7 @@ user from the "-l" option is prepended.
 <P>
 .
 </P>
+<A NAME="toc16"></A>
 <H1>EXIT-VALUES</H1>
 <DL>
 <DT> 0: OK:</DT><DD>
@@ -408,6 +449,7 @@ Missing an environment element like files or databases.
 <br />
 </DL>
 
+<A NAME="toc17"></A>
 <H1>SEE ALSO</H1>
 <DL>
 <DT><B>ctys use-cases</B></DT><DD>
@@ -433,6 +475,7 @@ ffs.
 <br />
 </DL>
 
+<A NAME="toc18"></A>
 <H1>AUTHOR</H1>
 <P>
 Written and maintained by Arno-Can Uestuensoez:
@@ -469,9 +512,10 @@ Written and maintained by Arno-Can Uestuensoez:
 <br />
 <br />
 </P>
+<A NAME="toc19"></A>
 <H1>COPYRIGHT</H1>
 <P>
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
 </P>
 <P>
 This is software and documentation from <B>BASE</B> package,
@@ -492,5 +536,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/html/man1/ctys-distribute.html -->
+<!-- cmdline: txt2tags -t html -\-toc -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/html/man1/ctys-distribute.html -->
 </BODY></HTML>

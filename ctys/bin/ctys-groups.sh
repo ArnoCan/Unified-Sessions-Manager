@@ -9,11 +9,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-#     Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -60,7 +60,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_007
+VERSION=01_11_018
 #DESCRIPTION:
 #  See manual.
 #
@@ -372,6 +372,7 @@ _ARGSCALL=$*;
 TREELEVEL=;
 _RUSER0=;
 _RHOSTS0=;
+GEO=;
 
 argLst=;
 while [ -n "$1" ];do
@@ -445,6 +446,12 @@ while [ -n "$1" ];do
 	    ;;
 
 	'-d')shift;;
+
+	'-g')
+            shift;GEO=$1;
+            GEO=$(getGeometry  -g  ${GEO});
+            GEO="--geometry=${GEO}";
+            ;;
 
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
 	'-h'|'--help'|'-help')_showToolHelp=1;;
@@ -635,6 +642,6 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_GROUPSEDIT ${_editX//%/ }&sleep 1
+    $CTYS_GROUPSEDIT ${GEO} ${_editX//%/ }&sleep 1
     exit $?
 fi

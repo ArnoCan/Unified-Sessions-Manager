@@ -20,6 +20,8 @@
        | funcList=<any-function>][@<module-name>[@...]][,<any-function>...]
        | funcListMod=<any-function>][@<module-name>[@...]][,<any-function>...]
        | funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | _ONLINEHELP_
+       | _HELP_
      )
 
 
@@ -52,21 +54,21 @@ In all other cases the call '<any\-other\-ctys> \-H' searches for 'man' output b
 .P
 The following suboptions and parameters could be applied:
 
-.TP
-\fB\-H path\fR
+.SS -H path
+.P
 Displays current document and man path.
 
-.TP
-\fB\-H list\fR
+.SS -H list
+.P
 Lists available online documents and manpages.
 
-.TP
-\fB\-H listall\fR
+.SS -H listall
+.P
 Lists available online documents and manpages including the documents
 available by MANPATH.
 
-.TP
-\fB\-H (man|html|pdf)[=([1\-9]|[<help\-on\-item\-list>])\fR
+.SS -H (man|html|pdf)[=([1-9]|[<help-on-item-list>])
+.P
 Displays the requested information with one of the formats
 \fBman\fR, \fBpdf\fR, or \fBhtml\fR.
 The following viewers are preconfigured as shell variables within the 
@@ -79,26 +81,28 @@ configuration files and can be adapted as required:
 .fi
 
 
+.P
 Default is \fBmanpage\fR for the current process with \fBman 1 ...\fR.
 Additional constraints could be applied such as another man\-section
 or a filename, which could be either literally matching or
 a string to be expanded.
 In case of expansion the first match is taken.
 
-.TP
-\fB\-H funcList[=[<any\-function>][@<module\-name>[@...]]]\fR
+.SS -H funcList[=[<any-function>][@<module-name>[@...]]]
+.P
 List of function names, sorted by function names. In
 addition the file names and line numbers are displayed too.
 
-.TP
-\fB\-H funcListMod[=[<any\-function>][@<module\-name>[@...]]]\fR
+.SS -H funcListMod[=[<any-function>][@<module-name>[@...]]]
+.P
 List of function names, sorted by file names. In addition
 the file names and line numbers are displayed too.
 
-.TP
-\fB\-H funcHead[=[<any\-function>][@<module\-name>[@...]]]\fR
+.SS -H funcHead[=[<any-function>][@<module-name>[@...]]]
+.P
 Displays the contents of function headers, sorted by file names.
 The following constraints could be applied:
+
 .RS
 .IP \(bu 3
 <any\-function>:
@@ -109,104 +113,77 @@ If given <module\-name>, than the functions contained
 within this module only are displayed.
 .RE
 
+.SS -H (_ONLINEHELP_|_HELP_)
+.P
+Displays the predefined online help for the installed package.
+
 .P
 \&.
 
 .SH EXAMPLES
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H html=base\fR
+.SS <ctys-command> -H (_ONLINEHELP_|_HELP_)
+.P
+Displays the predefined online help for the installed package.
 
+.SS <ctys-command> -H html=base
+.P
 Displays a summary of links for all documents contained in the \fBBASE package\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H html=doc\fR
+.SS <ctys-command> -H html=doc
+.P
+Displays the extended online help as contained in the \fBDOC package\fR.
 
-Displays a summary of links for all documents contained in the \fBDOC package\fR.
-.RE
-
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H list\fR
-
+.SS <ctys-command> -H list
+.P
 Lists available online documents and manpages.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H ctys\fR
-
+.SS <ctys-command> -H ctys
+.P
 Displays the \fBmanpage\fR for ctys with \fBman\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H man=ctys\fR
-
+.SS <ctys-command> -H man=ctys
+.P
 Displays the \fBmanpage\fR for ctys with \fBman\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H html=ctys\fR
-
+.SS <ctys-command> -H html=ctys
+.P
 Displays the \fBmanpage\fR for ctys with CTYS_HTMLVIEWER,
 by default \fBfirefox\fR or \fBkonqueror\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H pdf=ctys\fR
-
+.SS <ctys-command> -H pdf=ctys
+.P
 Displays the \fBmanpage\fR for ctys with CTYS_PDFVIEWER,
 by default \fBkpdf\fR, \fBgpdf\fR, or \fBacroread\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H pdf=howto\fR
-
+.SS <ctys-command> -H pdf=howto
+.P
 Displays the \fBctys\-howto\-online.pdf\fR, which is
 displayed in alphabetical order before \fBctys\-howto\-print.pdf\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H pdf=howto\-print\fR
-
+.SS <ctys-command> -H pdf=howto-print
+.P
 Displays the \fBctys\-howto\-print.pdf\fR, which is
 the first appropriate match.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H pdf=command\-ref\fR
-
+.SS <ctys-command> -H pdf=command-ref
+.P
 Displays the \fBctys\-command\-reference.pdf\fR.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H html=CLI,X11,VNC,VMW\fR
-
+.SS <ctys-command> -H html=CLI,X11,VNC,VMW
+.P
 Displays the \fBmanpage\fR for ctys\-CLI, ctys\-X11, ctys\-VNC and
 ctys\-VNM with
 CTYS_HTMLVIEWER,
 by default \fBfirefox\fR or \fBkonqueror\fR.
 For incomplete names a search with \fBfind\fR is utilized for name expansion.
-.RE
 
-.RS
-.IP \(bu 3
-\fB<ctys\-command> \-H html=ctys\-extractARPlst,extractMAClst\fR
-
+.SS <ctys-command> -H html=ctys-extractARPlst,extractMAClst
+.P
 Displays the \fBmanpage\fR for ctys\-extractARPlst and ctys\-extractARPlst
 
+.P
 with CTYS_HTMLVIEWER, by default \fBfirefox\fR or \fBkonqueror\fR.
 For incomplete names a search with \fBfind\fR is utilized for name expansion.
-.RE
 
 .SH SEE ALSO
 .TP
@@ -226,7 +203,7 @@ tab(^); ll.
 
 .SH COPYRIGHT
 .P
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno\-Can Uestuensoez
 
 .P
 This is software and documentation from \fBBASE\fR package,
@@ -245,5 +222,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-help-on.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/man/man7/ctys-help-on.7
+.\" cmdline: txt2tags -t man -i ctys-help-on.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/man/man7/ctys-help-on.7
 

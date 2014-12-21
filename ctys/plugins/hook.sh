@@ -361,27 +361,27 @@ function hookGetPluginType () {
 	_f=${_f%.sh};
 	_f=${_f%/hook};
 
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_1:${_1}"
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_f:${_f}"
+	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_1:${_1}"
+	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_f:${_f}"
         if [ "${_1//$_f}" != "${_1}" ];then
             #matched, well some ambiguity still there
 	    if [ "${_1%$_f}" != "${_1}" ];then
                 #OK, is plugins base
 		echo ${_f##*/}
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-PKG:${_f##*/}"
+		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-PKG:${_f##*/}"
 		return 
 	    else
                 #Possibly plugins subpackage, still ambigous
 
 		local _main=${_1%/*}
 
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-BASE-PKG:${_main}"
+		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-BASE-PKG:${_main}"
 
 
 		if [ "${_1%$_f}" != "${_1}" ];then
                     #OK, is plugins subpackage
 		    echo ${_f##*/}
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-SUB-PKG:${_f##*/}"
+		    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-SUB-PKG:${_f##*/}"
 		    return 
 		fi
 	    fi
@@ -446,6 +446,7 @@ function hookPackage () {
 	if [ -f "${_f}" ]; then
 	    hookInfoCheck ${_f};
 	    if [ $? != 0 ];then
+		printINFO 9 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:<$(date +%H%M%S)>:<${_f##*/}>"
 		. ${_f}
                 #only need to be updated when not yet present
 		local _type=`hookGetPluginType "${_f}"`
@@ -640,13 +641,13 @@ function hookPackages () {
 #
 #FUNCEND###############################################################
 function hookInitPropagate () {
-  local _i=;
-  for _i in ${PACKAGES_KNOWNTYPES} ${PACKAGES_GENERIC};do
-      eval init${_i} $1
-      if [ $? -ne 0 ];then
-	  PACKAGES_DISABLED="${PACKAGES_DISABLED} $_i"
-      fi
-  done
+    local _i=;
+    for _i in ${PACKAGES_KNOWNTYPES} ${PACKAGES_GENERIC};do
+	eval init${_i} $1
+	if [ $? -ne 0 ];then
+	    PACKAGES_DISABLED="${PACKAGES_DISABLED} $_i"
+	fi
+    done
 }
 
 #FUNCBEG###############################################################
@@ -672,17 +673,17 @@ function hookInitPropagate () {
 #
 #FUNCEND###############################################################
 function hookInitPropagate4Package () {
-  local _pkglst="$*";
-  local _i=;
+    local _pkglst="$*";
+    local _i=;
 
-  for _p in $_pkglst;do
-      for _i in 1 2 3 4 5 6;do
-	  eval init${_p} $_i
-	  if [ $? -ne 0 ];then
-	      PACKAGES_DISABLED="${PACKAGES_DISABLED} $_i"
-	  fi
-      done
-  done
+    for _p in $_pkglst;do
+	for _i in 1 2 3 4 5 6;do
+	    eval init${_p} $_i
+	    if [ $? -ne 0 ];then
+		PACKAGES_DISABLED="${PACKAGES_DISABLED} $_i"
+	    fi
+	done
+    done
 }
 
 
@@ -706,7 +707,7 @@ function hookInitPropagate4Package () {
 #
 #FUNCEND###############################################################
 function hookGetKnownTypes () {
-  echo ${PACKAGES_KNOWNTYPES};
+    echo ${PACKAGES_KNOWNTYPES};
 }
 
 
@@ -731,7 +732,7 @@ function hookGetKnownTypes () {
 #
 #FUNCEND###############################################################
 function hookGetDisabledTypes () {
-  echo ${PACKAGES_DISABLED};
+    echo ${PACKAGES_DISABLED};
 }
 
 
@@ -755,7 +756,7 @@ function hookGetDisabledTypes () {
 #
 #FUNCEND###############################################################
 function hookGetIgnoredTypes () {
-  echo ${PACKAGES_IGNORED};
+    echo ${PACKAGES_IGNORED};
 }
 
 
@@ -785,14 +786,14 @@ function hookGetIgnoredTypes () {
 #
 #FUNCEND###############################################################
 function hookInfoAdd () {
-  local _s=${#PKG_NAME[@]}
-  if [ -n "$1" ];then
-    PKG_NAME[$_s]="${1#$MYPKGPATH/}"
-    PKG_FILES[$_s]="${1}"
-  fi
-  if [ -n "$2" ];then
-    PKG_VERS[$_s]="$2"
-  fi
+    local _s=${#PKG_NAME[@]}
+    if [ -n "$1" ];then
+	PKG_NAME[$_s]="${1#$MYPKGPATH/}"
+	PKG_FILES[$_s]="${1}"
+    fi
+    if [ -n "$2" ];then
+	PKG_VERS[$_s]="$2"
+    fi
 }
 
 #FUNCBEG###############################################################

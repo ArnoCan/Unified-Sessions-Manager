@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myLIBNAME_misc="${BASH_SOURCE}"
-_myLIBVERS_misc="01.11.009"
+_myLIBVERS_misc="01.11.018"
 libManInfoAdd "${_myLIBNAME_misc}" "${_myLIBVERS_misc}"
 
 _myLIBNAME_miscBASE="`dirname ${_myLIBNAME_misc}`"
@@ -139,8 +139,9 @@ function getCurTime () {
 #
 #EXAMPLE:
 #PARAMETERS:
-#  $1: subtrahend: <hour>:<minute>:<second>
-#  $2: subtractor: <hour>:<minute>:<second>
+#   $1:  subtrahend: <hour>:<minute>:<second>
+#  [$2]: subtractor: <hour>:<minute>:<second>
+#        When missing current time is used.	
 #
 #OUTPUT:
 #  RETURN:
@@ -151,7 +152,8 @@ function getCurTime () {
 #
 #FUNCEND###############################################################
 function getDiffTime () {
-  echo "$2:$1"|awk -F':' '{
+  local _ct=${2:-$(getCurTime)};
+  echo "$1:$_ct"|awk -F':' '{
     end=$4*3600+$5*60+$6
     sta=$1*3600+$2*60+$3
 

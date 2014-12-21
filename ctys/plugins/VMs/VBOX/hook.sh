@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_010alpha
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -28,7 +28,7 @@ VBOX_PRODVERS=;
 VBOX_SERVER=;
 
 _myPKGNAME_VBOX="${BASH_SOURCE}"
-_myPKGVERS_VBOX="01.11.010alpha"
+_myPKGVERS_VBOX="01.11.018"
 hookInfoAdd $_myPKGNAME_VBOX $_myPKGVERS_VBOX
 
 _myPKGBASE_VBOX="`dirname ${_myPKGNAME_VBOX}`"
@@ -84,11 +84,117 @@ _sshpingVBOX=${CTYS_SSHPING_DEFAULT_VBOX:-0};
 _sshpingcntVBOX=${CTYS_SSHPING_ONE_MAXTRIAL_VBOX:-20};
 _sshpingsleepVBOX=${CTYS_SSHPING_ONE_WAIT_VBOX:-2};
 
-_actionuserVBOX="${MYUID}";
+#_actionuserVBOX="${MYUID}";
 
 
 . ${MYLIBPATH}/lib/libVBOXbase.sh
 . ${MYLIBPATH}/lib/libVBOX.sh
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getClientTPVBOX
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+# GENERIC-IF-DESCRIPTION:
+#  Gives the termination points port number, to gwhich a client could be 
+#  attachhed. This port is forseen to be used in port-forwarding e.g.
+#  by OpenSSH.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <label>
+#       The <label> to gwhich the client will be attached.
+#
+#  $2: <pname>
+#      The pname of the configuration file, this is required for 
+#      RDP-sessions, and given to avoid scanning for labels
+#
+#OUTPUT:
+#  RETURN:
+#    0: If OK
+#    1: else
+#
+#  VALUES:
+#    <TP-port>
+#      The TP port, to gwhich a client could be attached.
+#
+#FUNCEND###############################################################
+function getClientTPVBOX () {
+    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _port=;
+
+    if [ -n "$2" ];then
+	_port=$(getRDPport ${2})
+    fi
+    if [ -z "$_port" -a  -n "$1" ];then
+	_port=$(getRDPport ${1})
+    fi
+
+    if [ -z "${_port}" ];then
+	echo
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Error, can not get port number for label:${1}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Check your access permissions:USER=$MYUID"
+	gotoHell ${ABORT}
+    fi
+    local _ret=$_port;  
+    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
+    echo ${_ret}
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  isActiveVBOX
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: Active
+#    1: Not active
+#
+#  VALUES:
+#    0: Active
+#    1: Not active
+#
+#FUNCEND###############################################################
+function isActiveVBOX () {
+    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
+
+    if [ -z "$1" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
+	gotoHell ${ABORT}
+    fi
+    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
+    if [ -n "$x" ];then
+	printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
+	echo 0
+	return 0;
+    fi
+    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
+    echo 1
+    return 1;
+}
+
 
 
 #FUNCBEG###############################################################
@@ -142,7 +248,7 @@ function serverRequireVBOX () {
  	    CONNECT)
 		case $_myConsole in
 		    #rdesktop
-		    RDESKTOP|RDESK|RD)
+		    RDESKTOP|RDESK|RDP|RD)
 			_res="${_CS_SPLIT}";_ret=0;
 			;;
 
@@ -403,12 +509,6 @@ function clientRequireVBOX () {
 #                  -> "-L (DF|SO|CF|LO)"
 #
 #    VBOX_DEFAULTOPTS
-#      Appropriate defaults.
-#
-#      -Pre-set generic default parameters: "-x -q"
-#      -WMW_WS6:                            "-x -q -n"
-#      -WMW_S103:                           "-x -q -l"
-#      -WMW_S104:                           "-x -q -l"
 #
 #  RETURN:
 #
@@ -598,18 +698,6 @@ function clientServerSplitSupportedVBOX () {
 }
 
 
-
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_VBOX}/session.sh"
-hookPackage "${_myPKGBASE_VBOX}/enumerate.sh"
-hookPackage "${_myPKGBASE_VBOX}/list.sh"
-hookPackage "${_myPKGBASE_VBOX}/info.sh"
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handleVBOX
@@ -647,6 +735,58 @@ function handleVBOX () {
   local ACTION=$1;shift
 
   case ${ACTION} in
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_VBOX}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_VBOX}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VBOX}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_VBOX}/enumerate.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VBOX}/session.sh"
+		  hookPackage "${_myPKGBASE_VBOX}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
+
       CREATE) 
 	  case ${OPMODE} in
               PROLOGUE)
@@ -657,7 +797,13 @@ function handleVBOX () {
 		  hookPackage "${_myPKGBASE_VBOX}/create.sh"
 		  createConnectVBOX ${OPMODE} ${ACTION} 
 		  ;;
-	      EXECUTE|ASSEMBLE)
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_VBOX}/create.sh"
+		  createConnectVBOX ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VBOX}/session.sh"
+		  hookPackage "${_myPKGBASE_VBOX}/list.sh"
 		  hookPackage "${_myPKGBASE_VBOX}/create.sh"
 		  createConnectVBOX ${OPMODE} ${ACTION} 
 		  ;;
@@ -674,8 +820,13 @@ function handleVBOX () {
 		  hookPackage "${_myPKGBASE_VBOX}/cancel.sh"
 		  cutCancelSessionVBOX ${OPMODE} ${ACTION} 
 		  ;;
-	      EXECUTE|ASSEMBLE)
+	      ASSEMBLE)
 		  hookPackage "${_myPKGBASE_VBOX}/cancel.sh"
+		  cutCancelSessionVBOX ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VBOX}/session.sh"
+		  hookPackage "${_myPKGBASE_VBOX}/list.sh"
 		  cutCancelSessionVBOX ${OPMODE} ${ACTION} 
 		  ;;
 	  esac
@@ -716,6 +867,7 @@ function handleVBOX () {
 		  ;;
 
  	      ASSEMBLE)
+		    assembleExeccall ${OPMODE}
  		  ;;
           esac
 	  ;;

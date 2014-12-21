@@ -726,9 +726,9 @@ function 1_pluginsEnumerate () {
     printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'PLUGINS resulting current operational info - As requested by \"-t\", \"-T\", and \"-E\"' ''"
     echoX
     for _ty in ${_knownTypes};do
+	eval handle${_ty} PROLOGUE INFO
 	eval info${_ty} $_allign 
     done
-
     echoX "------------------------------"
     echoX "End check on:${MYHOST}"
     echoX "------------------------------"
@@ -854,7 +854,7 @@ if [ -z "${_ARGS}" ];then
     0_initPlugins
 
     case "$_qcheck" in
-	1)  1_pluginsEnumerate|awk -F';' '{printf("%-25s %-10s %-12s %-20s %-15s %-10s\n",$1,$2,$3,$4,$5,$6);}'
+	1)  1_pluginsEnumerate|awk -F';' '{printf("%-30s %-10s %-12s %-20s %-15s %-10s\n",$1,$2,$3,$4,$5,$6);}'
 	    ;;
 	2)  1_pluginsEnumerate|awk -F';' -v h="$MYACCOUNT" '
               BEGIN{
@@ -889,7 +889,7 @@ if [ -z "${_ARGS}" ];then
               $2~/QEMU/&&$6~/ENABLED/{qemu=acc;if(qemu~/^$/)qemu=V;next;}
 
               END{
-                 printf("%-25s | %-6s | %-4s %-4s %-4s %-4s | %-6s %-6s %-6s %-6s %-6s\n",
+                 printf("%-30s | %-6s | %-4s %-4s %-4s %-4s | %-6s %-6s %-6s %-6s %-6s\n",
                      h, pm, cli, x11, vnc, rdp, kvm, qemu, vbox, vmw, xen);
               }
               '
@@ -903,17 +903,17 @@ else
 	1)  
 	    echo ""|awk -F';' '
               END{
-                 printf("%-25s %-10s %-12s %-20s %-15s %-10s\n","Hostname","Plugin","Accelerator","Version","MAGIC-ID","State");
-                 printf("---------------------------------------------------------------------------------------------------\n");
+                 printf("%-30s %-10s %-12s %-20s %-15s %-10s\n","Hostname","Plugin","Accelerator","Version","MAGIC-ID","State");
+                 printf("--------------------------------------------------------------------------------------------------------\n");
               }
               '
 	    ;;
 	2)  
 	    echo ""|awk -F';' '
               END{
-                 printf("%-25s | %-6s | %-4s %-4s %-4s %-4s | %-6s %-6s %-6s %-6s %-6s\n",
+                 printf("%-30s | %-6s | %-4s %-4s %-4s %-4s | %-6s %-6s %-6s %-6s %-6s\n",
                      "Hostname", "PM", "CLI", "X11", "VNC", "RDP", "KVM", "QEMU", "VBOX", "VMW", "XEN");
-                 printf("--------------------------+--------+---------------------+-----------------------------------\n");
+                 printf("-------------------------------+--------+---------------------+-----------------------------------\n");
               }
               '
 	    ;;

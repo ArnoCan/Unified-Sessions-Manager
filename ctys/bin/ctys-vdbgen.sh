@@ -1114,7 +1114,7 @@ echo
    	    fi
 	    NFS=$IFS
 	    for rtarget in ${TARGETS} LAST;do
-		IFS=$OFS 
+ 		IFS=$OFS 
 		if [ -z "$rtarget" ];then
 		    continue
 		fi
@@ -1124,13 +1124,12 @@ echo
 		if [ "$rtarget" != LAST ];then
 		    let idx++;
 		    rf="$( IFS=$OFS fetchGroupMemberHosts ${rtarget}).${idx}.${DATETIME}"
+		    rf="$(  fetchGroupMemberHosts ${rtarget}).${idx}.${DATETIME}"
 		    rf="${rf// /}"
 		    if [ "${progressFilter}" -ne 0 -a "${rtarget#--}" == "${rtarget}" ];then
 			rtarget="-- '(-d 2,s:16:w:0,p)' ${rtarget}"
 		    fi
-
 		    _call=" ${MYLIBEXECPATH}/ctys.sh -t $_tOpt ${NEWARGS} ${rtarget} >${_dbfilepath}.${rf}.tmp  "
-
 		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
 		    eval ${_call} &
 		    let tcnt++;
@@ -1142,13 +1141,13 @@ echo
 		    wait
 		    let tcnt=tcnt-tmax;
 		fi
-		IFS=$NFS 
+ 		IFS=$NFS 
 	    done
 
 	    #wait for fclose???!!!
 	    sleep 1
 
-	    IFS=$OFS
+ 	    IFS=$OFS
 	    if [ -n "${_replacemode}" ];then
 		rm -f ${_dbfilepath}
 	    fi
@@ -1218,7 +1217,7 @@ else
 fi
 
 _fsumtime=`getCurTime`;
-_sumduration=`getDiffTime $_fsumtime $_ssumtime`;
+_sumduration=`getDiffTime $_ssumtime $_fsumtime`;
 echo "------"
 echo "END:${_fsumtime}"
 echo "DURATION:${_sumduration}"

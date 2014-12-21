@@ -74,6 +74,114 @@ _actionuserQEMU="${MYUID}";
 
 . ${MYLIBPATH}/lib/libQEMUbase.sh
 
+
+#FUNCBEG###############################################################
+#NAME:
+#  getClientTPQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+# GENERIC-IF-DESCRIPTION:
+#  Gives the termination points port number, to gwhich a client could be 
+#  attachhed. This port is forseen to be used in port-forwarding e.g.
+#  by OpenSSH.
+#
+#  The port is the local port number, gwhich in general has to be mapped 
+#  on remote site, when already in use. Therefore the application has
+#  to provide a port-number-independent client access protocol in order 
+#  to be used by connection forwarding. In any other case display 
+#  forwarding has to be choosen.
+#
+#  Some applications support only one port for access by multiple 
+#  sessions, dispatching and bundling the communications channels
+#  by their own protocol. 
+#
+#  While others require for each channel a seperate litenning port.
+#
+#  So it is up to the specific package to support a function returning 
+#  the required port number gwhich could be used to attach an forwarded 
+#  port. 
+#  
+#  The applications client has to support a remapped port number.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <label>
+#       The <label> to gwhich the client will be attached.
+#
+#  $2: <pname>
+#      The pname of the configuration file, this is required for 
+#      VNC-sessions, and given to avoid scanning for labels
+#
+#OUTPUT:
+#  RETURN:
+#    0: If OK
+#    1: else
+#
+#  VALUES:
+#    <TP-port>
+#      The TP port, to gwhich a client could be attached.
+#
+#FUNCEND###############################################################
+function getClientTPQEMU () {
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _port=;
+    _port=`listMySessionsQEMU S|awk -F';' -v l="${1}" -v id="${2}" '$2~l&&$3~id||$3~id||$2~l{print $7;}'`
+    if [ -z "${_port}" ];then
+	_port="NO-CPORT"
+    fi
+    local _ret=$_port;  
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
+    echo ${_ret}
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  isActiveQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: Active
+#    1: Not active
+#
+#  VALUES:
+#    0: Active
+#    1: Not active
+#
+#FUNCEND###############################################################
+function isActiveQEMU () {
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
+
+    if [ -z "$1" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
+	gotoHell ${ABORT}
+    fi
+    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
+    if [ -n "$x" ];then
+	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
+	echo 0
+	return 0;
+    fi
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
+    echo 1
+    return 1;
+}
+
+
 #FUNCBEG###############################################################
 #NAME:
 #  checkConsole
@@ -788,7 +896,7 @@ function setVersionQEMU () {
 	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "->\"QEMU-0.12.2\""
 	    ;;
 
-         *)
+        *)
 	    QEMU_PREREQ="${QEMU_PREREQ} <UnknownMAGICID>"
 	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
 	    printWNG 1 $LINENO $BASH_SOURCE 0 "Unknown MAGICID:${QEMU_MAGIC}"
@@ -1059,18 +1167,6 @@ function clientServerSplitSupportedQEMU () {
 }
 
 
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_QEMU}/config.sh"
-hookPackage "${_myPKGBASE_QEMU}/session.sh"
-hookPackage "${_myPKGBASE_QEMU}/enumerate.sh"
-hookPackage "${_myPKGBASE_QEMU}/list.sh"
-hookPackage "${_myPKGBASE_QEMU}/info.sh"
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handleQEMU
@@ -1103,108 +1199,181 @@ hookPackage "${_myPKGBASE_QEMU}/info.sh"
 #
 #FUNCEND###############################################################
 function handleQEMU () {
-  printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
-  local OPMODE=$1;shift
-  local ACTION=$1;shift
+    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
 
-  case ${ACTION} in
-      CREATE) 
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-	      CHECKPARAM)
-		  hookPackage "${_myPKGBASE_QEMU}/create.sh"
-		  createConnectQEMU ${OPMODE} ${ACTION} 
-		  ;;
-	      EXECUTE|ASSEMBLE)
-		  hookPackage "${_myPKGBASE_QEMU}/create.sh"
-		  createConnectQEMU ${OPMODE} ${ACTION} 
-		  ;;
-	  esac
-	  ;;
+    case ${ACTION} in
 
-      CANCEL)
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-	      CHECKPARAM)
-		  hookPackage "${_myPKGBASE_QEMU}/cancel.sh"
-		  cutCancelSessionQEMU ${OPMODE} ${ACTION} 
-		  ;;
-	      EXECUTE|ASSEMBLE)
-		  hookPackage "${_myPKGBASE_QEMU}/cancel.sh"
-		  cutCancelSessionQEMU ${OPMODE} ${ACTION} 
-		  ;;
-	  esac
-          ;;
+	LIST)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/list.sh"
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    ;;
+		ASSEMBLE)
+		    ;;
+		EXECUTE)
+		    ;;
+	    esac
+	    ;;
 
-      GETCLIENTPORT)
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-              CHECKPARAM)
-		  if [ -n "$C_MODE_ARGS" ];then
-                      printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
-                      _C_GETCLIENTPORT=$C_MODE_ARGS
-		  else
-		      ABORT=1
-		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
-		      gotoHell ${ABORT}
-		  fi
-                  ;;
+	ENUMERATE)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/enumerate.sh"
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    ;;
+		ASSEMBLE)
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_QEMU}/session.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/list.sh"
+		    ;;
+	    esac
+	    ;;
 
-	      EXECUTE)
-		  printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
-  		  echo "CLIENTPORT(QEMU,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPQEMU ${_C_GETCLIENTPORT//,/ }`"
-		  gotoHell 0
-		  ;;
+	INFO)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    hookPackage "${_myPKGBASE_QEMU}/info.sh"
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    ;;
+		ASSEMBLE)
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_QEMU}/list.sh"
+		    ;;
+	    esac
+	    ;;
 
- 	      ASSEMBLE)
- 		  ;;
-          esac
-	  ;;
+	CREATE) 
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/create.sh"
+		    createConnectQEMU ${OPMODE} ${ACTION} 
+		    ;;
+		ASSEMBLE)
+		    hookPackage "${_myPKGBASE_QEMU}/create.sh"
+		    createConnectQEMU ${OPMODE} ${ACTION} 
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_QEMU}/session.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/list.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/create.sh"
+		    createConnectQEMU ${OPMODE} ${ACTION} 
+		    ;;
+	    esac
+	    ;;
 
-      ISACTIVE)
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-              CHECKPARAM)
-		  if [ -n "$C_MODE_ARGS" ];then
-                      printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
-                      _MYID=$C_MODE_ARGS
-		  else
-		      ABORT=1
-		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-id>"
-		      gotoHell ${ABORT}
-		  fi
-                  ;;
+	CANCEL)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/cancel.sh"
+		    cutCancelSessionQEMU ${OPMODE} ${ACTION} 
+		    ;;
+		ASSEMBLE)
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/cancel.sh"
+		    cutCancelSessionQEMU ${OPMODE} ${ACTION} 
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_QEMU}/session.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/list.sh"
+		    cutCancelSessionQEMU ${OPMODE} ${ACTION} 
+		    ;;
+	    esac
+            ;;
 
-	      EXECUTE)
-		  printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
- 		  echo "ISACTIVE(QEMU,${C_MODE_ARGS})=`isActiveQEMU ${C_MODE_ARGS}`"
-		  gotoHell 0
-		  ;;
+	GETCLIENTPORT)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    if [ -n "$C_MODE_ARGS" ];then
+			printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
+			_C_GETCLIENTPORT=$C_MODE_ARGS
+		    else
+			ABORT=1
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
+			gotoHell ${ABORT}
+		    fi
+                    ;;
 
- 	      ASSEMBLE)
- 		  ;;
-          esac
-	  ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_QEMU}/config.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/session.sh"
+		    hookPackage "${_myPKGBASE_QEMU}/list.sh"
+		    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
+  		    echo "CLIENTPORT(QEMU,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPQEMU ${_C_GETCLIENTPORT//,/ }`"
+		    gotoHell 0
+		    ;;
+
+ 		ASSEMBLE)
+		    assembleExeccall ${OPMODE}
+ 		    ;;
+            esac
+	    ;;
+
+	ISACTIVE)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    if [ -n "$C_MODE_ARGS" ];then
+			printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
+			_MYID=$C_MODE_ARGS
+		    else
+			ABORT=1
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-id>"
+			gotoHell ${ABORT}
+		    fi
+                    ;;
+
+		EXECUTE)
+		    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
+ 		    echo "ISACTIVE(QEMU,${C_MODE_ARGS})=`isActiveQEMU ${C_MODE_ARGS}`"
+		    gotoHell 0
+		    ;;
+
+ 		ASSEMBLE)
+ 		    ;;
+            esac
+	    ;;
 
 
-      *)
-          ABORT=1;
-          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected QEMU:OPMODE=${OPMODE} ACTION=${ACTION}"
-	  gotoHell ${ABORT}
-          ;;
-  esac
+	*)
+            ABORT=1;
+            printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected QEMU:OPMODE=${OPMODE} ACTION=${ACTION}"
+	    gotoHell ${ABORT}
+            ;;
+    esac
 }
 
 
@@ -1230,40 +1399,40 @@ function handleQEMU () {
 #
 #FUNCEND###############################################################
 function initQEMU () {
-  local _curInit=$1;shift
-  local _initConsequences=$1
-  local ret=0;
+    local _curInit=$1;shift
+    local _initConsequences=$1
+    local ret=0;
 
-  local _raise=$((INITSTATE<_curInit));
+    local _raise=$((INITSTATE<_curInit));
 
-  printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
 
-  if [ "$_raise" == "1" ];then
+    if [ "$_raise" == "1" ];then
       #for raise of INITSTATE do not touch the OS's decisions, just expand.
 
-      case $_curInit in
-	  0);;#NOP - Done by shell
-	  1)  
+	case $_curInit in
+	    0);;#NOP - Done by shell
+	    1)  
               #add own help to searchlist for options
-	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_qemu"
+		MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_qemu"
 
               #adjust version specifics  
-	      setVersionQEMU $_initConsequences
-	      ret=$?
-	      ;;
-	  2);;
-	  3);;
-	  4);;
-	  5);;
-	  6);;
-      esac
-  else
-      case $_curInit in
-	  *);;
-      esac
+		setVersionQEMU $_initConsequences
+		ret=$?
+		;;
+	    2);;
+	    3);;
+	    4);;
+	    5);;
+	    6);;
+	esac
+    else
+	case $_curInit in
+	    *);;
+	esac
 
-  fi
+    fi
 
-  return $ret
+    return $ret
 }

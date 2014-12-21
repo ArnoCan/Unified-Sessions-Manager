@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011beta
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VBOX_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VBOX_SESSION="01.11.011beta"
+_myPKGVERS_VBOX_SESSION="01.11.018"
 hookInfoAdd $_myPKGNAME_VBOX_SESSION $_myPKGVERS_VBOX_SESSION
 _myPKGBASE_VBOX_SESSION="`dirname ${_myPKGNAME_VBOX_SESSION}`"
 
@@ -42,7 +42,7 @@ _RDP_CLIENT_MODE=;
 #
 #FUNCEND###############################################################
 function noClientServerSplitSupportedMessageVBOX () {
-    printERR $LINENO $BASH_SOURCE ${ABORT} "INFO:Current version supports CONNECTIONFORWARDING with CONSOLE for WMware-Server only"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "INFO:Current version supports CONNECTIONFORWARDING with CONSOLE for RDP only"
     printERR $LINENO $BASH_SOURCE ${ABORT} "INFO:Following options are available:"
     printERR $LINENO $BASH_SOURCE ${ABORT} "INFO:  Client and Server on different machines: CONNECTIONFORWARDING"
     printERR $LINENO $BASH_SOURCE ${ABORT} "INFO:    -> Local RDP client: ${RDPRDESK}"
@@ -78,106 +78,6 @@ function noClientServerSplitSupportedMessageVBOX () {
 #FUNCEND###############################################################
 function expandSessionIDVBOX () {
     echo $1
-}
-
-#FUNCBEG###############################################################
-#NAME:
-#  isActiveVBOX
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#
-#OUTPUT:
-#  RETURN:
-#    0: Active
-#    1: Not active
-#
-#  VALUES:
-#    0: Active
-#    1: Not active
-#
-#FUNCEND###############################################################
-function isActiveVBOX () {
-    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
-
-    if [ -z "$1" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
-	gotoHell ${ABORT}
-    fi
-    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
-    if [ -n "$x" ];then
-	printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
-	echo 0
-	return 0;
-    fi
-    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
-    echo 1
-    return 1;
-}
-
-
-
-#FUNCBEG###############################################################
-#NAME:
-#  getClientTPVBOX
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-# GENERIC-IF-DESCRIPTION:
-#  Gives the termination points port number, to gwhich a client could be 
-#  attachhed. This port is forseen to be used in port-forwarding e.g.
-#  by OpenSSH.
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#  $1: <label>
-#       The <label> to gwhich the client will be attached.
-#
-#  $2: <pname>
-#      The pname of the configuration file, this is required for 
-#      RDP-sessions, and given to avoid scanning for labels
-#
-#OUTPUT:
-#  RETURN:
-#    0: If OK
-#    1: else
-#
-#  VALUES:
-#    <TP-port>
-#      The TP port, to gwhich a client could be attached.
-#
-#FUNCEND###############################################################
-function getClientTPVBOX () {
-    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
-    local _port=;
-
-    if [ -n "$2" ];then
-	_port=$(getRDPport ${2})
-    fi
-    if [ -z "$_port" -a  -n "$1" ];then
-	_port=$(getRDPport ${1})
-    fi
-
-    if [ -z "${_port}" ];then
-	echo
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Error, can not get port number for label:${1}"
-	gotoHell ${ABORT}
-    fi
-    local _ret=$_port;  
-    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
-    echo ${_ret}
 }
 
 
@@ -561,7 +461,7 @@ function connectSessionVBOX () {
 	gotoHell ${ABORT}
     fi
 
-    local cport=$(getRDPport "${_id}")
+    local cport=$(getRDPport "${_id}">&2)
     if [ -z "$cport" -a -z "${_actaccessID}" -o "${_actaccessID}" == "${_id}" ];then
         #
         #local native access: same as DISPLAYFORWARDING or LOCALONLY
@@ -879,7 +779,7 @@ function connectSessionVBOXRDP () {
 	if [ "${C_ASYNC}" == 0 ];then
 	    eval ${CALLER}
 	else
-	    export PATH=${QEMU_PATHLIST}:${PATH}&&{ eval  ${CALLER} &sleep ${CTYS_PREDETACH_TIMEOUT_HOSTS:-5}; }>/dev/null&
+	    export PATH=${VBOX_PATHLIST}:${PATH}&&{ eval  ${CALLER} &sleep ${CTYS_PREDETACH_TIMEOUT_HOSTS:-5}; }>/dev/null&
 	fi
     fi
 

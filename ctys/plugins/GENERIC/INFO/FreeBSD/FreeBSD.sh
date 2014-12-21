@@ -171,6 +171,7 @@ function INFOFreeBSD () {
     printf "%"$((1*_allign))"s%-"${_label}"s:%"$((2*_allign))"s\n" \
         " " "PLUGINS" "${_knownTypes}"
     for _ty in ${_knownTypes};do
+	eval handle${_ty} PROLOGUE INFO
 	eval info${_ty} $_allign 2>/dev/null
     done
 }

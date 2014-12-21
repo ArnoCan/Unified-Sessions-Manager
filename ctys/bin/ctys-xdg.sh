@@ -7,11 +7,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -53,7 +53,7 @@ LICENCE=GPL3
 #  sh-script
 #
 #VERSION:
-VERSION=01_11_011
+VERSION=01_11_018
 #DESCRIPTION:
 #  Remote execution script.
 #
@@ -338,6 +338,7 @@ fi
 
 
 _BYPASSARGS=;
+GEO=;
 
 _mGUI=;
 _mNOUSER=;
@@ -384,11 +385,11 @@ while [ -n "$1" ];do
 			   _mEdit=$_mEditX
                            ;;
 
- 	'--menu-edit='*)   _mEditX=${1#*=}
+ 	'--menu-edit='*)   _mEditCall=1;
+ 	                   _mEditX=${1#*=}
                            if [ -z "${_mEditX}" -o "${_mEditX#-}" != "${_mEditX}" ];then
                                 _edit=${_mEditX//:/ }
     	                   else
-		                shift;
 		                 for i in ${_mEditX//%/ };do
 		                     if [ -d "$i" -o -f "$i" ];then
 			                 _edit="$_edit $i "
@@ -428,6 +429,11 @@ while [ -n "$1" ];do
                            ;;
 
  	'--force')         _mFORCE=0;;
+
+	'-g')              shift;GEO=$1;
+                           GEO=$(getGeometry  -g  ${GEO});
+                           GEO="--geometry=${GEO}";
+                           ;;
 
 	'-d')shift;;
 
@@ -675,7 +681,7 @@ if [ -n "${_mEditCall}" -a  -n "$_mEdit" ];then
  	    _mEditX="$_mEditX $ix"
 	fi
     done
-    $CTYS_MENUEDIT ${_mEditX//%/ }
+    $CTYS_MENUEDIT ${GEO} ${_mEditX//%/ }
     exit $?
 fi
 

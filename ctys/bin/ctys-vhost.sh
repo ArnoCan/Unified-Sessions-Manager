@@ -1721,7 +1721,7 @@ function buildStatCacheDB () {
 	fi
 	cat ${ENUMDB}|resolveENUM |sort -u>>${STATCACHEDB}
         local _endTime1=`getCurTime`
-        local _diffTime1=`getDiffTime $_endTime1 $_startTime1`
+        local _diffTime1=`getDiffTime $_startTime1 $_endTime1`
 	printINFO 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:END  ($_endTime1):Rebuild stat-cache finished"
 	printINFO 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:TOTAL($_diffTime1):Rebuild stat-cache"
 
@@ -1783,7 +1783,7 @@ function buildStatCacheDB () {
             [ "$C_INTERACTIVE" != 0 ]&&printf "BUILD GRP-DB      =%s\n" ${_grppath}
 	done
         local _endTime2=`getCurTime`
-        local _diffTime2=`getDiffTime $_endTime2 $_startTime2`
+        local _diffTime2=`getDiffTime $_startTime2 $_endTime2`
  	printINFO 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:END  ($_endTime2):Rebuild groups-cache finished"
  	printINFO 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:TOTAL($_diffTime2):Rebuild groups-cache"
     fi

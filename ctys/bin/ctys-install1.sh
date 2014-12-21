@@ -726,11 +726,15 @@ if [ -n "${BINDIR}" ];then
 
     LNKLSTBIN=;
 
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/checkCLIDialogue.sh"
+
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-attribute.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-beamer.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncserver.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncviewer.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-createConfVM.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-cloneVM.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-config.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-distribute.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-dnsutil.sh"
@@ -768,6 +772,7 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurOSRel.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurRelease.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurWM.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurWMID.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getFSinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getGeometry.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getHDDinfo.sh"
@@ -779,6 +784,7 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/pathlist.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/gnome-starter.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/gnome-terminal-msg.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/stripIt.sh"
 fi
 printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "LNKLSTBIN = <${LNKLSTBIN}>"
 

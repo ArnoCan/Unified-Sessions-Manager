@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-#     Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 ########################################################################
 
 _myLIBNAME_base="${BASH_SOURCE}"
-_myLIBVERS_base="01.11.011"
+_myLIBVERS_base="01.11.018"
 
 shopt -s nullglob
 shopt -s extglob
@@ -356,7 +356,7 @@ function fetchDBGArgs () {
 		ALL)DBG=$D_ALL;;
 		PRINTFINAL|PFIN|PF)
 		    export C_PFEXE=${ARG:-0};
-		    if [ -n "${WNG//[0-9]/}" ];then
+		    if [ -n "${C_PFEXE//[0-9]/}" ];then
 			echo "requires numeric value:$KEY">&2
 			exit 1;
 		    fi
@@ -608,17 +608,32 @@ function printWNG () {
 function printINFO () {
     local r=$?;
     local l=$1;shift;
-    ((INF>l))||return;
+    ((INF>0))||return;
     local L=$1;shift;
     local f=${1%/*/*};f=${1#$f\/};shift;
-    if((DBG>0));then 
-	if [ "$CTYS_XTERM" == 1  ];then local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:INFO:$1";
-	else local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:\033[32mINFO\033[m:$1";fi
-    else
-	if [ "$CTYS_XTERM" == 1  ];then local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:INFO:$1";
-	else local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:\033[32mINFO\033[m:$1";fi
-    fi
-    shift; echo -e "$b:$*" >&2;
+    local e=$1;shift;
+    local o=;
+    ((DBG>0))&&o="${f}:";
+
+    (((M&4&&INF>l)||(M&2&&INF<l)||(M&1&&INF&l)))&&{
+      ((CTYS_XTERM==1))&&{
+         ((F^1))&&{
+            echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$o$L:INFO:$e:$*">&2;
+	 }||{
+            [ \( "$I" == 0 -a "${FLST//$f/}" == "${FLST}" \)  -o  \( "$I" == 1 -a "${FLST//$f/}" != "${FLST}" \) ]&&{
+	       echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$o$L:INFO:$e:$*">&2;	
+            }
+         }
+      }||{
+	((F^1))&&{
+	    echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$o$L:\033[32mINFO\033[m:$e:$*">&2; 
+	}||{ 
+            [ \( "$I" == 0 -o  "$I" == 1 \) -a "${FLST//$f/}" != "${FLST}" ]&&{
+	       echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$o$L:\033[32mINFO\033[m:$e:$*">&2;
+	    }
+	}
+      }
+    }
     return $r;
 }
 

@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_010
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ VMW_PRODVERS=;
 VMW_SERVER=;
 
 _myPKGNAME_VMW="${BASH_SOURCE}"
-_myPKGVERS_VMW="01.11.010"
+_myPKGVERS_VMW="01.11.011"
 hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
 
 _myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
@@ -72,6 +72,143 @@ _sshpingcntVMW=${CTYS_SSHPING_ONE_MAXTRIAL_VMW:-20};
 _sshpingsleepVMW=${CTYS_SSHPING_ONE_WAIT_VMW:-2};
 
 _actionuserVMW="${MYUID}";
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  isActiveVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: Active
+#    1: Not active
+#
+#  VALUES:
+#    0: Active
+#    1: Not active
+#
+#FUNCEND###############################################################
+function isActiveVMW () {
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
+
+    if [ -z "$1" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
+	gotoHell ${ABORT}
+    fi
+    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
+    if [ -n "$x" ];then
+	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
+	echo 0
+	return 0;
+    fi
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
+    echo 1
+    return 1;
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getClientTPVMW
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+# GENERIC-IF-DESCRIPTION:
+#  Gives the termination points port number, to gwhich a client could be 
+#  attachhed. This port is forseen to be used in port-forwarding e.g.
+#  by OpenSSH.
+#
+#  The port is the local port number, gwhich in general has to be mapped 
+#  on remote site, when already in use. Therefore the application has
+#  to provide a port-number-independent client access protocol in order 
+#  to be used by connection forwarding. In any other case display 
+#  forwarding has to be choosen.
+#
+#  Some applications support only one port for access by multiple 
+#  sessions, dispatching and bundling the communications channels
+#  by their own protocol. 
+#
+#  While others require for each channel a seperate litenning port.
+#
+#  So it is up to the specific package to support a function returning 
+#  the required port number gwhich could be used to attach an forwarded 
+#  port. 
+#  
+#  The applications client has to support a remapped port number.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <label>
+#       The <label> to gwhich the client will be attached.
+#
+#  $2: <pname>
+#      The pname of the configuration file, this is required for 
+#      VNC-sessions, and given to avoid scanning for labels
+#
+#OUTPUT:
+#  RETURN:
+#    0: If OK
+#    1: else
+#
+#  VALUES:
+#    <TP-port>
+#      The TP port, to gwhich a client could be attached.
+#
+#FUNCEND###############################################################
+function getClientTPVMW () {
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _port=;
+
+    #for ws>6 only
+    if [ -n "$2" -a "${VMW_MAGIC}" == "VMW_WS6" -o "${VMW_MAGIC}" == "VMW_WS7" ];then
+	if [ -f "$2" ];then
+	    _port=`cat $2|sed -n 's/\t//g;/^#/d;s/RemoteDisplay.vnc.port *= *"\([^"]*\)"/\1/p'`
+	fi
+	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_port=$_port"
+    fi
+
+    #for s2
+    if [ -z "$_port" -a -f "/etc/vmware/hostd/proxy.xml" ];then
+	_port=`cat /etc/vmware/hostd/proxy.xml |sed -n 's@<httpsPort>\([0-9]*\)</httpsPort>@\1@p'`
+	if [ -z "$_port" ];then
+	    _port=`cat /etc/vmware/hostd/proxy.xml |sed -n 's@<httpPort>\([0-9]*\)</httpPort>@\1@p'`
+	fi
+    fi
+
+    #for ws and server
+    if [ -z "$_port" -a -f "/etc/vmware/config" ];then
+	_port=`cat /etc/vmware/config |sed -n 's/authd.client.port *= *"\([0-9]*\)"/\1/p'`
+    fi
+
+    #for player not an error!
+    if [ -z "${_port}" ];then
+	if [ "${VMW_MAGIC}" == "VMW_S104" ];then
+	    echo
+	    ABORT=2
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Error, can not get port number for label:${1}"
+	    gotoHell ${ABORT}
+	fi
+    fi
+    local _ret=$_port;  
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
+    echo ${_ret}
+}
+
 
 
 #FUNCBEG###############################################################
@@ -647,17 +784,6 @@ function clientServerSplitSupportedVMW () {
 
 
 
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_VMW}/session.sh"
-hookPackage "${_myPKGBASE_VMW}/enumerate.sh"
-hookPackage "${_myPKGBASE_VMW}/list.sh"
-hookPackage "${_myPKGBASE_VMW}/info.sh"
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handleVMW
@@ -690,157 +816,215 @@ hookPackage "${_myPKGBASE_VMW}/info.sh"
 #
 #FUNCEND###############################################################
 function handleVMW () {
-  printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
-  local OPMODE=$1;shift
-  local ACTION=$1;shift
+    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
 
-  case ${ACTION} in
-      CREATE) 
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-	      CHECKPARAM)
-		  hookPackage "${_myPKGBASE_VMW}/create.sh"
-		  createConnectVMW ${OPMODE} ${ACTION} 
-		  ;;
-	      EXECUTE|ASSEMBLE)
-		  hookPackage "${_myPKGBASE_VMW}/create.sh"
-		  createConnectVMW ${OPMODE} ${ACTION} 
-		  ;;
-	  esac
-	  ;;
+    case ${ACTION} in
 
-      CANCEL)
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-	      CHECKPARAM)
-		  hookPackage "${_myPKGBASE_VMW}/cancel.sh"
-		  cutCancelSessionVMW ${OPMODE} ${ACTION} 
-		  ;;
-	      EXECUTE|ASSEMBLE)
-		  hookPackage "${_myPKGBASE_VMW}/cancel.sh"
-		  cutCancelSessionVMW ${OPMODE} ${ACTION} 
-		  ;;
-	  esac
-          ;;
+	LIST)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    hookPackage "${_myPKGBASE_VMW}/list.sh"
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    ;;
+		ASSEMBLE)
+		    ;;
+		EXECUTE)
+		    ;;
+	    esac
+	    ;;
 
-      GETCLIENTPORT)
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-              CHECKPARAM)
-		  if [ -n "$C_MODE_ARGS" ];then
-                      printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
-                      _C_GETCLIENTPORT=$C_MODE_ARGS
-		  else
-		      ABORT=1
-		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
-		      gotoHell ${ABORT}
-		  fi
-                  ;;
+	INFO)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    hookPackage "${_myPKGBASE_VMW}/info.sh"
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    ;;
+		ASSEMBLE)
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_VMW}/list.sh"
+		    ;;
+	    esac
+	    ;;
 
-	      EXECUTE)
-		  printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
-		  case $VMW_MAGIC in
-		      VMW_P*)
-  			  echo ""
-			  ABORT=1
-			  printERR $LINENO $BASH_SOURCE ${ABORT} "Current version of VMware Player does not support remote consoles."
-			  printERR $LINENO $BASH_SOURCE ${ABORT} "  Version:${VMW_VERSTRING}"
-			  gotoHell ${ABORT}
-			  ;;
-		      VMW_S1*)
-			  ;;
-		      VMW_S2*)
-			  ;;
-		      VMW_WS6)
-			  ;;
-		      VMW_WS7)
-			  ;;
-		      *)
-  			  echo ""
-			  ABORT=1
-			  printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown version, reject remote console."
-			  printERR $LINENO $BASH_SOURCE ${ABORT} "  Version:${VMW_VERSTRING}"
-			  gotoHell ${ABORT}
-			  ;;
-		  esac
+	ENUMERATE)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    hookPackage "${_myPKGBASE_VMW}/enumerate.sh"
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    ;;
+		ASSEMBLE)
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_VMW}/list.sh"
+		    ;;
+	    esac
+	    ;;
 
+	CREATE) 
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    hookPackage "${_myPKGBASE_VMW}/create.sh"
+		    createConnectVMW ${OPMODE} ${ACTION} 
+		    ;;
+		ASSEMBLE)
+		    hookPackage "${_myPKGBASE_VMW}/create.sh"
+		    createConnectVMW ${OPMODE} ${ACTION} 
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_VMW}/session.sh"
+		    hookPackage "${_myPKGBASE_VMW}/list.sh"
+		    createConnectVMW ${OPMODE} ${ACTION} 
+		    ;;
+	    esac
+	    ;;
 
+	CANCEL)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    hookPackage "${_myPKGBASE_VMW}/cancel.sh"
+		    cutCancelSessionVMW ${OPMODE} ${ACTION} 
+		    ;;
+		ASSEMBLE)
+		    hookPackage "${_myPKGBASE_VMW}/cancel.sh"
+		    cutCancelSessionVMW ${OPMODE} ${ACTION} 
+		    ;;
+		EXECUTE)
+		    hookPackage "${_myPKGBASE_VMW}/session.sh"
+		    hookPackage "${_myPKGBASE_VMW}/list.sh"
+		    cutCancelSessionVMW ${OPMODE} ${ACTION} 
+		    ;;
+	    esac
+            ;;
 
-  		  echo "CLIENTPORT(VMW,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPVMW ${_C_GETCLIENTPORT//,/ }`"
-		  gotoHell 0
-		  ;;
+	GETCLIENTPORT)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    if [ -n "$C_MODE_ARGS" ];then
+			printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
+			_C_GETCLIENTPORT=$C_MODE_ARGS
+		    else
+			ABORT=1
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
+			gotoHell ${ABORT}
+		    fi
+                    ;;
 
- 	      ASSEMBLE)
- 		  ;;
-          esac
-	  ;;
+		EXECUTE)
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
+		    case $VMW_MAGIC in
+			VMW_P*)
+  			    echo ""
+			    ABORT=1
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Current version of VMware Player does not support remote consoles."
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "  Version:${VMW_VERSTRING}"
+			    gotoHell ${ABORT}
+			    ;;
+			VMW_S1*)
+			    ;;
+			VMW_S2*)
+			    ;;
+			VMW_WS6)
+			    ;;
+			VMW_WS7)
+			    ;;
+			*)
+  			    echo ""
+			    ABORT=1
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown version, reject remote console."
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "  Version:${VMW_VERSTRING}"
+			    gotoHell ${ABORT}
+			    ;;
+		    esac
+  		    echo "CLIENTPORT(VMW,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPVMW ${_C_GETCLIENTPORT//,/ }`"
+		    gotoHell 0
+		    ;;
 
-      ISACTIVE)
-	  case ${OPMODE} in
-              PROLOGUE)
-		  ;;
-              EPILOGUE)
-		  ;;
-              CHECKPARAM)
-		  if [ -n "$C_MODE_ARGS" ];then
-                      printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
-                      _MYID=$C_MODE_ARGS
-		  else
-		      ABORT=1
-		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-id>"
-		      gotoHell ${ABORT}
-		  fi
-                  ;;
+ 		ASSEMBLE)
+ 		    ;;
+            esac
+	    ;;
 
-	      EXECUTE)
-		  printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
-		  case $VMW_MAGIC in
-		      VMW_P1*)
-			  ;;
-		      VMW_P2*)
-			  ;;
-		      VMW_P3*)
-			  ;;
-		      VMW_S1*)
-			  ;;
-		      VMW_S2*)
-			  ;;
-		      VMW_WS6)
-			  ;;
-		      VMW_WS7)
-			  ;;
-		      *)
-  			  echo ""
-			  ABORT=1
-			  printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown version, reject remote console."
-			  printERR $LINENO $BASH_SOURCE ${ABORT} "  Version:${VMW_VERSTRING}"
-			  gotoHell ${ABORT}
-			  ;;
-		  esac
- 		  echo "ISACTIVE(VMW,${C_MODE_ARGS})=`isActiveVMW ${C_MODE_ARGS}`"
-		  gotoHell 0
-		  ;;
+	ISACTIVE)
+	    case ${OPMODE} in
+		PROLOGUE)
+		    ;;
+		EPILOGUE)
+		    ;;
+		CHECKPARAM)
+		    if [ -n "$C_MODE_ARGS" ];then
+			printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
+			_MYID=$C_MODE_ARGS
+		    else
+			ABORT=1
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-id>"
+			gotoHell ${ABORT}
+		    fi
+                    ;;
 
- 	      ASSEMBLE)
- 		  ;;
-          esac
-	  ;;
+		EXECUTE)
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
+		    case $VMW_MAGIC in
+			VMW_P1*)
+			    ;;
+			VMW_P2*)
+			    ;;
+			VMW_P3*)
+			    ;;
+			VMW_S1*)
+			    ;;
+			VMW_S2*)
+			    ;;
+			VMW_WS6)
+			    ;;
+			VMW_WS7)
+			    ;;
+			*)
+  			    echo ""
+			    ABORT=1
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown version, reject remote console."
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "  Version:${VMW_VERSTRING}"
+			    gotoHell ${ABORT}
+			    ;;
+		    esac
+ 		    echo "ISACTIVE(VMW,${C_MODE_ARGS})=`isActiveVMW ${C_MODE_ARGS}`"
+		    gotoHell 0
+		    ;;
 
-      *)
-          ABORT=1;
-          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected VMW:OPMODE=${OPMODE} ACTION=${ACTION}"
-	  gotoHell ${ABORT}
-          ;;
-  esac
+ 		ASSEMBLE)
+ 		    ;;
+            esac
+	    ;;
+
+	*)
+            ABORT=1;
+            printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected VMW:OPMODE=${OPMODE} ACTION=${ACTION}"
+	    gotoHell ${ABORT}
+            ;;
+    esac
 }
 
 
@@ -866,39 +1050,39 @@ function handleVMW () {
 #
 #FUNCEND###############################################################
 function initVMW () {
-  local _curInit=$1;shift
-  local _initConsequences=$1
-  local ret=0;
+    local _curInit=$1;shift
+    local _initConsequences=$1
+    local ret=0;
 
-  local _raise=$((INITSTATE<_curInit));
+    local _raise=$((INITSTATE<_curInit));
 
-  printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
-  if [ "$_raise" == "1" ];then
+    if [ "$_raise" == "1" ];then
       #for raise of INITSTATE do not touch the OS's decisions, just expand.
 
-      case $_curInit in
-	  0);;#NOP - Done by shell
-	  1)  
+	case $_curInit in
+	    0);;#NOP - Done by shell
+	    1)  
               #adjust version specifics  
-              setVersionVMW $_initConsequences
-              ret=$?
+		setVersionVMW $_initConsequences
+		ret=$?
 
               #add own help to searchlist for options
-	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_vmw"
-	      ;;
-	  2);;
-	  3);;
-	  4);;
-	  5);;
-	  6);;
-      esac
-  else
-      case $_curInit in
-	  *);;
-      esac
+		MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_vmw"
+		;;
+	    2);;
+	    3);;
+	    4);;
+	    5);;
+	    6);;
+	esac
+    else
+	case $_curInit in
+	    *);;
+	esac
 
-  fi
+    fi
 
-  return $ret
+    return $ret
 }

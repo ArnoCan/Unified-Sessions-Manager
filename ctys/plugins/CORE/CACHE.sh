@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_CACHE="${BASH_SOURCE}"
-_myPKGVERS_CACHE="01.11.008"
+_myPKGVERS_CACHE="01.11.018"
 hookInfoAdd "$_myPKGNAME_CACHE" "$_myPKGVERS_CACHE"
 
 #
@@ -111,7 +111,10 @@ function cacheGetUniquePname () {
 	FROMCALL)
 	    _exehost=`digGetSSHTarget ${_org}`
 	    if [ -z "${_exehost}" ];then
-		_exehost=${MYHOST}
+		_exehost=`digGetCTYSTarget ${_org}`
+		if [ -z "${_exehost}" ];then
+		    _exehost=${MYHOST}
+		fi
 	    fi
 	    ;;
     esac
@@ -174,6 +177,7 @@ function cacheGetUniquePname () {
 
 	if [ -n "${exectarget}" ];then
 	    local _call="${_VHOST} ${C_DARGS} F:1:${exectarget} ${_exeplugin:+F:2:$_exeplugin} ${@} not E:28:1 ";
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 	    _pname=$(${_call});
             local _ret=$?;
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_call=<${_call}> => <${_pname}>"
@@ -269,7 +273,7 @@ function cacheGetActionUserFromCall () {
 	FROMCALL)
 	    _exeuser=`digGetSSHUser ${_org}`
 	    if [ -z "${_exeuser}" ];then
-		_exeuser=${MYUID}
+		_exeuser=`digGetCTYSTargetUser ${_org}`
 	    fi
 	    ;;
     esac
@@ -372,7 +376,10 @@ function cacheGetMachineAddressFromCall () {
 	FROMCALL)
 	    _exehost=`digGetSSHTarget ${_org}`
 	    if [ -z "${_exehost}" ];then
-		_exehost=${MYHOST}
+		_exehost=`digGetCTYSTarget ${_org}`
+		if [ -z "${_exehost}" ];then
+		    _exehost=${MYHOST}
+		fi
 	    fi
 	    ;;
     esac
@@ -464,7 +471,6 @@ function cacheGetMachineAddressFromCall () {
     #
     local _new=;
     A=`cliSplitSubOpts ${_exeasubargs}`
-
     for i in $A;do
 	KEY=`cliGetKey ${i}`
 	ARG=`cliGetArg ${i}`
@@ -536,7 +542,6 @@ function cacheGetMachineAddressFromCall () {
 
     local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -p ${DBPATHLST} -s -M unique"
     local _klist="${_exehost} ${_exeplugin} ${_pname}  ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname}"
-
     #################
     #
     case $C_NSCACHELOCATE in
@@ -560,7 +565,6 @@ function cacheGetMachineAddressFromCall () {
 	    fi
 	    ;;
     esac
-
     #
     #PNAME should be present here, else there might be few, or no chance.
     #
@@ -586,20 +590,19 @@ function cacheGetMachineAddressFromCall () {
 		    _VHOST="${_VHOST} ${C_DARGS} -C MACMAP  -o TCP ${_mac}"
 		    _VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		    _tcp=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		    _tcp=`${_VHOST}`
 		    _lret=$?;
 		else
 		    _VHOST="${_VHOST} ${C_DARGS} -o TCP E:28:1 ${_klist}"
 		    _VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		    _tcp=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		    _tcp=`${_VHOST}`
 		    _lret=$?;
 		fi
 	    fi
 	fi
 	if [ -n "${_tcp}" ];then
 	    echo -n -e "${_tcp}"
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_tcp=<${_tcp}>"
 	else
 	    let _ret+=_lret;
 	    return $_lret
@@ -618,21 +621,21 @@ function cacheGetMachineAddressFromCall () {
 		    _VHOST="${_VHOST} ${C_DARGS} -o MAC E:28:1 ${_tcp}"
 		    _VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		    _mac=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		    _mac=`${_VHOST}`
 		    _lret=$?;
 		else
 		    _VHOST="${_VHOST} ${C_DARGS} -o MAC E:28:1 ${_klist}"
 		    _VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		    _mac=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		    _mac=`${_VHOST}`
 		    _lret=$?;
 		fi
 	    fi
 	fi
 	if [ -n "${_mac}" ];then
 	    echo -n -e "${_mac}"
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_mac=<${_mac}>"
-	else
+
+	    	else
 	    let _ret+=_lret;
 	    return $_lret
 	fi
@@ -649,13 +652,13 @@ function cacheGetMachineAddressFromCall () {
 		_VHOST="${_VHOST} ${C_DARGS} -o UUID E:28:1 ${_klist}"
 		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		_uuid=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		_uuid=`${_VHOST}`
 		_lret=$?;
 	    fi
 	fi
 	if [ -n "${_uuid}" ];then
 	    echo -n -e "${_uuid}"
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_uuid=<${_uuid}>"
+# 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_uuid=<${_uuid}>"
 	else
 	    let _ret+=_lret;
 	    return $_lret
@@ -673,7 +676,7 @@ function cacheGetMachineAddressFromCall () {
 		_VHOST="${_VHOST} ${C_DARGS} -o UUID E:28:1 ${_klist}"
 		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		_label=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		_label=`${_VHOST}`
 		_lret=$?;
 	    fi
 	fi
@@ -700,11 +703,9 @@ function cacheGetMachineAddressFromCall () {
 		_VHOST="${_VHOST} ${C_DARGS} -o PNAME  -p ${DBPATHLST} -s ${_klist}"
 		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
- 		_pname=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+ 		_pname=`${_VHOST}`
 		_lret=$?;
 		return $?;
-
-
 
 # 		let _ret++;
 # 		return 1
@@ -713,7 +714,7 @@ function cacheGetMachineAddressFromCall () {
     }
 
     function _getFILENAME  () {
-	if [ -z "${_fnamel}" ];then
+	if [ -z "${_fname}" ];then
 	    if [ -z "${_pname}" -a -n "$_dbrec" ];then
 		_pname=$(_getPATHNAME )
 	    fi
@@ -747,11 +748,10 @@ function cacheGetMachineAddressFromCall () {
 	    _rf=`_getPATHNAME`;  if [ -n "$_rf" ];then _resultBuf="${_resultBuf},P:${_rf}"; fi
 	    _rf=`_getFILENAME`;  if [ -n "$_rf" ];then _resultBuf="${_resultBuf},F:${_rf}"; fi
 	    _resultBuf="${_resultBuf#,}";
-
 	    if [ $_ret -eq 0 ];then
 		echo -n -e "${_resultBuf}"
 	    fi
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_resultBuf=<${_resultBuf}>"
+# 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_resultBuf=<${_resultBuf}>"
 	    ;;
 	VHOST)#temporary workaround for still missing MADDR in ctys-vhost.sh
 	    local _resultBuf=;
@@ -901,7 +901,7 @@ function cacheReplaceCtysAddress () {
 	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_org=\"${_org}\""
 	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_maddr=\"${_maddr}\""
 	_buf=`echo  " ${_org} "|sed 's/\(.* -a *[^=]*=\)\(.*\)/\1'"${_maddr}"',\2/'`;
-	printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Cache-Result:_buf=<${_buf}>"
+#	printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Cache-Result:_buf=<${_buf}>"
 	echo $_buf
     else
 	echo $_org

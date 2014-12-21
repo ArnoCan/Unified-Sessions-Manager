@@ -494,9 +494,9 @@ function enumerateMySessionsX11 () {
 #Managed load of sub-packages gwhich are required in almost any case.
 #On-demand-loads will be performed within requesting action.
 #
-hookPackage "${_myPKGBASE_X11}/session.sh"
-hookPackage "${_myPKGBASE_X11}/list.sh"
-hookPackage "${_myPKGBASE_X11}/info.sh"
+#4TEST: hookPackage "${_myPKGBASE_X11}/session.sh"
+#4TEST:hookPackage "${_myPKGBASE_X11}/list.sh"
+#4TEST: hookPackage "${_myPKGBASE_X11}/info.sh"
 
 
 
@@ -528,13 +528,70 @@ function handleX11 () {
 
   case ${ACTION} in
 
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_X11}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_X11}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_X11}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
       CREATE) 
 	  case ${OPMODE} in
               PROLOGUE)
 		  ;;
               EPILOGUE)
 		  ;;
-	      CHECKPARAM|ASSEMBLE|EXECUTE)
+	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_X11}/create.sh"
+		  createConnectX11 ${OPMODE} ${ACTION} 
+		  ;;
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_X11}/session.sh"
+		  hookPackage "${_myPKGBASE_X11}/create.sh"
+		  createConnectX11 ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_X11}/session.sh"
+		  hookPackage "${_myPKGBASE_X11}/list.sh"
 		  hookPackage "${_myPKGBASE_X11}/create.sh"
 		  createConnectX11 ${OPMODE} ${ACTION} 
 		  ;;

@@ -9,17 +9,17 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 ########################################################################
 #
-#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -46,16 +46,17 @@
     <Directory>ctys-UnifiedSessionsManager.directory</Directory>
     <Include>
       <Filename>ctys-help.desktop</Filename>
-      <Filename>ctys-help-dev.desktop</Filename>
+<!--       <Filename>ctys-help-dev.desktop</Filename> -->
       <Filename>ctys-CREATE-CONSOLE.desktop</Filename>
       <Filename>ctys-LOGIN-CONSOLE.desktop</Filename>
     </Include>
 
 
     <Layout>
-      <!--       <Merge type="all"/> -->
+      <Merge type="all"/>
+
       <Filename>ctys-help.desktop</Filename>
-      <Filename>ctys-help-dev.desktop</Filename>
+<!--       <Filename>ctys-help-dev.desktop</Filename> -->
       <Menuname>ctys-admin</Menuname>
       <!--       <Merge type="menus"/> -->
       <!--       <Merge type="files"/> -->
@@ -157,6 +158,8 @@
       </Include>
 
       <Layout>
+	<Merge type="all"/>
+
         <Filename>ctys-MENUES.desktop</Filename>
 	<Separator/>
 	<Filename>ctys-CONFIG.desktop</Filename>
