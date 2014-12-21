@@ -32,7 +32,7 @@ function set-debian () {
     DEFAULTINSTMODE=CD;
 
     case ${DISTREL} in
-	4.0_r3)
+	4.0_r3|4.0*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-debian-40r3-XEN;;
 		QEMU) set-debian-40r3-QEMU;;

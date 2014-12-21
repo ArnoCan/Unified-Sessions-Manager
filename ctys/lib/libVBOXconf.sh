@@ -46,7 +46,7 @@ function getVBOXVMVal () {
 	gotoHell ${ABORT}  
     fi
     if [ -n "${1}" -a -n "${2}" ];then
-	local _v=$(${VBOXMGR} showvminfo "$1" -machinereadable 2>/dev/null|sed -n 's/^'"${2}"'="*\([^" ]\+\)"*/\1/p');
+	local _v=$(${VBOXMGR} showvminfo "$1" --machinereadable 2>/dev/null|sed -n 's/^'"${2}"'="*\([^" ]\+\)"*/\1/p');
 	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_v=$_v"
 	echo "$_v"
 	return 0

@@ -115,7 +115,6 @@ function enumerateMySessionsVBOX () {
 	    gotoHell ${ABORT}
 	fi
 	printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Use MATCH-FILTER:${_myPKGBASE_VBOX_ENUMERATE}/enumfilter.awk";
-
     done
 
     checkPathElements FIND-PATH ${_baseabs// /:}

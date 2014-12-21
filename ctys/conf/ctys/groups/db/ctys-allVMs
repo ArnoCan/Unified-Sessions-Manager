@@ -18,5 +18,15 @@ CONTEXT'(-d 2,s:16,w:0,p -b sync,par -c off -C on)'
 root@lab02
 root@lab03
 #root@lab04
+root@lab05
 
+#lab01
+lab02
+lab03
+#lab04
+lab05
+
+
+#app1
+#app2
 

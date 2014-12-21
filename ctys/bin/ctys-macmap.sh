@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_017
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_011
+VERSION=01_11_017
 #DESCRIPTION:
 #  Generated a sorted list of output for a matchin regexpr.
 #
@@ -445,7 +445,7 @@ fi
 #
 #change this a.s.a.p.
 #anyhow, priorities for now...!
-for i in $argLst;do
+for i in ${argLst:-.};do
     if [ -n "$_uppercase" ];then
       cat ${_fdblst}|\
       tr 'a-z' 'A-Z'
