@@ -1,0 +1,76 @@
+#!/usr/bin/vmware
+
+#---------------------------------------------
+#@#MAGICID-IGNORE
+#--------------------------------------------
+
+config.version = "8"
+virtualHW.version = "6"
+scsi0.present = "TRUE"
+scsi0.virtualDev = "lsilogic"
+memsize = "512"
+MemAllowAutoScaleDown = "FALSE"
+scsi0:0.present = "TRUE"
+scsi0:0.fileName = "tst005.vmdk"
+ide1:0.present = "TRUE"
+ide1:0.autodetect = "TRUE"
+ide1:0.deviceType = "cdrom-image"
+floppy0.startConnected = "FALSE"
+floppy0.autodetect = "TRUE"
+usb.present = "TRUE"
+ehci.present = "TRUE"
+sound.present = "TRUE"
+sound.fileName = "-1"
+sound.autodetect = "TRUE"
+svga.autodetect = "TRUE"
+pciBridge0.present = "TRUE"
+guestOS = "ubuntu"
+nvram = "tst005.nvram"
+deploymentPlatform = "windows"
+virtualHW.productCompatibility = "hosted"
+RemoteDisplay.vnc.port = "0"
+tools.upgrade.policy = "useGlobal"
+
+floppy0.fileName = "/dev/fd0"
+extendedConfigFile = "tst005.vmxf"
+
+
+
+uuid.location = "56 4d f1 72 94 b5 bd d1-32 b6 80 cf d0 3b 59 f4"
+uuid.bios = "56 4d d3 8d 56 4d 4a f7-b7 9e c0 27 32 ec 1b 56"
+
+
+displayName = "tst005"
+
+#Ethernet0.virtualDev = "e1000"
+ethernet0.present = "TRUE"
+ethernet0.wakeOnPcktRcv = "FALSE"
+ethernet0.addressType = "static"
+ethernet0.address = "00:50:56:13:11:35"
+
+#---@#CTYS-IP0=linux001
+#@#IP0="192.168.1.135"
+#@#DIST="Ubuntu"
+#@#DISTREL="7.10-S"
+#@#OS="Linux"
+#@#OSREL="2.6"
+#@#VERSION="01.01.001"
+#@#SERNO="20080415052800"
+#@#CATEGORY="VM"
+
+uuid.action = "keep"
+
+scsi0:0.redo = ""
+pciBridge0.pciSlotNumber = "17"
+scsi0.pciSlotNumber = "16"
+ethernet0.pciSlotNumber = "32"
+sound.pciSlotNumber = "33"
+ehci.pciSlotNumber = "34"
+
+tools.remindInstall = "TRUE"
+
+ide1:0.startConnected = "FALSE"
+ide1:0.fileName = "/usr/lib/vmware/isoimages/linux.iso"
+
+#@#VMSTATE            = "TEMPLATE"
+#
