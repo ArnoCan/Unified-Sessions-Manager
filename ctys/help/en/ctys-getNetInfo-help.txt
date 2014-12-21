@@ -20,8 +20,6 @@ ctys-genmconf
    [--iffirst|--if]
    [--(iflistnames|iln)[=(ALL|PREFIX|POSTFIX|MATCH)[,<namestring>]]]
    [--iflistmacip|--ilmi]
-   [-L <remote-user>]
-   [-R <remote-host>]
    [-V]
    [-X]
 

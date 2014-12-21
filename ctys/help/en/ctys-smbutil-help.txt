@@ -15,10 +15,8 @@ ctys-smbutil
    [-H <help-options>]
    [-i <numerical-IP>]
    [-l <remote-login>]
-   [-L <remote-login>]
    [-n <dns-TCP>]
    [-r [(REVERSE|R|-),]PING|SSH[,PM|VM] ]
-   [-R <remote-hosts>]
    [-V]
    [-X]
 
