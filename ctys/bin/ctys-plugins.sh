@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_007
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -134,7 +134,7 @@ EOF
     fi
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.003.sh
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.006.sh
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -604,32 +604,43 @@ PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/GUESTs
 LD_PLUGIN_PATH=${LD_PLUGIN_PATH}:${PLUGINPATHS}
 
 
+function echoX ()  {
+    if [ -z "$C_TERSE" ];then
+	echo -e $*
+    fi
+}
 
+function printfX ()  {
+    if [ -z "$C_TERSE" ];then
+	eval printf $*
+    fi
+}
 function 0_initPlugins ()  {
     #
     #Perform the initialization according and based on LD_PLUGIN_PATH.
     #
-    echo
-    echo "------------------------------"
-    echo "Start check on:${MYHOST}"
-    echo "------------------------------"
-    echo "Prepare check on:${MYHOST}"
-    echo "------------------------------>>>"
+
+    echoX
+    echoX "------------------------------"
+    echoX "Start check on:${MYHOST}"
+    echoX "------------------------------"
+    echoX "Prepare check on:${MYHOST}"
+    echoX "------------------------------>>>"
     MYROOTHOOK=${MYINSTALLPATH}/plugins/hook.sh
     if [ ! -f "${MYROOTHOOK}" ];then 
 	ABORT=2
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing packages hook: hook=${MYROOTHOOK}"
 	gotoHell ${ABORT}
     fi
-    echo "<<<------------------------------"
-    echo "Checking PLUGINS-STATEs on:${MYHOST}"
-    echo "Perform:${MYROOTHOOK}"
-    echo "------------------------------>>>"
+    echoX "<<<------------------------------"
+    echoX "Checking PLUGINS-STATEs on:${MYHOST}"
+    echoX "Perform:${MYROOTHOOK}"
+    echoX "------------------------------>>>"
     . ${MYROOTHOOK}
     initPackages "${MYROOTHOOK}"
-    echo "<<<------------------------------"
-    echo "...results on:${MYHOST} to:"
-    echo
+    echoX "<<<------------------------------"
+    echoX "...results on:${MYHOST} to:"
+    echoX
 }
 
 function 1_pluginsEnumerate () {
@@ -642,58 +653,39 @@ function 1_pluginsEnumerate () {
     local _label1=23;
 
     if [ -z "$C_EXECLOCAL" ];then
-	printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	    " " "Check-Client/Server" "`setSeverityColor TRY CLIENT features`"
+	printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Check-Client/Server' '`setSeverityColor TRY CLIENT features`'"
     else
-	printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	    " " "Check-Client/Server" "`setSeverityColor TRY SERVER features`"
+	printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Check-Client/Server' '`setSeverityColor TRY SERVER features`'"
     fi
-    echo
+    echoX
 
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "Host" "${MYHOST}"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Host' '${MYHOST}'"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'OS' '${MYOS}'"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'OS-Release' '${MYOSREL}'"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Distribution' '${MYDIST}'"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Release'      ' ${MYREL}'"
+    echoX
 
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "OS" "${MYOS}"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'PLUGINS States as Maximum-Possible' 'Forced states as requested by \"-t\", \"-T\", CORE and GENERIC are not handled here, \"-E\" is considered'"
 
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "OS-Release" "${MYOSREL}"
-
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "Distribution" "${MYDIST}"
-
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "Release" "${MYREL}"
-
-    echo
-
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "PLUGINS States as Maximum-Possible" "Forced states as requested by \"-t\", \"-T\", CORE and GENERIC are not handled here, \"-E\" is considered"
-
-    printf "%"$((1*_allign))"s%-"${_label}"s %-"$((2*_allign))"s\n" \
-	" " "" "\"${MYCALLNAME} ${CALLARGS}\""
-
-    echo
+    printfX "'%$((1*_allign))s%-${_label}s %-$((2*_allign))s\n' ' ' '' '\"${MYCALLNAME} ${CALLARGS}\"'"
+    echoX
 
     #IGNORED(-)
-    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
-	" " "`setStatusColor IGNORED IGNORED`(-):" "`setStatusColor IGNORED ${_ignoredTypes}`"
+    printfX "'%$((2*_allign))s%-${_label1}s%-$((2*_allign))s\n' ' ' '`setStatusColor IGNORED IGNORED`(-):' '`setStatusColor IGNORED ${_ignoredTypes}`'"
 
     #AVAILABLE(0)
-    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
-	" " "`setStatusColor AVAILABLE AVAILABLE`(0):" "`setStatusColor AVAILABLE ${_knownTypes}`"
+    printfX "'%$((2*_allign))s%-${_label1}s%-$((2*_allign))s\n' ' ' '`setStatusColor AVAILABLE AVAILABLE`(0):' '`setStatusColor AVAILABLE ${_knownTypes}`'"
 
     #DISABLED(1)
-    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
-	" " "`setStatusColor DISABLED DISABLED`(1):" "`setStatusColor DISABLED ${_disabledTypes}`"
+    printfX "'%$((2*_allign))s%-${_label1}s%-$((2*_allign))s\n' ' ' '`setStatusColor DISABLED DISABLED`(1):' '`setStatusColor DISABLED ${_disabledTypes}`'"
 
     #ENABLED(2)
     local _curEnabled=$_knownTypes;
     for i in ${_disabledTypes};do
 	_curEnabled=${_curEnabled//$i}
     done
-    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
-	" " "`setStatusColor ENABLED ENABLED`(2):" "`setStatusColor ENABLED ${_curEnabled}`"
+    printfX "'%$((2*_allign))s%-${_label1}s%-$((2*_allign))s\n' ' ' '`setStatusColor ENABLED ENABLED`(2):' '`setStatusColor ENABLED ${_curEnabled}`'"
 
     #IDLE(3)
     local _curIdle=;
@@ -720,23 +712,20 @@ function 1_pluginsEnumerate () {
     done
     _curIdle=${_curEnabled//$_curBusy};
 
-    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
-	" " "`setStatusColor IDLE IDLE`(3):" "`setStatusColor IDLE ${_curIdle}`"
+    printfX "'%$((2*_allign))s%-${_label1}s%-$((2*_allign))s\n' ' ' '`setStatusColor IDLE IDLE`(3):' '`setStatusColor IDLE ${_curIdle}`'"
 
-    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
-	" " "`setStatusColor BUSY BUSY`(4):" "`setStatusColor BUSY ${_curBusy}`"
+    printfX "'%$((2*_allign))s%-${_label1}s%-$((2*_allign))s\n' ' ' '`setStatusColor BUSY BUSY`(4):' '`setStatusColor BUSY ${_curBusy}`'"
 
-    echo
-    printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	" " "PLUGINS resulting current operational info - As requested by \"-t\", \"-T\", and \"-E\"" ""
-    echo
+    echoX
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'PLUGINS resulting current operational info - As requested by \"-t\", \"-T\", and \"-E\"' ''"
+    echoX
     for _ty in ${_knownTypes};do
 	eval info${_ty} $_allign 
     done
 
-    echo "------------------------------"
-    echo "End check on:${MYHOST}"
-    echo "------------------------------"
+    echoX "------------------------------"
+    echoX "End check on:${MYHOST}"
+    echoX "------------------------------"
 }
 
 
@@ -750,6 +739,8 @@ RUSER0=;
 while [ -n "$1" ];do
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\${1}=<${1}>"
     case $1 in
+	'-A');;
+
 	'-d')shift;;
 
 	'-l')shift;RUSER=$1;;
@@ -788,6 +779,9 @@ while [ -n "$1" ];do
 	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:C_EXECLOCAL"
 	    ;;
 
+	'--quick-list')_qcheck=1;C_TERSE=1;;
+	'--quick-tab')_qcheck=2;C_TERSE=1;;
+
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
 	'-h'|'--help'|'-help')_showToolHelp=1;;
 	'-V')_printVersion=1;;
@@ -807,6 +801,7 @@ while [ -n "$1" ];do
     shift
 done
 
+
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";
     exit 0;
@@ -821,7 +816,7 @@ if [ -n "$_printVersion" ];then
 fi
 
 _RARGS=${_ARGSCALL//$_ARGS/}
-_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
+_MYLBL=${MYCALLNAME}-${MYUID}-${DATETIME}-$$
 
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
@@ -833,6 +828,7 @@ _RARGS=${_RARGS//  / }
 _RARGS=${_RARGS// /\%}
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_MYLBL=<$_MYLBL>"
+
 
 if [ -z "${_ARGS}" ];then
     _t=`echo " $_ARGSCALL "| sed -n 's/(.*)//g;s/^.* -T/-T/;s/-T \([a-zA-Z0-9,]*[^ ]\).*$/\1/p'`
@@ -850,12 +846,96 @@ if [ -z "${_ARGS}" ];then
     fi
 
     0_initPlugins
-    1_pluginsEnumerate
+
+    case "$_qcheck" in
+	1)  1_pluginsEnumerate|awk -F';' '{printf("%-25s %-10s %-12s %-20s %-15s %-10s\n",$1,$2,$3,$4,$5,$6);}'
+	    ;;
+	2)  1_pluginsEnumerate|awk -F';' -v h="$MYACCOUNT" '
+              BEGIN{
+                 cli="-";x11="-";vnc="-";rdp="-";qemu="-";kvm="-";vbox="-";vmw="-";xen="-";pm="-";x="x";V="V";
+              }
+              {acc=$3;}
+              $2~/PM/&&$6~/ENABLED/{pm=acc;if(pm~/^$/)pm=x;next;}
+              $2~/CLI/&&$6~/ENABLED/{cli=acc;if(cli~/^$/)cli=x;next;}
+              $2~/X11/&&$6~/ENABLED/{x11=acc;if(x11~/^$/)x11=x;next;}
+              $2~/VNC/&&$6~/ENABLED/{vnc=acc;if(vnc~/^$/)vnc=x;next;}
+              $2~/RDP/&&$6~/ENABLED/{rdp=acc;if(rdp~/^$/)rdp=x;next;}
+
+              $2~/VBOX/&&$6~/ENABLED/{vbox=acc;if(vbox~/^$/)vbox=V;next;}
+
+              $5~/VMW_S1/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="S1";next;}
+              $5~/VMW_S2/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="S2";next;}
+              $5~/VMW_S/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="S";next;}
+              $5~/VMW_P1/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="P1";next;}
+              $5~/VMW_P2/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="P2";next;}
+              $5~/VMW_P3/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="P3";next;}
+              $5~/VMW_P/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="P";next;}
+              $5~/VMW_WS6/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="W6";next;}
+              $5~/VMW_WS7/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="W7";next;}
+              $5~/VMW_W/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="W";next;}
+              $2~/VMW/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw=V;next;}
+
+              $2~/XEN/&&$6~/ENABLED/{xen=acc;if(xen~/^$/)xen=V;next;}
+
+              $0~/kvm/&&$2~/QEMU/&&$6~/ENABLED/{qemu=acc;if(qemu~/^$/)qemu=V;kvm=acc;if(kvm~/^$/)kvm=V;next;}
+#              $0~/kvm/&&$6~/ENABLED/{kvm=acc;if(kvm~/^$/)kvm=V;next;}
+              $2~/QEMU/&&$6~/ENABLED/{qemu=acc;if(qemu~/^$/)qemu=V;next;}
+
+              END{
+                 printf("%-25s | %-6s | %-4s %-4s %-4s %-4s | %-6s %-6s %-6s %-6s %-6s\n",
+                     h, pm, cli, x11, vnc, rdp, kvm, qemu, vbox, vmw, xen);
+              }
+              '
+	    ;;
+	*)
+	    1_pluginsEnumerate
+	    ;;
+    esac
 else
-    if [ "$C_TERSE" != 1 ];then
+    case "$_qcheck" in
+	1)  
+	    echo ""|awk -F';' '
+              END{
+                 printf("%-25s %-10s %-12s %-20s %-15s %-10s\n","Hostname","Plugin","Accelerator","Version","MAGIC-ID","State");
+                 printf("---------------------------------------------------------------------------------------------------\n");
+              }
+              '
+	    ;;
+	2)  
+	    echo ""|awk -F';' '
+              END{
+                 printf("%-25s | %-6s | %-4s %-4s %-4s %-4s | %-6s %-6s %-6s %-6s %-6s\n",
+                     "Hostname", "PM", "CLI", "X11", "VNC", "RDP", "KVM", "QEMU", "VBOX", "VMW", "XEN");
+                 printf("--------------------------+--------+---------------------+-----------------------------------\n");
+              }
+              '
+	    ;;
+    esac
+
+    if [ "$C_TERSE" != "1" ];then
 	printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${RUSER:+ as \"$RUSER\"} on:${_ARGS}"
     fi
-    ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}%${_RARGS} ${RUSER:+-l $RUSER} ${_ARGS}
+
+    case "$_qcheck" in
+ 	[12])  
+	    _execStrg="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}%${_RARGS} ${RUSER:+-l $RUSER}"
+	    _execStrg="$_execStrg -b 0,3 "
+	    _execStrg="$_execStrg ${_ARGS}"
+	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
+	    ${_execStrg}
+	    ;;
+	*)  
+	    _execStrg="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}%${_RARGS} ${RUSER:+-l $RUSER} "
+	    if [ "$C_TERSE" != "1" ];then
+		_execStrg="$_execStrg -b 0,2 "
+	    else
+		_execStrg="$_execStrg -b 1,3 "
+	    fi
+	    _execStrg="$_execStrg ${_ARGS}"
+	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
+	    ${_execStrg}
+	    ;;
+    esac
 fi
 
 

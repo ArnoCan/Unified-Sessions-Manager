@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -29,9 +29,24 @@
 #
 ########################################################################
 
+_myLIBNAME_base="${BASH_SOURCE}"
+_myLIBVERS_base="01.11.007"
 
 shopt -s nullglob
 shopt -s extglob
+
+
+if [ -z "${CTYS_INI}" -a -z "${CTYS_INSTALLER}" ];then
+  echo >&2
+  echo "${MYCALLNAME}:$LINENO:ERROR:Variable not yet set:CTYS_INI">&2
+  echo "${MYCALLNAME}:$LINENO:ERROR:If this is your first-time call just logout and login.">&2
+  echo >&2
+  echo "${MYCALLNAME}:$LINENO:ERROR:Initialization seems to be missing, variable not set:CTYS_INI">&2
+  echo "${MYCALLNAME}:$LINENO:ERROR:Check your installation, see '.bashrc' or '.bashprofile' or '.profile'">&2
+  echo "${MYCALLNAME}:$LINENO:ERROR:At least one is required to be loaded.">&2
+  echo >&2
+  exit 1
+fi
 
 #
 #Set some common basic definitions.
@@ -145,10 +160,6 @@ fi
 
 MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
 
-_myLIBNAME_base="${BASH_SOURCE}"
-_myLIBVERS_base="01.10.013"
-
-
 
 #The only compromise for bootstrap, calling it explicit 
 #from anywhere. 
@@ -174,6 +185,8 @@ MYUID=$USER
 MYGID=`$MYLIBEXECPATH/getCurGID.sh`
 MYPID=$$
 MYPPID=$PPID
+
+MYACCOUNT=${USER}@${MYHOST}
 
 DATE=`date +"%Y.%m.%d"`
 TIME=`date +"%H:%M:%S"`

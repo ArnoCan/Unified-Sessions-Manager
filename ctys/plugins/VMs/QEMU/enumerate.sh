@@ -244,7 +244,7 @@ function enumerateMySessionsQEMU () {
                 local _out4=;
 		#NETNAME:_out4="${_out4};";
 		_out4="${_out4};`getHYPERRELRUN_QEMU4CONF ${X}`";
-		_out4="${_out4};`getACCELLERATOR_QEMU4CONF ${X}`";
+		_out4="${_out4};`getACCELERATOR_QEMU4CONF ${X}`";
 		_out4="${_out4};`getSTARTERCALL_QEMU4CONF ${X}`";
 		_out4="${_out4};";
                  #_out="${_out};`getGUESTIFNAME ${X}`";

@@ -388,6 +388,27 @@ while [ -n "$1" ];do
 		gotoHell ${ABORT}
 	    fi
 	    ;;
+
+	'-e')
+	    if [ -z "${2}" -o "${2#-}" != "${2}" ];then
+		_edit=${CTYS_MACRO_PATH//:/ }
+	    else
+		shift;
+		for i in ${1//%/ };do
+		    if [ -d "$i" -o -f "$i" ];then
+			_edit="$_edit $i "
+		    else
+			_edit="$_edit $(matchFirstFile $i . ${CTYS_MACRO_PATH})"
+		    fi
+		done
+	    fi
+	    if [ -z "${_edit}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Edit requires either a list or CTYS_MACRO_PATH"
+		gotoHell ${ABORT}
+	    fi
+            ;;
+
 	'-E')_expand=1;_combined=1;;
 	'-F')_filetree=1;
 	    if [ -z "${CTYS_TREE}" ];then
@@ -451,14 +472,6 @@ if [ -n "$_printVersion" ];then
 fi
 
 
-if [ -n "${argLst}" ];then
-    argLst=${argLst//%/ }
-    for i in ${argLst};do
-	echo "$i=<$(replaceMacro MACRO:$i)>"
-    done
-    exit $?
-fi
-
 if [ -z "$_atom" -a -z "$_combined" -a -z "$_mfiles" ];then
     _mfiles=1;
     _atom=1;
@@ -482,6 +495,28 @@ if [ ! -f "${_myFilePath}" ];then
     gotoHell ${ABORT}
 fi
 
+if [ -n "$_edit" ];then
+    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`gwhich emacs`
+    if [  -z "$X11EMACXEXE" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE $ABORT "Cannot evaluate Emacs for edit."
+	exit $?
+
+    fi
+    [ -z "${_edit}" ]&&_edit=" ."
+    $X11EMACXEXE ${_edit}&
+    exit $?
+fi
+
+
+if [ -n "${argLst}" ];then
+    argLst=${argLst//%/ }
+    for i in ${argLst};do
+	echo "$i=<$(replaceMacro MACRO:$i)>"
+    done
+    exit $?
+fi
 
 function fetchMacros () {
     awk '{cont=gsub("\\\\$","");if(cont==0)print;else printf("%s",$0);}'|\

@@ -1098,7 +1098,7 @@ if [ "$_print" == "1" ];then
     echo
     echo "XEN_VERSION      = \"${XEN_VERSION}\""
     echo "XEN_MAGIC        = \"${XEN_MAGIC}\""
-    echo "XEN_ACCELLERATOR = \"$(getACCELLERATOR_XEN ${STARTERCALL})\""
+    echo "XEN_ACCELERATOR = \"$(getACCELERATOR_XEN ${STARTERCALL})\""
     echo
     echo
     echo "MYCALLNAME   = \"$MYCALLNAME\""

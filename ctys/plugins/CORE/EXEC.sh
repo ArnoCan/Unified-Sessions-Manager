@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_EXEC="${BASH_SOURCE}"
-_myPKGVERS_EXEC="01.11.003"
+_myPKGVERS_EXEC="01.11.007"
 hookInfoAdd "$_myPKGNAME_EXEC" "$_myPKGVERS_EXEC"
 
 
@@ -307,17 +307,27 @@ function buildExecCalls() {
 	printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "Add user@host to EXECCALLS[$n]:${EXECCALLS[$n]}"
 
         #target should be canonical here:<user>@<host>
-	EXECCALLS[$n]=`checkAndSetIsHostOrGroup ${EXECCALLS[$n]}`
-	printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "Checked-OK:host/group:EXECCALLS[$n]=\"${EXECCALLS[$n]}\""
+	local _tmpExe=;
+	_tmpExe=`checkAndSetIsHostOrGroup ${EXECCALLS[$n]}`
+	if [ $? -eq 0 ];then
+	    EXECCALLS[$n]=$_tmpExe;
+	    printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "Checked-OK:host/group:EXECCALLS[$n]=\"${EXECCALLS[$n]}\""
 
-	local _argopts=`getArgOpts $i`
-        if [ -n "${_argopts}" ];then
-	    EXECOPTIONS[$n]=${_argopts};
- 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "Add argoptions to EXECOPTIONS[$n]:${EXECOPTIONS[$n]}"
-        fi
+	    local _argopts=`getArgOpts $i`
+            if [ -n "${_argopts}" ];then
+		EXECOPTIONS[$n]=${_argopts};
+ 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "Add argoptions to EXECOPTIONS[$n]:${EXECOPTIONS[$n]}"
+            fi
 
-  	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "EXECCALLS[$n]:${EXECOPTIONS[$n]}"
- 	let n++;
+  	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "EXECCALLS[$n]:${EXECOPTIONS[$n]}"
+ 	    let n++;
+	else
+# 	    ABORT=1;
+# 	    printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Unknown host, job is ignored:${EXECCALLS[$n]}"
+	    printERR $LINENO $BASH_SOURCE 1  "$FUNCNAME:Unknown host, job is ignored:${EXECCALLS[$n]}"
+  	    EXECCALLS[$n]=;
+	    EXECOPTIONS[$n]=;
+	fi
 	let _ARGSOPTIND=_ARGSOPTIND+1;
     done
 
@@ -897,8 +907,6 @@ function doExecCalls () {
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Number of pending JOB_EXECSERVER[]=$siz"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Number of pending JOB_EXECCLIENTS[]=$siz"
 
-
-
     printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:CHECK-SWITCH-TO-STACKMODE"
     if [ "$C_STACK" == "1" -a "$C_STACKMASTER" == "1" -a -z "$C_EXECLOCAL"  ];then
         #shift take control of batch-list to STACKER
@@ -916,8 +924,6 @@ function doExecCalls () {
 	JOB_EXECSERVER[$x]=;
 	return
     fi
-
-
     printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:START-SUBGROUPS"
     for((x=0;x<${ssiz};x++));do
 	if [ -n "${JOB_EXECSERVER[$x]// /}" -a  "${JOB_EXECSERVER[$x]//SUBGROUP/}" != "${JOB_EXECSERVER[$x]// /}" ];then
@@ -926,8 +932,6 @@ function doExecCalls () {
             let JOB_CNT++;
 	fi
     done
-
-
     printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:START-SUBTASKS"
     for((x=0;x<${ssiz};x++));do
 	if [ -n "${JOB_EXECSERVER[$x]// /}" -a  "${JOB_EXECSERVER[$x]//SUBTASK/}" != "${JOB_EXECSERVER[$x]// /}" ];then
@@ -936,9 +940,6 @@ function doExecCalls () {
             let JOB_CNT++;
 	fi
     done
-
-
-
 
     #prepare remote calls for clients and servers
     printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:START-NORMAL-EXECUTION"
@@ -1183,6 +1184,7 @@ function doExecCallsPrologue () {
 			    eval handle${i} PROLOGUE ${C_MODE}
 			    ;;
 		    esac
+
 		fi
             done
             ;;

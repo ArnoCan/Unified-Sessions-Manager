@@ -120,7 +120,9 @@ function infoX114Action () {
 #FUNCEND###############################################################
 function infoX114MACHINE () {
     local _out=;
-    _out="X11"
+    _out="$MYACCOUNT"
+    _out="${_out};X11"
+    _out="${_out};"
     _out="${_out};${_myPKGVERS_X11}"
     _out="${_out};${X11_MAGIC}"
     _out="${_out};${X11_STATE}"

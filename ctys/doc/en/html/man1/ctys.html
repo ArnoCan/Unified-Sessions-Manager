@@ -11,7 +11,7 @@ pre  { background-color:#efefef ;}
 </HEAD><BODY BGCOLOR="white" TEXT="black">
 <P ALIGN="center"><CENTER><H1>ctys</H1>
 <FONT SIZE="4">
-June, 2010
+July, 2010
 </FONT></CENTER>
 
 <P></P>
@@ -39,34 +39,64 @@ June, 2010
 </P>
 <P>
 The utility <B>ctys</B> is the core interface to be used within the UnifiedSessionsManager.
-<B>ctys</B> encapsulates the user interfaces of the whole set of supported hypervisors and native sessions into a common syntax with a single call interface.
+<B>ctys</B> encapsulates the user interfaces of the whole set of supported hypervisors and
+native sessions into a common syntax with a single call interface.
 </P>
 <P>
-The installation and configuration is descibed within the examples chapter of the manual.
+<H2>Basics</H2>
+</P>
+<P>
+<H3>Installation and Setup</H3>
+</P>
+<P>
+The installation and configuration is descibed within the HowTo manual and the specific 
+configuration guides.
 The basic installation should work almost from the box, once the prerequisites are present.
 The most valuable tool for verifying the setup of ctys is <B>ctys-plugins</B> which performs 
-a validation of local and remote installations with an comprehensive report.
-Further details are available in the man page as well as within the manual.
+a validation of local and remote installations and displays a detailed report.
 </P>
 <P>
-The most of preset default values could be changed by setting and
-exporting environment variables and editing the configuration files.
-These are installed by default within <B>$HOME/.ctys</B> directory tree.
-The sources are documented inline.
+<H3>Configuration</H3>
+The majority  of the preset default values could be changed by configuration files
+and environment variables.
+The configuration files are installed by default within <B>$HOME/.ctys</B> directory tree.
 </P>
 <P>
-The most important aspect for the unification of the interface is the common 
-namenbinding for addressing the user sessions and  the supported hypervisors and OS.
-The session in this case is a representation of the lifetime for the online-presence of 
-the peer-host.
+<H3>VMs and PMs - Sessions Namebinding</H3>
+The most important aspect for the introduction of a common interface is the 
+unique namenbinding for addressing the user sessions to physical machines, supported hypervisors
+and guest OSs.
+The session in this case is defined as a representation of the lifetime for the active state
+of the runtime entity.
 </P>
 <P>
 Each session could span multiple logins from multiple users, dependent from the individual setup.
-Thus the namebinding of the sessions and their related attributes becomes the most important 
+Thus the namebinding of the sessions and their related attributes becomes the most important
 feature for the management of the distributed user environments.
 </P>
 <P>
-Two basic access-approaches are provided:
+The specific actions required for the evaluation of the sessions namebinding are
+distinguished by their types:
+</P>
+<UL>
+<LI><B>HOSTs</B>: 
+HOSTs are pure dynamic sessions, without persistent data.
+Thus for the namebinding the calculation of dynamic values, or in case of present instances
+the mapping of values and instances is required.
+<P></P>
+<LI><B>VMs</B>:
+VMs are based on persistent configuration data. Thus stored data from configuration 
+files is evaluated.
+<P></P>
+<LI><B>PMs</B>:
+PMs are accessed by a two folded approach. First the external access to the box is performed
+by the addressing schema of the provided access protocol. Second, when configuration data of
+physical host and/or the performed guest OS is required, a single data set positioned at specific
+locations is evaluated.
+</UL>
+
+<P>
+Two basic access-approaches are provided for VMs:
 </P>
 <UL>
 <LI><B>scanning</B>: Scans for each call the filesystem for required configurations.
@@ -74,9 +104,10 @@ Two basic access-approaches are provided:
 </UL>
 
 <P>
-The scanning approach does not require additional preparation, just some basic setup.
-The caching approach is covered by the automated scan of a list of targets and the
-storage of their inventory data into a local cacheDB
+The scanning approach does not require additional preparation, 
+just some basic setup like the root-directory to start.
+The caching approach requires the previous scan of a list of targets and the
+storage of their resulting inventory data into a so called local cacheDB
 (<A HREF="../../images/addressResolution.png">Address-Resolution</A>)
 .
 </P>
@@ -84,8 +115,8 @@ storage of their inventory data into a local cacheDB
 The supported core utilities are:
 </P>
 <UL>
-<LI><B>ctys-vdbgen</B>
-<LI><B>ctys-vhost</B>
+<LI><B>ctys-vdbgen</B> - for automated scans
+<LI><B>ctys-vhost</B> - as a database front-end for the cacheDB
 </UL>
 
 <P>
@@ -93,11 +124,12 @@ These provide particularly the dynamic network related data for caching and offe
 an enhanced query interface.
 </P>
 <P>
+<H2>Option Groups</H2>
 The options are grouped into two sections:
 </P>
 <DL>
 <DT><B>ACTIONS</B></DT><DD>
-These are the options directly related to the supported plugins.
+These are options directly related to specific plugins.
 ACTIONS are suboptions to the <B>-a</B> option and are preset by the actual 
 loaded plugin controlled by <B>-t</B> and <B>-T</B> options.
 </DL>
@@ -105,7 +137,6 @@ loaded plugin controlled by <B>-t</B> and <B>-T</B> options.
 <DL>
 <DT><B>Generic Attributes</B></DT><DD>
 These are the options which are mostly generic within the whole set of utilities.
-<P></P>
 They influence the ACTIONS, but are related to the runtime environment.
 </DL>
 
@@ -145,7 +176,7 @@ static details about ENABLED VMs
 <P></P>
 <DT></DT><DD>
 <B>LIST</B>:
-dynamic information about running VMs
+dynamic information about active VMs
 <P></P>
 <DT></DT><DD>
 <B>SHOW</B>:
@@ -157,11 +188,13 @@ dynamic details about ENABLED VMs
 <P></P>
 <DT></DT><DD>
 <B>GETCLIENTPORT</B>
+<P></P>
+<br />
 </DL>
 
 <H3>CANCEL</H3>
 <PRE>
-  CANCEL=(&lt;machine-address&gt;)\{1\}|ALL
+  CANCEL=(&lt;machine-address&gt;){1}|ALL
     (
       [FORCE|STACK][,]
       [SELF][,]
@@ -201,55 +234,56 @@ Cancels stack by forward propagation of CANCEL request.
 If supported, a kill call is performed after a timeout.
 <P></P>
 When handling stacks of nested PMs and VMs, the application of CANCEL
-action on a lower level will naturally force contained instances to be
+action on a lower level will force contained instances to be
 terminated too.
-<P></P>
-Thus a behaviour has to be selected, whether a top-down soft shutdown
-has to be performed, or a "bottom-up" behaviour of instances, by killing the
+Thus the behaviour has to be pre-selected, whether a 'top-down' soft shutdown
+has to be performed, or a 'bottom-up' behaviour of instances, by killing the
 assigned level without recognition of contained instances.
 This might be appropriate e.g. in emergency cases.
 Two basic directions are defined:
 <P></P>
-<DT><B>FORCE</B></DT><DD>
+ <DL>
+ <DT><B>FORCE</B></DT><DD>
 As described above.
-<P></P>
-<DT><B>STACK</B></DT><DD>
+ <P></P>
+ <DT><B>STACK</B></DT><DD>
 Uses a chained approach for shutting down by an
 top-down behaviour. Therefore the VM-stack will be
 first walked up and marked by repetitive sub-calls
 with defined specific CANCEL suboptions.
-<P></P>
+ <P></P>
 Due to implementation specifics some remapping of inner states is
 performed.
 The mode of operation is controlled by following
 parameters. When not given, the default CANCEL mode is
 applied, which is a SHUTDOWN/STOP for servers and an
 UNIX-kill for client processes.
-</DL>
-
-<DL>
-<DT><B>INIT:&lt;init-state&gt;</B></DT><DD>
+ <P></P>
+  <DL>
+  <DT><B>INIT:&lt;init-state&gt;</B></DT><DD>
 Mapped to UNIX init.
-<P></P>
-<DT><B>PAUSE</B></DT><DD>
+  <P></P>
+  <DT><B>PAUSE</B></DT><DD>
 The VM will be paused immediately, remaining clients
 will be "UNIX-killed", not so if SERVER selected.
-<P></P>
-<DT><B>SUSPEND</B></DT><DD>
+  <P></P>
+  <DT><B>SUSPEND</B></DT><DD>
 The VM will be suspended immediately, remaining clients
 will be "UNIX-killed", not so if SERVER selected.
-<P></P>
-<DT><B>RESET</B></DT><DD>
+  <P></P>
+  <DT><B>RESET</B></DT><DD>
 A reset is performed on any instance immediately,
 remaining clients will be "UNIX-killed", not so if
 SERVER selected.
-<P></P>
-<DT><B>REBOOT</B></DT><DD>
+  <P></P>
+  <DT><B>REBOOT</B></DT><DD>
 Performs a "soft reset", where the instances will be
 given a timeout before forcing them to terminate.
-<P></P>
-<DT><B>POWEROFF[:&lt;timeoutBeforeKillVM&gt;]</B></DT><DD>
+  <P></P>
+  <DT><B>POWEROFF[:&lt;timeoutBeforeKillVM&gt;]</B></DT><DD>
 A multilevel-delayed SHUTDOWN of VMs is performed.
+  </DL>
+ </DL>
 </DL>
 
 <DL>
@@ -291,10 +325,8 @@ only difference is the state S4.
 <P></P>
 <DT><B>POWEROFF|S5[:&lt;timeoutBeforeKillVM&gt;])</B></DT><DD>
 POWEROFF or ACPI state S5, switches into offline
-mode, which is actually a stand-by mode. 
-<P></P>
-Within
-UnifiedSessionsManager the configuration of WoL is
+mode, which is actually a stand-by mode.
+Within UnifiedSessionsManager the configuration of WoL is
 pre-required in order to activate systems from state S5.
 <P></P>
 <DT><B>TIMEOUT:&lt;timeout-value&gt;</B></DT><DD>
@@ -305,6 +337,9 @@ levels.
 The user to be used for native access to the &lt;action-target&gt;.
 </DL>
 
+<P>
+<br />
+</P>
 <H3>CREATE</H3>
 <PRE>
   CREATE=&lt;machine-address&gt;\{1\}
@@ -1001,6 +1036,8 @@ before an eventually PING and/or SSHPING.
 <P></P>
 The effect is visible for the user when operating in SYNCHRONOUS
 mode only, else may have internal influence only.
+<P></P>
+<br />
 </DL>
 
 <H3>ENUMERATE</H3>
@@ -1010,6 +1047,7 @@ mode only, else may have internal influence only.
     (
       (
         (
+          [ACCELERATOR|ACCEL][,]
           [ARCH][,]
           [CATEGORY|CAT][,]
           [CONTEXTSTRING|CSTRG][,]
@@ -1017,15 +1055,18 @@ mode only, else may have internal influence only.
           [DIST][,]
           [DISTREL][,]
           [EXECLOCATION][,]
+          [EXEPATH|EXEP][,]
           [GATEWAY][,]
           [HWCAP][,]
           [HWREQ][,]
           [HYPERREL|HYREL][,]
+          [HYPERRELRUN|HRELRUN|HRELX|HRX][,]
           [IDS|ID][,]
-          [IFNAME][,]
+          [IFNAME|IF][,]
           [LABEL|L][,]
           [MAC|M][,]
           [NETMASK][,]
+          [NETNAME][,]
           [OS][,]
           [OSREL][,]
           [PLATFORM|PFORM][,]
@@ -1053,11 +1094,13 @@ mode only, else may have internal influence only.
         [TITLE|TITLEIDX|TITLEIDXASC][,]
         [MACHINE|MAXKEY][,]
       )
-      | (REC_GEN|REC):&lt;tab-args&gt;
+    )
+    [
+      (REC_GEN|REC):&lt;tab-args&gt;
       | (SPEC_GEN|SPEC):&lt;tab-args&gt;
       | (TAB_GEN|TAB):&lt;tab-args&gt;
       | (XML_GEN|XML):&lt;tab-args&gt;
-    )
+    ]
     [IP|DNS][,]
   
     [,conf-man.t2tVSTAT:
@@ -1103,6 +1146,9 @@ When "-X" option is set, the output is prepared as
 is true, when setting TERSE.
 The MACHINE keyword for full data set as a canonical record implies
 TERSE.
+</P>
+<P>
+<br />
 </P>
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
@@ -1182,9 +1228,13 @@ TERSE.
 </TR>
 </TABLE>
 
-<P></P>
+<P>
+<br />
+</P>
 <P>
 The following table depicts the complete set of fields for current data record.
+<br />
+<br />
 </P>
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
@@ -1363,20 +1413,20 @@ The following table depicts the complete set of fields for current data record.
 </TR>
 <TR>
 <TD>29</TD>
-<TD>RESERVED07</TD>
-<TD>For future use.</TD>
+<TD>HYPERRELRUN</TD>
+<TD>Release of present hypervisor.</TD>
 <TD>-</TD>
 </TR>
 <TR>
 <TD>30</TD>
-<TD>RESERVED08</TD>
-<TD>For future use.</TD>
+<TD>ACCELERATOR</TD>
+<TD>Present accelerator.</TD>
 <TD>-</TD>
 </TR>
 <TR>
 <TD>31</TD>
-<TD>RESERVED09</TD>
-<TD>For future use.</TD>
+<TD>EXEPATH</TD>
+<TD>Pathname for execution frontend.</TD>
 <TD>-</TD>
 </TR>
 <TR>
@@ -1461,6 +1511,10 @@ The following table depicts the complete set of fields for current data record.
 </TABLE>
 
 <P></P>
+<P>
+<br />
+<br />
+</P>
 <H3>GETCLIENTPORT</H3>
 <P>
 Returns the port for attaching the front end client
@@ -1489,6 +1543,10 @@ Which could be for example:
   "CLIENTPORT(VMW,host01.fantasy,linuxBox)=904"
 </PRE>
 <P></P>
+<P>
+<br />
+<br />
+</P>
 <H3>INFO</H3>
 <P>
 Displays miscellaneous static information for the given hosts.
@@ -1498,7 +1556,7 @@ Particularly the HW-Virtualization flags are shown.
 For now the Display is given as:
 </P>
 <PRE>
-  bash-3.1\$ ctys -a info -W delphi
+  bash-3.1$ ctys -a info -W delphi
   #############################
   Node:delphi.soho
   System      :Linux
@@ -1506,9 +1564,9 @@ For now the Display is given as:
   RELEASE     :2.6.21.6-delphi-005
   MACHINE     :i686
   KERNEL#CPU  :SMP-KERNEL
-  CPU-INFO    
+  CPU-INFO
   processor:0
-  vendor\_id           :GenuineIntel
+  vendor_id           :GenuineIntel
   cpu family          :6
   model               :11
   model name          :Intel(R) Pentium(R) III CPU ...
@@ -1525,12 +1583,12 @@ For now the Display is given as:
   cache size          :512 KB
   
   Flags assumed equal for all processors on same machine:
-  flags               
+  flags
   vmx(VT-x - Pacifica)    = 0
   svm(AMD-V - Vanderpool) = 0
   PAE                     = 1
   
-  MEM-INFO    
+  MEM-INFO
   MemTotal               :  4018 G
   SwapTotal              : 24579 G
   
@@ -1538,23 +1596,26 @@ For now the Display is given as:
   wmctrl      :wmctrl is on this machine not available
   
   ------------
-  ctys:       :01\_02\_003a10
+  ctys:       :01_02_003a10
   Plugings:   :   VNC
 </PRE>
 <P></P>
+<P>
+<br />
+<br />
+</P>
 <H3>LIST</H3>
 <PRE>
   LIST[=
     (
       (
         (
-          [ (TUNNEL) |(CLIENTS|C)|(SERVER|S)|(BOTH|B)][,]
-  
+          [TUNNEL | (CLIENTS|C) | (SERVER|S) | (BOTH|B)][,]
           [CPORT][,]
           [DISPLAY][,]
           [GROUP|GID][,]
           [ID][,]
-          [(JOBID|JID)][,]
+          [JOBID|JID][,]
           [LABEL][,]
           [MAC][,]
           [PID][,]
@@ -1565,15 +1626,23 @@ For now the Display is given as:
           [TYPE][,]
           [UUID][,]
           [USER|UID][,]
+          [IFNAME|IF][,]
+          [CONTEXTSTRG|CSTRG][,]
+          [EXECPATH|EXEP][,]
+          [HYPERRELRUN|HRELRUN|HRX][,]
+          [ACCELERATOR|ACCEL][,]
+          [ARCH][,]
         )
         [TITLE|TITLEIDX|TITLEIDXASC][,]
         [MACHINE|MAXKEY][,]
       )
-      | (REC_GEN|REC):&lt;tab-args&gt;
+    )
+    [
+      (REC_GEN|REC):&lt;tab-args&gt;
       | (SPEC_GEN|SPEC):&lt;tab-args&gt;
       | (TAB_GEN|TAB):&lt;tab-args&gt;
       | (XML_GEN|XML):&lt;tab-args&gt;
-    )
+    ][,]
     [IP|DNS][,]
     [,SORT[:[ALL|EACH][%UNIQUE][%&lt;sort-key&gt;]]][,]
     [PKG:&lt;pkg-list&gt;][,]
@@ -1593,7 +1662,7 @@ For changing the selection scope of listed users refer to "-s" option.
 <P>
 The LIST action is deeply influenced by the setting of the option "-b"
 concerning the performance, and the option "-C" concerning the way the output data is displayed.
-The basic influence on the display is described in "Parallel And dBackgroundOperations" 
+The basic influence on the display is described in "Parallel And Background Operations" 
 the perfomance repercussion is presented in "Performance Measures".
 </P>
 <P>
@@ -1606,104 +1675,169 @@ the assigned keyword.
 <P></P>
 The tables mode supports semi-fixed and generic tables.
 The tables are stored as macros and could be listed by call of <B>ctys-macros</B>.
-<DT></DT><DD>
-<B>semi-fixed tables</B>: 
-<P></P>
+</DL>
+
+ <UL>
+ <LI><B>semi-fixed tables</B>: 
 These tables have a fixed number of displayed columns with limited content variation, but fully
 resizable column-widths.
-<P></P>
+ <P></P>
 The most important view is the TAB_TCP, which shows the following columns:
-<P></P>
- <UL>
- <LI>TCP-Container: PM
- <LI>TCP-guest: (MAC|TCP|DNS)
- <LI>Variable:
- <LI>Label: label
- <LI>ID: ids|id
- <LI>Sesstype: (PM|CLI|X11|VNC|VMW|XEN|QEMU)
- <LI>C: (C|S)
- <LI>User: $USER
- <LI>Group: &lt;group&gt;
+ <P></P>
+ </UL>
+
+<TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
+<TR>
+<TH>Field-Name</TH>
+<TH>Content</TH>
+</TR>
+<TR>
+<TD>TCP-Container</TD>
+<TD>PM</TD>
+</TR>
+<TR>
+<TD>TCP-guest</TD>
+<TD>(MAC|TCP|DNS)</TD>
+</TR>
+<TR>
+<TD>Label</TD>
+<TD>&lt;label&gt;</TD>
+</TR>
+<TR>
+<TD>ID</TD>
+<TD>&lt;ids&gt;|&lt;id&gt;</TD>
+</TR>
+<TR>
+<TD>Sesstype</TD>
+<TD>(PM|CLI|X11|VNC|VMW|XEN|QEMU)</TD>
+</TR>
+<TR>
+<TD>C</TD>
+<TD>(C|S)</TD>
+</TR>
+<TR>
+<TD>User</TD>
+<TD>$USER</TD>
+</TR>
+<TR>
+<TD>Group</TD>
+<TD>&lt;group&gt;</TD>
+</TR>
+</TABLE>
+
+ <DL>
+ <DT>_</DT><DD>
  <P></P>
 The sizes could be defined by providing an integer
 width for each column seperated by "%". Contents
 will be truncated righthand when they extend the size
 of the column.
-```"TAB_TCP:7%%6%%3%%"
+<PRE>
+  "TAB_TCP:7%%6%%3%%"
+</PRE>
  <P></P>
 This defines the following sizes:
- <LI>TCP-Container(1): 7         (default=17)
- <LI>TCP-guest(7):     default   (default=17)
- <LI>Label(3):         6         (default=20)
- <LI>Sesstype(2):      default   (default=8)
- <LI>C(14):            3         (default=1)
- <LI>User(12):         default   (default=10)
- <LI>Group(13):        default   (default=10)
+<br />
+<br />
  <P></P>
- </UL>
-<DT></DT><DD>
-<B>generic tables</B>
+ </DL>
+
+<TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
+<TR>
+<TH>Field-Name(index)</TH>
+<TH>Size</TH>
+<TH>Default</TH>
+</TR>
+<TR>
+<TD>TCP-Container(1)</TD>
+<TD>7</TD>
+<TD ALIGN="center">17</TD>
+</TR>
+<TR>
+<TD>TCP-guest(7)</TD>
+<TD>default</TD>
+<TD ALIGN="center">17</TD>
+</TR>
+<TR>
+<TD>Label(3)</TD>
+<TD>6</TD>
+<TD ALIGN="center">20</TD>
+</TR>
+<TR>
+<TD>Sesstype(2)</TD>
+<TD>default</TD>
+<TD ALIGN="center">8</TD>
+</TR>
+<TR>
+<TD>C(14)</TD>
+<TD>3</TD>
+<TD ALIGN="center">1</TD>
+</TR>
+<TR>
+<TD>User(12)</TD>
+<TD>default</TD>
+<TD ALIGN="center">10</TD>
+</TR>
+<TR>
+<TD>Group(13)</TD>
+<TD>default</TD>
+<TD ALIGN="center">10</TD>
+</TR>
+</TABLE>
+
 <P></P>
-Generic tables are completely customizable.
-<P></P>
+<P>
+<br />
+</P>
+ <UL>
+ <LI><B>generic tables</B>
+ <P></P>
+Generic tables are fully customizable.
 Each table has to contain at least one mandatory
 column. The number, order, and repetition is free
 to be defined. But no semantics check or display
 format validation is performed on the results.
-MACRO files for storage and repetitive call are supported.
-<P></P>
+MACRO files are supported for storage and repetitive call.
+ <P></P>
 <PRE>
-  TAB_GEN:&lt;idx&gt;_&lt;colname&gt;_&lt;width&gt;[%&lt;idx&gt;_&lt;colname&gt;_&lt;width&gt;]\{0,n\}
+  TAB_GEN:&lt;idx&gt;_&lt;colname&gt;_&lt;width&gt;[%&lt;idx&gt;_&lt;colname&gt;_&lt;width&gt;]{0,n}
 </PRE>
-<P></P>
+ <P></P>
 The underscore "_" is here reserved as field
 seperator, thus could not be used within regular values.
 Enclosed empty fields are not allowed.
-<P></P>
+ <P></P>
 For each column the triple of data is required:
-<P></P>
- <UL>
- <LI><B>&lt;idx&gt;</B>
+ <P></P>
+  <UL>
+  <LI><B>&lt;idx&gt;</B>
 Canonical index of field to be
 displayed. The value could be evaluated
 by calling list with the "titleidx"
 option.
- <P></P>
- <LI><B>&lt;colname&gt;</B>
+  <P></P>
+  <LI><B>&lt;colname&gt;</B>
 The arbitrary name of the column to be displayed. 
 Following restrictions apply:
- <P></P>
-  <UL>
-  <LI>No spaces
-  <LI>Printable characters only
-  <LI>Size will be cut, when extends the column width.
   <P></P>
-  </UL>
- <LI><B>&lt;width&gt;</B>
+   <UL>
+   <LI>No spaces
+   <LI>Printable characters only
+   <LI>Size will be cut, when extends the column width.
+   <P></P>
+   </UL>
+  <LI><B>&lt;width&gt;</B>
 The width of the column, this excludes
 the border marker, which will has to be
 added for size calculations. each file
 has one additional marker, minus one
 from the total sum.
-The number of columns is "unlimited", has to fit the
-screen, of course.
- <P></P>
-  <OL>
-  <LI>"nonterse"
-Displays a listing, which partly "terse", but listed
-with some structure and ordering for different targets.
+The number of columns is 'unlimited' and could contain repetitions.
+<br />
+<br />
   <P></P>
-  <LI>"terse"
-Displays a listing, which is a neatless sum of selected
-fields for each record on one line, with fileds
-seperated by a semicolon ";". 
-This format could be imported to various office tools unchanged. 
-When the option "MACHINE" is provided additionally, the
-full set of information is listed. Non-present values
-are just displayed as empty fields.
-  </OL>
+  </UL>
  </UL>
-</DL>
 
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
@@ -1808,6 +1942,48 @@ are just displayed as empty fields.
 <TD>JobID</TD>
 <TD>-</TD>
 </TR>
+<TR>
+<TD ALIGN="center">16</TD>
+<TD>IFNAME</TD>
+<TD>IFNAME</TD>
+<TD>-</TD>
+</TR>
+<TR>
+<TD ALIGN="center">17</TD>
+<TD>RESERVED</TD>
+<TD>RESERVED1</TD>
+<TD>-</TD>
+</TR>
+<TR>
+<TD ALIGN="center">18</TD>
+<TD>CONTEXTSTRG</TD>
+<TD>CONTEXTSTRG</TD>
+<TD>-</TD>
+</TR>
+<TR>
+<TD ALIGN="center">19</TD>
+<TD>EXECPATH</TD>
+<TD>EXECPATH</TD>
+<TD>-</TD>
+</TR>
+<TR>
+<TD ALIGN="center">20</TD>
+<TD>HYPERRELRUN</TD>
+<TD>HYPERRELRUN</TD>
+<TD>-</TD>
+</TR>
+<TR>
+<TD ALIGN="center">21</TD>
+<TD>ACCELERATOR</TD>
+<TD>ACCELERATOR</TD>
+<TD>-</TD>
+</TR>
+<TR>
+<TD ALIGN="center">22</TD>
+<TD>ARCH</TD>
+<TD>ARCH</TD>
+<TD>-</TD>
+</TR>
 </TABLE>
 
 <P></P>
@@ -1817,7 +1993,9 @@ are just displayed as empty fields.
 </TR>
 </TABLE>
 
-<P></P>
+<P>
+<br />
+</P>
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
 <TH>Processing-Key</TH>
@@ -1876,17 +2054,41 @@ are just displayed as empty fields.
 </TR>
 </TABLE>
 
+<P>
+<br />
+</P>
+<DL>
+<DT><B>GENERIC RECORDS</B></DT><DD>
 <P></P>
-<OL>
-<LI><B>generic records</B>
 Generic recors are similar to generic tables, just present a line-oriented format instead.
-The formats are SPEC, REC, and XML.
+Current supported formats are SPEC, REC, and XML.
 <P></P>
-=== SHOW ===
+ <UL>
+ <LI><B>SPEC</B> - Useful format for exploration and validation of specifications.
+ <LI><B>REC</B> - A proprietary record format.
+ <LI><B>XML</B> - XML based record format.
+ </UL>
+</DL>
+
+<DL>
+<DT><B>Raw-Output - TERSE/MACHINE</B></DT><DD>
 <P></P>
+The <B>TERSE</B> mode displays a specified subset, whereas the <B>MACHINE</B> mode 
+displays the complete set in a semicolon seperated raw format.
+This is particularly forseen either to be postprocessed or imported to a
+database or spreadsheet application.
+The <B>TITLE</B> and <B>TITLEIDX</B> keywords additionally display the fields contained in 
+current record format.
+<P></P>
+<br />
+<br />
+</DL>
+
+<H3>SHOW</H3>
+<P>
 Displays dynamic information for the given hosts. 
 For now the Display is given as:
-<P></P>
+</P>
 <PRE>
   bash-3.1\$ ctys -a show -W delphi
   #############################
@@ -1933,8 +2135,11 @@ For now the Display is given as:
   HEALTH
   Total ALARMs=0
 </PRE>
-</OL>
-
+<P></P>
+<P>
+<br />
+<br />
+</P>
 <H2>Generic Options</H2>
 <DL>
 <DT><B>-A &lt;ambiguity-mode&gt;</B></DT><DD>
@@ -3088,5 +3293,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.006/doc-tmp/BASE/en/html/man1/ctys.html -->
+<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.007/doc-tmp/BASE/en/html/man1/ctys.html -->
 </BODY></HTML>

@@ -130,7 +130,7 @@ function getVersionStrgQEMUALL () {
     if [ -z "${1}" ];then
 	return
     fi
-    local _ac=$(getACCELLERATOR_QEMU ${1})
+    local _ac=$(getACCELERATOR_QEMU ${1})
     case $_ac in
 	KVM)   getVersionStrgQEMUKVM ${1};;
 	QEMU)  getVersionStrgQEMU    ${1};;
@@ -316,7 +316,7 @@ function callOptionsQEMUcacheCheck () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_QEMU
+#  getACCELERATOR_QEMU
 #TYPE:
 #  bash-function
 #
@@ -346,7 +346,7 @@ function callOptionsQEMUcacheCheck () {
 #      No specific accelerator, this value is due to SW-design.
 #
 #FUNCEND###############################################################
-function getACCELLERATOR_QEMU () {
+function getACCELERATOR_QEMU () {
     if [ -z "${1}" ];then
 	return
     fi
@@ -388,7 +388,7 @@ function getHYPERRELRUN_QEMU () {
     if [ -z "${1}" ];then
 	return
     fi
-    case $(getACCELLERATOR_QEMU $1) in
+    case $(getACCELERATOR_QEMU $1) in
 	KVM)
 	    getVersionStrgQEMUKVM $1
 	    ;;
@@ -469,7 +469,7 @@ function getHYPERRELRUN_QEMU4CONF () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_QEMU4CONF
+#  getACCELERATOR_QEMU4CONF
 #TYPE:
 #  bash-function
 #
@@ -487,7 +487,7 @@ function getHYPERRELRUN_QEMU4CONF () {
 #   1: NOK
 #  VALUES:
 #FUNCEND###############################################################
-function getACCELLERATOR_QEMU4CONF () {
+function getACCELERATOR_QEMU4CONF () {
     if [ -z "${1}" ];then
 	return
     fi
@@ -495,7 +495,7 @@ function getACCELLERATOR_QEMU4CONF () {
     if [ -z "$myStarter" ];then
 	return
     fi
-    getACCELLERATOR_QEMU $myStarter
+    getACCELERATOR_QEMU $myStarter
 }
 
 

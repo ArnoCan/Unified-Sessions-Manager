@@ -11,8 +11,10 @@ ctys-beamer
 
 
 
+   [-b <background-options>]
    [--ctys-predetach-holdtime=<timeout-secs>]
-   [--display-only]   [-d <debug-options>]
+   [-d <debug-options>]
+   [--display-only]   
    [--getfreeport}
    [-h]
    [-H <help-options>]
@@ -23,8 +25,8 @@ ctys-beamer
        )
    ]
    [-R <remote-host-list>]
-   [--ssh-hop-holdtime]
-   [--ssh-tunnel-holdtime]
+   [--ssh-hop-holdtime=<holdtime>]
+   [--ssh-tunnel-holdtime=<holdtime>]
    [-V]
    [--x11]
    [-X]
@@ -43,6 +45,12 @@ ctys-beamer
 
    <physical-access-point>:=<machine-address>
    <virtual-access-point>:=<machine-address>
+
+
+   Evaluated options of bypassed standard set:
+     <bypassed-ctys-options>:=[
+       -b (0|1|2|3)[,(0|1|2|3)]
+     ]
 
 
 

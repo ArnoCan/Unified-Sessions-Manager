@@ -45,7 +45,7 @@
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_PM
+#  getACCELERATOR_PM
 #
 #TYPE:
 #  bash-function
@@ -62,7 +62,7 @@
 #  VALUES:
 #
 #FUNCEND###############################################################
-function getACCELLERATOR_PM () {
+function getACCELERATOR_PM () {
     case ${MYOS} in
 	Linux)
 	    cat /proc/cpuinfo|\

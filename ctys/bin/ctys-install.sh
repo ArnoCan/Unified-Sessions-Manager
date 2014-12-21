@@ -6,7 +6,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_009
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -52,7 +52,7 @@ LICENCE=GPL3
 #  sh-script
 #
 #VERSION:
-VERSION=01_10_009
+VERSION=01_11_007
 #DESCRIPTION:
 #  Install script for ctys. Generic shell script for bootstrap, 
 #  should work on almost any bourne-like shell.
@@ -69,6 +69,12 @@ VERSION=01_10_009
 #  VALUES:
 #
 #FUNCEND###############################################################
+
+#
+#Deactivate CTYS_INI check
+#
+export CTYS_INSTALLER=1;
+
 
 MYOS=`dirname $0`
 MYOS=`${MYOS}/getCurOS.sh`

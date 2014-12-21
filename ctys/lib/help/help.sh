@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_002
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -18,7 +18,7 @@
 
 
 _myLIBNAME_help="${BASH_SOURCE}"
-_myLIBVERS_help="01.11.002"
+_myLIBVERS_help="01.11.007"
 libManInfoAdd "${_myLIBNAME_help}" "${_myLIBVERS_help}"
 
 export _myLIBBASE_help="`dirname ${_myLIBNAME_help}`"
@@ -346,10 +346,10 @@ function printHelpEx () {
                       _x=$(find ${_xdir} -type f \( -name "${_x}.html" -o -name "${_x}.png" \) -print|awk '{if(x!=1){print;}x=1;}')
 		      if [ -z "$_x" ];then
 			  _x=$_x0
-			  _x=$(find ${_xdir} -type f -name '*'"${_x}"'.html' -o -name '*'"${_x}"'.png' -print|awk '{if(x!=1){print;}x=1;}')
+			  _x=$(find ${_xdir} -type f \( -name '*'"${_x}"'.html' -o -name '*'"${_x}"'.png' \) -print|awk '{if(x!=1){print;}x=1;}')
 			  if [ -z "${_x}" ];then
 			      _x=$_x0
-			      _x=$(find ${_xdir} -type f -name '*'"${_x}"'*.html' -o -name '*'"${_x}"'.png' -print|awk '{if(x!=1){print;}x=1;}')
+			      _x=$(find ${_xdir} -type f \( -name '*'"${_x0}"'*.html' -o -name '*'"${_x0}"'.png' \) -print|awk '{if(x!=1){print;}x=1;}')
 			  fi
 		      fi
 		      [ -n "${_x}" ]&&break;

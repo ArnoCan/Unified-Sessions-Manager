@@ -76,7 +76,7 @@ F_RESERVED1 = 17_res1_4
 F_CONTEXTSTRG = 18_context_20
 F_EXECPATH    = 19_exepath_20
 F_HYPERRELRUN = 20_hyprel_10
-F_ACCELLERATOR = 21_accel_5
+F_ACCELERATOR = 21_accel_5
 F_ARCH        = 22_arch_5
 ##########################################################
 #
@@ -294,7 +294,7 @@ vid=-o macro:TAB_ENUMLIST_ID
 #
 # LABEL STYPE  JOBID PID UID GID
 #
-TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_ACCELLERATOR%%macro:F_CST%%macro:F_JOBID%%macro:F_PID%%macro:F_UID%%macro:F_GID
+TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_ACCELERATOR%%macro:F_CST%%macro:F_JOBID%%macro:F_PID%%macro:F_UID%%macro:F_GID
 
 jobs=macro:TAB_LST_JOBS
 listjobs=-a list=macro:TAB_LST_JOBS

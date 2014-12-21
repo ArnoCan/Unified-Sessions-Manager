@@ -9,7 +9,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -60,7 +60,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_005
+VERSION=01_11_007
 #DESCRIPTION:
 #  See manual.
 #
@@ -400,13 +400,38 @@ while [ -n "$1" ];do
 	    ;;
 
 	'-m')
-            if [ -z "${2//[0-9]/}" ];then
-		shift;_listmembers=${1};
-	    else
-		_listmembers=3;
-	    fi
+	    case "$2" in
+		[1-8]|7u|8u)
+		    shift;_listmembers=${1};
+		    ;;
+		'')
+		    _listmembers=3;
+		    ;;
+		*)
+		    shift;_listmembers=3;
+		    ;;
+	    esac
             ;;
 
+	'-e')
+	    if [ -z "${2}" -o "${2#-}" != "${2}" ];then
+		_edit=${CTYS_GROUPS_PATH//:/ }
+	    else
+		shift;
+		for i in ${1//%/ };do
+		    if [ -d "$i" -o -f "$i" ];then
+			_edit="$_edit $i "
+		    else
+			_edit="$_edit $(matchFirstFile $i . ${CTYS_GROUPS_PATH})"
+		    fi
+		done
+	    fi
+	    if [ -z "${_edit}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Edit requires either a list or CTYS_GROUPS_PATH"
+		gotoHell ${ABORT}
+	    fi
+            ;;
 
 
 	'-l')_listdefs=1;;
@@ -416,7 +441,6 @@ while [ -n "$1" ];do
 		ABORT=1;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Required command \"tree\" not available."
 		gotoHell ${ABORT}
-
 	    fi
 	    ;;
 
@@ -509,7 +533,7 @@ if [ "$_dirtree" == "1" -o "$_filetree" == "1" ];then
     exit $?
 fi
 
-if [ -z "$_listcached" -a -z "$_listmembers" ];then
+if [ -z "$_listcached" -a -z "$_listmembers" -a -z "$_edit" ];then
     echo "----------------------------------------"
     echo "Groups Sources:(<size-kbytes> <#records>/<#includes> <internal> <group-filename>)
 "
@@ -538,9 +562,15 @@ if [ -n "$_listcached" ];then
 fi
 
 if [ -n "$_listmembers" ];then
-    echo "----------------------------------------"
-    echo "Groups Sources:"
-    echo "----------------------------------------"
+    case $_listmembers in
+	[1-6])
+	    if [ -z "$C_TERSE" ];then
+		echo "----------------------------------------"
+		echo "Groups Sources:"
+		echo "----------------------------------------"
+	    fi
+	    ;;
+    esac
 
    if [ -n "${argLst}" ];then
 	argLst=":${argLst}"
@@ -549,19 +579,39 @@ if [ -n "$_listmembers" ];then
     fi
     case $_listmembers in
 	1)
-	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -S membersgroup${argLst}
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup${argLst}
 	    ;;
 	2)
-	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -S membersgroup2${argLst}
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup2${argLst}
 	    ;;
 	3)
 	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -S membersgroup3${argLst}
 	    ;;
 	4)
-	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -S membersgroup4${argLst}
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup4${argLst}
 	    ;;
 	5)
-	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -S membersgroup5${argLst}
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup5${argLst}
+	    ;;
+	6)
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup6${argLst}
+	    ;;
+	7)
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup6${argLst}
+	    ;;
+	7u)
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -X -S membersgroup6${argLst}|\
+            awk '{for(x=1;x<=NF;x++){print $x;}}'|sort -u|\
+            awk 'BEGIN{x="";}{x=x" "$0;}END{printf("%s",x);}'
+	    ;;
+	8)
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -X -S membersgroup6${argLst}|\
+            awk 'BEGIN{out="";}{for(x=1;x<=NF;x++){gsub("[^ @]*@","",$x);out=out" "$x;}}END{printf("%s",out);}'
+	    ;;
+	8u)
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -X -S membersgroup6${argLst}|\
+            awk '{for(x=1;x<=NF;x++){gsub("[^ @]*@","",$x);print $x;}}'|sort -u|\
+            awk 'BEGIN{x="";}{x=x" "$0;}END{printf("%s",x);}'
 	    ;;
 	*)
 	    printERR $LINENO $BASH_SOURCE 1 "Unknown value:${_listmembers}"
@@ -570,6 +620,21 @@ if [ -n "$_listmembers" ];then
     esac
 
     exit $?
+fi
+
+
+
+if [ -n "$_edit" ];then
+    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`gwhich emacs`
+    if [  -z "$X11EMACXEXE" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE $ABORT "Cannot evaluate Emacs for edit."
+	exit $?
+
+    fi
+    [ -z "${_edit}" ]&&_edit=" ."
+    $X11EMACXEXE ${_edit}&
 fi
 
 

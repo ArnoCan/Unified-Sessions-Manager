@@ -133,7 +133,7 @@ function listProcesses () {
 #           SERVER|CLIENTS|BOTH,
 #           NONE,ALL,TERSE
 #           LABEL,HOST,ID,PID,USER,GROUP,TYPE,UUID,SITE,IP,MAC,TCP,CPORT,SPORT,DISPLAY,
-#           HYPERRELRUN,ACCELLERATOR,ARCH
+#           HYPERRELRUN,ACCELERATOR,ARCH
 #
 #OUTPUT:
 #  RETURN:
@@ -386,7 +386,7 @@ function listMySessions () {
  	  MAC)        _MAC=1;;
  	  TCP)        _tcp=1;;
  	  DNS)        _dns=2;;
-	  IFNAME)     _ifn=1;;
+	  IFNAME|IF)  _ifn=1;;
 
 	  PID)        _P=1;;
 	  JOBID|JID)  _jid=1;;
@@ -403,7 +403,7 @@ function listMySessions () {
 	  ARCH)       _arch=1;;
           HYPERRELRUN|HRELRUN|HRELX|HRX)
                       _hrx=1;;
-          ACCELLERATOR|ACCEL)         
+          ACCELERATOR|ACCEL)         
                        _acc=1;;
 
           CONTEXTSTRG|CSTRG)         
@@ -770,7 +770,7 @@ function listCheckParam () {
 		EXEP|EXEPATH)_argsX1="${_argsX1},${KEY}";;
 		IFNAME)_argsX1="${_argsX1},${KEY}";;
 		HYPERRELRUN|HRELRUN|HRELX|HRX)_argsX1="${_argsX1},${KEY}";;
-		ACCELLERATOR|ACCEL)_argsX1="${_argsX1},${KEY}";;
+		ACCELERATOR|ACCEL)_argsX1="${_argsX1},${KEY}";;
 		CONTEXTSTRG|CSTRG)_argsX1="${_argsX1},${KEY}";;
                 ID|PATHNAME|PNAME|P)_argsX1="${_argsX1},${KEY}";;
                 UUID|LABEL|TYPE|ST|STYPE|HOST|PM|PID|USER|GROUP)_argsX1="${_argsX1},${KEY}";;

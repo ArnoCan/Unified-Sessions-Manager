@@ -1182,7 +1182,7 @@ function getValues () {
 	    printOut "${_prefix1}""  XEN:  'PARA' or 'HVM'"
 	    echo
 	    if [ -z "${ACCELERATOR}" ];then
-		ACCELERATORinfo=$(getACCELLERATOR_XEN)
+		ACCELERATORinfo=$(getACCELERATOR_XEN)
 	    else
 		ACCELERATORinfo=${ACCELERATOR}
 
@@ -1219,7 +1219,7 @@ function getValues () {
 	    echo
 
 	    if [ -z "${ACCELERATOR}" ];then
-		ACCELERATORinfo=$(getACCELLERATOR_QEMU $QEMU)
+		ACCELERATORinfo=$(getACCELERATOR_QEMU $QEMU)
 	    else
 		ACCELERATORinfo=${ACCELERATOR}
 
@@ -1772,7 +1772,7 @@ function displaySystemValues () {
 	    XEN_HYPERREL=$(getVersionStrgXEN)
 	    echo "${_prefix1}""HYPERREL-XEN                   = ${XEN_HYPERREL}"
 	    if [ -z "${ACCELERATOR}" ];then
-		ACCELERATORinfo=$(getACCELLERATOR_XEN)
+		ACCELERATORinfo=$(getACCELERATOR_XEN)
 	    else
 		ACCELERATORinfo=${ACCELERATOR}           
 	    fi
@@ -1786,7 +1786,7 @@ function displaySystemValues () {
 	    echo "${_prefix1}""MAGICID                        = ${QEMUBASE_MAGICID}"
 	    QEMUBASE_HYPERREL=$(getVersionStrgQEMUALL ${QEMUBASE})
 	    echo "${_prefix1}""HYPERREL-QEMU                  = ${QEMUBASE_HYPERREL}"
-	    QEMUBASE_ACCELERATOR=$(getACCELLERATOR_QEMU ${QEMUBASE})
+	    QEMUBASE_ACCELERATOR=$(getACCELERATOR_QEMU ${QEMUBASE})
 	    echo "${_prefix1}""HYPERREL-QEMU-ACCLERATOR       = ${QEMUBASE_ACCELERATOR}"
 
 	    echo
@@ -1795,7 +1795,7 @@ function displaySystemValues () {
 	    echo "${_prefix1}""MAGICID                        = ${QEMUKVM_MAGICID}"
 	    QEMUKVM_HYPERREL=$(getVersionStrgQEMUALL ${QEMUKVM})
 	    echo "${_prefix1}""HYPERREL-KVM                   = ${QEMUKVM_HYPERREL}"
-	    QEMUKVM_ACCELERATOR=$(getACCELLERATOR_QEMU ${QEMUKVM})
+	    QEMUKVM_ACCELERATOR=$(getACCELERATOR_QEMU ${QEMUKVM})
 	    echo "${_prefix1}""HYPERREL-KVM-ACCLERATOR        = ${QEMUKVM_ACCELERATOR}"
 	    ;;
     esac
@@ -2062,7 +2062,7 @@ function displayValues () {
 	    esac
 	    case ${DIST} in
 		debian)
-		    case ${ACCELLERATOR} in
+		    case ${ACCELERATOR} in
 			PARA)
 			    echo 
 			    echo "${_prefix1}""  DOMU_KERNEL(kernel)          = $DOMU_KERNEL"
@@ -2546,13 +2546,17 @@ function createData () {
 	Ubuntu)
 	    case ${C_SESSIONTYPE} in
 		XEN)
-		    echo
-		    echo
-		    echo  -e "${_prefix0}""Installation-Utilities:"
-		    echo -n -e "${_prefix1}""debootstrap-wrapper("
-		    setFontAttrib FBLUE "*";
-		    echo -n -e ")= "
-		    setFontAttrib BOLD "${_myconf%.conf}-${ACCELERATOR}-Ubuntu-9.sh"
+		    case $ACCELERATOR in
+			PARA)
+			    echo
+			    echo
+			    echo  -e "${_prefix0}""Installation-Utilities:"
+			    echo -n -e "${_prefix1}""debootstrap-wrapper("
+			    setFontAttrib FBLUE "*";
+			    echo -n -e ")= "
+			    setFontAttrib BOLD "${_myconf%.conf}-${ACCELERATOR}-Ubuntu-9.sh"
+			    ;;
+		    esac
 		    ;;
 	    esac
 	    ;;
@@ -2601,7 +2605,7 @@ function createData () {
     fi
     exchangeMARKER ${VMSTATE:-ACTIVE} ${MYCONFPATH}/ctys-createConfVM.d/template.${C_SESSIONTYPE}.ctys >${_myconf%.conf}.ctys
     if [ -n "${EXPERT_MODE}" ];then
-0	echo -n -e "   ..."
+	echo -n -e "   ..."
 	setFontAttrib FGREEN "done"
 	echo
 	echo
@@ -2778,7 +2782,11 @@ function createData () {
 			setFontAttrib FBLUE "Create:"
 			echo "${_myconf%.conf}-Ubuntu-9.sh"
 		    fi
-		    exchangeMARKER IGNORE ${MYCONFPATH}/ctys-createConfVM.d/template.${ACCELERATOR}.${C_SESSIONTYPE}.ubuntu-9.sh >${_myconf%.conf}-${ACCELERATOR}-Ubuntu-9.sh
+		    case $ACCELERATOR in
+			PARA)
+			    exchangeMARKER IGNORE ${MYCONFPATH}/ctys-createConfVM.d/template.${ACCELERATOR}.${C_SESSIONTYPE}.ubuntu-9.sh >${_myconf%.conf}-${ACCELERATOR}-Ubuntu-9.sh
+			    ;;
+		    esac
 		    if [ -n "${EXPERT_MODE}" ];then
 			echo -n -e "   ..."
 			setFontAttrib FGREEN "done"
@@ -3109,6 +3117,7 @@ function fListEnvVarOptions () {
     local FSTRG="%s:%s\n" 
 
     function printIt ()  {
+	[  -z "$2" ]&&return
 	local _col=$1;shift
 	_lval=$(printf $LSTRG "$1")
 	_lval=$(setFontAttrib $_col "$_lval")
@@ -3193,11 +3202,11 @@ function fListEnvVarOptions () {
     printIt FGREEN ARCH "${ARCH:-$(getCurArch.sh) (h)}"
 
     case ${C_SESSIONTYPE} in
-	XEN)_hvar="$(getACCELLERATOR_XEN)"
+	XEN)_hvar="$(getACCELERATOR_XEN)"
 	    _hvar=${_hvar// /}
 	    _hvar=${_hvar:-PARA}
 	    ;;
-	QEMU)_hvar="$(getACCELLERATOR_QEMU)"
+	QEMU)_hvar="$(getACCELERATOR_QEMU)"
 	    _hvar=${_hvar:-QEMU}
 	    ;;
 	*)_hvar=;;
@@ -3356,11 +3365,11 @@ function fListEnvVarOptions () {
 				PARA)
 				    echo
 				    DOMU_KERNEL=${DOMU_KERNEL:-$DEFAULT_DOMU_KERNEL};
-				    printIt FGREEN DOMU_MODULESDIR
+				    printIt FGREEN DOMU_KERNEL
 				    DOMU_MODULESDIR=${DOMU_MODULESDIR:-$DEFAULT_DOMU_MODULESDIR};
-				    printIt FGREEN DOMU_INITRD
+				    printIt FGREEN DOMU_MODULESDIR
 				    DOMU_INITRD=${DOMU_INITRD:-$DEFAULT_DOMU_INITRD};
-				    printIt FGREEN 
+				    printIt FGREEN DOMU_INITRD
 				    DOMU_EXTRA=${DOMU_EXTRA:-$DEFAULT_DOMU_EXTRA};
 				    printIt FGREEN DOMU_EXTRA
 				    DOMU_ROOT=${DOMU_ROOT:-$DEFAULT_DOMU_ROOT};

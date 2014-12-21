@@ -122,7 +122,9 @@ function infoVMW4Action () {
 #FUNCEND###############################################################
 function infoVMW4MACHINE () {
     local _out=;
-    _out="VMW"
+    _out="$MYACCOUNT"
+    _out="${_out};VMW"
+    _out="${_out};$VMW_ACCELERATOR"
     _out="${_out};${_myPKGVERS_VMW}"
     _out="${_out};${VMW_MAGIC}"
     _out="${_out};${VMW_STATE}"

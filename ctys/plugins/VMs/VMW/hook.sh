@@ -117,6 +117,17 @@ function serverRequireVMW () {
     if [ -n "${_CS_SPLIT}" ];then
         #check for consoles, gwhich are one decisive for component location
 	local _myConsole=;
+
+	case $VMW_MAGIC in
+	    VMW_S20*)
+		_myConsole=${CTYS_VMW2_DEFAULTCONTYPE:-VMWRC}
+		;;
+	    *)
+		_myConsole=VMW;
+		;;
+	esac
+
+	[ "${*}" != "${*//:[vV][mM][wW][rR][cC]}" ]&&_myConsole=VMWRC
 	[ "${*}" != "${*//:[vV][mM][wW]}" ]&&_myConsole=VMW
 	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
 
@@ -212,8 +223,18 @@ function clientRequireVMW () {
     if [ -n "${_CS_SPLIT}" ];then
         #check for consoles, gwhich are one decisive for component location
 	local _myConsole=;
+	case $VMW_MAGIC in
+	    VMW_S20*)
+		_myConsole=${CTYS_VMW2_DEFAULTCONTYPE:-VMWRC}
+		;;
+	    *)
+		_myConsole=VMW;
+		;;
+	esac
+
 	[ "${*}" != "${*//:[vV][mM][wW]}" ]&&_myConsole=VMW
 	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
+	[ "${*}" != "${*//:[vV][mM][wW][rR][cC]}" ]&&_myConsole=VMWRC
 
 	case $_A in 
  	    CONNECT)
@@ -221,8 +242,11 @@ function clientRequireVMW () {
 		    VMWRC)
 			case $VMW_MAGIC in
 			    VMW_P[2]*)_res=;_ret=1;;
-			    VMW_S[2]*)_res=${*};_ret=0;;
+			    VMW_S[2]*)_res=${*};_ret=1;;
 			    VMW_WS[7]*)_res=${*};_ret=0;;
+
+#4TEST
+			    VMW_RC)_res=${*};_ret=0;;
                         esac
 			;;
 		    VMW)
@@ -248,6 +272,9 @@ function clientRequireVMW () {
 			    VMW_P[2]*)_res=;_ret=1;;
 			    VMW_S[2]*)_res=${*};_ret=0;;
 			    VMW_WS[7]*)_res=${*};_ret=0;;
+
+#4TEST
+			    VMW_RC)_res=${*};_ret=0;;
                         esac
 			;;
 		    VMW)
@@ -350,7 +377,6 @@ function setVersionVMW () {
 	    _verstrg=;
 	fi
     fi
-
 
     if [ -z "${_verstrg}" ];then
 	ABORT=2
@@ -484,12 +510,16 @@ function setVersionVMW () {
 		. ${MYLIBPATH}/lib/libVMWserver2.sh
 	    else
 		#reminder: VMW_STATE=RELAY
-		VMW_STATE=DISABLED
+#4TEST
+#		VMW_STATE=DISABLED
+		VMW_STATE=ENABLED
+
 		printWNG 2 $LINENO $BASH_SOURCE 0 "'Remote Console' plugin is present without Server installation."
 		printWNG 2 $LINENO $BASH_SOURCE 0 "For now console is supported in DISPLAYFORWARDING only."
 
 		#temporary - replace with client-only!
-		VMW_MAGIC=VMW_GENERIC;
+#4TEST		VMW_MAGIC=VMW_GENERIC;
+		VMW_MAGIC=VMW_RC;
 	    fi
 	    ;;
 

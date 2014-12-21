@@ -33,6 +33,8 @@ June, 2010
    [-h]
    [-H &lt;help-options&gt;]
    [-l &lt;remote-user&gt;]
+   [--quick-list]
+   [--quick-tab]
    [-t &lt;plugin-type&gt;]
    [-T &lt;plugin-preload-typelist&gt;]
    [-V]
@@ -184,8 +186,157 @@ For additional help refer to the documents or type <B>ctys -H help</B>.
 
 <DL>
 <DT><B>-l &lt;remote-user&gt;</B></DT><DD>
-Refer to "ctys" generic options for additional information.
+The remote user.
 </DL>
+
+<DL>
+<DT><B>--quick-list</B></DT><DD>
+Displays a short list of overall states for selected plugins on each target.
+<P></P>
+<PRE>
+  
+  ctys-plugins -E -T all --quick-list localhost
+  
+</PRE>
+<P></P>
+<PRE>
+  Hostname    Plugin   Accelerator  Version          MAGIC-ID     State     
+  ------------------------------------------------------------------------------
+  acue@ws2    CLI                   01.06.001a09     CLIBASH      ENABLED   
+  acue@ws2    RDP                   01.11.007alpha   RDPRD        ENABLED   
+  acue@ws2    VNC                   01.10.013        VNCR4        ENABLED   
+  acue@ws2    X11                   01.06.001a09     X11          ENABLED   
+  acue@ws2    QEMU     QEMU         01.10.013        QEMU_091     DISABLED  
+  acue@ws2    VBOX                  01.11.006alpha   NOLOC        DISABLED  
+  acue@ws2    VMW                   01.11.005        VMW_GENERIC  DISABLED  
+  acue@ws2    XEN                   01.10.013        DISABLED     DISABLED  
+  acue@ws2    PM       VMX          01.10.008        PM_Linux     ENABLED   
+</PRE>
+</DL>
+
+<DL>
+<DT><B>--quick-tab</B></DT><DD>
+Displays a short table  of overall states for selected plugins.
+<P></P>
+The following call contains the 'ctys-groups' call for stripping off
+context arguments, which in some cases are valid, thus could not
+be dropped in general.
+When this is not done, some might be detected as valid and lead to execution.
+In future releases a new scanner and parser are foreseen to be provided, 
+which will clear this specific.
+</DL>
+
+<PRE>
+  
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all)
+  
+</PRE>
+<P></P>
+<P>
+For limitation of error messages and some ssh info the error channel should be redirected.
+</P>
+<PRE>
+  
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all) 2&gt;/dev/null
+  
+</PRE>
+<P>
+This results to the following list, where the output order may vary call-by-call
+due to parallel execution.
+</P>
+<PRE>
+  
+  Hostname              | PM     | CLI  X11  VNC  RDP  | KVM    QEMU   VBOX   VMW    XEN 
+  ----------------------+--------+---------------------+---------------------------------
+  root@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
+  root@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
+  root@hydra.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
+  root@olymp.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@app1.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@app2.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@lab04            | VMX    | x    x    x    x    | -      -      -      W7     -   
+  acue@lab04            | VMX    | x    x    x    x    | -      QEMU   -      W7     -   
+  vadmin@delphi.soho    | VMX    | x    x    x    x    | -      -      -      S1     -   
+  acue@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
+  acue@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
+  acue@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
+  root@lab03            | PAE    | x    x    x    x    | -      -      -      -      HVM 
+  root@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      PARA
+  5000@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      -   
+  acue@lab03            | PAE    | x    x    x    x    | -      -      -      -      -   
+  acue@app1.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  acue@app2.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  
+</PRE>
+<P></P>
+<P>
+Where the fields have the semantics as given by following list, the values are forseen to be
+expanded for more details:
+</P>
+ <OL>
+ <LI>PM: Type of CPU support
+  <UL>
+  <LI>VMX: Intel VT-X
+  <LI>SVN: AMD SVN
+  <LI>PAE: Extended Mem by PAE
+  <P></P>
+  </UL>
+ <LI>HOSTS: CLI, X11, VNC, RDP
+  <UL>
+  <LI>x: ENABLED
+  <LI>else: DISABLED
+  <P></P>
+  </UL>
+ <LI>VMs: KVM, QEMU, VBOX, VMW, XEN
+  <UL>
+  <LI>Common: 
+   <UL>
+   <LI>V: ENABLED
+   <LI>-: DISABLED
+   </UL>
+  <LI>KVM: Fully ENABLED, else check
+   <UL>
+   <LI>Module
+   <LI>VDE-Switch
+   </UL>
+  <LI>QEMU: ENABLED without KVM-Support, else check
+   <UL>
+   <LI>Module
+   <LI>VDE-Switch
+   </UL>
+  <LI>VMW
+   <UL>
+   <LI>P[123]: Player
+   <LI>S[12]:  Server
+   <LI>W[67]:  Workstation
+   </UL>
+  <LI>XEN
+   <UL>
+   <LI>HVM: Fully ENABLED, else check
+    <UL>
+    <LI>Kernel
+    <LI>Access: sudo, ksu
+    </UL>
+   <LI>PARA: ENABLED with para-virtualisation only, else check
+    <UL>
+    <LI>Kernel
+    <LI>Access: sudo, ksu
+    </UL>
+   </UL>
+  </UL>
+ </OL>
+
+<P>
+The output displays that e.g. 
+</P>
+  <UL>
+  <LI>On app1+app2: The user acue has access to KVM and QEMU, but not root.
+    This is due to missing VDE-switch for root, which has to be setup 
+    by 'ctys-setupVDE' 
+  <LI>On lab03: The user acue has no access to XEN, but root has.
+    This is due to access permission by sudo for user acue.
+  </UL>
 
 <DL>
 <DT><B>-t &lt;plugin-type&gt;</B></DT><DD>
@@ -309,5 +460,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.006/doc-tmp/BASE/en/html/man1/ctys-plugins.html -->
+<!-- cmdline: txt2tags -t html -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.007/doc-tmp/BASE/en/html/man1/ctys-plugins.html -->
 </BODY></HTML>

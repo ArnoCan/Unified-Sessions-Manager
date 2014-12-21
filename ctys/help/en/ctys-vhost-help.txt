@@ -109,7 +109,7 @@ ctys-vhost
         |LISTDB
         |MEMBERSDB
         |LISTGROUP
-        |MEMBERSGROUP[2345]
+        |MEMBERSGROUP([2345678])|([678]u)[:<groups-list>]
       )
       [-T <type-list>]
       [-V]

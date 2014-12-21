@@ -121,7 +121,7 @@ function getVBOXMAGIC () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_VBOX
+#  getACCELERATOR_VBOX
 #TYPE:
 #  bash-function
 #
@@ -148,7 +148,7 @@ function getVBOXMAGIC () {
 #     ffs.
 #
 #FUNCEND###############################################################
-function getACCELLERATOR_VBOX () {
+function getACCELERATOR_VBOX () {
     if [ -z "${1}" ];then
 	return
     fi
@@ -181,7 +181,7 @@ function getHYPERRELRUN_VBOX () {
     if [ -z "${1}" ];then
 	return
     fi
-    case $(getACCELLERATOR_VBOX $1) in
+    case $(getACCELERATOR_VBOX $1) in
 	VBOX)
 	    getVersionStrgVBOX $1
 	    ;;
@@ -260,7 +260,7 @@ function getHYPERRELRUN_VBOX4CONF () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_VBOX4CONF
+#  getACCELERATOR_VBOX4CONF
 #TYPE:
 #  bash-function
 #
@@ -278,7 +278,7 @@ function getHYPERRELRUN_VBOX4CONF () {
 #   1: NOK
 #  VALUES:
 #FUNCEND###############################################################
-function getACCELLERATOR_VBOX4CONF () {
+function getACCELERATOR_VBOX4CONF () {
     if [ -z "${1}" ];then
 	return
     fi
@@ -286,7 +286,7 @@ function getACCELLERATOR_VBOX4CONF () {
     if [ -z "$myStarter" ];then
 	return
     fi
-    getACCELLERATOR_VBOX $myStarter
+    getACCELERATOR_VBOX $myStarter
 }
 
 

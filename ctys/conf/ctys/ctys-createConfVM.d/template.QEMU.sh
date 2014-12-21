@@ -1212,7 +1212,7 @@ if [ "$_print" == "1" ];then
     echo
     echo "QEMU_VERSION      = \"${QEMU_VERSION}\""
     echo "QEMU_MAGIC        = \"${QEMU_MAGIC}\""
-    echo "QEMU_ACCELLERATOR = \"$(getACCELLERATOR_QEMU ${STARTERCALL})\""
+    echo "QEMU_ACCELERATOR = \"$(getACCELERATOR_QEMU ${STARTERCALL})\""
     echo
     echo
     echo "MYCALLNAME   = \"$MYCALLNAME\""

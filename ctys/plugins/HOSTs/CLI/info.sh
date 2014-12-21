@@ -122,7 +122,9 @@ function infoCLI4Action () {
 #FUNCEND###############################################################
 function infoCLI4MACHINE () {
     local _out=;
-    _out="CLI"
+    _out="$MYACCOUNT"
+    _out="${_out};CLI"
+    _out="${_out};"
     _out="${_out};${_myPKGVERS_CLI}"
     _out="${_out};${CLI_MAGIC}"
     _out="${_out};${CLI_STATE}"

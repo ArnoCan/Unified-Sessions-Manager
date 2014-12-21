@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -53,7 +53,7 @@ LICENCE=GPL3
 #  sh-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_007
 #DESCRIPTION:
 #  Distribution script for automated remote instllation of ctys.
 #
@@ -78,11 +78,19 @@ VERSION=01_11_003
 ################################################################
 #       System definitions - do not change these!              #
 ################################################################
+
+#
+#Deactivate CTYS_INI check
+#
+export CTYS_INSTALLER=1;
+
+#
 #Execution anchor
 MYCALLPATHNAME=$0
 MYCALLNAME=`basename $MYCALLPATHNAME`
 MYCALLNAME=${MYCALLNAME%.sh}
 MYCALLPATH=`dirname $MYCALLPATHNAME`
+
 
 #
 #

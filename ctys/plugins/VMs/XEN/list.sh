@@ -168,7 +168,7 @@ function listMySessionsXEN () {
 	cstrg="";
 	hrx=${XEN_PRODVERS};
 	exep=$(getSTARTERCALL_XEN4CONF);
-	acc=$(getACCELLERATOR_XEN);
+	acc=$(getACCELERATOR_XEN);
 	arch=$(getARCHR_XEN);
 
         i="${MYHOST};${i}${reserved01};${cstrg};${exep};${hrx};${acc};${arch}";

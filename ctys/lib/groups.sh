@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_015
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_GROUPS="${BASH_SOURCE}"
-_myPKGVERS_GROUPS="01.11.005"
+_myPKGVERS_GROUPS="01.11.007"
 libManInfoAdd "$_myPKGNAME_GROUPS" "$_myPKGVERS_GROUPS"
 
 
@@ -170,7 +170,7 @@ function fetchGroupMembers () {
     local x=;
     for i in ${_grpfile};do
 	if [ -f "$i" ];then
-	    x="${x} "`awk '
+	    x="${x}"`awk '
 		/^#.*$/          {next;} 
 		/^[[:space:]]*$/ {next;} 
                 {printf("°°%s",$0);}
@@ -181,12 +181,10 @@ function fetchGroupMembers () {
     done
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:trial as group:\"${x}\""
     x=${x//\"}
-    x=`echo ${x}|sed 's/  */ /g'`
-    x=${x## };x=${x%% };x=${x##°};x=${x%%°}
+    x=`echo ${x}|sed 's/  */ /g;s/^ *//;s/ *$//;s/^°*//;s/°*$//'`
     if [ -n "${x// /}" -a "${x%)}" == "${x}" ];then
 	x="${x}°°"
     fi
-
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "x=<${x}>"
 
     #let the shell permutate
@@ -232,8 +230,11 @@ function fetchGroupMembers () {
 		    gsub("%,%"," ",result);
 		    gsub("-_-_"," ",result);
 		    gsub("°°"," ",result);
+
  		}
 		END{
+		    gsub("^([^)]*)"," ",result);
+		    gsub("^ *)"," ",result);
 		    print result;
 		}
 		'`
@@ -337,12 +338,6 @@ function expandGroups () {
 	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:R_OPTS:<${R_OPTS}>"
 	local _mySubLst=x;
 	while [ -n "${_mySubLst// }" ];do 
-# 	    if [ "${_hostlst#*$_myKey[\"\']}" ==  "${_hostlst}" ];then
-#  		_mySubLst=`echo " ${_hostlst} "|sed -n 's/^.*\('"${_myKey}"'{[^}]*}\).*/\1/p'`;
-# 	    else
-#  		_mySubLst=`echo " ${_hostlst} "|sed -n 's/^.*\('"${_myKey}"'["'\'']{[^}]*}["'\'']\{0,1\}\).*/\1/p'`;
-# 	    fi
-
 	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_mySubLst=${_mySubLst}"
 	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_hostlst=${_hostlst}"
 	    if [ "${_hostlst#*$_myKey[\"\']}" ==  "${_hostlst}" ];then
@@ -511,7 +506,7 @@ function expandGroups () {
 	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_hostlst=<${_hostlst}>"
 	fi
     done
-    _hostlst=`echo $_hostlst|sed 's/["'\''](/(/g;s/)["'\'']/)/g;s/(/"(/g;s/)/)"/g;'`
+    _hostlst=`echo $_hostlst|sed 's/} *{/ /g;s/["'\''](/(/g;s/)["'\'']/)/g;s/(/"(/g;s/)/)"/g;s/  *)/)/g'`
     _hostlst=`eval echo -e ${_hostlst}`
     _hostlst="${_hostlst//-_-_/ }";
     _hostlst="${_hostlst//\\,/,}";
@@ -522,6 +517,10 @@ function expandGroups () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "Eliminate braces of chained context-options"
     _hostlst=`echo $_hostlst|sed 's/'\''(/(/g;s/)'\''/)/g;s/"(/(/g;s/)"/)/g;s/)(/ /g;s/^{\(.*\)}$/\1/;'`
     printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "  => _hostlst=<${_hostlst}>"
+
+    #quick - check it
+    _hostlst=$(echo " $_hostlst "|sed 's/\([^\\]\)[{}]/\1 /g;')
+
     if [ -n "${_hostlst// /}" ];then
 	echo ${_hostlst}
     fi
@@ -576,8 +575,8 @@ function listGroupMembers () {
     fi
 
     for i7 in ${_sb//:/ };do
-        echo
-        echo "${i7}"
+        [ -z "$C_TERSE" ]&&echo
+        [ -z "$C_TERSE" ]&&echo "${i7}"
         cd "${i7}"
 	local i8=;
 	local _gl=;
@@ -654,7 +653,12 @@ function listGroupMembers () {
 		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
   		    _curglst=${_curglst//\(/\'(};
 		    _curglst=${_curglst//\)/)\'};
- 		    echo "       ${i8}:GROUP(${i8})${_curglst}"
+
+		    if [ -z "$C_TERSE" ];then 
+ 			echo "       ${i8}:GROUP(${i8})${_curglst}"
+		    else
+ 			echo "GROUP(${i8})${_curglst}"
+		    fi
 		    ;;
 
 		DEEP5CALL)
@@ -664,7 +668,7 @@ function listGroupMembers () {
 		    _curglst=${_curglst#\{}
 		    _curglst=${_curglst%\}}
 
- 		    echo "       ${i8}:"
+		    [ -z "$C_TERSE" ]&&echo "       ${i8}:"
                     echo "${_curglst}"|sed "
                          s/ \+,/||/g
                          s/, \+/||/g
@@ -682,15 +686,27 @@ function listGroupMembers () {
                          s/^||//;s/||$//;
                          s/||/\n/g
                        "|\
-                       awk '
+                       awk '$0!~/[()-]/{for(i=1;i<=NF;i++){print $i};next}{print;}'|\
+                       awk -v X="${C_TERSE:+1}" '
                          BEGIN{idx=0}
-                         {printf("          %d:  ctys %s\n",idx, $0);idx++;}'
-		    echo
+                         {
+                           if(X!=1){
+                              printf("          %d:  ctys %s\n",idx, $0);idx++;
+                           }else{
+                              printf("ctys %s\n",$0);idx++;
+                           }
+                         }
+                         '
+		    [ -z "$C_TERSE" ]&&echo
 		    ;;
 
 		*)
 		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
-		    echo "       ${i8}:GROUP(${i8})${_curglst}"
+		    if [ -z "$C_TERSE" ];then 
+ 			echo "       ${i8}:GROUP(${i8})${_curglst}"
+		    else
+ 			echo "GROUP(${i8})${_curglst}"
+		    fi
 		    ;;
 	    esac
        done
@@ -716,8 +732,7 @@ function listGroupMembers () {
 #  $1:  SHORT|CONTENT|DEEP|DEEP3
 #
 #       SHORT:   output format:
-#                  "<size-kbytes> <#records>/<#includes> <group-filename>"
-#
+#                  "<size-kbytes> <#host-records-cur-file>/<#includes-cur-file> <#deepsum>  <group-filename>"
 #       DEEP:    output format:
 #                  "<size-kbytes> <#records> <group-filename>"
 #                where <#records> is the nested sum of all includes ad levels.
@@ -808,8 +823,12 @@ function listGroups () {
 		_inccnt="`sed -n '/^#[^i]/d;s/\"//g;s/,/ /g;s/^#include  *\(.*\)/\1/p' $_cur|wc -w` ";
 	        _deepsum=`fetchGroupMembers $_cur|sed 's/{//g;s/}//g;s/,/ /g;'|wc -w`;
 	    fi
-	    printf "  %4dk %4d/%-4d %4d  %s\n"  ${_size}  ${_hstcnt// } ${_inccnt// } ${_deepsum// } "$_cur"
-       done
+	    if [ -z "$C_TERSE" ];then
+		printf "  %4dk %4d/%-4d %4d  %s\n"  ${_size}  ${_hstcnt// } ${_inccnt// } ${_deepsum// } "$_cur"
+	    else
+		printf "%s\n"  "$_cur"
+	    fi
+	    done
        return
     }
 
@@ -940,8 +959,8 @@ function listGroups () {
 
 
     for i7 in ${_sb//:/ };do
-        echo
-        echo "${i7}"
+	[ -z "$C_TERSE" ]&&echo
+        [ -z "$C_TERSE" ]&&echo "${i7}"
         case $_range in
 	    SHORT)
 		getContentCount  ${i7} ${_groupsel}
@@ -1022,11 +1041,13 @@ function checkAndSetIsHostOrGroup () {
 		printINFO 0 $LINENO $BASH_SOURCE 1 "When using groups check path-prefix,"
 		printINFO 0 $LINENO $BASH_SOURCE 1 "path-prefix is required for 'ctys' start-calls."
 		printINFO 0 $LINENO $BASH_SOURCE 1 "Call 'ctys-groups' for listing available by search."
-		gotoHell ${ABORT};
+#		gotoHell ${ABORT};
+		_myTarget=${1};
+		return ${ABORT};
 	    fi
 	else
 	    _myTarget=${1}
-	    _ret=0;
+ 	    _ret=0;
 	fi
 	printINFO 2 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:sub-context:SUB-TASK=<${_myTarget}>"
 	printINFO 2 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:${_myTarget}=<${_delayedGroup1}>"
@@ -1073,9 +1094,7 @@ function checkAndSetIsHostOrGroup () {
 #FUNCEND###############################################################
 function fetchGroupMemberHosts () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
-
-    local hostlist=$(expandGroups ${*})
-
+    local hostlist=$(expandGroups ${*//%/ })
     if [ -n "${hostlist}" ];then
 	hostlist=$(echo " ${hostlist} "|sed 's/([^)]*)/ /g')
 	hostlist="${hostlist//,/ }"

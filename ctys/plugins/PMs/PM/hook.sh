@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -23,8 +23,9 @@ PM_STATE=DISABLED
 PM_DEFAULTOPTS=;
 PM_PREREQ=;
 PM_PRODVERS=;
+PM_ACCELERATOR=;
 
-PM_VMSTACK=01.01.001a01;
+PM_VMSTACK=01.11.007;
 PM_WOLSUPPORT=0;
 
 _myPKGNAME_PM="${BASH_SOURCE}"
@@ -86,6 +87,58 @@ printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_ETHTOOL_WOL_RAW=${
 
 
 . ${MYLIBPATH}/lib/libPMbase.sh
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  pmGetACCELERATOR
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns type of harware accelerator.
+#
+#   - VMX (Intel)
+#   - SVN (AMD)
+#   - PAE (EXTMEM only)
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: If supported
+#    1: else
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function pmGetACCELERATOR () {
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME $1"
+    local _a=;
+    case $MYOS in
+	Linux)
+	    cat /proc/cpuinfo|\
+            sed -n 's/\t//g;s/^\([^[:space:]]*[[:space:]]\{0,2\}[^[:space:]]*\)[[:space:]]*: *\(.*\)$/\1:\2/gp'|\
+            awk -F':' '
+              $2~/vmx/ {fVMX=1;}
+              $2~/svm/ {fSVN=1;}
+              $2~/pae/ {fPAE=1;}
+              END{
+                if(fVMX==1){printf("VMX");}
+                else if(fSVN==1){printf("SVN");}
+                else if(fPAE=1){printf("PAE");}
+              }
+              '
+	    ;;
+    esac
+}
+
+
+
 
 #FUNCBEG###############################################################
 #NAME:
@@ -667,6 +720,8 @@ function setVersionPM () {
 
     PM_VERSTRING="${MYDIST}(localhost)";
     PM_DEFAULTOPTS=;
+
+    PM_ACCELERATOR=$(pmGetACCELERATOR);
 
     case ${MYOS} in
 	Linux)
