@@ -1,0 +1,226 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_005
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+function set-CentOS () {
+    case ${DISTREL} in
+	5.0|5)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-CentOS-50-XEN;;
+		QEMU) set-CentOS-50-QEMU;;
+	    esac
+	    ;;
+	5.*)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-CentOS-5x-XEN;;
+		QEMU) set-CentOS-5x-QEMU;;
+	    esac
+	    ;;
+
+    esac
+}
+
+#*******************************************************************
+#
+#DIST: CentOS-5.0
+#
+function set-CentOS-50-XEN () {
+    DEFAULTINSTMODE=${DEFAULTINSTMODE:-KS};
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_RAW_BASE}/centOS/5/inst/os/x86_64
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/centOS/5/raw/isos/x86_64/CentOS-5.0-x86_64-bin-DVD.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=${DEFAULT_INST_KERNEL:-$INSTSRCCDROM_BASE/centOS/5/inst/os/x86_64/images/xen/vmlinuz};
+	    DEFAULT_INST_INITRD=${DEFAULT_INST_INITRD:-$INSTSRCCDROM_BASE/centOS/5/inst/os/x86_64/images/xen/initrd.img};
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-centos-5.ks"}
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+            #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/bin/pygrub'}
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
+	    ;;
+    esac
+
+}
+
+
+#*******************************************************************
+#
+#DIST: CentOS-5.x
+#
+function set-CentOS-5x-XEN () {
+    local R=${DISTREL}
+    DEFAULTINSTMODE=${DEFAULTINSTMODE:-KS};
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/centOS/$R/x86_64/CentOS-$R-x86_64-bin-DVD/
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/centOS/$R/raw/isos/x86_64/CentOS-$R-x86_64-bin-DVD.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=${DEFAULT_INST_KERNEL:-$INSTSRCFS_BASE/centOS/$R/x86_64/CentOS-$R-x86_64-bin-DVD/images/xen/vmlinuz};
+	    DEFAULT_INST_INITRD=${DEFAULT_INST_INITRD:-$INSTSRCFS_BASE/centOS/$R/x86_64/CentOS-$R-x86_64-bin-DVD/images/xen/initrd.img};
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-centos-5.ks"}
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+	    #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/bin/pygrub'}
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
+	    ;;
+    esac
+
+}
+
+function set-CentOS-5x-QEMU () {
+    local R=${DISTREL}
+    DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD};
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/centOS/$R/x86_64/CentOS-$R-x86_64-bin-DVD/
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/centOS/$R/raw/isos/x86_64/CentOS-$R-x86_64-bin-DVD.iso
+    DEFAULT_BOOTLOADER=;
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    ;;
+	QEMU)
+	    _MATCHED=1;
+ 	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-''}
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "};
+
+	    DEFAULT_KERNEL=${DEFAULT_INST_KERNEL};
+	    DEFAULT_INITRD=${DEFAULT_INST_INITRD};
+	    DEFAULT_EXTRA=${DEFAULT_INST_EXTRA};
+	    ;;
+	KVM)
+	    _MATCHED=1;
+	    _MATCHED=1;
+ 	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-''}
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "};
+
+	    DEFAULT_KERNEL=${DEFAULT_INST_KERNEL};
+	    DEFAULT_INITRD=${DEFAULT_INST_INITRD};
+	    DEFAULT_EXTRA=${DEFAULT_INST_EXTRA};
+	    ;;
+    esac
+}
+
+
+function set-CentOS-50-QEMU () {
+    local R=${DISTREL}
+    DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD};
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/centOS/$R/x86_64/CentOS-$R-x86_64-bin-DVD/
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/centOS/$R/raw/isos/x86_64/CentOS-$R-x86_64-bin-DVD.iso
+    DEFAULT_BOOTLOADER=;
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	QEMU)
+	    _MATCHED=1;
+ 	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-''}
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "};
+
+	    DEFAULT_KERNEL=${DEFAULT_INST_KERNEL};
+	    DEFAULT_INITRD=${DEFAULT_INST_INITRD};
+	    DEFAULT_EXTRA=${DEFAULT_INST_EXTRA};
+	    ;;
+	KVM)
+	    _MATCHED=1;
+	    _MATCHED=1;
+ 	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-''}
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "};
+
+	    DEFAULT_KERNEL=${DEFAULT_INST_KERNEL};
+	    DEFAULT_INITRD=${DEFAULT_INST_INITRD};
+	    DEFAULT_EXTRA=${DEFAULT_INST_EXTRA};
+	    ;;
+
+    esac
+}
+
+
