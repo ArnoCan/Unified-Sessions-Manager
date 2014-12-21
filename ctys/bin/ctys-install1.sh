@@ -7,11 +7,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_020
 #
 ########################################################################
 #
-#     Copyright (C)2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C)2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_011
+VERSION=01_11_020
 #DESCRIPTION:
 #  Install script for ctys.
 #
@@ -711,6 +711,7 @@ printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "DOCDIR  = <${DOCDIR}>"
 HELPDIR=${HELPDIR:-$LIBS/help}
 printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "HELPDIR = <${HELPDIR}>"
 
+
 if [ -z "${MANDIR}" ];then
     for imp in ${DOCDIR}/*/man;do
 	MANDIR="${MANDIR}:${imp}"
@@ -1060,6 +1061,7 @@ printOut ""
 if [ -z "${OLDVER}"  -o "${NEWVER}" \> "${OLDVER}" -o -n "${FORCE}" -o -n "${FORCEALL}" -o -n "${FORCECLEAN}" ];then
     printOut "install now libraries..."
 
+ls -R ${MYLIBPATH}/doc
     if [ -z "${LINKONLY}" ];then
 	printOut "install MYLIBPATH = ${MYLIBPATH}";  
 	printOut "to      LIBS      = ${LIBS}";  
@@ -1321,7 +1323,7 @@ fi
 
 LOD1=`find ${MYINSTALLPATH}/help ${MYINSTALLPATH}/doc -type f -name '*[!~]'  -exec cat {} \;|wc -l`
 
-MYDOCSOURCE="`dirname ${MYINSTALLPATH}`/ctys-manual.${INSTVERSION}"
+MYDOCSOURCE="`dirname ${MYINSTALLPATH}`/ctys-${INSTVERSION}/doc"
 if [ ! -d "${MYDOCSOURCE}" ];then
     MYDOCSOURCE=;
     if [ -f "${MYDOCSOURCE}" ];then

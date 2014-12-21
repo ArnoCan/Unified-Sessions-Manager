@@ -737,17 +737,19 @@ function handleVNC () {
       CANCEL)
 	  case ${OPMODE} in
               PROLOGUE)
-		  hookPackage "${_myPKGBASE_VNC}/cancel.sh"
 		  ;;
               EPILOGUE)
 		  ;;
 	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_VNC}/cancel.sh"
 		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
 		  ;;
 	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_VNC}/cancel.sh"
 		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
 		  ;;
 	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/cancel.sh"
 		  hookPackage "${_myPKGBASE_VNC}/list.sh"
 		  hookPackage "${_myPKGBASE_VNC}/session.sh"
 		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
