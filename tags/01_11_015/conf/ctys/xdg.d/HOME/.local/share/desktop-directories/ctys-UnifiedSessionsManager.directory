@@ -1,0 +1,13 @@
+#  -*- mode: conf; -*-
+#
+[Desktop Entry]
+Name=UnifiedSessionsManager
+Name[de]=UnifiedSessionsManager
+Name[en_GB]=UnifiedSessionsManager
+Comment=UnifiedSessionsManager
+Comment[de_DE]=UnifiedSessionsManager
+Comment[en_GB]=UnifiedSessionsManager
+Type=Directory
+#Icon=ctys-vm
+Icon=ctys-usm
+Encoding=UTF-8
