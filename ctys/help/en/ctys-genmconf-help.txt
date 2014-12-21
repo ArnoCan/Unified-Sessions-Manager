@@ -21,7 +21,8 @@ ctys-genmconf
    [-P]
    [--progress]
    [-r [(WITHIP|WITHMAC|ALL)]]
-   [--rounds=<rounds>%<cpu-cycles>%<hdd-cache-cycles>%<hdd-write-through-cycles>]
+   [--rounds=<rounds>%<cpu-cycles>%<hdd-cache-cycles>\
+       %<hdd-write-through-cycles>]
    [--testfs=<test-directory-storage>]
    [-u]
    [-U <UUID>]
@@ -49,7 +50,6 @@ This is software and documentation from BASE package,
 
 - for software see GPL3 for license conditions,
 - for documents  see GFDL-1.3 with invariant sections for license conditions.
-
 The whole document - all sections - is/are defined as invariant.
 
 For additional information refer to enclosed Releasenotes and License files.

@@ -33,12 +33,21 @@ The PM plugin is "\fBVM\-STACK safe\fR" as it handles running virtual machines
 by propagating state change events(e.g. SHUTDOWN) of the physical platform to 
 contained hypervisors and emulators.
 
+.P
+Additional information containing use\-cases with application examples is available from
+\fBctys\-uc\-PM\fR.
+,
+\fBctys\-uc\-IPMI\fR.
+, and 
+\fBctys\-uc\-WoL\fR.
+\&.
+
 .SH OPTIONS
 .TP
 \fB\-a action[=<suboptions>]\fR
 
 .TP
-\fBCANCEL\fR
+\fB\-a CANCEL\fR
 .nf
   
   CANCEL=(<machine-address>)\e{1\e}
@@ -62,6 +71,7 @@ contained hypervisors and emulators.
 .RS
 .IP \(bu 3
 \fBSELF\fR
+
 Self cancels the hosting machine for the call after cancel operations
 on the stack, if not provided the stack is canceld only.
 This is due to conformity with the CANCEL operations of VMs, where the
@@ -81,6 +91,7 @@ has to provided.
 
 .IP \(bu 3
 \fBWOL\fR
+
 WOL flag is supported for NIC drivers supporting the
 ethtool interface, which are e.g. 
 e1000, tg3 or 8139too, e100.
@@ -105,6 +116,7 @@ OS, the WOL flag is not required.
 
 .IP \(bu 3
 \fBIF:<if\-for\-wol>\fR
+
 The interface to be parared for WoL. 
 Access permission for "ethtool" is required.
 If this suboption is not provided, than the first detected valid
@@ -119,7 +131,7 @@ completed plugin shutdown actions.
 
 .RE
 .TP
-\fBCREATE\fR
+\fB\-a CREATE\fR
 .nf
   
   CREATE=<machine-address>
@@ -151,6 +163,7 @@ refer to common options.
 .RS
 .IP \(bu 3
 \fB<machine\-address>\fR
+
 The address of the machine to be activated. 
 The usage of <machine\-address> implies an exact target to be
 addressed explicitly.
@@ -161,22 +174,19 @@ usage of CONSOLE access.
 Currently CONSOLE suboption is applied to the target
 <machine\-address>, which is also used as target for the
 WoL activation.
-
 This can cause difficulties, e.g. when a board is used,
 where \- due to BIOS limits \- a low rate NIC has to be
 used for WoL activation, whereas the normal traffic is
 performed by the remaining NICs with channel bonding.
 The same principle could be applied due to security reasons when
 multiple NICs are available.
-
 Anyhow, the workaround is to use two calls, one for the
 WOL packet without a CONSOLE, and a second one for the
 CONSOLE only, addressing the access port.
-.RE
 
-.RS
 .IP \(bu 3
 \fBBMAC:<broadcast\-MAC\-address>\fR
+
 The MAC address to be inserted into the broadcast packet, which
 is defined to be the MAC address of the receiving NIC.
 In difference to the <machine\-address>, which is strongly checked for
@@ -184,16 +194,14 @@ consitency, the broadcast target is not checked for consitency.
 This is due to various remote application cases, where the actual data
 might noct be locally available, or a relay with port\-forwarding
 and/or protocol\-forwarding might be involved.
-.RE
 
-.RS
 .IP \(bu 3
 \fBBROADCAST:<broadcast\-address>\fR
+
 For machines not within the callers subnet, an arbitrary
 broadcast address could be set. A UDP package containing
 a \fBMagicPacket(TM)\fR is sent to the given address with port
 "DISCARD=9" set by default.
-
 This parameter forces the usage of native script for
 generating and sending of the WoL packet and cannot
 be combined with the "IF" suboption.
@@ -201,7 +209,6 @@ An example is provided within the following
 chapter containing additional examples.
 
 The Address has to be of one of the following types:
-
 .RS
 .IP \(bu 3
 An 
@@ -217,17 +224,17 @@ A
 directed broadcast address, where all subnet bits
 are set. The user has to be aware of the netmask for
 the target subnet.
-.RE
-.RE
 
-.RS
+.RE
 .IP \(bu 3
 \fBCONNECT\fR
+
 Opens just a new CONSOLE, requires therefore the PM in
 operational state.
 
 .IP \(bu 3
 \fBCONSOLE:(CLI|XTERM|GTERM|EMACS|VNC)\fR
+
 If given a console will be opened on the site of
 caller. This will be performed in addition to the
 standard console, which may be attached to the
@@ -246,11 +253,10 @@ The "\-b" option will be set for the types of consoles as:
   
 .fi
 
-.RE
 
-.RS
 .IP \(bu 3
 \fBIF:<broadcast\-interface>\fR
+
 This defines the local interface where an ethernet
 broadcast is to be sent. Therefore the tool
 "ether\-wake" is utilized.
@@ -266,6 +272,7 @@ This parameter cannot be combined with BROADCAST.
 
 .IP \(bu 3
 \fBPORT:<broadcast\-dest\-port>\fR
+
 A port to be used on the remote site.
 A UDP package containing a
 \fBMagicPacket(TM)\fR is sent to the given BROADCAST address with port
@@ -273,6 +280,7 @@ A UDP package containing a
 
 .IP \(bu 3
 \fBRECONNECT\fR
+
 All current \embox{CONSOLEs} of the user are CANCELed, and a new one is started.
 The CANCEL just ignores any child process of the enumerated CONSOLEs,
 thus the user is responsible for proper shutdown of running subtatsks.
@@ -280,15 +288,15 @@ Specific exchange of a single client is not supported.
 
 When PM is yet running, it will be rebooted, else just
 booted and connected with the choosen CONSOLE.
-.RE
 
-.RS
 .IP \(bu 3
 \fBRESUME\fR
+
 In this version the same as create only.
 
 .IP \(bu 3
 \fBREUSE\fR
+
 When a nachine is already active just a connect is performed.
 In case of a required new session, first the machine is booted, if
 an appropriate activation method is defined, which is WoL only in
@@ -297,6 +305,7 @@ opened is requested.
 
 .IP \(bu 3
 \fBWOL[:<wol\-delay>]\fR
+
 The addressed PM will be activated by Wake\-On\-LAN, which
 is in current version the only supported
 method. Therefore the default "ether\-wakeup" tool is
@@ -311,12 +320,12 @@ before starting the periodical poll with shorter timeout.
 .RE
 
 .TP
-\fBENUMERATE\fR
+\fB\-a ENUMERATE\fR
 This is specific for PM, just the local configuration
 information is displayed.
 
 .TP
-\fBLIST\fR
+\fB\-a LIST\fR
 This is specific for PM, just the local configuration
 information is listed.
 
@@ -404,15 +413,14 @@ This is software and documentation from \fBBASE\fR package,
 for software see GPL3 for license conditions,
 .IP \(bu 3
 for documents  see GFDL\-1.3 with invariant sections for license conditions.
-.RE
 
-.P
 The whole document \- all sections \- is/are defined as invariant.
+.RE
 
 .P
 For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-PM.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/man/man1/ctys-PM.1
+.\" cmdline: txt2tags -t man -i ctys-PM.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/man/man1/ctys-PM.1
 

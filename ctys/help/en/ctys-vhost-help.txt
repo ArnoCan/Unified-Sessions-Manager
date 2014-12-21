@@ -104,7 +104,8 @@ ctys-vhost
          | (XML_GEN|XML)[:<tab-args>]
        )[,]
       [IP|DNS|D][,]
-      [SORT[:ALL|A|UNIQUE|U|REVERSE|R|EACH|[([0-9][0-9][0-9]|[0-9][0-9]|[0-9])]
+      [SORT[:ALL|A|UNIQUE|U|REVERSE|R|EACH
+         |[([0-9][0-9][0-9]|[0-9][0-9]|[0-9])]
          [%]][,]
    ]
    [-p <db-directory-path-list>]
@@ -159,7 +160,6 @@ This is software and documentation from BASE package,
 
 - for software see GPL3 for license conditions,
 - for documents  see GFDL-1.3 with invariant sections for license conditions.
-
 The whole document - all sections - is/are defined as invariant.
 
 For additional information refer to enclosed Releasenotes and License files.

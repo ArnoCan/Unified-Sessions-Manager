@@ -398,14 +398,14 @@ while [ -n "$1" ];do
 		    if [ -d "$i" -o -f "$i" ];then
 			_edit="$_edit $i "
 		    else
-			_edit="$_edit $(matchFirstFile $i . ${CTYS_SCRIPT_PATH})"
+			_edit="$_edit $(matchFirstFile $i . ${_mySearchPath})"
 		    fi
 		    shift
 		done
 	    fi
 	    if [ -z "${_edit}" ];then
 		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Edit requires either a list or CTYS_SCRIPT_PATH"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Edit requires either a list or \"\$MYCONFPATH:\$HOME/.ctys\""
 		gotoHell ${ABORT}
 	    fi
             ;;

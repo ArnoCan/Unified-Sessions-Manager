@@ -300,10 +300,10 @@ function printHelpEx () {
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "Missing man root: ${MYMANPATH}"
 	              gotoHell $ABORT
 		  fi
-		  local _x=
-		  ${CTYS_MANVIEWER} ${i#*=} 2>&1>/dev/null
+		  local _x=${i#*=};
+		  ${CTYS_MANVIEWER} "${_x}" 2>&1 >/dev/null
 		  if [ $? -ne 0 ];then
-                      _x=$(find ${MYMANPATH//:/ } ${MANPATH//:/ } -type f -name "*${i#*=}*.[1-9]" -print|awk '{if(x!=1){print;}x=1;}')
+                      _x=$(find ${MYMANPATH//:/ } ${MANPATH//:/ } -type f -name "*${i#*=}*.[1-9]" -print 2>/dev/null|awk '{if(x!=1){print;}x=1;}')
                       if [ -z "${_x}" ];then
 			  ABORT=1;
 			  printERR $LINENO $BASH_SOURCE ${ABORT} "Missing requested manpage: $i"

@@ -360,6 +360,7 @@ The user to be used for native access to the <action\-target>.
   [PING:(OFF|<#repetition>%<sleep>)][,]
   [SSHPING:(OFF|<#repetition>%<sleep>)][,]
   [STACKCHECK:<stack-check>][,]
+  [(STUBMODE|STUB)[:ON]][,]
   [(VNCDESKIDLIST|VDIL):<list-of-custom-ids>][,]
   [WAITC:<timer>][,]
   [WAITS:<timer>][,]
@@ -520,7 +521,6 @@ error state is performed. Therefore a new client is started.
 The CONSOLE supports a common user access facility, which could be
 an ordinary CLI interface to be used within a shell, as well as a
 VNC based remote desktop accesible from a X11 based local desktop.
-
 The main distinction between a CONSOLE and the HOSTs access is the
 direct and native access of a CONSOLE to a hypervisor facility,
 whereas a HOSTs session is an ordinary full\-scale login into the
@@ -531,7 +531,6 @@ type of local or remote frontend could be provided by combining
 DISPLAYFORWARDING, CONNECTIONFORWARDING and an explicit call by CMD 
 suboption of CLI or X11 plugin.
 For examples refer to CLI\-Examples and X11\-Examples.
-
 Anyhow, for now the following console types are supported for the
 various plugins as preconfigured enumerations.
 
@@ -718,6 +717,13 @@ context.
 
 for additional information refer to STACKCHECK\-REF
 and to STACKEDSESSIONS\-REF.
+
+.TP
+\fBSTUBMODE|STUB[:on]\fR
+The STUBMODE suppresses the remote execution of the full ctys set, instead
+just a remote shell by a simple SSH call is executed.
+This could be utilized particularly for sessions to machines without an installed
+ctys.
 
 .TP
 \fBUSER:<user>%[<credentials>]\fR
@@ -1570,12 +1576,24 @@ the internal job control, which should avoided.
 .fi
 
 
-The operations of ctys utilize special virtual\-nameservice information where this 
-option controls the usage and selection of the distributed caches at the local and/or remote site.
+The operations of ctys utilize special virtual\-nameservice information which optionally could be
+read from the inventory database.
+Either from the local host, or the remote hosts allocated local database.
+This option controls the usage and selection of the location of these distributed caches at the local and/or remote site.
 
-Even though for performance only aspects the usage of cached data could be
-suppressed, for the utilisation of stacked VMs the availability of the cache facility is mandatory.
+.TS
+center, tab(^); l.
+ \fBRefer to PDF/HTML for figure: Distributed Caches\fR
+.TE
 
+
+.P
+Even though the considerable gain of performance by usage of cached data could be abandoned,
+the availability of the cache facility is mandatory required for the utilisation of stacked VMs.
+This is due to required information of the contained environment, which is the runtime environment
+of the nested VM.
+
+.P
 The UnifiedSessionsManager itself is designed as a distributed
 client\-server system operating itself by distributing it's tasks to
 the managed entities, and propagation of the required states within the
@@ -1583,6 +1601,7 @@ vertical stack\-dependencies.
 For this tasks at almost each point of operations ctys requires access
 data for it's managed objects.
 
+.P
 Therefore the UnifiedSessionsManager supports a distributed cache model
 consisting of multiple cache databases \- cacheDBs \- which has to be
 in sync if present, atleast might not contain inconsistent data.
@@ -1590,9 +1609,10 @@ Partly present data will be handeled by match\-priority.
 Alternatively the filesystem is scanned for available configuration
 files of VMs, once the execution target is entered.
 
-The following flags are supported in order of control which
-nameservice\-caches has to be used, or ignored.
-The default behaviour is to use "BOTH" caches, and to scan the
+.P
+The following flags are supported in order of control for the selection of
+the nameservice\-caches to be used, or ignored.
+The default behaviour is to use "BOTH" caches optionally, and to scan the
 filesystem on the execution target if no cache\-hit occurs.
 For additional information refer to Section "Distributed Nameservice and CacheDB" 
 
@@ -1629,7 +1649,8 @@ Values from caches are evaluated first, before the actual user
 supplied entries.
 
 The entry available in the local cache is resolved to a fully qualified
-<machine\-address> with all of it's actually present parts, and
+\fB<machine\-address>\fR
+with all of it's actually present parts, and
 inserted as the first argument to the relevant ACTION of the current
 job from the internal schedular, before the local/remote task is
 finally executed.
@@ -1637,7 +1658,8 @@ Thus  user supplied parts will superpose elements from the cache
 and may lead to desired and/or unintended deviation from the local
 contents of the cacheDB.
 
-Anyhow, the input used for evaluation of the <machine\-address>
+Anyhow, the input used for evaluation of the 
+\fB<machine\-address>\fR
 from the cacheDB should be in sync.
 
 .IP \(bu 3
@@ -2747,15 +2769,14 @@ This is software and documentation from \fBBASE\fR package,
 for software see GPL3 for license conditions,
 .IP \(bu 3
 for documents  see GFDL\-1.3 with invariant sections for license conditions.
-.RE
 
-.P
 The whole document \- all sections \- is/are defined as invariant.
+.RE
 
 .P
 For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/man/man1/ctys.1
+.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/man/man1/ctys.1
 

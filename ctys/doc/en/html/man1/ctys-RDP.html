@@ -72,8 +72,7 @@ client with the targeted server -
 <a href="../../images/dispforwarding.png" >
 DISPLAYFORWARDING
 </a> -
-and the distributed client and server
-location on different hosts - 
+and the distributed client and server location on different hosts - 
 <a href="../../images/connforwarding.png" >
 CONNECTIONFORWARDING
 </a>
@@ -81,7 +80,12 @@ CONNECTIONFORWARDING
 In the latter case an intermediary SSH tunnel is created, which handles the port-forwarding and an has
 to do a remapping due to ambiguity within the network scope.
 Thus the local port number and the remote portnumber on the server may frequently differ.
-The required option to control the forwarding is <B>'-L'</B>.
+The required option to control the forwarding is 
+<b><a  href="./ctys.html#optL" >-L</a></b>.
+</P>
+<P>
+Additional information containing use-cases with application examples is available from
+ <b><a  href="../man7/ctys-uc-RDP.html" >ctys-uc-RDP</a></b>.
 <br />
 <br />
 </P>
@@ -89,7 +93,7 @@ The required option to control the forwarding is <B>'-L'</B>.
 <DL>
 <DT><B>-a action[=&lt;suboptions&gt;]</B></DT><DD>
 <P></P>
-<DT><b><a  href="./ctys.html#optCANCEL" >CANCEL</a></b></DT><DD>
+<DT><b><a  href="./ctys.html#optCANCEL" >-a CANCEL</a></b></DT><DD>
 <PRE>
   
   CANCEL=(&lt;machine-address&gt;)\{1,n\}
@@ -97,28 +101,28 @@ The required option to control the forwarding is <B>'-L'</B>.
   
 </PRE>
 <P></P>
-<DT></DT><DD>
-<B>&lt;machine-address&gt;</B>
+ <DL>
+ <DT><b><a  href="../man7/ctys-common-addresssyntax.html#machine-address" >&lt;machine-address&gt;</a></b></DT><DD>
 For RDP the following parts of a &lt;machine-address&gt; are applicable:
-ID|I, LABEL|L
-<P></P>
+ID|I, LABEL|L. 
 When the RDP client is used in shared-mode,
 the address applies to all sharing clients are handled
 as one logical unit and CANCEL is applied to all at once.
-<P></P>
 The address could be supported with multiple instances.
-<P></P>
-<DT></DT><DD>
-<B>ALL|BOTH|CLIENT|SERVER</B>
-<P></P>
+ <P></P>
+ <DT><B>ALL|BOTH|CLIENT|SERVER</B></DT><DD>
 All enumerates are handled identical due to a client only
 applicability.
-<P></P>
+ <P></P>
 <br />
 <br />
-<P></P>
-<DT><b><a  href="./ctys.html#optCREATE" >CREATE</a></b></DT><DD>
+ </DL>
+</DL>
+
+<DL>
+<DT><b><a  href="./ctys.html#optCREATE" >-a CREATE</a></b></DT><DD>
 <PRE>
+  
   CREATE=[&lt;machine-address&gt;]
      [RDPPORT:&lt;portnumber&gt;]
      [(INSECURE):&lt;ext-host&gt;]
@@ -126,33 +130,32 @@ applicability.
      [CONSOLE:&lt;rdesktop&gt;]
      [(CALLOPTS|C):&lt;callopts&gt;]
      [(XOPTS|X):&lt;xopts&gt;]
+  
 </PRE>
-</DL>
-
-<UL>
-<LI><B>&lt;machine-address&gt;</B>
-For RDP the following parts of a &lt;machine-address&gt; are applicable:
-LABEL|L and port, here RDPPORT
 <P></P>
+ <DL>
+ <DT><b><a  href="../man7/ctys-common-addresssyntax.html#machine-address" >&lt;machine-address&gt;</a></b></DT><DD>
+For RDP the following parts of a &lt;machine-address&gt; are applicable:
+LABEL|L and port, here RDPPORT. 
 When the RDP server is used in shared-mode, the
 address applies to all sharing clients.
 The LABEL suboption is here mandatory.
-<P></P>
-<LI><B>CONNECT</B>
+ <P></P>
+ <DT><B>CONNECT</B></DT><DD>
 Almost the same as REUSE, but no new server will be
 started if missing.
-<P></P>
-<LI><B>CONSOLE</B>
+ <P></P>
+ <DT><B>CONSOLE</B></DT><DD>
     Current version supports <B>rdesktop</B>.
-<P></P>
-<LI><B>INSECURE &lt;ext-host&gt;</B>
+ <P></P>
+ <DT><B>INSECURE:&lt;ext-host&gt;</B></DT><DD>
     The external(!=localhost) host to be accessed by remotely attached RDP
     client.
     This is foreseen for blackboxes and access to MS-Windows(TM) based 
     hosts.
     It should not be forced for UNIX/Linux based boxes.
-<P></P>
-<LI><B>RECONNECT</B>
+ <P></P>
+ <DT><B>RECONNECT</B></DT><DD>
     Similiar to REUSE, with the difference, that any
     previous active client will be killed before attaching
     ONE new client. Therefore in shared mode, when multiple
@@ -160,22 +163,26 @@ started if missing.
     sharing clients are handled as one logical unit and will
     be thus killed together.
     Specific exchange of a single client is not supported.
-<P></P>
-A special may be recognized, when a local client of a CONNECTIONFORWARDING
+ <P></P>
+A special may be recognized, when a local client of a 
+<a href="../../images/connforwarding.png" >
+CONNECTIONFORWARDING
+</a>
 is going to be reconnected, the replacement has to be of the same forwarding type.
 This applies in general, though one machine is accessed for the new client only.
-<P></P>
+ <P></P>
 <br />
 <br />
-</UL>
+ </DL>
+</DL>
 
 <DL>
-<DT><b><a  href="./ctys.html#optENUMERATE" >ENUMERATE</a></b></DT><DD>
+<DT><b><a  href="./ctys.html#optENUMERATE" >-a ENUMERATE</a></b></DT><DD>
 Not applicable.
 <P></P>
 <br />
 <br />
-<DT><b><a  href="./ctys.html#optLIST" >LIST</a></b></DT><DD>
+<DT><b><a  href="./ctys.html#optLIST" >-a LIST</a></b></DT><DD>
 The same output as common standard.
 </DL>
 
@@ -247,11 +254,10 @@ This is software and documentation from <B>BASE</B> package,
 <UL>
 <LI>for software see GPL3 for license conditions,
 <LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+<br />  
+The whole document - all sections - is/are defined as invariant.
 </UL>
 
-<P>
-The whole document - all sections - is/are defined as invariant.
-</P>
 <P>
 For additional information refer to enclosed Releasenotes and License files.
 </P>
@@ -261,5 +267,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-RDP.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/html/man1/ctys-RDP.html -->
+<!-- cmdline: txt2tags -t html -i ctys-RDP.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/html/man1/ctys-RDP.html -->
 </BODY></HTML>
