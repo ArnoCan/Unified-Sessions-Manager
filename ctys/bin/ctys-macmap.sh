@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_003
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_10_013
+VERSION=01_11_003
 #DESCRIPTION:
 #  Generated a sorted list of output for a matchin regexpr.
 #
@@ -201,7 +201,7 @@ MYLANG=${MYLANG:-en}
 MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYLIBEXECPATH`}
 
 #path for various loads: libs, help, macros, plugins
-MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+MYHELPPATH=${MYHELPPATH:-$MYLIBPATH/help/$MYLANG}
 
 
 ###################################################
@@ -212,7 +212,7 @@ bootstrapCheckInitialPath
 #OK - Now should work.                            #
 ###################################################
 
-MYCONFPATH=${MYLIBPATH}/conf/ctys
+MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
   exit 1
@@ -222,13 +222,13 @@ if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
     . ${MYCONFPATH}/versinfo.conf.sh
 fi
 
-MYMACROPATH=${MYCONFPATH}/macros
+MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
   exit 1
 fi
 
-MYPKGPATH=${MYLIBPATH}/plugins
+MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
   exit 1
@@ -310,7 +310,11 @@ case ${MYOS} in
 esac
 
 
+. ${MYLIBPATH}/lib/misc.sh
 . ${MYLIBPATH}/lib/help/help.sh
+. ${MYLIBPATH}/lib/network/network.sh
+. ${MYLIBPATH}/lib/groups.sh
+
 
 #path to directory containing the default mapping db
 if [ -d "${HOME}/.ctys/db/default" ];then
@@ -376,9 +380,6 @@ while [ -n "$1" ];do
 	'-V')_printVersion=1;;
 	'-X')C_TERSE=1;;
 
-	'-L')shift;_RUSER0=$1;;
-	'-R')shift;_RHOSTS0=$1;;
-
         -*)
 	    ABORT=1;
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unkown option:\"$1\""
@@ -389,39 +390,6 @@ while [ -n "$1" ];do
     esac
     shift;
 done
-function beamMeUp () {
-    if [ -n "${_RHOSTS0}" ];then
-	_RARGS=${_ARGSCALL//$_ARGS/}
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_ARGSCALL//$_RHOSTS0/}
-	_RARGS=${_RARGS//-R/}
-	if [ -n "${_RUSER0}" ];then
-	    _RARGS=${_RARGS//$_RUSER0/}
-	    _RARGS=${_RARGS//\-L/}
-	fi
-	_RARGS=$(echo ${_RARGS}|sed 's/^  *//;s/  *$//')
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_RARGS//\%/\%\%}
-	_RARGS=${_RARGS//,/,,}
-	_RARGS=${_RARGS//:/::}
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS// /\%}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-
-	if [ "$C_TERSE" != 1 ];then
-	    printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_RHOSTS0}"
-	fi
-	_call="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS} ${_RUSER0:+-l $_RUSER0} ${_RHOSTS0}"
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
-	${_call}
-	exit $?
-    fi
-}
-beamMeUp
 
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";
@@ -439,7 +407,7 @@ fi
 if [ -z "$_ip" -a -z "$_mac" -a -z "$_name" ];then _ip=1;_mac=1;_name=1;fi
 argLst="${argLst## }";
 argLst="${argLst%% }";
-
+argLst=`fetchGroupMemberHosts ${argLst}`
 
 #match from all, build cat-list
 _fdblst=;
@@ -471,9 +439,13 @@ if [ -z  "${_fdblst}" ];then
     gotoHell ${ABORT}
 fi
 
-cat ${_fdblst}|\
-sort|\
-awk -F';' -v s="${argLst}" -v i=$_ip -v m=$_mac -v n=$_name \
+#
+#change this a.s.a.p.
+#anyhow, priorities for now...!
+for i in $argLst;do
+    cat ${_fdblst}|\
+    sort|\
+    awk -F';' -v s="${i}" -v i=$_ip -v m=$_mac -v n=$_name \
           '
           BEGIN       {cache="";mx=0;}
           $0~s&&n==1  {cache=cache $1;  mx=1;}
@@ -481,3 +453,4 @@ awk -F';' -v s="${argLst}" -v i=$_ip -v m=$_mac -v n=$_name \
           $0~s&&i==1  {if(mx==1)cache=cache ";";cache=cache $3;  mx=1;}
           mx==1       {printf("%s\n",cache);cache="";mx=0;}
          '
+done

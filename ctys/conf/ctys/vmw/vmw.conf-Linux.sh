@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_003
 #
 ########################################################################
 #
@@ -166,13 +166,22 @@ case ${MYDIST} in
 	case ${MYREL} in
 	    5.0)
                 #
+		#KEEP4REMINDER:
+		#
                 #Due to some firefox restrictions in default install somewhat inconsequent,
                 #but for local conns only!
                 #
                 #May help the initial intro into the market - a little.
                 #
-		CTYS_VMW_S2_ACCESS_HOST=${CTYS_VMW_S2_ACCESS_HOST:-http://127.0.0.1:8222/sdk}
-		CTYS_VMW_VMRC_ACCESS_HOST=${CTYS_VMW_VMRC_ACCESS_HOST:-127.0.0.1:8222}
+		#CTYS_VMW_S2_ACCESS_HOST=${CTYS_VMW_S2_ACCESS_HOST:-http://127.0.0.1:8222/sdk}
+		#CTYS_VMW_VMRC_ACCESS_HOST=${CTYS_VMW_VMRC_ACCESS_HOST:-127.0.0.1:8222}
+
+		#
+                #solution is simply to delete the file '/etc/pam.d/vmware-authd'
+		#seems to work now!
+                #
+		CTYS_VMW_S2_ACCESS_HOST=${CTYS_VMW_S2_ACCESS_HOST:-http://127.0.0.1:8333/sdk}
+		CTYS_VMW_VMRC_ACCESS_HOST=${CTYS_VMW_VMRC_ACCESS_HOST:-127.0.0.1:8333}
 		;;
 	esac
 	;;

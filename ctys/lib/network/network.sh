@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_003
 #
 ########################################################################
 #
@@ -2021,3 +2021,54 @@ function netCalcMask () {
     printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:netmask=$_mask"
     echo -n $_mask
 }
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  netGetFirstFreePort
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Gets the first free port above a given base, thus multiple regions
+#  could be managed
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <MIN>
+#  $2: [<MAX>]
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    <first-port>
+#
+#FUNCEND###############################################################
+function netGetFirstFreePort () {
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CALL=<${*}>"
+    local MIN=${1:-$NET_PORTRANGE_MIN};
+    local MAX=${2:-$NET_PORTRANGE_MAX};
+    [ -z "$MAX" ]&&let MAX=MIN+1000;
+    local NET_PORTSEED=${NET_PORTSEED:-100};
+    local _seed=$((RANDOM%NET_PORTSEED));
+    doDebug $S_LIB  ${D_MAINT} $LINENO $BASH_SOURCE
+    local D=$?
+
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MIN=${MIN} MAX=${MAX} seed=${_seed}"
+    case ${MYOS} in
+	Linux)
+	    local localClientAccess=`${CTYS_NETSTAT} -n -l -t|awk -v d="${D}" -v min="${MIN}" -v max="${MAX}" -v seed="${_seed}" -f ${_myLIBNAME_BASE_network}/netGetFirstFreePort-${MYOS}.awk`
+	    ;;
+	FreeBSD|OpenBSD)
+	    local localClientAccess=`${CTYS_NETSTAT} -n -l -t|awk -v d="${D}" -v min="${MIN}" -v max="${MAX}" -v seed="${_seed}" -f ${_myLIBNAME_BASE_network}/netGetFirstFreePort-${MYOS}.awk`
+	    ;;
+	SunOS)
+	    local localClientAccess=`${CTYS_NETSTAT} -n -l -t|awk -v d="${D}" -v min="${MIN}" -v max="${MAX}" -v seed="${_seed}" -f ${_myLIBNAME_BASE_network}/netGetFirstFreePort-${MYOS}.awk`
+	    ;;
+    esac
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:localClientAccess=<${localClientAccess}>"
+    echo -n -e "${localClientAccess}";
+}
+

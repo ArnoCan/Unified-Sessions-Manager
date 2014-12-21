@@ -8,17 +8,17 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_11_003
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 
 _myLIBNAME_cli="${BASH_SOURCE}"
-_myLIBVERS_cli="01.07.001b06"
+_myLIBVERS_cli="01.11.003"
 libManInfoAdd "${_myLIBNAME_cli}" "${_myLIBVERS_cli}"
 _myLIBBASE_cli="`dirname ${_myLIBNAME_cli}`"
 
@@ -972,7 +972,7 @@ function cliGetArg () {
                    print $2;
                  }
               }
-        '|sed 's/^://;s/\([^%\]\)%\([^%]\)/\1 \2/g;s/%%/%/g'`
+        '|sed 's/^://;s/\([^%]\)%\([^%]\)/\1 \2/g;s/\([^%]\)%\([^%]\)/\1 \2/g;s/%%/%/g'`
     if [ "${A}" == "${1}" ];then A=;fi
 
     if [ "${A%[\"\']}" != "${A}" ];then 

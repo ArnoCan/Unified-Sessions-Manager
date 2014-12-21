@@ -1,0 +1,375 @@
+.TH "ctys-beamer" 1 "May, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-beamer - transfers the final execution to a remote host\fR
+
+.SH SYNTAX
+
+
+   [--ssh-hop-holdtime]
+   [--ssh-tunnel-holdtime]
+   [--mode=(
+        (CTYS-HOPS|CH|0)
+       |(SSH-CHAIN|SC|1)
+       )
+   ]
+   [--getfreeport}
+   [--display-only]
+   [-d <debug-options>]
+   [-h]
+   [-H <help-options>]
+   [-L <remote-login>]
+   [-R <remote-host-list>:=<relay-chain>[,<remote-host-list>]]
+   ]
+   [-V]
+   [-X]
+   [<bypassed-ctys-options>]
+   [--]
+   <remote-command>
+
+
+   <relay-chain>:=<relay-host>[%<relay-chain>]
+
+   <relay-host>:=[<user>@](<host>|<access-point>)
+
+   <access-point>:=<physical-access-point>|<virtual-access-point>
+
+   <physical-access-point>:=<machine-address>
+   <virtual-access-point>:=<machine-address>
+
+
+
+.SH DESCRIPTION
+.P
+\fBUNDER DEVELOPMENT:\fR
+The current interface may change and the functionality will be expanded.
+For now basic features for call\-transformation with some advanced routing and
+call distribution are included.
+
+.P
+\fBctys\-beamer\fR is the main interface for the transformation of a local call to a 
+remote host for execution .
+Therefore an encrypted tunnel with and arbitrary number of intermediate hops
+on the route to remote host could be assigned.
+The defined route is hereby independent from the so called routing of the 
+TCP/IP internet layer, enabling routing independent and encrypted connections for
+multi\-level firewalls.
+The ctys\-beamer also supports the definition of multiple targets for remote execution 
+of the same command.
+
+.P
+The particular advance here is the full integration into the common name binding and addressing 
+schema of the UnifiedSessionsManager. This provides for extended address notation as well as 
+for full scope of GROUP objects and MACROs.
+
+.P
+The \fBcall\-transfomation\fR has to be distinguished from the \fBremote\-execution\fR
+option of a command, which is semantically slightly different.
+The 
+
+.P
+\fBcall\-transfomation\fR is a call\-neutral pure passive transformation for actual
+first\-time execution on the remote site.
+This could be used particularly for security reasons, when safe and hidden bypassing routes 
+has to be defined for administration purposes.
+
+.P
+The distinction to the \fBremote\-execution\fR of an executable is the active
+remote operation of application parts due to defined semantics of the call itself.
+Thus application specific knowledge for the current remote\-execution context could be
+applied, this is e.g. the case for the combination of remotely collected data into a
+single list.
+The \fBcall\-transfomation\fR as an independent and call neutral dispatcher might fail in general for cases
+where the combination of the results from various execution sites into one overall result is required.
+
+.P
+A typical call for a UNIX command is
+
+.nf
+  
+  ctys-beamer -R app1 ls -l -h rpm
+  
+.fi
+
+.P
+which performs the directory listing on the host app1.
+The following call 
+
+.nf
+  
+  ctys-beamer -R app1,app2 ctys -a list
+  
+.fi
+
+.P
+creates two independent LIST action outputs of running ctys sessions,
+while the call
+
+.nf
+  
+  ctys -a list  app1 app2
+  
+.fi
+
+.P
+creates \fBone\fR LIST output for both hosts, which could be listed
+e.g. by overall SORT option.
+The following call 
+
+.nf
+  
+  ctys-beamer -R netscan/all ctys-vping targethost
+  
+.fi
+
+.P
+executes independent ctys\-vping scans of the 'targethost' remotely on each entititiy listed 
+within the GROUP 'netscan/all'. While the call
+
+.nf
+  
+  ctys-vping targethost
+  
+.fi
+
+.P
+executes locally ctys\-vping scaning 'targethost'.
+The  call 
+
+.nf
+  
+  ctys-beamer -R app1%netscan/all ctys-vping targethost
+  
+.fi
+
+.P
+executes from the relay\-host 'app1' independent remote 'ctys\-vping' on each entitiy 
+within the GROUP 'netscan/all' for the scan of the 'targethost'.
+
+.P
+The  following examples show the creation of so called encrypted tunnels.
+
+.nf
+  
+  ctys-beamer -b 0 -z 2 \e
+    -Y \e
+    --ssh-tunnel-holdtime=60 \e
+    --mode=HD \e
+    -R :3333%delphi%tst/grouptst02:7777%lab01 \e
+    -- ctys-vping ws22swi
+  
+.fi
+
+.P
+This example particularly shows thw handling of GROUPS and here the assignment of port to 
+each entity contained in the GROUP.
+The exception are GROUP members, which have already a port assigned.
+The assigned ports have (for now \- will be changed) priority over call options.
+
+.P
+\fBLIMITATION:\fR
+
+.P
+The current version supports \fBDISPLAYFORWARDING\fR only.
+\fBCONNECTIONFORWARDING\fR is foreseen for a later version.
+Some options may vary for the different modes.
+The SSH modes \- performing native ssh calls \- may be used for now with
+common IP addressing([<user>@](<host\-name>|<host\-address>)[:<#port>]), whereas the CTYS modes \- which use ctys as call interface \-
+may cope the full range of addressing.
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-beamer\fR 
+
+.P
+Additional options are transparently bypassed to the internal 'ctys' call.
+This is particularly the case for the '\-Y' option activating 
+ \fB'ForwardAgent yes'/'\-A'\fR of OpenSSH.
+
+.TP
+\fB\-d <debug\-args>\fR
+
+Refer to "ctys" generic options for additional information.
+
+.TP
+\fB\-\-display\-only\fR
+
+This deactivates the actual final execution and displays the results only when e.g. '\-d pf'
+is activated.
+The intermediate calls, e.g. for remote evaluation of free ports for an SSH tunnel are
+evaluated.
+
+.TP
+\fB\-\-getfreeport\fR
+
+This returns the first available free port on the execution site.
+Some configuration parameters like the SEED for handling the random 
+generation within a range are provided.
+
+.TP
+\fB\-h\fR
+
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-L <remote login>\fR
+
+The remote user for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+The semantics is somewhat different from the ordinary remote operations, which is 
+application specific, whereas this 'beam\-up' is a generic pre\-execution forwarding.
+
+.TP
+\fB\-\-mode=<tunnel\-mode>\fR
+
+Sets the mode for the encryption tunnel to be created for remote execution.
+Current version supports only one mode.
+
+\fBCTYSHOPS|CH|0\fR 
+
+The encryption is performed in assembled sections, where the intermediate
+peers provide sections of the segment.
+The executable used is \fBctys\fR, thus \fBssh\fR is used as internal call only.
+The security of the intermediate hops has basically still to be assured,
+but the internode communications ist peer\-to\-peer encrypted.
+
+\fBSSHCHAIN|SC|1\fR 
+
+The encryption is performed in assembled sections, where the intermediate
+peers provide sections of the segment.
+The security of the intermediate hops has basically still to be assured,
+but the internode communications ist peer\-to\-peer encrypted.
+
+.TP
+\fB\-R <remote\-host\-list>\fR
+
+The remote hosts including the relays on the way to be used.
+This enables the call of multiple execution hosts as well as an arbitrary
+chain of relays to be actually passed.
+The main advance of this funtion is to pearce multi\-level firewall solution 
+with chained DMZs, and still provide reliable and secure connections.
+
+The relay chain could be opened and terminated by the optional
+assignment of access and termination ports, else the first free within the 
+defined range is used.
+For the intermediate hops ports could be assigned too, but these are not checked
+for availability, when automatic assigment for intermediate ports is choosen(default),
+free ports are assigned as available.
+The port assignment may not be applicable to any mode of interconnection.
+
+Valid calls are:
+.nf
+  ctys-beamer -R :3333%hop1%hop2%target ....
+  ctys-beamer -R :3333%hop1%hop2:3333%target ....
+  ctys-beamer -R :3333%hop1%hop2:3333%target:22 ....
+.fi
+
+
+Another closely related advance is to circumvent the routing of TCP/IP by 
+usage of well\-defined hops with stil reliable access by OpenSSH.
+
+.TP
+\fB\-\-ssh\-hop\-holdtime=<#timeout>\fR
+
+In case of CTYS\-modes with applied asynchronous background mode the channel will be
+hold in idle mode at least for the assigned time. 
+The value could be a numeric value in seconds, or provided with a valid 'sleep' unit\-postfix.
+
+.TP
+\fB\-\-ssh\-tunnel\-holdtime=<#timeout>\fR
+
+In case of SSH\-modes this is the timeout value for the final termination point of a one\-shot tunnel.
+The value could be a numeric value in seconds, or provided with a valid 'sleep' unit\-postfix.
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+Terse output format, effects "\-V" when set left\-of.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.TP
+\fB<remote\-command>\fR
+The command to be executed on the final execution host.
+This command of course could be any command \- including the ctys\-beamer itself \-
+which again calls a nested remote operation.
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.P
+\fIUser Manual\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-beamer.t2t -o /tmpn/0/ctys/bld/01.11.003/doc-tmp/BASE/en/man/man1/ctys-beamer.1
+

@@ -65,8 +65,14 @@ case ${MYLANG} in
 esac
 
 
+MYDOCBASE=${MYDOCBASE:-$MYLIBPATH/doc}
+if [ ! -d "${MYDOCBASE}" ];then
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYDOCBASE=${MYDOCBASE}"
+    exit 1
+fi
+
 if [ -z "${MYMANPATH}" ];then
-MYDOCPATH=${MYDOCPATH:-$MYLIBPATH/doc/$MYLANG}
+    MYDOCPATH=${MYDOCPATH:-$MYDOCBASE/$MYLANG}
     case ${MYLANG} in
 	de)
 	    MYMANPATH=${MYLIBPATH}/doc/de/man:${MYLIBPATH}/doc/en/man
@@ -81,11 +87,6 @@ MYDOCPATH=${MYDOCPATH:-$MYLIBPATH/doc/$MYLANG}
     esac
 fi
 
-MYDOCBASE=${MYDOCBASE:-$MYLIBPATH/doc}
-if [ ! -d "${MYDOCBASE}" ];then
-    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYDOCBASE=${MYDOCBASE}"
-    exit 1
-fi
 
 MYDOCPATH=${MYDOCPATH:-$MYDOCBASE/$MYLANG}
 if [ ! -d "${MYDOCPATH}" ];then
@@ -270,8 +271,9 @@ C_PFEXE=;
 #
 #FUNCEND###############################################################
 function fetchDBGArgs () {
-    if [ -n "`echo $*| sed -n 's/([^)]*)//g;s/-d /1/p'`" ];then
+    if [ -n "`echo ${*}| sed -n 's/([^)]*)//g;s/-d /1/p'`" ];then
 	C_DARGS=`echo " ${*} "| sed -n 's/^.*-d  *\([^ \t)]*\)[ \t)].*$/\1/p'`
+	C_DARGS=${C_DARGS%%\%*};
 	local i=;
 	local KEY=;
 	local ARG=;

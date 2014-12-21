@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_013
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_GROUPS="${BASH_SOURCE}"
-_myPKGVERS_GROUPS="01.10.013"
+_myPKGVERS_GROUPS="01.11.003"
 libManInfoAdd "$_myPKGNAME_GROUPS" "$_myPKGVERS_GROUPS"
 
 
@@ -93,11 +93,19 @@ function fetchGroupMembers () {
 		CTYS_GROUPS_PATH="${PWD}/${_jd}${CTYS_GROUPS_PATH:+:$CTYS_GROUPS_PATH}"
 		printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH}"
 	    fi
-
-	    jf="`matchFirstFile $j ${CTYS_GROUPS_PATH}`";
+#4TEST:01.11.003
+	    local _j=${j%:*}
+	    jf="`matchFirstFile $_j ${CTYS_GROUPS_PATH}`";
 	    if [ ! -f "${jf}"  ];then
-		jf="`matchFirstFile ${j#*@} ${CTYS_GROUPS_PATH}`";
+		jf="`matchFirstFile ${_j#*@} ${CTYS_GROUPS_PATH}`";
 	    fi
+#4TEST:01.11.003
+# 	    jf="`matchFirstFile $j ${CTYS_GROUPS_PATH}`";
+# 	    if [ ! -f "${jf}"  ];then
+# 		jf="`matchFirstFile ${j#*@} ${CTYS_GROUPS_PATH}`";
+# 	    fi
+#4TEST:01.11.003
+
 	    if [ -z "${jf}" ];then
 		break;
 	    fi
@@ -456,14 +464,28 @@ function expandGroups () {
     for i7 in $_namelst;do
         #get groupmembers
 	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:i7=${i7}"
+#4TEST:01.11.003
+        local _port=${i7#*:};
+        if [ "$_port" == "${i7}" ];then
+	    _port=;
+            i7=${i7%:*};
+	fi
+#echo "4TEST:01.11.003:$FUNCNAME:_port=<${_port}>">&2
+#4TEST:01.11.003
         _curglst=`fetchGroupMembers $i7`;
 
         if [ -n "$_curglst" ];then
             #replace members as shell expansion list
-	    _gx="${_curglst}"
+	    local _gx="${_curglst}"
+
+	    if [ -n "$_port" ];then
+		_gx=$(echo " $_gx "|sed 's/"(/:'"$_port"'&/g;s/(/:'"$_port"'(/g;'|sed "s/'(/:"$_port"&/g;s/\(,[^ ]\),/\1:"$_port",/g;"  )
+		_gx=$(echo " $_gx "|sed 's/\(:[0-9]\+\)\(:[0-9]\+\)/\1/g;')
+	    fi
+
 	    _gx="${_gx//\'/}";
 	    _gx="${_gx//\"/}";
-	    local _gx=`echo " $_gx "|sed 's/(/()/g'|awk -F'('  '
+	    _gx=`echo " $_gx "|sed 's/(/()/g'|awk -F'('  '
 	    {
 		for(i=1;i<=NF;i++){
 		    x=$i;
@@ -1063,6 +1085,8 @@ function fetchGroupMemberHosts () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
     local hostlist=$(expandGroups ${*})
     hostlist=$(echo " ${hostlist} "|sed 's/([^)]*)/ /g')
+    hostlist="${hostlist//,/ }"
+    hostlist="${hostlist//  / }"
     hostlist="${hostlist//  / }"
     if [ -n "${hostlist// /}" ];then
 	echo -n -e "${hostlist}"
