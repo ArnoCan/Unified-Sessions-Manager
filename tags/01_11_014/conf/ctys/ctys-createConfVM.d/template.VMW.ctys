@@ -1,0 +1,255 @@
+#  -*- mode: conf; -*-
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      MARKER_VERNO
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+#
+#This file is processed in the following way:
+#
+# 1. Manually synchronise the entries as described at the end of this file
+#    with the vmx-file.
+# 2. Detected by ENUMERATE and based tools such as ctys-vdbgen
+#    as valid (if not MAGICID_IGNORE) and collected to the
+#    inventory database.
+#
+#
+
+
+#***********************************************************************
+#                        Don't forget to activate                      *
+#***********************************************************************
+#@#MAGICID-IGNORE
+#***********************************************************************
+
+#
+#INSTALLER-INFO:
+#===============
+#
+#@#INST_EDITOR               =  MARKER_EDITOR
+#@#INST_DATE                 =  MARKER_DATE
+#@#INST_CTYSREL              =  MARKER_CTYSREL
+#@#INST_VERNO                =  MARKER_VERNO
+#@#INST_SERNO                =  MARKER_SERNO
+#@#INST_UID                  =  MARKER_UID
+#@#INST_GID                  =  MARKER_GID
+#@#INST_HOST                 =  MARKER_HOST
+
+
+
+
+#
+#INSTALL-HOST-MACHINE-INFO:
+#==========================
+#
+#@#INST_HOST_DIST            =  MARKER_INST_DIST
+#@#INST_HOST_DISTREL         =  MARKER_INST_RELEASE
+#@#INST_HOST_OS              =  MARKER_INST_OS_
+#@#INST_HOST_OSREL           =  MARKER_INST_OSREL
+#
+
+
+
+
+
+#
+#GUEST-OS-INFO:
+#==============
+#
+#Values required for ENUMERATE, even though some values, e.g. UUID
+#are currently not yet actually utilized by the QEMU-VM itself.
+#The values are used as search key within the ctys-name-services. 
+#So it makes "heavily" sence to maintain them thoroughly, and keep
+#all values unique, where applicable.
+#
+#
+#@#MAGICID-VMW
+#@#LABEL                     = "MARKER_LABEL"
+#@#SESSIONTYPE               = "VMW"
+#@#IP0                       = "MARKER_IP"
+#@#MAC0                      = "MARKER_MAC"
+#@#DIST                      = "MARKER_DIST"
+#@#DISTREL                   = "MARKER_RELEASE"
+#@#OS                        = "MARKER_OS_"
+#@#OSREL                     = "MARKER_OSREL"
+#@#SERNO                     = "MARKER_SERNO"
+#@#VERSION                   = "MARKER_VERNO"
+#@#CATEGORY                  = "MARKER_CATEGORY"
+
+
+#_@#VNCACCESSPORT            = 
+#_@#VNCBASEPORT              = 
+#_@#VNCACCESSDISPLAY         = 
+#VNCACCESSDISPLAY=
+
+
+#@#DEFAULTHOSTS             = "MARKER_DEFAULTHOSTS"
+#@#DEFAULTCONSOLE           = "MARKER_DEFAULTCONSOLE"
+
+
+
+
+
+#***********************************************************************
+#                        Don't forget to adapt                         *
+#***********************************************************************
+#
+# MODIFICATION-INFO:
+# ==================
+#
+# The following parameters are foreseen to be adapted manually within the
+# original vmx-file of the VM.
+#
+# The modifications has to be done BEFORE scanning the inventory by 'ctys-vdbgen'.
+#
+# Doing so is your own resposibility, the author does not give any guarantee
+# that the changes might work.
+#
+
+
+#
+# 1. displayName - LABEL
+#    ===================
+#    The 'displayName' is used as the LABEL when the LABEL parameter is absent.
+#    Thus this is a basic addressing entry to be used as a shortcut for addressing
+#    the VM so the vmx-file.
+#
+#    The advance of using this as an address entry is the display of the displayName
+#    within the task bar of several desktops.
+#
+#    So the value should be synchronized manually:
+#
+#    displayName = "MARKER_LABEL"
+#
+
+
+#
+# 2. guestOS -  DIST, DISTREL, OS, OSREL
+#    ===================================
+#    The 'guestOS' is used within the ctys as possible part of selection criteria
+#    and could be evaluated in detail within several search queries of the inventory 
+#    database.
+#    Thus the ctys parameters 'DIST', 'DISTREL', 'OS', and 'OSREL' values are 
+#    evaluated with priority when present.
+#
+
+
+#
+# 3. Ethernet-Pattern - IP[0-9], MAC[0-9]
+#    ====================================
+#    The TCP/IP addresses of the GuestOS are used widely within the ctys, thus are
+#    handled detailed.
+#
+#    Sone restrictions apply particularly to the mapping of MAC addresses to TCP/IP
+#    addresses:
+#
+#    -> The pooling by DHCP of leased addresses is currently not supported.
+#    -> The change of MAC addresses is not supported, particularly when the machine
+#       is scanned into the inventory database with it's previous MAC address and a
+#       possible fixed TCP/IP address.
+#
+#    Thus the mapping has to be predefined as a fixed assignment. In case of the 
+#    'ethernet' definitions the 'ethernet[0-9].addressType' within the vmx-file
+#    has to be set to 'static'.
+#
+#    The following example has to be adapted:
+#
+#    Generated by default:
+#
+#       ethernet0.addressType = "generated"
+#       ethernet0.generatedAddress = "00:0c:29:b7:75:97" <any-similar-address>
+#       ethernet0.generatedAddressOffset = "0"
+#
+#    Adapted entries:
+#
+#       ethernet0.addressType = "static"
+#       ethernet0.address = "MARKER_MAC"
+#
+#       #DROPPED:ethernet0.generatedAddress = "00:0c:29:b7:75:97"
+#       #DROPPED:ethernet0.generatedAddressOffset = "0"
+#
+
+
+
+#
+# 4. uuid-Pattern - UUID
+#    ====================================
+#    The UUID of the VM is used within the ctys for addressing purposes, thus
+#    is stored within the inventory database and has to be 'keep' static.
+#    This is particularly true when a VM is started by a network connection
+#    with a varied directory path.
+#
+#    Thus the 'uuid.action' has to be set to 'keep'.
+#
+#    The following example has to be adapted:
+#
+#    Generated by default:
+#
+#       Not present, is to ask interactively for modification during start
+#       when moved.
+#
+#    Adapted entries:
+#
+#       uuid.action = "keep"
+#
+#
+
+
+#
+# 5. deactivate "Master-Scan" of vmx-file
+#    ====================================
+#    The vmx-file should in coallocation with the configuration file should
+#    be handled as secondary peer for source information only. In any case not 
+#    an independent configuraiotn. Therefore include the following string
+#    preferably after the '#!/usr/bin/vmware' entry - NOT BEFORE!!!
+#    And remove the string '<remove-this>', which is present for current file
+#    not to be excluded.
+#
+#      #@#MAGICID-<remove-this>IGNORE
+#
+#
+
+
+
+
+# #rtc.startTime = 1089395200
+# tools.syncTime = "FALSE"
+# tools.synchronize.restore = "FALSE"
+# time.synchronize.resume.disk = "FALSE"
+# time.synchronize.continue = "FALSE"
+# time.synchronize.shrink = "FALSE"
+
+# #time.synchronize.resume.memory = false
+# #time.synchronize.tools.startup = false
+
+# #host.cpukHz = 1599925
+# #host.cpukHz = 2270000
+# #host.noTSC = true
+# #ptsc.noTSC = true
+
+

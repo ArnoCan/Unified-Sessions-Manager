@@ -1,0 +1,743 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;background-color:#dcd0bc ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#d6bc8f ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-common-addresssyntax</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-common-addresssyntax</H1>
+<FONT SIZE="4">
+November, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-common-addresssyntax - Definition of the Generic Address Superset</B>
+<br />
+<br />
+<br />
+</P>
+<H1>General</H1>
+<P>
+This document describes the common generic address syntax for single machines and groups of entities.
+This suffices all supported systems and may for some plugins applicable as a subset only.
+<br />
+<br />
+The current version provides almost only the 
+ <b><a  href="#machine-address" >&lt;machine-address&gt;</a></b>
+and the 
+ <b><a  href="#GROUPS" >GROUPS</a></b>
+objects, thus the remaining definitions were
+required for the design of an extendable overal concept.
+<br />
+<br />
+</P>
+<H1>Basic Elements</H1>
+<P>
+The addressing facility including the namebinding is splitted into
+a logical description as a general view and it's conrete adaptions
+which could be implemented by multiple presentations.
+The foreseen and implemented syntax scanners are designed to allow
+implementation in a straight-forward manner
+allowing an simple implementation of hierarchical structured syntax
+definitions by nested loops.
+</P>
+<P>
+The following characters are reservered syntax elements, 
+the full set and description is given
+in the chapter "Options Scanners - Reserved Characters". 
+</P>
+ <DL>
+ <DT><B>'='</B>   </DT><DD>
+Seperator for option and it's suboptions. 
+ <DT><B>','</B></DT><DD>
+Seperator for suboptions belonging to one set of suboptions. 
+ <DT><B>':'</B></DT><DD>
+Seperator for suboption keys and it's arguments.
+ <DT><B>'\%'</B></DT><DD>
+Seperator for suboption argument values.
+ <DT><B>'()'</B></DT><DD>
+Grouping character pair for target specific 
+<B>context-options</B>
+belonging to a common target a.k.a. host.
+ <DT><B>'{}'</B></DT><DD>
+Grouping arguments for multiple targets including their specific options
+belonging to a common high-level-target a.k.a. 
+<B>SUBTASK</B>
+ </DL>
+
+<P>
+The current syntax description may not yet formally be
+absolutely correct nor complete, but may cover the intended grade 
+of open description and required understanding for it's application.
+Some modifications are still under development.
+<br />
+<br />
+</P>
+<H1>Syntax Elements</H1>
+<P>
+The following namebinding founds the superset of addressing
+attributes, which supports explicit addressing of
+targets as well as generic addressing of multiple targets by using
+search paths and content attributes in analogy to wildcards,
+a.k.a. keywords or attribute value assertions.
+</P>
+<P>
+The given sub-options are defined not to be order dependent,
+the keywords are case-insensitive.
+</P>
+<P>
+The contained paranthesis, angle, and square brackets are just
+syntactic helpers.
+When they are part of the syntax, they will be
+quoted with single quotation marks.
+</P>
+<P>
+The top-level addressed entity is the APPLICATION, thus here the <B>&lt;target-application-entity&gt;</B>.
+This contains in analogy to the OSI model the machine as well as the access port.
+</P>
+<PRE>
+  
+      &lt;target-application-entity&gt;:=&lt;tae&gt;
+      &lt;tae&gt;:=[&lt;access-point&gt;]&lt;application&gt;
+  
+      &lt;access-point&gt;:={
+         &lt;physical-access-point&gt;
+         |&lt;virtual-access-point&gt;
+         |&lt;physical-access-point&gt;[&lt;virtual-access-point&gt;]
+         |&lt;group-access-points&gt;
+      }
+  
+  
+      &lt;physical-access-point&gt;:=&lt;pm&gt;
+      &lt;pm&gt;:=&lt;machine-address&gt;[:&lt;access-port&gt;]
+  
+      &lt;virtual-access-point&gt;:='['&lt;vm&gt;']'
+      &lt;vm&gt;:=&lt;machine-address&gt;[:&lt;access-port&gt;]
+  
+      &lt;group-access-points&gt;:=&lt;group&gt;[:&lt;access-port&gt;]
+  
+  
+      &lt;application&gt;:=&lt;host-execution-frame&gt;&lt;application-entity&gt;
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+<a  name="machine-address" </a>
+The machine is addressed by the <B>&lt;machine-address&gt;</B>, which represents physical and virtual machines as well as
+login-sessions provided by the HOSTs plugin.
+The specific plugins may suppport a subset of the full scope, but the attributes <B>ID</B> and <B>LABEL</B> are mandatory in any case.
+The <B>ID</B> attribuet is here either a persistent identifier, in case of a VM a configuration file, or a dynamic identifier
+in case of the HOSTs plugin, e.g. for VNC the DISPLAY number excluding the port-offset.
+Whereas it is defined for X11 as the PID.
+</P>
+<PRE>
+  
+      &lt;machine-address&gt;:=
+        (
+           [(ID|I|PATHNAME|PNAME|P):&lt;mconf-filename-path&gt;][,]
+           |
+           [(ID|I):&lt;id&gt;][,]
+        )
+        [(BASEPATH|BASE|B):&lt;base-path&gt;[%&lt;basepath&gt;]{0,n}
+        [(LABEL|L):&lt;label&gt;][,]
+        [(FILENAME|FNAME|F):&lt;mconf-filename&gt;][,]
+        [(UUID|U):&lt;uuid&gt;][,]
+        [(MAC|M):&lt;MAC-address&gt;][,]
+        [(TCP|T):&lt;TCP/IP-address&gt;][,]
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+<a  name="GROUPS" </a>
+The GROUPS objects are a concatination of &lt;machine-addresses&gt; and nested GROUPS including specific context options.
+</P>
+<PRE>
+  
+      &lt;group-address&gt;:= (
+                 [ &lt;machine-addresses&gt;['(' &lt;machine-options&gt; ')']{0,n}]  
+                 [ &lt;group-address&gt;['('     &lt;group-options&gt;   ')']{0,n}]
+      )['('&lt;group-options&gt;')']
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The <B>&lt;DISPLAYext&gt;</B> addresses a network display, where the full bath includes the <B>&lt;target-application-entity&gt;</B>,
+thus providing for various addressing schemas including application gateways.
+</P>
+<PRE>
+  
+      &lt;DISPLAYext&gt;:=&lt;target-display-entity&gt;
+  
+      &lt;target-display-entity&gt;:=&lt;tde&gt;
+      &lt;tde&gt;:=&lt;tae&gt;:&lt;local-display-entity&gt;
+      &lt;local-display-entity&gt;:=&lt;lde&gt;
+      &lt;lde&gt;:=(&lt;display&gt;|&lt;label&gt;)[.&lt;screen&gt;]
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The given general syntaxes lead to the following applied
+syntaxes with the slightly variation of assigned keywords.
+</P>
+<PRE>
+  
+      &lt;target-application-entity&gt;:=&lt;tae&gt;
+      &lt;tae&gt;:=[&lt;access-point&gt;]&lt;application&gt;
+  
+      &lt;access-point&gt;:=&lt;physical-access-point&gt;[&lt;virtual-access-point&gt;]
+  
+  
+      &lt;physical-access-point&gt;:=&lt;pm&gt;
+      &lt;pm&gt;:=&lt;machine-address&gt;[:&lt;access-port&gt;]
+  
+      &lt;virtual-access-point&gt;:='['&lt;vm&gt;']'
+      &lt;vm&gt;:=&lt;machine-address&gt;[:&lt;access-port&gt;]
+  
+  
+      &lt;application&gt;:=&lt;host-execution-frame&gt;&lt;application-entity&gt;
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The above minor variations take into account some common
+implementation aspects.
+</P>
+<DL>
+<DT><B>&lt;access-point&gt;:=&lt;physical-access-point&gt;[&lt;virtual-access-point&gt;]</B></DT><DD>
+  The complete path to the execution environment.
+<P></P>
+<DT><B>&lt;access-port&gt;</B></DT><DD>
+  The port to be used on the access-point.
+<P></P>
+<DT><B>&lt;application&gt;:=&lt;host-execution-frame&gt;&lt;application-entity&gt;</B></DT><DD>
+  The application itself, which has to be frequently used in
+  combination with a given service as runtime environment.
+<P></P>
+<DT><B>&lt;application-entity&gt;</B></DT><DD>
+  The executable target entity of the addresses application,
+  which could be an ordinary shell script to be executed by a
+  starter instance, or an selfcontained executable, which
+  operates standalone within the containing entity. E.g. this
+  could be a shared object or an executable.
+<P></P>
+  The following extends the DISPLAY for seamless usage within
+  ctys. So redirections of entities to any PM, VM of VNC session
+  supporting an active Xserver will be supported. The only
+  restrictions apply, are the hard-coded rejection of unencrypted
+  connections crossing machine-borders.
+<P></P>
+<PRE>
+  
+  TDE - Target Display Entity address
+  ===================================
+  
+  &lt;DISPLAYext&gt;:=&lt;target-display-entity&gt;
+  
+  &lt;target-display-entity&gt;:=&lt;tde&gt;
+  &lt;tde&gt;:=&lt;tae&gt;:&lt;lde&gt;
+  
+</PRE>
+<br />
+<P></P>
+<DT><B>(basepath|base|b):&lt;base-path&gt;{1,n}</B></DT><DD>
+  Basepath could be a list of prefix-paths for usage by UNIX
+  "find" command.
+  When omitted, the current working directory of execution is
+  used by default.
+<P></P>
+<DT><B>(filename|fname|f):&lt;mconf-filename&gt;</B></DT><DD>
+  A relative pathname, with a relative path-prefix to be used
+  for down-tree-searches within the given list of &lt;base-path&gt;.
+<P></P>
+  So far the theory. 
+  The actual behaviour is slightly different, as though as a simple
+  pattern match against a full absolute pathname is performed.
+  Thus also parts of the fullpathname may match, which could be an
+  "inner part".
+  This is perfectly all right, as far as the match leads to unique
+  results.
+<P></P>
+  More to say, it is a feature. 
+  Though a common standardname, where the containing directory of a VM
+  has the same name as the file of the contained VM could be written
+  less redundant, when just dropping the repetitive trailing part of
+  the name.
+<P></P>
+<DT><B>&lt;host-execution-frame&gt;</B></DT><DD>
+  The starter entity of addressed container, which frequently
+  supports a sub-command-call or the interactive dialog-access
+  of users to the target system.
+<P></P>
+<DT><B>(id|i):&lt;mconf-filename-path&gt;</B></DT><DD>
+  The &lt;id&gt; is used for a variety of tasks just as a neutral
+  matching-pattern of bytes, an in some cases as a uniqe VM identifier
+  within the scope of single machine.
+  The semantics of the data is handled holomporphic due to the variety
+  of utilized subsystems, representing various identifiers with
+  different semantics.
+  Thus the ID is defined to be an abstract sequence of bytes to be
+  passed to a specific application a.k.a. plugin, which is aware of
+  it's actual nature.
+<P></P>
+  The advantage of this is the possibility of a unified handling of IDs
+  for subsystems such as VNC, Xen, QEMU and VMware.
+  Where it spans semantics from beeing a DISPLAY number and offset of a
+  base-port, to a configuration file-path for a DomU-IDs, or a PID of
+  a "master process".
+<P></P>
+  This eases the implementation of cross-over function like
+  LIST, because otherwise e.g. appropriate access-rights to
+  the file are required, which is normally located in a
+  protected subdirectory. These has to be permitted, even
+  though it might not be required by the actual performed
+  function.
+<P></P>
+<DT><B>(LABEL|L):&lt;label&gt;</B></DT><DD>
+<PRE>
+  &lt;label&gt;={[a-zA-Z-_0-9]{1,n} (n&lt;30, if possible)}
+</PRE>
+User defined alias, which should be unique. Could be used for
+any addressing means.
+<B>MAC|M</B>.
+<P></P>
+<DT><B>(MAC|M):&lt;MAC-address&gt;</B></DT><DD>
+  The MAC address, which has basically similar semantically
+  meaning due to uniqueness as the UUID.
+<P></P>
+  Within the scope of ctys, it is widely assumed - even though
+  not really prerequired - that the UUIDs and MAC-Addresses are
+  manual assigned statically, this could be algorithmic
+  too. The dynamic assignment by VMs would lead to partial
+  difficulties when static caches are used.
+<P></P>
+<DT><B>&lt;mconf-filename&gt;</B></DT><DD>
+  The filename of the configuration file without the path-prefix.
+<P></P>
+<DT><B>&lt;mconf-filename-path&gt;</B></DT><DD>
+  The complete filepathname of the configuration file.
+<P></P>
+<DT><B>&lt;mconf-path&gt;</B></DT><DD>
+  The pathname prefix of the configuration file.
+<P></P>
+<DT><B>(PATHNAME|PNAME|P):&lt;mconf-path&gt;</B></DT><DD>
+  When a VM has to be started, the &lt;pathname&gt; to it's
+  configuration file has to be known. Therefore the &lt;pathname&gt;
+  is defined. The pathname is the full qualified name within
+  the callers namescope. SO in case of UNIX it requires a
+  leading '/'.
+<P></P>
+<DT><B>&lt;physical-access-point&gt;:=&lt;machine-address&gt;[:&lt;access-port&gt;]</B></DT><DD>
+  The physical termination point as the lowest element of the
+  execution stack. This is the first entity to be contacted
+  from the caller's site, normally by simple network access.
+<P></P>
+<DT><B>&lt;target-application-entity&gt;</B></DT><DD>
+  The full path of the stacked execution stack, addressing the
+  execution path from the caller's machine to the terminating
+  entity to be executed. This particularly includes any
+  involved PM, and VM, as well as the final executable. Thus
+  the full scope of actions to be performed in order to start
+  the "On-The-Top" executable is contained.
+<P></P>
+<DT><B>(TCP|T):&lt;tcp/ip-address&gt;</B></DT><DD>
+  The TCP/IP address is assumed by ctys to assigned in fixed
+  relation to a unique MAC-Address. 
+<P></P>
+<DT><B>(UUID|U):&lt;uuid&gt;</B></DT><DD>
+  The well known UUID, which should be unique. But might not,
+  at least due to inline backups, sharing same UUID as the
+  original. Therefore the parameter FIRST, LAST, ALL is
+  supported, due to the fact, that backup files frequently will
+  be assigned a name extension, which places them in
+  alphabetical search-order behind the original. So, when using
+  UUID as unique identifier, a backup will be ignored when
+  FIRST is used. 
+<P></P>
+  Anyhow, cross-over ambiguity for different VMs has to be
+  managed by the user.
+<P></P>
+<DT><B>&lt;virtual-access-point&gt;:=&lt;machine-address&gt;[:&lt;access-port&gt;]</B></DT><DD>
+  The virtual termination point as an element of the
+  execution stack. The stack-level is at least one above the bottom
+  This stack element could be accessed either by it's operating 
+  hypervisor, or by native access to the hosted OS.
+<P></P>
+<br />
+<br />
+</DL>
+
+<H1>Stack Addresses</H1>
+<P>
+The stack address is a logical collection of VMs, including an
+eventually basic founding PM, which are in a vertical dependency.
+The dependency results from the inherent nested physical execution
+dependency of each upper-peer from it's close underlying peer.
+Therefore the stack addresses are syntactically close to
+ <b><a  href="#GROUPS" >GROUPS</a></b>
+with additional specific constraints, controlling execution dependency and
+locality.
+Particularly the addressing of a VM within an upper layer of a stack
+could be smartly described by several means of existing path addresses
+schemas.
+Within the UnifiedSessionsManager a canonical form is defined for
+internal processing(
+<B>StacksAsVerticalSubgroups</B>
+), 
+which is available at the user interface too.
+Additional specific syntactical views are implemented in order
+to ease an intuitive usage for daily business.
+The following section depicts a formal meta-syntax as a preview of the
+final ASN.1 based definition.
+A stack address has the sytax as depicted in 
+Figure <B>Stack-Address</B>.
+</P>
+<PRE>
+  
+      &lt;stack-address&gt;:=&lt;access-point-list&gt;
+  
+      &lt;access-point-list&gt;:=[
+             &lt;physical-access-point&gt;
+             |&lt;virtual-access-point-list&gt;
+             ]
+  
+      &lt;virtual-access-point-list&gt;:=
+             '['&lt;virtual-access-point&gt;']'['('&lt;context-opts&gt;')']
+             [&lt;virtual-access-point-list&gt;]
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+A stack can basically contain wildcards and simple regexpr for the various
+levels, groups of entities within one level could be provided
+basically to.
+And of course any MACRO based string-replacement is applicable.
+But for the following reasons the following features are shifted to a later
+version:
+</P>
+<DL>
+<DT><B>Wildcards:</B></DT><DD>
+An erroneous user-provided wildcard could easily expnad to several
+hundred VMs, which might be not the original intention.
+Even more worst, due to the detached background operation on remote
+machines, this can not easily be stopped, almost just ba reboot of the
+execution target.
+Which, yes, might take some time, due to the booting VMs.
+<P></P>
+<DT><B>Level-Groups/Sets:</B></DT><DD>
+Due to several highe priorities this version supports explicitly
+addressed entries only.
+<P></P>
+<br />
+<br />
+</DL>
+
+<H1>Groups Resolution</H1>
+<P>
+Groups are valid replacements of any addressed object, such as a HOST.
+Groups can contain in addition to a simple set of hostnames a list of
+entities with context specific parameters and include other groups in
+a nested manner.
+Each set of superposed options is permutated with the new included set.
+</P>
+<P>
+The resolution of group names is processed by a search path algorithm
+based on the 
+variable 
+</P>
+ <DL>
+ <DT><b><a  href="../man1/ctys-groups.html" >CTYS_GROUPS_PATH</a></b></DT><DD>
+,
+which has the same syntax as
+the PATH variable.
+The search algorithm is a first-wins filename match of a preconfigured
+set.
+Nested includes are resolved with a first-win algorithm beginning at
+the current position.
+ </DL>
+
+<P>
+In addition to simple names a relative pathname for a group file could
+be used.
+This allows for example the definition of arbitrary categories, such
+as server, client, desktop, db, and scan.
+Here are some examples for free definitions of categories based on
+simple subdirectories to search paths.
+The level of structuring into subdirectories is not limited.
+</P>
+<DL>
+<DT><B>server/*</B></DT><DD>
+A list of single servers with stored specific call parameters.
+Server is used here as a synonym for a backend process.
+Which could be either a PM or a VM, the characteristics is the 
+inclusion of the backend process only.
+<P></P>
+<DT><B>client/*</B></DT><DD>
+A list of single clients with stored specific call parameters.
+This is meant as the user front end only, which could be a
+CONNECTIONFORWARDING.
+The user can define this category also as a complete client machine
+including the backend and frontend, which is a complete client for a
+service.
+<P></P>
+<DT><B>desktop/*</B></DT><DD>
+A composition of combined clients and servers for specific tasks.
+This could be specific desktops for office-applications, 
+systems administration, software-development, industrial applications, 
+test environments.
+Either new entries could be created, or existing groups could be
+combined by inclusion.
+<P></P>
+<DT><B>db/*</B></DT><DD>
+Multiple sets of lists of targets to be scanned into specific caching
+databases.
+This could be used for a working set as well as for different views of
+sets of machines.
+<P></P>
+<DT><B>scan/*</B></DT><DD>
+A list of items to be scanned by tools for access validation and check
+of operational mode.
+Therefore this entities should contain basic parameters onyl, such as
+machine specific remote access permissions type. 
+</DL>
+
+<P>
+<B>REMARK:</B>
+The group feature requires a configured SSO, either by SSH-Keys of
+Kerberos when the parallel or async mode is choosen, which is the
+default mode.
+This is required due to the parallel-intermixed password request,
+which fails frequently.
+</P>
+<P>
+For additional information on groups refer to 
+<B>GroupTargets</B>
+and
+ <b><a  href="../man1/ctys-groups.html" >ctys-groups</a></b>
+.
+</P>
+<P>
+<br />
+<br />
+</P>
+<H1>Groups of Machines</H1>
+<P>
+The GROUPS objects are a concatination of &lt;machine-addresses&gt; and nested GROUPS including specific context options.
+The end of the command with it's specific option should be marked by the common standard with a
+double column <B>'--'</B>.
+<br />
+<br />
+</P>
+<PRE>
+  
+      ctys -a &lt;action&gt; -- '(&lt;glob-opts&gt;)' &lt;group&gt;'('&lt;group-opts&gt;')'
+  
+      =&gt; The expansion of contained hosts results to:
+  
+         ... 
+         &lt;host0&gt;'(&lt;host-opts&gt; &lt;glob-opts&gt; &lt;group-opts&gt;')' 
+         &lt;host1&gt;'(&lt;host-opts&gt; &lt;glob-opts&gt; &lt;group-opts&gt;')' 
+         ...
+  
+      =&gt; The expansion of contained nested groups results to:
+  
+         ... 
+         &lt;group-member0&gt;'(&lt;glob-opts&gt;)'('&lt;group-opts&gt;')' 
+         &lt;group-member1&gt;'(&lt;glob-opts&gt;)'('&lt;group-opts&gt;')' 
+         ...
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The context options are applied succesively, thus are 'no-real-context' options, much more a successive
+superposition. More worst, the GROUP is a set, thus the members of a group are reordered for display and
+execution purposes frequently.
+So the context options are - in most practical cases - a required minimum for the attached entity.
+</P>
+<H1>Groups of Stack Addresses</H1>
+<P>
+The usage of stacked addresses is supported by the GROUPS objects for any entry, where an
+address is required, except for cases only applicable to PMs,
+e.g. WoL.
+The usage of stacked addresses within groups is supported too.
+</P>
+<P>
+Therefore the behaviour for global remote options on ctys-CLI is to
+chain the option with any entity within the group, such as for the
+single PM case in
+Figure Group Stack Addresses.
+<br />
+<br />
+</P>
+<PRE>
+  
+      ctys -a &lt;action&gt; -- '(&lt;glob-opts&gt;)' &lt;group&gt;'('&lt;group-opts&gt;')'
+  
+      =&gt; group expansion results to:
+  
+         ... 
+         &lt;group-member0&gt;'(&lt;glob-opts&gt;)'('&lt;group-opts&gt;')' 
+         &lt;group-member1&gt;'(&lt;glob-opts&gt;)'('&lt;group-opts&gt;')' 
+         ...
+  
+      =&gt; host expansion result to:
+  
+         ... 
+         &lt;group-member0&gt;'(&lt;glob-opts&gt; &lt;group-opts&gt;')' 
+         &lt;group-member1&gt;'(&lt;glob-opts&gt; &lt;group-opts&gt;')' 
+         ...
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+This behaviour of "chaining options" results due it's intended mapping
+to the internal canonical form before expanding it's options,
+to the permutation of the &lt;group-options&gt; to each member of the group.
+The same is true for the special group 
+<B>VMSTACK</B>
+</P>
+<P>
+that the global and context options are in case of groups just set for
+the last - topmost - stack element 
+Figure <B>Groups member option expansion</B>.
+</P>
+<PRE>
+  
+     &lt;group-member0&gt;'(&lt;glob-opts&gt;)(&lt;group-opts&gt;)'
+  
+   =&gt; group expansion results to:
+  
+     '[&lt;vm0&gt;][vm1][vm2](&lt;glob-opts&gt;)(&lt;group-opts&gt;)'
+  
+   =&gt; host + stack expansion result to:
+  
+      level-0: &lt;vm0&gt;
+      level-1: &lt;vm0&gt;'['&lt;vm1&gt;']'
+      level-2: &lt;vm0&gt;'['&lt;vm1&gt;']''['vm2']''('&lt;glob-opts&gt;)'('&lt;group-opts&gt;')'
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+When entries within the stack require specific context-options, these has to
+be set explicitly within the group definition, or the stack has to be
+operated step-by-step.
+This behaviour is planned to be expanded within one of the next
+versions.
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<H1>SEE ALSO</H1>
+<P>
+<I><A HREF="../pdf/ctys-user-manual-online.pdf"> UserManual</A></I>
+,
+<I><A HREF="../pdf/ctys-howto-online.pdf"> UserManual</A></I>
+<br />
+</P>
+<P>
+<I><A HREF="../man1/ctys.html"> ctys(1)</A></I>
+,
+<I><A HREF="../man1/ctys-vhost.html"> ctys-vhost(1)</A></I>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+For BASE package following licenses apply,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents see GFDL-1.3 with invariant sections for license conditions,
+</UL>
+
+<P>
+This document is part of the <B>DOC package</B>,
+</P>
+<UL>
+<LI>for documents and contents from DOC package see 
+<P></P>
+  <B>'Creative-Common-Licence-3.0 - Attrib: Non-Commercial, Non-Deriv'</B>
+<P></P>
+<A HREF="http://creativecommons.org/licenses/by-nc-nd/3.0/"><IMG ALIGN="middle" SRC="../../images/88x31.png" BORDER="0" ALT=""></A>
+<br />
+<br />
+  with optional extensions for license conditions.
+</UL>
+
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-common-addresssyntax.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/html/man7/ctys-common-addresssyntax.html -->
+</BODY></HTML>
