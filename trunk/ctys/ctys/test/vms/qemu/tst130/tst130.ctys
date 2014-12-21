@@ -425,7 +425,18 @@ QCALL="${QCALL} -L ${QEMUBIOS} "
 QCALL="${QCALL} -net nic,macaddr=${MAC0} "
 QCALL="${QCALL} -net vde,sock=${QEMUSOCK} "
 QCALL="${QCALL} -name \"${LABEL}\" "
-QCALL="${QCALL} -no-kqemu "
+
+case ${QEMU_MAGIC} in
+    QEMU_090)
+        #disable for 0.9.0: QCALL="${QCALL} -no-kqemu "
+	;;
+    QEMU_091)
+	QCALL="${QCALL} -no-kqemu "
+	;;
+    QEMU_09*)
+	QCALL="${QCALL} -no-kqemu "
+	;;
+esac
 
 #
 #Could be ntp, but should be kept.

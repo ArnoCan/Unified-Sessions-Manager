@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b02
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -23,11 +23,11 @@ PM_STATE=DISABLED
 PM_DEFAULTOPTS=;
 PM_PREREQ=;
 
-PM_VMSTACK=01.01.001a00;
+PM_VMSTACK=01.01.001a01;
 PM_WOLSUPPORT=0;
 
 _myPKGNAME_PM="${BASH_SOURCE}"
-_myPKGVERS_PM="01.01.001a02"
+_myPKGVERS_PM="01.07.001b02"
 hookInfoAdd $_myPKGNAME_PM $_myPKGVERS_PM
 
 _myPKGBASE_PM="`dirname ${_myPKGNAME_PM}`"
@@ -67,6 +67,20 @@ _sshpingcntPM=${CTYS_SSHPING_ONE_MAXTRIAL_PM:-20};
 _sshpingsleepPM=${CTYS_SSHPING_ONE_WAIT_PM:-2};
 _actionuserPM="${MYUID}";
 
+
+
+#for later reset, once relevant parameters different from default are been detected
+export CTYS_WOL_RAW="${CTYS_WOL_RAW:-$CTYS_WOL}"
+export CTYS_WOL_LOCAL_RAW="${CTYS_WOL_LOCAL_RAW:-$CTYS_WOL_LOCAL}"
+export CTYS_WOL_LOCAL_WAKEUP_RAW="${CTYS_WOL_LOCAL_WAKEUP_RAW:-$CTYS_WOL_LOCAL_WAKEUP}"
+export CTYS_ETHTOOL_RAW="${CTYS_ETHTOOL_RAW:-$CTYS_ETHTOOL}"
+export CTYS_ETHTOOL_WOL_RAW="${CTYS_ETHTOOL_WOL_RAW:-$CTYS_ETHTOOL_WOL}"
+
+printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_WOL_RAW=${CTYS_WOL_RAW}"
+printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_WOL_LOCAL_RAW=${CTYS_WOL_LOCAL_RAW}"
+printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_WOL_LOCAL_WAKEUP_RAW=${CTYS_WOL_LOCAL_WAKEUP_RAW}"
+printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_ETHTOOL_RAW=${CTYS_ETHTOOL_RAW}"
+printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_ETHTOOL_WOL_RAW=${CTYS_ETHTOOL_WOL_RAW}"
 
 
 #FUNCBEG###############################################################
@@ -240,6 +254,290 @@ function clientRequirePM () {
 
 
 
+function checkSyscallsLinuxWoL () {
+    CTYS_WOL="${CTYS_WOL_RAW}"
+    CTYS_WOL_LOCAL="${CTYS_WOL_LOCAL_RAW}"
+    CTYS_WOL_LOCAL_WAKEUP="${CTYS_WOL_LOCAL_WAKEUP_RAW}"
+    CTYS_ETHTOOL="${CTYS_ETHTOOL_RAW}"
+    CTYS_ETHTOOL_WOL="${CTYS_ETHTOOL_WOL_RAW}"
+
+    PMCALL=;
+    CTYS_WOL="$PMCALL $CTYS_WOL"
+    PM_WOLSUPPORT="2-${PM_WOLSUPPORT}";
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL=$CTYS_WOL"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_WAKEUP=$CTYS_WOL_WAKEUP"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL=$CTYS_ETHTOOL"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOLIF=$CTYS_ETHTOOL_WOLIF"
+
+
+    #temporary - will be replaced later
+    PMCALL=;
+    if [ -n "${CTYS_WOL_LOCAL}" ];then
+	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_WOL_LOCAL  -i lo 11:22:33:44:55:66
+	if [ $? -eq 0 ];then
+	    CTYS_WOL_LOCAL="$PMCALL $CTYS_WOL_LOCAL"
+	    PM_WOLSUPPORT="3-${PM_WOLSUPPORT}";
+	else
+	    CTYS_WOL_LOCAL="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_WOL_LOCAL\";"
+	    CTYS_WOL_LOCAL="${CTYS_WOL_LOCAL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	    CTYS_WOL_LOCAL="${CTYS_WOL_LOCAL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	    CTYS_WOL_LOCAL="${CTYS_WOL_LOCAL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	    CTYS_WOL_LOCAL="gotoHell 1;"
+	fi
+    else
+	CTYS_WOL_LOCAL="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing content for CTYS_WOL_LOCAL\";gotoHell 1;"
+    fi
+    CTYS_WOL_LOCAL_WAKEUP="$CTYS_WOL_LOCAL"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL=$CTYS_WOL_LOCAL"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL_WAKEUP=$CTYS_WOL_LOCAL_WAKEUP"
+
+
+    PMCALL=;
+    local _check0=99;
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_ETHTOOL=$CTYS_ETHTOOL access:"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:CHECK0:CTYS_ETHTOOL_WOLIF=${CTYS_ETHTOOL_WOLIF}"
+    if [ -n "${CTYS_ETHTOOL}" ];then
+	CTYS_ETHTOOL1=$CTYS_ETHTOOL
+	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_ETHTOOL1   -S ${CTYS_ETHTOOL_WOLIF}>/dev/null
+	_check0=$?;
+	if [ $_check0 -eq 97 ];then
+            #assume to be a standard Xen p-if
+	    CTYS_ETHTOOL1=$CTYS_ETHTOOL
+	    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_ETHTOOL1   -S p${CTYS_ETHTOOL_WOLIF}${CTYS_ETHTOOL_WOLIF}>/dev/null
+	    _check0=$?;
+	fi
+    else
+	CTYS_ETHTOOL="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing content for CTYS_ETHTOOL\";gotoHell 1;"
+    fi
+
+    #if still not works, provide the raw system name of physical IF explicitly with the call.
+    #remapping with individual schemas is not supported.
+    #bridge-interfaces are supported as
+    #
+    #   1. renamed in Xen style.
+    #   2. name is natively set as member
+    #
+    if [ $_check0 -eq 0 ];then
+	if [ "`stackerGetMyLevel`" == "0" ];then
+	    CTYS_ETHTOOL="$PMCALL $CTYS_ETHTOOL1"
+	    PM_WOLSUPPORT="4-${PM_WOLSUPPORT}";
+	fi
+    else
+	if [ $_check0 -eq 99 ];then
+	    CTYS_ETHTOOL="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing CTYS_ETHTOOL\";gotoHell 1;"
+	else
+	    if [ $_check0 -eq 97 ];then
+		CTYS_ETHTOOL="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_ETHTOOL\";"
+		CTYS_ETHTOOL="${CTYS_ETHTOOL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+		CTYS_ETHTOOL="${CTYS_ETHTOOL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+		CTYS_ETHTOOL="${CTYS_ETHTOOL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+		if [ "${USE_SUDO}" == 1 ];then
+		    CTYS_ETHTOOL="${CTYS_ETHTOOL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check the 'requiretty' attribute of sudoers\";"
+		    CTYS_ETHTOOL="${CTYS_ETHTOOL}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:alterntively set '-z 2'\";"
+		fi
+		CTYS_ETHTOOL="${CTYS_ETHTOOL}gotoHell 1;"
+	    else
+		CTYS_ETHTOOL="printWNG 1 $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:CHECK-Operation not supported by CTYS_ETHTOOL\";"
+		CTYS_ETHTOOL="${CTYS_ETHTOOL}printWNG 1 $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:but permission available\";"
+		CTYS_ETHTOOL="${CTYS_ETHTOOL}$PMCALL $CTYS_ETHTOOL1"
+		PM_WOLSUPPORT="4-${PM_WOLSUPPORT}";
+	    fi
+	fi
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL=$CTYS_ETHTOOL"
+
+    CTYS_ETHTOOL_WOL="$PMCALL $CTYS_ETHTOOL_WOL"
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL=$CTYS_ETHTOOL_WOL"
+
+    if [ $_check0 -eq 0 ];then
+        #for additional
+	local _woli=0;
+	local _xwoli=;
+	for((_woli=0;_woli<10;_woli++));do
+	    eval _xwoli="\"\$CTYS_ETHTOOL_WOL$_woli\""
+	    if [ -n "$_xwoli" ];then
+		_xwoli="$PMCALL $_xwoli"
+		eval CTYS_ETHTOOL_WOL$_woli=\"$_xwoli\"
+		printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL$_woli=$_xwoli"
+	    fi
+	done
+    fi
+}
+
+function checkSyscallsLinux () {
+    PMCALL=;
+    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_HALT      -w
+    if [ $? -eq 0 ];then
+ 	CTYS_HALT="$PMCALL $CTYS_HALT"
+    else
+	CTYS_HALT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_HALT\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_HALT="${CTYS_HALT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_HALT=$CTYS_HALT"
+
+    PMCALL=;
+    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_REBOOT    -w
+    if [ $? -eq 0 ];then
+	CTYS_REBOOT="$PMCALL $CTYS_REBOOT"
+    else
+	CTYS_REBOOT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$CTYS_REBOOT\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_REBOOT="${CTYS_REBOOT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_REBOOT=$CTYS_REBOOT"
+
+    PMCALL=;
+    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_POWEROFF  -w
+    if [ $? -eq 0 ];then
+	CTYS_POWEROFF="$PMCALL $CTYS_POWEROFF"
+    else
+	CTYS_POWEROFF="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_POWEROFF\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_POWEROFF=$CTYS_POWEROFF"
+
+    PM_WOLSUPPORT="1-${PM_WOLSUPPORT}";
+    PMCALL=;
+    local _myRunLevel=`who -a |awk '/run-level/{print $2;}'`
+    if [ "${_myRunLevel##[35]}" != "$_myRunLevel" ];then
+	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_INIT  $_myRunLevel
+	if [ $? -eq 0 ];then
+	    CTYS_INIT="$PMCALL $CTYS_INIT"
+	else
+	    CTYS_INIT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_INIT\";"
+	    CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	    CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	    CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	    CTYS_INIT="${CTYS_INIT}gotoHell 1;"
+	fi
+    else
+	CTYS_INIT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_INIT\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_INIT="${CTYS_INIT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_INIT=$CTYS_INIT"
+}
+
+function checkSyscallsOpenBSD () {
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_HALT    
+    if [ $? -eq 0 ];then
+	CTYS_HALT="$PMCALL $CTYS_HALT"
+    else
+	CTYS_HALT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_HALT\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_HALT="${CTYS_HALT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_HALT=$CTYS_HALT"
+
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_REBOOT  
+    if [ $? -eq 0 ];then
+	CTYS_REBOOT="$PMCALL $CTYS_REBOOT"
+    else
+	CTYS_REBOOT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$CTYS_REBOOT\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_REBOOT="${CTYS_REBOOT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_REBOOT=$CTYS_REBOOT"
+
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_POWEROFF
+    if [ $? -eq 0 ];then
+	CTYS_POWEROFF="$PMCALL $CTYS_POWEROFF"
+    else
+	CTYS_POWEROFF="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_POWEROFF\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_POWEROFF=$CTYS_POWEROFF"
+
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_INIT
+    if [ $? -eq 0 ];then
+	CTYS_INIT="$PMCALL $CTYS_INIT"
+    else
+	CTYS_INIT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_INIT\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_INIT="${CTYS_INIT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_INIT=$CTYS_INIT"
+}
+
+
+function checkSyscallsSunOS () {
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_HALT    
+    if [ $? -eq 0 ];then
+	CTYS_HALT="$PMCALL $CTYS_HALT"
+    else
+	CTYS_HALT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_HALT\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_HALT="${CTYS_HALT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_HALT="${CTYS_HALT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_HALT=$CTYS_HALT"
+
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_REBOOT  
+    if [ $? -eq 0 ];then
+	CTYS_REBOOT="$PMCALL $CTYS_REBOOT"
+    else
+	CTYS_REBOOT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_REBOOT\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_REBOOT="${CTYS_REBOOT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_REBOOT="${CTYS_REBOOT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_REBOOT=$CTYS_REBOOT"
+
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_POWEROFF
+    if [ $? -eq 0 ];then
+	CTYS_POWEROFF="$PMCALL $CTYS_POWEROFF"
+    else
+	CTYS_POWEROFF="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_POWEROFF\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_POWEROFF="${CTYS_POWEROFF}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_POWEROFF=$CTYS_POWEROFF"
+
+    PMCALL=;
+    setSUaccess  "${_myHint}" PMCALL   CTYS_INIT
+    if [ $? -eq 0 ];then
+	CTYS_INIT="$PMCALL $CTYS_INIT"
+    else
+	CTYS_INIT="printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Missing exec permission for:$PMCALL $CTYS_INIT\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Check '-z KSU,SUDO'\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:Permissions are passed through,\";"
+	CTYS_INIT="${CTYS_INIT}printERR $LINENO $BASH_SOURCE 1 \"$FUNCNAME:DELAYED-OUT:thus have to be equal for the whole stack\";"
+	CTYS_INIT="${CTYS_INIT}gotoHell 1;"
+    fi
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_INIT=$CTYS_INIT"
+}
+
+
 
 #FUNCBEG###############################################################
 #NAME:
@@ -322,221 +620,9 @@ function setVersionPM () {
     fi
 
 
-    function checkSyscallsLinux () {
-	PMCALL=;
-	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_HALT      -w
- 	if [ $? -eq 0 ];then
- 	    CTYS_HALT="$PMCALL $CTYS_HALT"
- 	else
- 	    CTYS_HALT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_HALT\";gotoHell 1;"
- 	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_HALT=$CTYS_HALT"
-
-	PMCALL=;
-	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_REBOOT    -w
-	if [ $? -eq 0 ];then
-	    CTYS_REBOOT="$PMCALL $CTYS_REBOOT"
-	else
-	    CTYS_REBOOT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_REBOOT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_REBOOT=$CTYS_REBOOT"
-
-	PMCALL=;
-	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_POWEROFF  -w
-	if [ $? -eq 0 ];then
-	    CTYS_POWEROFF="$PMCALL $CTYS_POWEROFF"
-	else
-	    CTYS_POWEROFF="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_POWEROFF\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_POWEROFF=$CTYS_POWEROFF"
-
-	PM_WOLSUPPORT="1-${PM_WOLSUPPORT}";
-	PMCALL=;
-	local _myRunLevel=`who -a |awk '/run-level/{print $2;}'`
-	if [ "${_myRunLevel##[35]}" != "$_myRunLevel" ];then
-	    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_INIT  $_myRunLevel
-	    if [ $? -eq 0 ];then
-		CTYS_INIT="$PMCALL $CTYS_INIT"
-	    else
-		CTYS_INIT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_INIT\";gotoHell 1;"
-	    fi
-	else
-	    CTYS_INIT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Cannot evaluate run-level in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_INIT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_INIT=$CTYS_INIT"
-
-	PMCALL=;
-	if [ -n "${CTYS_WOL}" ];then
-	    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_WOL -V
-	    if [ $? -eq 0 ];then
-		CTYS_WOL="$PMCALL $CTYS_WOL"
-		PM_WOLSUPPORT="2-${PM_WOLSUPPORT}";
-	    else
-		CTYS_WOL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_WOL\";gotoHell 1;"
-	    fi
-	else
-	    CTYS_WOL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing content for CTYS_WOL in $BASH_SOURCE:$LINENO\";gotoHell 1;"
-	fi
-#    CTYS_WOL_WAKEUP="$PMCALL $CTYS_WOL_WAKEUP"
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL=$CTYS_WOL"
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_WAKEUP=$CTYS_WOL_WAKEUP"
-
-
-        #temporary - will be replaced later
-	PMCALL=;
-	if [ -n "${CTYS_WOL_LOCAL}" ];then
-	    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_WOL_LOCAL  -i lo 11:22:33:44:55:66
-	    if [ $? -eq 0 ];then
-		CTYS_WOL_LOCAL="$PMCALL $CTYS_WOL_LOCAL"
-		PM_WOLSUPPORT="3-${PM_WOLSUPPORT}";
-	    else
-		CTYS_WOL_LOCAL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_WOL_LOCAL\";gotoHell 1;"
-	    fi
-	else
-	    CTYS_WOL_LOCAL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing content for CTYS_WOL_LOCAL in $BASH_SOURCE:$LINENO\";gotoHell 1;"
-	fi
-#    CTYS_WOL_WAKEUP_LOCAL="$PMCALL $CTYS_WOL_WAKEUP"
-	CTYS_WOL_LOCAL_WAKEUP="$CTYS_WOL_LOCAL"
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL=$CTYS_WOL_LOCAL"
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL_WAKEUP=$CTYS_WOL_LOCAL_WAKEUP"
-
-
-	PMCALL=;
-	local _check0=99;
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_ETHTOOL=$CTYS_ETHTOOL access:"
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:CHECK0:CTYS_ETHTOOL_WOLIF=${CTYS_ETHTOOL_WOLIF}"
-	if [ -n "${CTYS_ETHTOOL}" ];then
-	    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_ETHTOOL   -g ${CTYS_ETHTOOL_WOLIF}
-	    _check0=$?;
-	    if [ $_check0 -ne 0 ];then
-                #assume to be a standard Xen p-if
-		checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_ETHTOOL   -g p${CTYS_ETHTOOL_WOLIF}
-		_check0=$?;
-	    fi
-	else
-	    CTYS_ETHTOOL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing content for CTYS_ETHTOOL in $BASH_SOURCE:$LINENO\";gotoHell 1;"
-	fi
-
-        #if still not works, provide the raw system name of physical IF explicitly with the call.
-        #remapping with individual schemas is not supported.
-        #bridge-interfaces are supported as
-        #
-        #   1. renamed in Xen style.
-        #   2. name is natively set as member
-        #
-	if [ $_check0 -eq 0 ];then
-	    if [ "`stackerGetMyLevel`" == "0" ];then
-		CTYS_ETHTOOL="$PMCALL $CTYS_ETHTOOL"
-		PM_WOLSUPPORT="4-${PM_WOLSUPPORT}";
-	    fi
-	else
-	    if [ $_check0 -eq 99 ];then
-		CTYS_ETHTOOL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing CTYS_ETHTOOL in $BASH_SOURCE:$LINENO\";gotoHell 1;"
-	    else
-		CTYS_ETHTOOL="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_ETHTOOL\";gotoHell 1;"
-	    fi
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL=$CTYS_ETHTOOL"
-
-	CTYS_ETHTOOL_WOL="$PMCALL $CTYS_ETHTOOL_WOL"
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL=$CTYS_ETHTOOL_WOL"
-
-	if [ $_check0 -eq 0 ];then
-            #for additional
-	    local _woli=0;
-	    local _xwoli=;
-	    for((_woli=0;_woli<10;_woli++));do
-		eval _xwoli="\"\$CTYS_ETHTOOL_WOL$_woli\""
-		if [ -n "$_xwoli" ];then
-		    _xwoli="$PMCALL $_xwoli"
-		    eval CTYS_ETHTOOL_WOL$_woli=\"$_xwoli\"
-		    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL$_woli=$_xwoli"
-		fi
-	    done
-	fi
-    }
-
-    function checkSyscallsOpenBSD () {
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_HALT    
-	if [ $? -eq 0 ];then
-	    CTYS_HALT="$PMCALL $CTYS_HALT"
-	else
-	    CTYS_INIT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_HALT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_HALT=$CTYS_HALT"
-
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_REBOOT  
-	if [ $? -eq 0 ];then
-	    CTYS_REBOOT="$PMCALL $CTYS_REBOOT"
-	else
-	    CTYS_REBOOT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_REBOOT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_REBOOT=$CTYS_REBOOT"
-
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_POWEROFF
-	if [ $? -eq 0 ];then
-	    CTYS_POWEROFF="$PMCALL $CTYS_POWEROFF"
-	else
-	    CTYS_POWEROFF="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_POWEROFF\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_POWEROFF=$CTYS_POWEROFF"
-
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_INIT
-	if [ $? -eq 0 ];then
-	    CTYS_INIT="$PMCALL $CTYS_INIT"
-	else
-	    CTYS_INIT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_INIT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_INIT=$CTYS_INIT"
-    }
-
-
-    function checkSyscallsSunOS () {
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_HALT    
-	if [ $? -eq 0 ];then
-	    CTYS_HALT="$PMCALL $CTYS_HALT"
-	else
-	    CTYS_INIT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_HALT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_HALT=$CTYS_HALT"
-
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_REBOOT  
-	if [ $? -eq 0 ];then
-	    CTYS_REBOOT="$PMCALL $CTYS_REBOOT"
-	else
-	    CTYS_REBOOT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_REBOOT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_REBOOT=$CTYS_REBOOT"
-
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_POWEROFF
-	if [ $? -eq 0 ];then
-	    CTYS_POWEROFF="$PMCALL $CTYS_POWEROFF"
-	else
-	    CTYS_POWEROFF="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_POWEROFF\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_POWEROFF=$CTYS_POWEROFF"
-
-	PMCALL=;
-	setSUaccess  "${_myHint}" PMCALL   CTYS_INIT
-	if [ $? -eq 0 ];then
-	    CTYS_INIT="$PMCALL $CTYS_INIT"
-	else
-	    CTYS_INIT="printERR $LINENO $BASH_SOURCE 1\"$FUNCNAME:Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_INIT\";gotoHell 1;"
-	fi
-	printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_INIT=$CTYS_INIT"
-    }
-
-
     if [ -n "${C_EXECLOCAL}" ];then
 	case ${MYOS} in
-	    Linux)checkSyscallsLinux;;
+	    Linux)checkSyscallsLinux;checkSyscallsLinuxWoL;;
 	    OpenBSD)checkSyscallsOpenBSD;;
 	    SunOS)checkSyscallsSunOS;;
 	    *)
@@ -572,7 +658,6 @@ function setVersionPM () {
 
     case ${MYOS} in
 	Linux)
-
 	    PM_MAGIC=PM_Linux;
 	    PM_STATE=ENABLED
 	    _ret=0;

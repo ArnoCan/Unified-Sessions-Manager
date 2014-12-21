@@ -476,7 +476,7 @@ case ${BOOTMODE} in
         LASTPATH=;
 	if [ -n "$KERNELIMAGE" ];then
           LASTPATH="${LASTPATH} -kernel ${KERNELIMAGE} "
-          LASTPATH="${LASTPATH} -append \"root=/dev/sda1\""
+          LASTPATH="${LASTPATH} -append \"root=/dev/sda1 clock=pit console=tty0 console=ttyAMA0\""
 	fi
 	if [ -n "$INITRDIMAGE" ];then
           LASTPATH="${LASTPATH} -initrd ${INITRDIMAGE}"

@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b02
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_QEMU_SESSION="${BASH_SOURCE}"
-_myPKGVERS_QEMU_SESSION="01.01.001a00pre"
+_myPKGVERS_QEMU_SESSION="01.07.001b02"
 hookInfoAdd $_myPKGNAME_QEMU_SESSION $_myPKGVERS_QEMU_SESSION
 _myPKGBASE_QEMU_SESSION="`dirname ${_myPKGNAME_QEMU_SESSION}`"
 
@@ -281,6 +281,8 @@ function startSessionQEMU () {
   case ${QEMU_MAGIC} in
       QEMU_091) #verified to work
 	  ;;
+      QEMU_090) #verified to work
+	  ;;
       QEMU_09x)
 	  printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, but any version \"0.9.x\" might work."
 	  printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  QEMU_VERSTRING = ${QEMU_VERSTRING}"
@@ -297,6 +299,7 @@ function startSessionQEMU () {
   #use these in wrapper config scripts: _pname
   export QEMUCALL
   export QEMU
+  export QEMU_MAGIC
 
 
   #set appropriate call
@@ -706,11 +709,24 @@ function vmMgrQEMU () {
 	gotoHell ${ABORT}
     fi
 
-    if [ ! -S "${_sport}" ];then
+    if [ ! -e "${_sport}" ];then
 	ABORT=1;
-	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Cannot access UNIX-Domain socket:SPORT=${_sport}"
-	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Continue, but use \"stackerCancelPropagate\" and/or \"kill\" from now on."
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing UNIX-Domain socket:"
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:  SPORT=${_sport}"
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Probably a prevoious \"stackerCancelPropagate\""
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:was meanwhile successful."
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Continue, but use \"kill\" from now on if"
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:FORCE is set."
 	_sport=;
+    else
+	if [ ! -S "${_sport}" ];then
+	    ABORT=1;
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Cannot access SPORT, Is not a UNIX-Domain socket:"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:  SPORT=${_sport}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Continue, but use \"kill\" from now on if"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:FORCE is set."
+	    _sport=;
+	fi
     fi
 
     function callMonitorCmd () {
@@ -718,6 +734,16 @@ function vmMgrQEMU () {
         local _monsock=$1;shift
         local _cmd=$*
 	printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME} monsock=<${_monsock}> cmd=<${_cmd}>"
+
+	checkConsole "${_monsock}"
+	local _ret=$?;
+	if [ $_ret -ne 0 ];then
+	    printWNG 1 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:Cannot acces MONSOCK=<${_monsock}>"
+	    printWNG 1 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:In use:users=$((_ret-1))"
+	    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:Cannot acces MOSOCK=<${_monsock}>"
+	    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:In use:users=$((_ret-1))"
+	    return 1
+	fi
 
 	if [ -n "${CTYS_NETCAT}" ];then
 	    local _call="echo -e -n '\001\143${_cmd}\n\001\143'|${QEMUCALL} ${CTYS_NETCAT} -U ${_monsock}"
@@ -737,6 +763,7 @@ EOF
     }
 
 
+    releaseConsole "${_sport}"
     case $_cmd in
         #CREATE######################
 	RS3|PAUSE)
@@ -802,12 +829,21 @@ EOF
             if [ -z "${C_NOEXEC}" ];then
 		if [ -n "${_sport}" ];then
 		    callMonitorCmd "${_sport}" '\001\170\n'
+		    if [ $? -ne 0 ];then
+			ABORT=1
+			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Cannot POWEROFF native GuestOS"
+			if [ "$_arg2" != FORCE ];then
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Stop running client, and/or use the \"FORCE\" Luke."
+			fi
+		    fi
 		else
 		    ABORT=1;
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Cannot submit command:${_cmd}"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing SPORT, Cannot submit command:${_cmd}"
 		fi
 		case "$_arg2" in
 		    FORCE)
+
+
 			ABORT=1;
 			_timeout=${_arg1:-1}
 			printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Delay forced kill:${_timeout} seconds"
@@ -836,8 +872,11 @@ EOF
 			;;
 		    *)
 			if [ -z "${_sport}" ];then
-			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Use FORCE flag for ultimative kill."
-			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Be aware, that this is an \"actual-switch-off\" ."
+			    ABORT=1;
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:If VM is still present use of the FORCE Luke"
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Be aware, that this is an actual and abrupt"
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:\"switch-off\" by \"kill\" of the QEMU processes"
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:which could eventually damage the the GuestOS."
 			fi
 			;;
 		esac

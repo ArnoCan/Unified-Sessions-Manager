@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_CREATE="01.02.001b01"
+_myPKGVERS_VMW_CREATE="01.07.001b01"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VMW_CREATE
 _myPKGBASE_VMW_CREATE="`dirname ${_myPKGNAME_VMW_CREATE}`"
 
@@ -768,6 +768,7 @@ function createConnectVMW () {
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "  5. Create a dummy macmap.fdb, continues with filesystem scan."
  		    gotoHell ${ABORT}
 		fi
+		printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "_pname=<${_pname}>"
 	    fi
 
             #

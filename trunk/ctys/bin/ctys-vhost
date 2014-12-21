@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a13
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_03_001a00
+VERSION=01_07_001b01
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -695,7 +695,7 @@ function myFetchOptions () {
                             echo
 			    echo "MEMBERSDB - ctys stack- addresses."
                             echo 
-                            ${MYCALLPATH}/ctys-vhost ${C_DARGS:+ -d $C_DARGS} -s \
+                            ${MYCALLPATH}/ctys-vhost ${C_DARGS} -s \
                                -p "${DBPATHLST}" -o ctys -M all .|sort
                             gotoHell 0;
 			    ;;
@@ -1005,7 +1005,7 @@ function myFetchOptions () {
                             echo
 			    echo "MEMBERSDB - ctys stack- addresses."
                             echo 
-                            ${MYCALLPATH}/ctys-vhost ${C_DARGS:+ -d $C_DARGS} -s \
+                            ${MYCALLPATH}/ctys-vhost ${C_DARGS} -s \
                                 -p "${DBPATHLST}" -C OFF -o ctys -M all .|sort
                             gotoHell 0;
 			    ;;
@@ -1537,7 +1537,7 @@ function buildStatCacheDB () {
 		printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "_chk1=${_chk1}"
 
                 #uses statcache
-		${MYCALLPATH}/ctys-vhost ${C_DARGS:+ -d $C_DARGS} -s \
+		${MYCALLPATH}/ctys-vhost ${C_DARGS} -s \
                                 -p "${DBPATHLST}" -M all -o machine ${_chk1}>>${GRPSCACHEDB}/${_grp}
 	    done
             [ "$C_INTERACTIVE" != 0 ]&&printf "BUILD GRP-DB      =%s\n" ${_grppath}

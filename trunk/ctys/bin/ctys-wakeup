@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_01_001a02
+VERSION=01_07_001b02
 #DESCRIPTION:
 #  Sends a magic packet to:
 #
@@ -122,6 +122,8 @@ shopt -s nullglob
 ################################################################
 #       System definitions - do not change these!              #
 ################################################################
+
+C_EXECLOCAL=1;
 
 #Execution anchor
 MYHOST=`uname -n`
@@ -315,6 +317,7 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 #
 case ${MYOS} in
     Linux);;
+    OpenBSD);;
     *)
         printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
 	gotoHell 0
@@ -323,6 +326,7 @@ esac
 
 . ${MYLIBPATH}/lib/help/help
 . ${MYLIBPATH}/lib/security
+. ${MYLIBPATH}/lib/network/network
 
 #path to directory containing the default mapping db
 if [ -d "${HOME}/.ctys/db/default" ];then
@@ -334,6 +338,20 @@ if [ -d "${MYCONFPATH}/db/default" ];then
     DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
 fi
 
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/pm" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/pm/pm.conf.${MYOS}" ];then
+	. "${HOME}/.ctys/pm/pm.conf.${MYOS}"
+    fi
+fi
+
+if [ -d "${MYCONFPATH}/pm" ];then
+    #Source pre-set environment from installation 
+    if [ -f "${MYCONFPATH}/pm/pm.conf.${MYOS}" ];then
+	. "${MYCONFPATH}/pm/pm.conf.${MYOS}"
+    fi
+fi
 
 #Source pre-set environment from user
 if [ -f "${HOME}/.ctys/ctys.conf" ];then
@@ -441,27 +459,32 @@ function buildWOLMagicPacket () {
 function remoteWOL () {
     local _dbg1=${C_DARGS:+ -v }
     local _wait=2
+
+    if [ -z "${CTYS_NETCAT0}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Requires a CTYS_NETCAT0=netcat/nc version."
+	gotoHell ${ABORT}
+    fi
+
     if [ -n "$_tcp" ];then
 	if [ -z "$_noexe" ];then
-            _call="buildWOLMagicPacket $_mac;echo \"|nc $_dbg1 -u -w $_wait 255.255.255.255 $_port\""
-
-            _call="printf \"`buildWOLMagicPacket $_mac`\n\"|nc $_dbg1 -u -w $_wait $_tcp $_port"
+            _call="printf \"`buildWOLMagicPacket $_mac`\"|${CTYS_NETCAT0} $_dbg1 -u -w $_wait $_tcp $_port"
 	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$_call"
 
-	    printf "`buildWOLMagicPacket $_mac`\n"|nc $_dbg1 -u -w $_wait $_tcp $_port
+	    printf "`buildWOLMagicPacket $_mac`"|${CTYS_NETCAT0} $_dbg1 -u -w $_wait $_tcp $_port
 	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "=>$?"
 	else
-	    buildWOLMagicPacket $_mac;echo "|nc $_dbg1 -u -w $_wait $_tcp $_port"
+	    buildWOLMagicPacket $_mac;echo -n -e "|${CTYS_NETCAT0} $_dbg1 -u -w $_wait $_tcp $_port"
 	fi
     else
 	if [ -z "$_noexe" ];then
-            _call="printf \"`buildWOLMagicPacket $_mac`\n\"|nc $_dbg1 -u -w $_wait  255.255.255.255 $_port"
+            _call="printf \"`buildWOLMagicPacket $_mac`\n\"|${CTYS_NETCAT0} $_dbg1 -u -w $_wait  255.255.255.255 $_port"
 	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$_call"
 
-	    printf "`buildWOLMagicPacket $_mac`\n"|nc $_dbg1 -u -w $_wait 255.255.255.255 $_port
+	    printf "`buildWOLMagicPacket $_mac`"|${CTYS_NETCAT0} $_dbg1 -u -w $_wait 255.255.255.255 $_port
 	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "=>$?"
 	else
-	    buildWOLMagicPacket $_mac;echo "|nc $_dbg1 -u -w $_wait 255.255.255.255 $_port"
+	    buildWOLMagicPacket $_mac;echo -n -e "|${CTYS_NETCAT0} $_dbg1 -u -w $_wait 255.255.255.255 $_port"
 	fi
     fi
 }
@@ -472,29 +495,52 @@ function localWOL () {
     local _dbg1=${C_DARGS:+ -D }
     local _ret=0;
 
-    CTYS_WOL_LOCAL=`getPathName $LINENO $BASH_SOURCE ERROR ether-wake /sbin`
+    #an actual ethernet frame only
+    function useEtherWake (){
+	local PMCALL=;
+	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_WOL_LOCAL  -i lo 11:22:33:44:55:66
+	if [ $? -eq 0 ];then
+	    CTYS_WOL_LOCAL="$PMCALL $CTYS_WOL_LOCAL"
+	else
+	    CTYS_WOL_LOCAL="echo \"Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_WOL_LOCAL\";gotoHell 1;"
+	fi
+	CTYS_WOL_LOCAL_WAKEUP="$CTYS_WOL_LOCAL"
+	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL=$CTYS_WOL_LOCAL"
+	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL_WAKEUP=$CTYS_WOL_LOCAL_WAKEUP"
 
-    local PMCALL=;
-    checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_WOL_LOCAL  -i lo 11:22:33:44:55:66
-    if [ $? -eq 0 ];then
-	CTYS_WOL_LOCAL="$PMCALL $CTYS_WOL_LOCAL"
+	CTYS_WOL_LOCAL_WAKEUP="${CTYS_WOL_LOCAL} $_dbg1 -b -i ${_if} $_mac"
+
+	printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "${CTYS_WOL_LOCAL_WAKEUP}"
+	${CTYS_WOL_LOCAL_WAKEUP}
+	_ret=$?
+	printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "=>$_ret"   
+    }
+
+    #a UDP broadcast, same as remoteWOL, thus use own script
+    function useWOL (){
+	local PMCALL=;
+	checkedSetSUaccess  "${_myHint}" PMCALL   CTYS_WOL_LOCAL  -V >/dev/null
+	if [ $? -eq 0 ];then
+	    CTYS_WOL_LOCAL="$PMCALL $CTYS_WOL_LOCAL"
+	else
+	    CTYS_WOL_LOCAL="echo \"Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_WOL_LOCAL\";gotoHell 1;"
+	fi
+	CTYS_WOL_LOCAL_WAKEUP="${CTYS_WOL_LOCAL} $_mac"
+	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL=$CTYS_WOL_LOCAL"
+	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL_WAKEUP=$CTYS_WOL_LOCAL_WAKEUP"
+	${CTYS_WOL_LOCAL_WAKEUP}
+	_ret=$?
+	printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "=>$_ret"   
+    }
+
+    if [ "${CTYS_WOL_LOCAL//wol/}" == "${CTYS_WOL_LOCAL}" ];then
+	useEtherWake
     else
-	CTYS_WOL_LOCAL="echo \"Missing permission in $BASH_SOURCE:$LINENO->$PMCALL $CTYS_WOL_LOCAL\";gotoHell 1;"
+#	remoteWOL
+	useWOL
     fi
-#    CTYS_WOL_WAKEUP_LOCAL="$PMCALL $CTYS_WOL_WAKEUP"
-    CTYS_WOL_LOCAL_WAKEUP="$CTYS_WOL_LOCAL"
-    printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL=$CTYS_WOL_LOCAL"
-    printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_WOL_LOCAL_WAKEUP=$CTYS_WOL_LOCAL_WAKEUP"
 
 
-
-
-    CTYS_WOL_LOCAL_WAKEUP="${CTYS_WOL_LOCAL} $_dbg1 -b -i ${_if} $_mac"
-
-    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "${CTYS_WOL_LOCAL_WAKEUP}"
-    ${CTYS_WOL_LOCAL_WAKEUP}
-    _ret=$?
-    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "=>$_ret"   
 }
 
 

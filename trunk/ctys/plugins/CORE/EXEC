@@ -738,15 +738,58 @@ function doExecCall () {
     local _ret=0;
     if [ -z "${C_NOEXEC}" ];then
 
-	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME Do it now:\"eval ...\""
-	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME CALL-RAW=<${@}>"
+	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:Do it now:\"eval ...\""
+	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:CALL-RAW=<${@}>"
 
         #SSH manages asynchronous operations by '-f'
         #jobcontrol bundels parallel tasks
 
 	local _call=;
-	_call=`cacheReplaceCtysAddress $@`
+	_call=$(cacheReplaceCtysAddress $@);
 	_ret=$?;
+
+        #################
+        #if no hit,
+        # -> due to error
+        #    -> if nscacheonly 
+        #       -> that's it
+        #    -> else
+        #       -> don't mind, just inform(as done)
+        # -> if nscacheonly 
+        #    -> that's it
+        # -> don't mind
+        #################
+	if((_ret!=0));then
+	    case ${C_NSCACHELOCATE} in
+		1|2)
+		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Cache error for requested resolution by."
+		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:local cacheDB."
+		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Most common reason for that is ambiguity,"
+		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:check your cacheDB."
+		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:CALL=<${@}>"
+		    if((C_NSCACHEONLY==1));then
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:ABORT current CALL."
+			return $_ret
+		    fi
+		    ;;
+		3)
+                    #relevant? ...anyhow
+		    if [ -z "C_EXECLOCAL" ];then
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Cache error for requested resolution by."
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:remote cacheDB."
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Most common reason for that is ambiguity,"
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:check your cacheDB."
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:CALL=<${@}>"
+			if((C_NSCACHEONLY==1));then
+			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:ABORT current CALL."
+			    return $_ret
+			fi
+		    fi
+		    ;;
+	    esac
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:Cache error for requested resolution, continue"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:with scan, if should stop use \"-c ONLY\"."
+	fi
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:CALL-CACHE-RESOLVED=<${_call}>"
 	if [ -z "$_call" ];then
 	    _ret=3;

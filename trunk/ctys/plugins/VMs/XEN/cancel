@@ -52,7 +52,7 @@ function cutCancelSessionXEN () {
     local _ret=0;
 
     #Killing server alone is senseless, so client-else-both is applicable.
-    local _CSB=BOTH;
+    local _CSB=;
     local _behaviour=${XEN_CANCEL_DEFAULT:-POWEROFF};
     local _i=;
 
@@ -152,7 +152,7 @@ function cutCancelSessionXEN () {
 			    ;;
 			POWEROFF|S5)
 			    local _powoff=1;
-			    local _powoffdelay="${ARG:-0}";
+			    local _powoffdelay="${ARG:-$DEFAULT_KILL_DELAY_POWEROFF}";
 			    let _unambigCMD+=1;
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "MODE:POWEROFF-S5 DELAY=${_powoffdelay}"
 			    ;;
@@ -245,6 +245,8 @@ function cutCancelSessionXEN () {
  		    gotoHell ${ABORT}               
 		fi
 	    done
+
+	    local _CSB=${_CSB:-SERVER};
 
 	    if((_unambigCSB>1));then
 		ABORT=1;
@@ -363,7 +365,7 @@ function cutCancelSessionXEN () {
 			    ;;
 			POWEROFF|S5)
 			    local _powoff=1;
-			    local _powoffdelay="${ARG}";
+			    local _powoffdelay="${ARG:-$DEFAULT_KILL_DELAY_POWEROFF}";
 			    _behaviour=POWEROFF;
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "MODE:POWEROFF-S5 DELAY=${_powoffdelay}"
 			    ;;
@@ -450,6 +452,7 @@ function cutCancelSessionXEN () {
 		    esac
 		fi
 	    done
+	    local _CSB=${_CSB:-SERVER};
 
 
     #####

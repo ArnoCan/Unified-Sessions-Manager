@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a06
+#VERSION:      01_06_001a15
 #
 ########################################################################
 #
@@ -29,6 +29,53 @@
 #
 ########################################################################
 
+########################################################################
+#
+#This wrapper if to be applied to the "coldfire-test-0.1" example of
+#QEMU distribution.
+#
+#This example has in current version the particular advantage, that
+#it provides a pre-configured DHCPclient within the guestOS.
+#
+#The following CLI parameters are supported by this script:
+#
+#  
+#  -console <CONSOLE>
+#       EMACS,EMACSM, EMACSA, EMACSAM, GTERM, XTERM: 
+#            Mapped to CLI as a output terminal, should be done in 
+#            frontend.
+#       CLI: To be used in a terminal
+#       SDL: To be used for X11 GUI.
+#       VNC: To be used for VNC, this is the only mode which supports 
+#            CONNECTIONFORWARDING too.
+#       NONE:None.
+#
+#       DDD, ECLIPSE, GDB, VNC, VMW:
+#            Not supported.
+#
+#  -bootmode <BOOTMODE>
+#       VHDD:Default and only supported mode for this image.
+#            
+#       CD, ISO, KERNEL, PXE:
+#            Not supported.
+#
+#  $*(1):<call-args>
+#
+#  $*(2):<x-args>
+#
+#  -d
+#       standard UnifiedSesionsManager
+#
+#  -X
+#       standard UnifiedSesionsManager
+#
+#  -V
+#       standard UnifiedSesionsManager
+#
+#  -h
+#       standard UnifiedSesionsManager
+#
+########################################################################
 
 #
 #This releases the ENUMERATE scanner, which now detects this file to be a 
@@ -88,8 +135,8 @@ MYCALLPATH=`dirname $MYCALLPATHNAME`
 ###################################################
 MYBOOTSTRAP=${MYLIBPATH}/bin/bootstrap
 if [ ! -d "${MYLIBPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
-cat <<EOF  
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
 
 DESCRIPTION:
   This directory contains the common mandatory bootstrap functions.
@@ -102,13 +149,13 @@ SOLUTION-PROPOSAL:
   If this does not help please send a bug-report.
 
 EOF
-  exit 1
+    exit 1
 fi
 
 MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
 if [ ! -f "${MYBOOTSTRAP}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
-cat <<EOF  
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
 
 DESCRIPTION:
   This file contains the common mandatory bootstrap functions required
@@ -137,7 +184,7 @@ SOLUTION-PROPOSAL:
   Please send a bug-report.
 
 EOF
-  exit 1
+    exit 1
 fi
 
 ###################################################
@@ -178,15 +225,15 @@ bootstrapCheckInitialPath
 #load basic library required for bootstrap   #
 ##############################################
 if [ ! -f "${MYLIBPATH}/lib/base" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing mandatory initial library:${MYLIBPATH}/lib/base"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing mandatory initial library:${MYLIBPATH}/lib/base"
+    exit 1
 fi
 . ${MYLIBPATH}/lib/base
 
 
 if [ ! -f "${MYLIBPATH}/lib/libManager" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing mandatory initial library:${MYLIBPATH}/lib/libManager"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing mandatory initial library:${MYLIBPATH}/lib/libManager"
+    exit 1
 fi
 . ${MYLIBPATH}/lib/libManager
 . ${MYLIBPATH}/lib/misc
@@ -204,62 +251,9 @@ libManagerRegisterLib
 #Now the environment is armed, so let's go.  #
 ##############################################
 
-
 printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "FRAMEWORK-LOAD:MYLIBPATH=${MYLIBPATH}"
 printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "EXEC-WRAPPER:WRAPPERPATHNAME=$WRAPPERPATHNAME"
 printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "EXEC-WRAPPER:WRAPPERARGS=${*}"
-
-
-########################################################################
-#
-#This wrapper if to be applied to the "coldfire-test-0.1" example of
-#QEMU distribution.
-#
-#This example has in current version the particular advantage, that
-#it provides a pre-configured DHCPclient within the guestOS.
-#
-#The following CLI parameters are supported by this script:
-#
-#  
-#  -console <CONSOLE>
-#       EMACS, GTERM, XTERM: 
-#            Mapped to CLI as a output terminal, should be done in 
-#            frontend.
-#       CLI: To be used in a terminal
-#       SDL: To be used for X11 GUI.
-#       VNC: To be used for VNC, this is the only mode which supports 
-#            CONNECTIONFORWARDING too.
-#       NONE:None.
-#
-#       DDD, ECLIPSE, GDB, VNC, VMW:
-#            Not supported.
-#
-#  -bootmode <BOOTMODE>
-#       VHDD:    Default runtime, even though an external custom-kernel 
-#                is used.
-#       INSTALL: Specific custom-kernel for installation.
-#            
-#       CD, ISO, KERNEL, PXE:
-#            Not supported.
-#
-#  $*(1):<call-args>
-#
-#  $*(2):<x-args>
-#
-#  -d
-#       standard UnifiedSesionsManager
-#
-#  -X
-#       standard UnifiedSesionsManager
-#
-#  -V
-#       standard UnifiedSesionsManager
-#
-#  -h
-#       standard UnifiedSesionsManager
-#
-########################################################################
-
 
 
 ARGSADD=;
@@ -272,7 +266,6 @@ while [ -n "$1" ];do
 
         '--bootmode')shift;BOOTMODE=$1;shift;;
         '--console')shift;CONSOLE=$1;shift;;
-
         *)  #server list
 	    ARGSADD="${ARGSADD} $1";
 	    ARGSADD="${ARGSADD## }";
@@ -316,20 +309,20 @@ if [ -d "${MYCONFPATH}/qemu" ];then
 fi
 
 
+
 #@#MAGICID-IGNORE
 #
 #import configuration keys
 #
-myKeys="${WRAPPERPATH}/${MYCALLNAME/.ctys/.conf}"
-if [ -e "${myKeys}" ];then
-    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "myKeys=${myKeys}"
-    . "${myKeys}"
-fi
+_myconf=${WRAPPERPATH}/${MYCALLNAME%%.ctys}
+printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_myconf=$_myconf"
+. ${_myconf}.conf
 
 
-#
-#Start assembly of call.
-#
+#########################
+#Start assembly of call.#
+#########################
+
 
 #
 #The socket for access to VDE's virtual switch port: vde_switch
@@ -337,18 +330,46 @@ fi
 QEMUSOCK=${QEMUSOCK:-/var/tmp/vde_switch0.$USER}
 if [ ! -d "${QEMUSOCK}" ];then
     ABORT=127
-    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory for socket: QEMUSOCK=\"${QEMUSOCK}\""
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory for socket:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} " QEMUSOCK=\"${QEMUSOCK}\""
     printERR $LINENO $BASH_SOURCE ${ABORT} "Call \"ctys-setupVDE\""
     gotoHell ${ABORT}
 else
     if [ ! -S "${QEMUSOCK}/ctl" ];then
 	ABORT=127
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Is missing or not a socket: QEMUSOCK=\"${QEMUSOCK}/ctl\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Is missing or not a socket: "
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  QEMUSOCK=\"${QEMUSOCK}/ctl\""
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Call \"ctys-setupVDE\""
 	gotoHell ${ABORT}
     fi
 fi
 
+#
+#ATTENTION:
+#  One serial port is required in current version for managing the 
+#  QEMU VM by monitor commands.
+#  This may change in a future version, but is mandatory for this.
+#
+#This wrapper is expected to continue beeing present, which is OK.
+#E.g. when using "vdeq" as wrapper for qemu, this will also call
+#"qemu" synchronous.
+#The requirement is the availability of an unique identifier, which keeps 
+#being unique and could be calculated for the whole lifetime of the 
+#final QEMU process.
+#Additionally allowing ambiguity of LABEL, due to the "-A" option of ctys.
+MYQEMUMONSOCK=`netGetUNIXDomainSocket "$$" "$LABEL" "${QEMUMONSOCK}"`
+
+#
+# Probable old junk.
+if [ -e "${MYQEMUMONSOCK}" ];then
+    printWNG 1 $LINENO $BASH_SOURCE 0 "UNIX-Domain Sockets from previous call detected, "
+    printWNG 1 $LINENO $BASH_SOURCE 0 "will be removed:"
+    printWNG 1 $LINENO $BASH_SOURCE 0 "MYQEMUMONSOCK=<${MYQEMUMONSOCK}>"
+    printWNG 1 $LINENO $BASH_SOURCE 0 "This is an error workaround for vdeq_switch,"
+    printWNG 1 $LINENO $BASH_SOURCE 0 "missing remove sockets for removed ports"
+    printWNG 1 $LINENO $BASH_SOURCE 0 "CALL:<${CTYS_UNLINK} ${MYQEMUMONSOCK}>"
+    rm -rf ${MYQEMUMONSOCK}
+fi
 
 
 ###############################################################################
@@ -362,9 +383,11 @@ fi
 tmpworkaround01=`echo "${QEMUSOCK}.$$*" 2>/dev/null`
 for i  in ${tmpworkaround01};do
     if [ -e "${i}" ];then
-	printWNG 1 $LINENO $BASH_SOURCE 0 "UNIX-Domain Sockets from previous call detected, will be removed:"
+	printWNG 1 $LINENO $BASH_SOURCE 0 "UNIX-Domain Sockets from previous call detected,"
+	printWNG 1 $LINENO $BASH_SOURCE 0 "will be removed:"
 	printWNG 1 $LINENO $BASH_SOURCE 0 "tmpworkaround01=<${tmpworkaround01}>"
-	printWNG 1 $LINENO $BASH_SOURCE 0 "This is an error workaround for vdeq_switch, missing remove sockets for removed ports"
+	printWNG 1 $LINENO $BASH_SOURCE 0 "This is an error workaround for vdeq_switch,"
+	printWNG 1 $LINENO $BASH_SOURCE 0 "missing remove sockets for removed ports"
 	printWNG 1 $LINENO $BASH_SOURCE 0 "CALL:<${CTYS_UNLINK} ${tmpworkaround01}>"
 	${CTYS_UNLINK} ${tmpworkaround01}
     fi
@@ -381,7 +404,8 @@ done
 QEMUBIOS=${QEMUBIOS:-$HOME/qemu/pc-bios}
 if [ ! -d "${QEMUBIOS}" ];then
     ABORT=127
-    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing basic runtime components: QEMUBIOS=\"${QEMUBIOS}\""
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing basic runtime components:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  QEMUBIOS=\"${QEMUBIOS}\""
     gotoHell ${ABORT}
 fi
 
@@ -390,88 +414,38 @@ fi
 #QEMU=${QEMU:-vdeq}
 #use VirtualSquare-wrapper
 QEMU=${VDE_VDEQ:-vdeq}
-
 QCALL="${QEMUCALL} ${QEMU} ";
 QCALL="${QCALL} qemu "
 
 #
 #ATTENTION:
-#  One serial port is required in current version for managing the 
-#  QEMU VM by monitor commands.
-#  This may change in a future version, but is mandatory for this.
-#
-#This wrapper is expected to continue beeing present, which is OK.
-#E.g. when using "vdeq" as wrapper for qemu, this will also call
-#"qemu" synchronous.
-#The requirement is the availability of an unique identifier, which keeps 
-#being unique and could be calculated for the whole lifetime of the 
-#final QEMU process.
-#Additionally allowing ambiguity of LABEL, due to the "-A" option of ctys.
-MYQEMUMONSOCK=`netGetUNIXDomainSocket "$$" "$LABEL" "${QEMUMONSOCK}"`
-QCALL="${QCALL} -serial mon:unix:${MYQEMUMONSOCK},server,nowait "
-
-###############################################################################
-###############################################################################
-#
-#ATTENTION: This is a temporary workaround for VDE.
-#
-# Due to some remaining old file-sockets for reassigned PIDs the communications
-# of vdeq/qemu fails partly and produces some "not-so-easy to assign" errors.
-#
-if [ -e "${MYQEMUMONSOCK}" ];then
-    printWNG 1 $LINENO $BASH_SOURCE 0 "UNIX-Domain Sockets from previous call detected, will be removed:"
-    printWNG 1 $LINENO $BASH_SOURCE 0 "MYQEMUMONSOCK=<${MYQEMUMONSOCK}>"
-    printWNG 1 $LINENO $BASH_SOURCE 0 "This is an error workaround for vdeq_switch, missing remove sockets for removed ports"
-    printWNG 1 $LINENO $BASH_SOURCE 0 "CALL:<${CTYS_UNLINK} ${MYQEMUMONSOCK}>"
-    ${CTYS_UNLINK} ${MYQEMUMONSOCK}
-fi
-#
-###############################################################################
-###############################################################################
-
-#
-#ATTENTION:
 #  These settings are mandatory fro several reasons.
 #
-#QCALL="${QCALL} -L ${QEMUBIOS} "
+QCALL="${QCALL} -L ${QEMUBIOS} "
 QCALL="${QCALL} -net nic,macaddr=${MAC0} "
 QCALL="${QCALL} -net vde,sock=${QEMUSOCK} "
-
-#
-#Do not do this, even though almost anything should work,detached
-#QCALL="${QCALL} -daemonize "
-
-#
-#Keep it for now.
 QCALL="${QCALL} -name \"${LABEL}\" "
+
+case ${QEMU_MAGIC} in
+    QEMU_090)
+        #disable for 0.9.0: QCALL="${QCALL} -no-kqemu "
+	;;
+    QEMU_091)
+	QCALL="${QCALL} -no-kqemu "
+	;;
+    QEMU_09*)
+	QCALL="${QCALL} -no-kqemu "
+	;;
+esac
 
 #
 #Could be ntp, but should be kept.
 QCALL="${QCALL} -localtime "
 
-
 #
 #These settings should be adapted as required.
 QCALL="${QCALL} -k de "
 QCALL="${QCALL} -m 384 "
-
-
-#
-#The kernel module is disabled by default, this is due to the nesting of QEMU.
-QCALL="${QCALL} -no-kqemu "
-
-
-#######TEMP4TEST
-#
-#QCALL="${QCALL} -serial unix:/var/tmp/tst1,server,nowait "
-#QCALL="${QCALL} -serial mon:unix:/var/tmp/tst1,server,nowait "
-#QCALL="${QCALL} -serial vc:100x300,mon:unix:/var/tmp/tst1,server,nowait "
-#
-#######TEMP4TEST
-
-
-printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QCALL=${QCALL}"
-
 
 #
 #The VHDD where the VM is installed, at least the "/" and/or "/boot".
@@ -482,47 +456,40 @@ if [ ! -f "${BOOTIMAGE}" ];then
     gotoHell ${ABORT}
 fi
 
+
 #
-#External kernel and initrd
+#External kernel and initrd, when required customize it:
+# KERNELIMAGE="yourKernel"
+if [ -n "${KERNELIMAGE}" -a ! -f "${KERNELIMAGE}" ];then
+    ABORT=127
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing kernel image:\"${KERNELIMAGE}\""
+    gotoHell ${ABORT}
+fi
+
 #
-# KERNELIMAGE="${WRAPPERPATH}/vmlinuz-2.6.16-6-versatile"
-# if [ ! -f "${KERNELIMAGE}" ];then
-#     ABORT=127
-#     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing kernel image:\"${KERNELIMAGE}\""
-#     gotoHell ${ABORT}
-# fi
-
-# #
-# INITRDIMAGE="${WRAPPERPATH}/initrd.img-2.6.16-6-versatile"
-# if [ ! -f "${INITRDIMAGE}" ];then
-#     ABORT=127
-#     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing initrd image:\"${INITRDIMAGE}\""
-#     gotoHell ${ABORT}
-# fi
+#External kernel and initrd, when required customize it:
+# INITRDIMAGE="yourInitrd"
+if [ -n "${INITRDIMAGE}" -a ! -f "${INITRDIMAGE}" ];then
+    ABORT=127
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing initrd image:\"${INITRDIMAGE}\""
+    gotoHell ${ABORT}
+fi
 
 
-LASTPATH=;
+printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "PRE-BOOTMODE:QCALL=${QCALL}"
 case ${BOOTMODE} in
     VHDD)
         #
         #ATTENTION:
         #  Full path is required for ps-based LIST action, subcall for almost any other.
         #
-
-
-#         #
-#         #This version does not utilize external kernel nor external initrd.
-#         #
-#         #external kernel
-#         LASTPATH="${LASTPATH} -kernel ${KERNELIMAGE} "
-#         #
-#         #external intird
-#         LASTPATH="${LASTPATH} -initrd ${INITRDIMAGE}"
-#         #
-#         #kernel param
-#         LASTPATH="${LASTPATH} -append \"root=/dev/sda1\""
-
-
+        LASTPATH=;
+	if [ -n "$KERNELIMAGE" ];then
+          LASTPATH="${LASTPATH} -kernel ${KERNELIMAGE} "
+	fi
+	if [ -n "$INITRDIMAGE" ];then
+          LASTPATH="${LASTPATH} -initrd ${INITRDIMAGE}"
+	fi
         #
         #The final part of the call, which will be handled by "ps" analysis.
         #The entry has to be the last for the call, it is evaluated by
@@ -533,103 +500,74 @@ case ${BOOTMODE} in
 	LASTPATH="${LASTPATH} ${BOOTIMAGE}"
 	;;
 
-#     INSTALL)
-#         #
-#         #ATTENTION:
-#         #  Full path is required for ps-based LIST action, subcall for almost any other.
-#         #
-
-
-#         #
-#         #This version does not utilize external kernel nor external initrd.
-#         #
-#         #external kernel
-#         LASTPATH="${LASTPATH} -kernel ${KERNELIMAGE} "
-#         #
-#         #external intird
-#         #LASTPATH="${LASTPATH} -initrd ${INITRDIMAGE}"
-#         LASTPATH="${LASTPATH} -initrd ${WRAPPERPATH}/initrd.gz"
-#         #
-#         #kernel param
-#         LASTPATH="${LASTPATH} -append \"root=/dev/ram -- debian-installer/allow_unauthorized=true\""
-
-
-#         #
-#         #The final part of the call, which will be handled by "ps" analysis.
-#         #The entry has to be the last for the call, it is evaluated by
-#         #NF-field index of awk.
-#         #->label-name is dirname of kernel.
-#         #Do not change it's position!
-#         #
-# 	LASTPATH="${LASTPATH} ${BOOTIMAGE}"
-# 	;;
+    INSTALL)
+	ABORT=127
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Not supported for $LABEL: BOOTMODE=\"${BOOTMODE}\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Use \"BOOTMODE:PXE\" instead."
+	gotoHell ${ABORT}
+	;;
 
     PXE)
+        #Due to a kernel error the HDD controller is not detected, thus
+        #install cannot be finished.
+        #INSTALL from DVD-ISO works fine.
  	QCALL="${QCALL} -option-rom ${QEMUBIOS}/pxe-ne2k_pci.bin"
  	QCALL="${QCALL} -boot n "
-	LASTPATH="${LASTPATH} ${BOOTIMAGE}"
+	LASTPATH="${LASTPATH} -hda ${BOOTIMAGE}"
 	;;
 
     *)
-      ABORT=127
-      printERR $LINENO $BASH_SOURCE ${ABORT} "Not supported for $LABEL: BOOTMODE=\"${BOOTMODE}\""
-      gotoHell ${ABORT}
-    ;;
+	ABORT=127
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Not supported for $LABEL: BOOTMODE=\"${BOOTMODE}\""
+	gotoHell ${ABORT}
+	;;
 esac
 
 
+printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "PRE-CONSOLE:QCALL=${QCALL}"
 case ${CONSOLE} in
-#   CLI)$QCALL -nographic -append "console=ttyAMA0" ${ARGSADD} ${LASTPATH};;
-    CLI)QCALL="${QCALL} -nographic  ${ARGSADD} ${LASTPATH}";;
-
     SDL)
+        QCALL="${QCALL} -serial mon:unix:${MYQEMUMONSOCK},server,nowait "
 	QCALL="${QCALL} -serial vc:1000x300"
+	QCALL="${QCALL} -std-vga "
 	QCALL="${QCALL} ${ARGSADD} ${LASTPATH}"
 	;;
+    VNC)
+        QCALL="${QCALL} -serial mon:unix:${MYQEMUMONSOCK},server,nowait "
+	QCALL="${QCALL} -daemonize "
+	QCALL="${QCALL} -std-vga "
+	QCALL="${QCALL} -vnc :${VNCACCESSDISPLAY}  ${ARGSADD} ${LASTPATH}"
+	;;
+    CLI0)
+	QCALL="${QCALL} -nographic  ${ARGSADD} ${LASTPATH}"
+	;;
 
-    VNC)QCALL="${QCALL} -vnc :${VNCACCESSDISPLAY}  ${ARGSADD} ${LASTPATH}";;
+    CLI|XTERM|GTERM|EMACSM|EMACS|EMACSAM|EMACSA)
+	QCALL="${QCALL} -daemonize "
+	QCALL="${QCALL} -vnc :${VNCACCESSDISPLAY} " #required at least as dummy
+        QCALL="${QCALL} -serial mon:unix:${MYQEMUMONSOCK},server,nowait "
+	QCALL="${QCALL} ${ARGSADD} ${LASTPATH}"
+        ;;
 
+    NONE)
+	printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "NONE:no console"
+        QCALL="${QCALL} -serial mon:unix:${MYQEMUMONSOCK},server,nowait "
+	QCALL="${QCALL} -daemonize "
+	QCALL="${QCALL} -std-vga "
+	QCALL="${QCALL} -vnc :${VNCACCESSDISPLAY}  ${ARGSADD} ${LASTPATH}"
+	;;
     *)
-      ABORT=127
-      printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown display CONSOLE=\"${CONSOLE}\""
-      gotoHell ${ABORT}
-    ;;
+	ABORT=127
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown display CONSOLE=\"${CONSOLE}\""
+	gotoHell ${ABORT}
+	;;
 esac
 
-printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QCALL=${QCALL}"
-callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} "${QCALL}"
+printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "EVAL:QCALL=${QCALL}"
+eval "${QEMUCALL} ${QCALL}"
 
-
-
-###############################################################################
-###############################################################################
-#
-#ATTENTION: This is a temporary workaround for VDE.
-#
-###############################################################################
-###############################################################################
-
-#linux tested
-myChldVDEQ=`${PS} ${PSEF}|awk -v mypid=$$ '$2==mypid{print $1}'`
-if [ -n "$myChldVDEQ" ];then
-    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QEMUSOCK...=<${QEMUSOCK}.${myChldVDEQ}-*>"
-    for i in ${QEMUSOCK}.${myChldVDEQ}-*;do
-	printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "CALL=<${CTYS_UNLINK} ${i}>"
-	callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} "${CTYS_UNLINK} ${i}"
-    done
+_ret=$?
+if [ $_ret -ne 0 ];then
+    printERR $LINENO $BASH_SOURCE ${ABORT} "ExecFailed(exit=$_ret):QCALL=${QCALL}"
 fi
-
-if [ -e "${MYQEMUMONSOCK}" ];then
-    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "CALL=<${CTYS_UNLINK} ${MYQEMUMONSOCK}>"
-    callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} "${CTYS_UNLINK} ${MYQEMUMONSOCK}"
-fi
-
-###############################################################################
-###############################################################################
-
-
-
-gotoHell 0
-
-
-
+gotoHell $_ret

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_XEN_CREATE="${BASH_SOURCE}"
-_myPKGVERS_XEN_CREATE="01.01.001a00"
+_myPKGVERS_XEN_CREATE="01.07.001b01"
 hookInfoAdd $_myPKGNAME_XEN_CREATE $_myPKGVERS_XEN_CREATE
 _myPKGBASE_XEN_CREATE="`dirname ${_myPKGNAME_XEN_CREATE}`"
 
@@ -475,21 +475,13 @@ function createConnectXEN () {
 			ID|PATHNAME|PNAME|P)
                             #can be checked now, no additional combination check required 
                             #due to previous CHECKPARAM.
-                            if [ -n "${_pname}" ];then
-				ABORT=1;
-				printERR $LINENO $BASH_SOURCE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID(1)=${_pname}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID(2)=${ARG}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "Will be extended soon."
- 				gotoHell ${ABORT}
-                            fi
                             if [ ! -f "${ARG}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given file or access permission for ID/PNAME"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${ARG}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${_pname:+$_pname|}${ARG}";
+                            local _pname="${ARG}";
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "PATHNAME=${_pname}"
 			    ;;
 			CALLOPTS|C)
@@ -774,23 +766,25 @@ function createConnectXEN () {
 			fi
 		    fi
 		fi
-	    fi
-	    local _etime=`getCurTime`;
-	    local _dtime=`getDiffTime $_etime $_stime`;
+		local _etime=`getCurTime`;
+		local _dtime=`getDiffTime $_etime $_stime`;
 
-            #should have find one
-            if [ -z "${_pname// /}" ];then
-		_ret=1;
- 		printERR $LINENO $BASH_SOURCE ${_ret} "($_etime):Cannot evaluate ID/PNAME, input seems to be erroneous  =>${_dtime}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  BASE        = ${_base}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL       = ${_label}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  UUID        = ${_uuid}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  MAC         = ${_mac}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  TCP         = ${_tcp}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME    = ${_fname}"
-		gotoHell ${_ret};
+                #should have find one
+		if [ -z "${_pname// /}" ];then
+		    _ret=1;
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "($_etime):Cannot evaluate ID/PNAME, input seems to be erroneous  =>${_dtime}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  BASE        = ${_base}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL       = ${_label}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  UUID        = ${_uuid}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MAC         = ${_mac}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  TCP         = ${_tcp}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME    = ${_fname}"
+		    gotoHell ${_ret};
+		else
+		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_etime):FILE-MATCH:\"${_pname}\" =>${_dtime}"
+		fi
 	    else
-		printINFO 1 $LINENO $BASH_SOURCE 0 "($_etime):FILE-MATCH:\"${_pname}\" =>${_dtime}"
+	 	printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "use _pname=${_pname}"
 	    fi
 
             #####

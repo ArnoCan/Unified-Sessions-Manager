@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b02
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_PM_CREATE="${BASH_SOURCE}"
-_myPKGVERS_PM_CREATE="01.01.001a00"
+_myPKGVERS_PM_CREATE="01.07.001b02"
 hookInfoAdd $_myPKGNAME_PM_CREATE $_myPKGVERS_PM_CREATE
 
 #The call for wake up of peer by WoL.
@@ -70,6 +70,8 @@ CONSOLE_SERIAL=${CONSOLE_SERIAL:-ffs}
 #
 #FUNCEND###############################################################
 function createConnectPM () {
+    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "\$@=${@}"
+
     local OPMODE=$1;shift
     local ACTION=$1;shift
 
@@ -84,11 +86,7 @@ function createConnectPM () {
     local _myPMMAC=;
     local _myPMIP=;
 
-    #machine broadcast access, remote segment, behind a router
-    local _myBMAC=;
-    local _myBIP=;
-
-    local _consoleType=;
+    local _consoleType=NONE;
     local _ret=0;
 
 
@@ -533,6 +531,8 @@ function createConnectPM () {
 					;;
 				    VNC)
 					;;
+				    NONE)
+					;;
 				    *)
 					ABORT=1;
 					printERR $LINENO $BASH_SOURCE ${ABORT} "UNKNOWN ARG=${ARG}"
@@ -884,6 +884,7 @@ function createConnectPM () {
 				GTERM)_consoleType=GTERM;;
 				XTERM)_consoleType=XTERM;;
 				VNC)_consoleType=VNC;;
+				NONE)_consoleType=NONE;;
 				*)
 				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "UNKNOWN ARG=${ARG}"
@@ -912,6 +913,14 @@ function createConnectPM () {
             #
 	    checkPMAddressConsistency
 
+
+	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "BROADCAST=${_broadcast}"
+	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "BROADCAST-PORT=${_broadcastPort}"
+	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "BROADCAST-MAC=${_bmac}"
+	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "IP=${_myIP}"
+	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "MAC=${_myMAC}"
+
+
 	    if [ -n "$_broadcast" ];then
 		if [ -z "$_bmac" ];then
 		    ABORT=1;
@@ -921,10 +930,7 @@ function createConnectPM () {
 		fi
 	    fi
 
-
-            #the actual machine available for sessions interconnect, may vary from configured WoL-route
-	    local _VHOST="${MYCALLPATH}/ctys-vhost ${C_DARGS} -o PM -p ${DBPATHLST} -s "
-	    local _myPM=`${_VHOST} E:28:1 "${_myIP}"`
+ 	    local _myPM=${_myIP}
 
             #now TCP/IP address is available, short it up now if REUSE
 	    local _pingok=1;
@@ -950,13 +956,13 @@ function createConnectPM () {
 		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "BROADCAST=${_broadcast}"
 		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "PORT     =${_broadcastPort}"
 		    if [ -n "${_broadcastPort}" ];then
- 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${_broadcastPort} ${C_NOEXEC:+ -n} ${_myBMAC}"
+ 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${_broadcastPort} ${C_NOEXEC:+ -n} ${_bmac}"
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
 			${_callDbg}
 			_wolret=$?
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
 		    else
- 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${C_NOEXEC:+ -n} ${_myBMAC}"
+ 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${C_NOEXEC:+ -n} ${_bmac}"
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
 			${_callDbg}
 			_wolret=$?

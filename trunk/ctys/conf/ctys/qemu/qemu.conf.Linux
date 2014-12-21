@@ -16,6 +16,25 @@
 #
 ########################################################################
 
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
 printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 
 
@@ -72,13 +91,17 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 	    ;;
+
 	Fedora)
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 	    ;;
+
 	SuSE)
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /usr/sbin`
@@ -86,6 +109,7 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT netcat /usr/bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/bin`
 	    ;;
 
 	openSUSE)
@@ -95,6 +119,7 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /usr/bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/bin`
 	    ;;
 
 	debian)
@@ -103,7 +128,10 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /bin`
-	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+            #
+            #yes, nc in standard distro does not support "-U"!
+	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 	    ;;
 	Ubuntu)
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR networking /etc/init.d`
@@ -112,6 +140,7 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 	    ;;
 	*)
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
@@ -120,6 +149,7 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 	    ;;
     esac
 

@@ -180,8 +180,8 @@ function netListBridges () {
 	else
 	    _b=`${CTYS_BRCTL} show|awk '/bridge name/{f=1;next;}f==1{if(NF>1)printf("%s ",$1);}'`
 	fi
-	_b=${_b%% /}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_b=${_b}"
+	_b=${_b%% }
+	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_b=<${_b}>"
 	echo ${_b}
 	return 0
     else
@@ -1533,7 +1533,8 @@ function netWaitForSSH () {
     printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_target =$_target"
     while ((_trials>i1)) ;do
 	printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:trial-ssh:$i1"
-	callErrOutWrapper $LINENO $BASH_SOURCE "ssh ${_sshuser:+ -l $_sshuser} ${_target} echo " >/dev/null
+#	callErrOutWrapper $LINENO $BASH_SOURCE "ssh ${_sshuser:+ -l $_sshuser} ${_target} echo " >/dev/null
+	ssh ${_sshuser:+ -l $_sshuser} ${_target} echo  2>/dev/null >/dev/null
 	[ $? -eq 0 ]&&break;
 	sleep ${_timeout:-1};
 	((i1++));

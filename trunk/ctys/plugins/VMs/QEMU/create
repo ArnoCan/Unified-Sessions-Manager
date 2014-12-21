@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -837,23 +837,25 @@ function createConnectQEMU () {
 			fi
 		    fi
 		fi
-	    fi
-	    local _etime=`getCurTime`;
-	    local _dtime=`getDiffTime $_etime $_stime`;
+		local _etime=`getCurTime`;
+		local _dtime=`getDiffTime $_etime $_stime`;
 
-            #should have find one
-            if [ -z "${_pname// /}" ];then
-		_ret=1;
- 		printERR $LINENO $BASH_SOURCE ${_ret} "($_etime):Cannot evaluate ID/PNAME, input seems to be erroneous  =>${_dtime}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  BASE        = ${_base}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL       = ${_label}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  UUID        = ${_uuid}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  MAC         = ${_mac}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  TCP         = ${_tcp}"
- 		printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME    = ${_fname}"
-		gotoHell ${_ret};
+                #should have find one
+		if [ -z "${_pname// /}" ];then
+		    _ret=1;
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "($_etime):Cannot evaluate ID/PNAME, input seems to be erroneous  =>${_dtime}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  BASE        = ${_base}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL       = ${_label}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  UUID        = ${_uuid}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MAC         = ${_mac}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  TCP         = ${_tcp}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME    = ${_fname}"
+		    gotoHell ${_ret};
+		else
+		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_etime):FILE-MATCH:\"${_pname}\" =>${_dtime}"
+		fi
 	    else
-		printINFO 1 $LINENO $BASH_SOURCE 0 "($_etime):FILE-MATCH:\"${_pname}\" =>${_dtime}"
+	 	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "use _pname=${_pname}"
 	    fi
 
             #####
@@ -881,7 +883,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different LABELs detected:\"${_label}\" == \"${_labelX}\""
  		gotoHell ${ABORT}
             fi 
-            _label="${_labelX}"
+            _label="${_label:-$_labelX}"
 
 
             #consistency of CLI and config
@@ -891,7 +893,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different TCPs detected:\"${_tcp}\" == \"${_tcpX}\""
  		gotoHell ${ABORT}
             fi 
-            _tcp="${_tcpX}"
+            _tcp="${_tcp:-$_tcpX}"
 
             #consistency of CLI and config
             local _macX=`getMAC "${_pname}"`
@@ -900,7 +902,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different MACs detected:\"${_mac}\" == \"${_macX}\""
  		gotoHell ${ABORT}
             fi 
-            _mac="${_macX}"
+            _mac="${_mac:-$_macX}"
 
             #consistency of CLI and config
             local _uuidX=`getUUID "${_pname}"`
@@ -909,7 +911,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different UUIDs detected:\"${_uuid}\" == \"${_uuidX}\""
  		gotoHell ${ABORT}
             fi 
-            _uuid="${_uuidX}"
+            _uuid="${_uuid:-$_uuidX}"
 
 
             #consistency of CLI and config
@@ -919,7 +921,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different VNCACCESSPORT detected:\"${_vncaccessport}\" == \"${_vncaccessportX}\""
  		gotoHell ${ABORT}
             fi 
-            _vncaccessport="${_vncaccessportX}"
+            _vncaccessport="${_vncaccessport:-$_vncaccessportX}"
 
 
             #consistency of CLI and config
@@ -929,7 +931,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different VNCBASEPORT detected:\"${_vncbaseport}\" == \"${_vncbaseportX}\""
  		gotoHell ${ABORT}
             fi 
-            _vncbaseport="${_vncbaseportX}"
+            _vncbaseport="${_vncbaseport:-$_vncbaseportX}"
 
 
             #consistency of CLI and config
@@ -939,7 +941,7 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Different VNCACCESSDISPLAY detected:\"${_vncaccessdisplay}\" == \"${_vncaccessdisplayX}\""
  		gotoHell ${ABORT}
             fi 
-            _vncaccessdisplay="${_vncaccessdisplayX}"
+            _vncaccessdisplay="${_vncaccessdisplay:-$_vncaccessdisplayX}"
 	    _vncbaseport=${_vncbaseport:-$VNC_BASEPORT}
             if [ -z "${_vncaccessport}" ];then
 		if [ -z "${_vncaccessdisplay}" ];then
