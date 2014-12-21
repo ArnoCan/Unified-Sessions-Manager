@@ -1,0 +1,374 @@
+.TH "ctys-distribute" 1 "June, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-distribute - local and remote installation, bulk-distribution\fR
+
+.SH SYNTAX
+
+   [-d <debug-options>]
+   [-D (0|1)]
+   [-F (1|2|3|force|forceclean|forceall)]
+   [-h]
+   [-H <help-options>]
+   [-l <remote login>]
+   [-M <access-mask>]
+   [-P (
+       UserHomeCopy
+      |UserHomeLinkonly
+      |SharedAnyDirectory,<subopts>
+      |SharedAnyLinkonly,<subopts>
+      |AnyDirectory,<subopts>
+      )]
+   [-V]
+   [-X]
+   <list-of-target-acounts>
+
+
+
+
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-distribute\fR is the main interface for local installation and 
+remote distribution. The installation of a single target and an
+arbitrary list of targets for automated bulk installations is provided.
+
+.P
+Various distribution and installation methods for distribution packages
+and installation types could be applied, these are for the current
+version:
+
+.TP
+\fBFile based installation:\fR
+File based installation uses an existing installation or any copy of
+the directory tree and either copies it and/or sets appropriate
+symbolic links for execution.
+
+In case of remote installation the current version uses excessive local\-remote\-interaction
+by \fBssh/scp\fR based commands, thus for practical reasons requires automated remote login procedures.
+These could be for example either based on Kerberos or SSH\-Keys.
+
+The following keys are required to be written literally when applied.
+
+.TP
+
+\fBUserHomeCopy\fR
+installs for the current local or remote user a user\-local
+copy into it's HOME directory with the standard ctys\-directory
+structure.
+
+.TP
+
+\fBUserHomeLinkonly\fR
+installs for the current local or remote user a partial
+user\-local copy, where the specific configuration files are copied, 
+whereas the executables and documentation is set as symbolic
+links only. 
+
+.TP
+
+\fBSharedAnyDirectory\fR
+variant installs a local copy for share usaged, thus sets up
+a common installation within any directory, but should be in 
+accordance to common standards of the actual UNIX variant.
+
+.TP
+
+\fBAnyDirectory\fR
+variant installs a local copy only for shared usage.
+
+.TP
+\fBPackage based installation\fR
+Package based installation is forseen by means of the standard mechanisms.
+"ctys\-distribute" could be used as a installer for the following install
+applications:
+
+.TP
+
+\fBrpm\fR
+The distributions \fBrpm\-CentOS\fR, \fBrpm\-Fedora\fR, and \fBrpm\-OpenSUSE\fR are supported by the provided rpms.
+In the "install section" ctys\-distribute can be applied as:
+
+.nf
+  
+  INSTBASE=${RPM_BUILD_ROOT}/usr/share
+  INSTTARGET=${INSTBASE}/${RPM_PACKAGE_NAME}-${RPM_PACKAGE_VERSION}
+  
+  ${PWD}/bin/ctys-distribute.sh -F 1 -P AnyDirectory,${INSTTARGET} localhost
+  
+.fi
+
+
+This installs the complete package without configuration of user accounts.
+
+The user accounts have to be configured by calling:
+
+.nf
+  
+  /usr/share/bin/ctys-distribute.sh -F 1 -P UserHomeLinkonly localhost
+  
+  
+.fi
+
+\fBATTENTION:\fR
+
+When a previous installation is present the configuration directories should be updated too 
+due to the circumstance, that these also contain some dynamic evaluation code.
+But these probably may contain some custom patches, thus the '\-F 1' option preserves the 
+configuration directory '$HOME/.ctys'.
+For forced update these may either be removed manually, or by usage of '\-F 2' option.
+
+.TP
+
+\fBdeb\fR
+ffs.
+
+.TP
+
+\fBpkg\\-OpenBSD\fR
+ffs.
+
+.TP
+
+\fBpkg\\-Solaris\fR
+ffs.
+
+.P
+The utilitiy scp of the OpenSSH package is used for any transfer, thus 
+remote SSH access is required.
+
+.P
+The call evaluates its own actual physical file location by recursive 
+dereferencing symbolic links and uses the actual containing distribution 
+for further steps. 
+Thus if a specific distribution outside the search path is to be installed, the
+call path has to be provided explicitly:
+<path\-to\-installbase>/bin/ctys\-distribute
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-distribute\fR 
+
+.TP
+\fB\-d <debug\-args>\fR
+Refer to "ctys" generic options for additional information.
+
+.TP
+\fB\-D (0|1|2)\fR
+This option controls whether documentation is installed or not. For
+low\-bandwidth the documentation could be suppressed.
+
+\fB0\fR No documents
+
+\fB1\fR With documents
+
+\fB2\fR Only documents
+
+.TP
+\fB\-F (1|2|3|force|forceclean|forceall)\fR
+Bypassed to ctys\-install1.sh
+
+.TP
+\fB\-h\fR
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-l <remote login>\fR
+The remote USER to be used as a EMail style prefix for all given
+remote hostnames within the <list\-of\-target\-acounts>.
+This option is supported with hostname\-only targets, it
+cannot be intermixed with EMail style <USER>@<HOST> targets.
+
+.TP
+\fB\-M <access\-mask>\fR
+Access mask for post\-chmod, where the value is literally passed to:
+
+"chmod \-R <access\-mask> <base\-lib\-dir>"
+
+The user\-local file access permissions remain unmodified.
+
+.TP
+\fB\-P <pkg\-type>\fR
+This option supports the selection of prepared installation packages,
+which are automated by preconfigured parameters or to be finished by
+interactive dialogue from the command line interface.
+
+The packages are prepared during build operations within the local
+"packages" directory for the current version.
+
+For system directory appropriate access permissions are required.
+
+.RS
+.IP \(bu 3
+\fBUserHomeCopy\fR:
+
+Creates a copy in $HOME/lib and sets links to $HOME/bin.
+
+.IP \(bu 3
+\fBUserHomeLinkonly\fR:
+
+Creates sets links to $HOME/bin from execution directory.
+
+.IP \(bu 3
+\fBSharedAnyDirectory\fR,\fI<install\-directory>\fR[,\fI<link\-directory>\fR]:
+
+The links will be set within the standard directory conventions.
+
+.RS
+.IP \(bu 3
+\fI<install\-directory>\fR:
+Directory for installation of non\-user specific files.
+
+.IP \(bu 3
+\fI<link\-directory>\fR:
+The links to be set, default is "${HOME}/bin".
+
+.RE
+.IP \(bu 3
+\fBSharedAnyLinkonly\fR,\fI<reference\-directory>\fR,\fI<link\-directory>\fR:
+
+Any directory could be linked, this could be used e.g. for providing
+sysmbolic links within standard search PATH.
+
+.RS
+.IP \(bu 3
+\fI<reference\-directory>\fR:
+Directory for targets of symbolic links to non\-user specific files.
+
+.IP \(bu 3
+\fI<link\-directory>\fR:
+The links to be set.
+
+.RE
+.IP \(bu 3
+\fBAnyDirectory\fR,\fI<install\-directory>\fR:
+
+Copies only without setup of configuration.
+Foreseen for build process only.
+
+.RS
+.IP \(bu 3
+\fI<install\-directory>\fR:
+Directory for installation of non\-user specific files.
+.RE
+.RE
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+Terse output format, effects "\-V" when set left\-of.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.TP
+\fB<list\-of\-target\-acounts>\fR
+The target accounts appropriate for the ssh/scp\-call, where the
+install process shout be executed.
+
+The provided formats are a list of EMail style hostnames or pure
+hostnames. EMail style hostnames are not supported in conjunction with
+the "\-l" option.
+
+For any hostname without a user\-prefix either the current USER or the
+user from the "\-l" option is prepended.
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+ffs.
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(7)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-genmconf(1)\fR, \fIctys\-install(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vhost(1)\fR
+
+.TP
+\fBsystem executables\fR
+ffs.
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/man/man1/ctys-distribute.1
+

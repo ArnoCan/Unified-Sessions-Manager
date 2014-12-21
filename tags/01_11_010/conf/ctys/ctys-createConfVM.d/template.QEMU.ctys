@@ -1,0 +1,391 @@
+#  -*- mode: conf; -*-
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      MARKER_VERNO
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+#
+#This file is processed in the following way:
+#
+# 1. Included by the wrapper call.
+# 2. Detected by ENUMERATE and based tools such as ctys-vdbgen
+#    as valid (if not MAGICID_IGNORE) and collected to the
+#    inventory database.
+#
+#
+
+
+#***********************************************************************
+#                        Don't forget to activate                      *
+#***********************************************************************
+#@#MAGICID-IGNORE
+#***********************************************************************
+
+#
+#INSTALLER-INFO:
+#===============
+#
+#@#INST_EDITOR               =  MARKER_EDITOR
+#@#INST_DATE                 =  MARKER_DATE
+#@#INST_CTYSREL              =  MARKER_CTYSREL
+#@#INST_VERNO                =  MARKER_VERNO
+#@#INST_SERNO                =  MARKER_SERNO
+#@#INST_UID                  =  MARKER_UID
+#@#INST_GID                  =  MARKER_GID
+#@#INST_HOST                 =  MARKER_HOST
+
+
+
+
+#
+#INSTALL-HOST-MACHINE-INFO:
+#==========================
+#
+#@#INST_HOST_DIST            =  MARKER_INST_DIST
+#@#INST_HOST_DISTREL         =  MARKER_INST_RELEASE
+#@#INST_HOST_OS              =  MARKER_INST_OS_
+#@#INST_HOST_OSREL           =  MARKER_INST_OSREL
+#
+#@#INST_QEMUBASE             =  MARKER_QEMUBASE__
+#@#INST_QEMUBASE_HYPERREL    =  MARKER_QEMUBASE_HYPERREL
+#@#INST_QEMUBASE_MAGICID     =  MARKER_QEMUBASE_MAGICID
+#@#INST_QEMUBASE_ACCELERATOR =  MARKER_QEMUBASE_ACCELERATOR
+#
+#@#INST_QEMUKVM              =  MARKER_QEMUKVM__
+#@#INST_QEMUKVM_HYPERREL     =  MARKER_QEMUKVM_HYPERREL
+#@#INST_QEMUKVM_MAGICID      =  MARKER_QEMUKVM_MAGICID
+#@#INST_QEMUKVM_ACCELERATOR  =  MARKER_QEMUKVM_ACCELERATOR
+#
+
+
+
+#
+#GUEST-OS-INFO:
+#==============
+#
+#Values required for ENUMERATE, even though some values, e.g. UUID
+#are currently not yet actually utilized by the QEMU-VM itself.
+#The values are used as search key within the ctys-name-services. 
+#So it makes "heavily" sence to maintain them thoroughly, and keep
+#all values unique, where applicable.
+#
+#
+#@#MAGICID-QEMU
+#@#LABEL                     = "MARKER_LABEL"
+LABEL="MARKER_LABEL"
+#@#SESSIONTYPE               = "QEMU"
+#@#UUID                      = "MARKER_UUID"
+#@#IP0                       = "MARKER_IP"
+#@#MAC0                      = "MARKER_MAC"
+MAC0="MARKER_MAC"
+#@#DIST                      = "MARKER_DIST"
+#@#DISTREL                   = "MARKER_RELEASE"
+#@#OS                        = "MARKER_OS_"
+#@#OSREL                     = "MARKER_OSREL"
+#@#SERNO                     = "MARKER_SERNO"
+#@#VERSION                   = "MARKER_VERNO"
+#@#CATEGORY                  = "MARKER_CATEGORY"
+
+
+#_@#VNCACCESSPORT            = 
+#_@#VNCBASEPORT              = 
+#_@#VNCACCESSDISPLAY         = 
+#VNCACCESSDISPLAY=
+
+
+
+
+
+#
+#WRAPPER-INFO:
+#==============
+#
+#The following parameters suffice for basic to medium level konfiguration 
+#of runtime environment.
+#
+#For enhanced configuration the coallocated script has to be adapted.
+#
+
+#
+#Components for virtual PC-BIOS, VGA-BIOS and keymaps.
+#The value is expanded to '-L' option - when present.
+#Should be inherited from the environment which is
+#set within conf-QEMU.sh.
+#
+#The standard case is not to set the value and let the
+#executable use it's default.
+#
+#QEMUBIOS=${QEMUBIOS:-/usr/share/kwm}
+
+#
+#qemu start
+STARTERCALL=${STARTERCALL:-MARKER_DEFAULTSTARTERCALL}
+#STARTERCALL=${STARTERCALL:-/usr/libexec/qemu-kvm}
+ACCELERATOR=${ACCELERATOR:-MARKER_ACCELERATOR}
+case ${ACCELERATOR} in
+    KVM)
+	STARTERCALL=${STARTERCALL:-$QEMUKVM}
+	STARTERCALL=${STARTERCALL:-qemu-kvm}
+	;;
+    QEMU)
+	STARTERCALL=${STARTERCALL:-$QEMUBASE}
+	STARTERCALL=${STARTERCALL:-qemu}
+	;;
+#KQEMU);;
+esac
+
+#
+#qemu wrapper
+WRAPPERCALL=${WRAPPERCALL:-MARKER_DEFAULTWRAPPERCALL}
+WRAPPERCALL=${WRAPPERCALL:-$VDE_DEQ}
+WRAPPERCALL=${WRAPPERCALL:-/opt/vde/bin/vdeq}
+
+#
+#Virtual floppy drive for boot, used as FDA.
+#
+#FDDIMAGE="${CTYSWRAPPERPATH}/fda.img"
+#FDA="${FDDIMAGE}"
+#
+
+#
+#Virtual floppy drive for boot, used as FDB.
+#
+#FDB="${CTYSWRAPPERPATH}/fdb.img"
+
+
+#
+#Virtual drive for boot, used as HDA.
+#ABSOLUTE PATH path is required for runtime toolset.
+#
+HDDBOOTIMAGE="${CTYSWRAPPERPATH}/MARKER_HDD_A"
+HDA=${HDDBOOTIMAGE}
+
+
+
+#
+#For now hard-coded, could be varied to:
+#
+# qcow, qco2, vmdk, ... refer to man-page of qemu-img
+#
+QEMU_IMG=raw
+
+
+#
+#Size of virtual drive for boot device when INSTALL or PXE is performed.
+#
+HDDBOOTIMAGE_INST_SIZE=MARKER_HDDBOOTIMAGE_INST_SIZE
+HDDBOOTIMAGE_INST_BLOCKSIZE=MARKER_HDDBOOTIMAGE_INST_BLOCKSIZE
+HDDBOOTIMAGE_INST_BLOCKCOUNT=MARKER_HDDBOOTIMAGE_INST_BLOCKCOUNT
+HDDBOOTIMAGE_INST_BALLOON=MARKER_HDDBOOTIMAGE_INST_BALLOON
+
+#
+#Optional additional virtual drives for data.
+#
+#HDB="${CTYSWRAPPERPATH}/MARKER_HDD_B"
+#
+#Remember, the hdc drive could not be used in conjunctioon with the cdrom.
+#for additional information refer to the QEMU manual.
+#HDC="${CTYSWRAPPERPATH}/MARKER_HDD_C"
+#
+#HDD="${CTYSWRAPPERPATH}/MARKER_HDD_D"
+
+
+#
+#BOOT-INFO:
+#==========
+#
+DEFAULTBOOTMODE=MARKER_DEFAULTBOOTMODE
+DEFAULTBOOTMODE=${DEFAULTBOOTMODE:-HDD}
+#
+DEFAULTINSTMODE=MARKER_DEFAULTINSTMODE
+DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD}
+#
+DEFAULTINSTSOURCE=MARKER_DEFAULTINSTSOURCE
+DEFAULTINSTSOURCE=${DEFAULTINSTSOURCE:-/dev/cdrom}
+#
+DEFAULTINSTTARGET=MARKER_DEFAULTINSTTARGET
+DEFAULTINSTTARGET=${DEFAULTINSTTARGET:-$CTYSWRAPPERPATH/MARKER_HDD_A}
+[ "${DEFAULTINSTTARGET#/}" == "$DEFAULTINSTTARGET" ]&&DEFAULTINSTTARGET=${CTYSWRAPPERPATH}/${DEFAULTINSTTARGET}
+
+
+
+#
+#VGA driver to be used:
+#
+#- for newer qemu/kvm - refer to qemu manuals.:
+## " -vga [std|cirrus|vmware] "
+#
+#- older versions:
+#  " -std-vga "
+# 
+#VGADRIVER="-vga vmware "
+#VGADRIVER=" -vga std "
+VGADRIVER="-vga cirrus "
+case "$MYDIST" in
+   debian)
+     VGADRIVER=;
+     ;;
+   Ubuntu)
+     VGADRIVER=;
+     ;;
+esac
+
+#
+#The architecture.
+#
+ARCH=${ARCH:-MARKER_ARCH}
+#
+#Optional CPU architecture
+#
+if [ -n "${ARCH}" ];then
+    case ${ARCH// /} in
+	x86_64|amd64) CPU="qemu64";;
+	i386|i586|i686) CPU="qemu32";;
+
+	#anyhow...for suprising pop-ups of x86-types
+	*) CPU="qemu32";;
+    esac
+fi
+
+#
+#The number of emulated CPUs.
+#
+SMP=${SMP:-MARKER_SMP}
+
+
+#
+#The size of memory.
+#
+MEMSIZE=${MEMSIZE:-MARKER_MEMSIZE}
+
+
+#
+#Keyboard layout.
+#
+KBD_LAYOUT=${KBD_LAYOUT:-MARKER_KBD_LAYOUT}
+
+
+#
+#System time, preferably by ntp, but as fallback...
+#
+TIMEOPT="${TIMEOPT:--localtime} "
+
+
+#
+#Default network interface
+#
+#For OpenBSD-4.6 use e1000, with bsd.rd and/or disable 'mpbios'
+#NIC=${NIC:-e1000}
+#
+#NIC=${NIC:-pcnet}
+NIC=${NIC:-rtl8139}
+
+
+
+
+#
+#EXTERNAL KERNEL and INITRD:
+#===========================
+#
+#The following values are required in special cases only.
+#For kernel parameter refer to QEMU manuals.
+#
+#KERNELIMAGE=${KERNELIMAGE:-MARKER_KERNELIMAGE}
+#INITRDIMAGE=${INITRDIMAGE:-MARKER_INITRDIMAGE}
+#APPEND=${APPEND:-MARKER_APPEND}
+
+
+
+#
+#INSTALLER-INFO for GUESTOS-CDROM/DVD:
+#=====================================
+#
+#The following values are required for installation only.
+#
+#CDROM ISO image for INSTALL parameter
+INSTSRCCDROM=MARKER_INSTSRCCDROM
+INSTSRCCDROM=${INSTSRCCDROM:-/dev/cdrom}
+#
+
+#
+#INSTALLER-INFO for GUESTOS-FDD:
+#===============================
+#
+#The following values are required for installation only.
+#
+#FDD image for INSTALL parameter
+INSTSRCFDD=MARKER_INSTSRCFDD
+INSTSRCFDD=${INSTSRCFDD:-/dev/fd0}
+#
+#some additional examples
+#
+#INSTSRCFDD_PREFIX=${INSTSRCFDD_PREFIX:-/mntn/swpool/UNIXDist/}
+#
+#INSTSRCFDD_MISC_PREFIX=${INSTSRCFDD_MISC_PREFIX:-/mntn/swpool/miscOS/}
+#INSTSRCFDD=${INSTSRCFDD_MISC_PREFIX}Balder/1.0/src/Balder-1.0/balder10.img
+#
+
+#
+#INSTALLER-INFO for GUESTOS-USB:
+#===============================
+#
+#The following values are required for installation only.
+#
+#USB image for INSTALL parameter, which is actually a HDD images
+INSTSRCUSB=MARKER_INSTSRCUSB
+INSTSRCUSB=${INSTSRCUSB:-/dev/usb}
+#
+#some additional examples
+#
+#INSTSRCUSB_PREFIX=${INSTSRCUSB_PREFIX:-/mntn/swpool/miscOS/}
+#
+#INSTSRCUSB_MISC_PREFIX=${INSTSRCUSB_MISC_PREFIX:-/mntn/swpool/miscOS/}
+#INSTSRCUSB=${INSTSRCUSB_MISC_PREFIX}
+#
+
+
+#
+#INSTALLER-INFO for GUESTOS-HDD:
+#===============================
+#
+#The following values are required for installation only.
+#
+#HDD image for INSTALL parameter
+INSTSRCHDD=MARKER_INSTSRCHDD
+INSTSRCHDD=${INSTSRCHDD:-MARKER_HDD_A}
+#
+#some additional examples
+#
+#INSTSRCHDD_PREFIX=${INSTSRCHDD_PREFIX:-/mntn/swpool/UNIXDist/}
+#
+#INSTSRCHDD_MISC_PREFIX=${INSTSRCHDD_MISC_PREFIX:-/mntn/swpool/miscOS/}
+#INSTSRCHDD=${INSTSRCHDD_MISC_PREFIX}
+#
+
+
+
