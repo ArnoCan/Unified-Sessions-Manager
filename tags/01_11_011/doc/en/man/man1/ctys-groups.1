@@ -1,0 +1,283 @@
+.TH "ctys-groups" 1 "August, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-groups -  lists groups from groups DB and groups caches\fR
+
+.SH SYNTAX
+.P
+\fBctys-groups\fR 
+
+   [-c]
+   [-d <level>]
+   [-D <deepness-level>]
+   [-e [<group-list>|<path-list>]]
+   [-F]
+   [-h]
+   [-H <help-options>]
+   [-l]
+   [-m <1|2|3|4|5|6|7|7u|8|8u>]
+   [-S]
+   [-V]
+   [-X]
+   [<group-list>]
+
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-groups\fR lists and displays groups from groups DB and groups caches. This
+tool utilizes ctys\-vhost and adds some usability to the more detailed interface parameters.
+
+.P
+The display can be applied for specific groups, subtrees, or for nested groups.
+Also a tree\-view based on the UNIX command tree is included, which supports the listing of
+components and subtrees from the variable CTYS_GROUPS_PATH.
+
+.P
+The output format of each group entry for default short\-listing is:
+
+.nf
+  <size-kbytes> <#records>/<#includes> <internal> <group-filename>
+  
+.fi
+
+
+.P
+For additional information of groups syntax refer to 
+\&'\fBGroupResolution\fR'.
+
+.P
+The '\-e' option provides by default for Emacs based edit
+, but could be 
+adapted by configuration of CTYS_GROUPSEDIT
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-groups\fR 
+
+.TP
+\fB\-c\fR
+List cached groups the output format is:
+
+.nf
+  <filesize> <lines=members> <group-cache-file-path>
+.fi
+
+
+.TP
+\fB\-d <level>\fR
+Debug.
+
+.TP
+\fB\-D <deepness\-level>\fR
+Display structure of groups with the given level of resursion deepness.
+
+.TP
+\fB\-e [<group\-list>|<path\-list>]\fR
+Edit one or multiple groups by \fBEmacs\fR. 
+When no argument is provided the 
+CTYS_GROUPS_PATH is evaluated and an Emacs instance is 
+opened with all present directories.
+When a directory and/or group list \- which is actually a file list \- is provided,
+these are searched for the relative path provided, first from current directory, 
+than by using each \fBexisting entry\fR within \fBCTYS_GROUPS_PATH\fR as a prefix.
+Absolute paths are just evaluated for providing a valid filename/pathname.
+
+The default editor could be configured within the distribution specific configuration
+file by 
+\fBCTYS_GROUPSEDIT\fR. Currently preconfigured editors/starters are: Emacs, gvim, vim, konqueror, and nautilus.
+
+.TP
+\fB\-F\fR
+Display file structure of groups with the given level in \fB\-D\fR option.
+
+.TP
+\fB\-h\fR
+Print help.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-l\fR
+Lists group definitions.
+
+.nf
+  <filesize> <lines=members> <group-name>
+.fi
+
+
+.TP
+\fB\-m <1|2|3|4|5|6|7|7u|8|8u>\fR
+List group members in different formats.
+
+.RS
+.IP \(bu 3
+1 listing
+.IP \(bu 3
+2 listing
+.IP \(bu 3
+3 listing
+.IP \(bu 3
+4 callable for cut\-and\-paste
+.IP \(bu 3
+5 callable for cut\-and\-paste
+.IP \(bu 3
+6 listing of contained remote accounts in EMail format
+.IP \(bu 3
+7 account list for machine processing
+.IP \(bu 3
+7u account list for machine processing, with stripped redundancies.
+.IP \(bu 3
+8 host list for machine processing
+.IP \(bu 3
+8u host list for machine processing, with stripped redundancies.
+.RE
+
+.TP
+\fB\-S\fR
+Display directory structure of groups with the given level of deepness in \fB\-D\fR option.
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+Terse.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.TP
+\fB[<group\-list>]\fR
+An optional list of groups to be displayed only, if not provided all
+present groups from directories within the variable CTYS_GROUPS_PATH
+are scanned and displayed.
+For additional information refer to the S\-OPTION\-OF\-CTYS\-VHOST.
+The format of <group\-list> is:
+
+.nf
+  <group-list> =: <group-name>[(%| )<group-list>]
+.fi
+
+
+The seperator is here slightly different from the "ctys\-vhost" option.
+For ctys\-groups optionally the common suboptions\-argument seperator
+"%" or the common UNIX arguments seperator "SPACE" could be used as
+seperator.
+
+The usage of the listed <group\-names> is as follows:
+
+.TP
+
+\fBname\fR
+The name is expected to be a group name, so search is performed
+for a file of name "name".
+
+.TP
+
+\fBname/\fR
+The name is expected to be a directory name, so search is performed
+for a subdirectory within the CTYS_GROUPS_PATH.
+All files within that subtree are listed.
+
+.TP
+
+\fBname01/name02/name03/\fR
+The path is expected to be a subdirectory pathname, so search is performed
+for a subdirectory\-path within the CTYS_GROUPS_PATH.
+All files within that subtree are listed.
+
+.TP
+
+\fB/name01/name02/name03/\fR
+The path is expected to be an absolute directory pathname, so search is performed
+within the subtree of given path only.
+All files within that subtree are listed.
+
+.TP
+
+\fB/name01/name02/name03/name\fR
+The name is expected to be an absolute filename, so test is performed
+for that file only.
+
+.P
+The nested containment hierarchy by "include" is expanded before
+output in any case.
+The following example lists the \fBdesktop/\fR and \fBscan/\fR directories.
+
+.nf
+  ctys-groups  scan/ desktops/
+.fi
+
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys executables\fR
+\fIctys\-macros(1)\fR, \fIctys\-vhost(1)\fR
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-groups.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man1/ctys-groups.1
+

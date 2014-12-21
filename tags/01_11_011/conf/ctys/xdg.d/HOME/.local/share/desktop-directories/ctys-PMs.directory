@@ -1,0 +1,11 @@
+#  -*- mode: conf; -*-
+#
+[Desktop Entry]
+Name=Physical Machines
+Name[de]= Physical Machines
+Name[en]=Physical Machines
+Comment=UnifiedSessionsManager - Physical Machines
+Comment[de]=UnifiedSessionsManager - Physical Machines
+Type=Directory
+Icon=ctys-network-workgroup
+Encoding=UTF-8

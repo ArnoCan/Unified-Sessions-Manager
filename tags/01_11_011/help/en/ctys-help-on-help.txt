@@ -1,0 +1,82 @@
+
+NAME
+====
+
+ctys-help-on - Common Online-Help Interface
+
+SYNTAX
+======
+
+ctys-help-on
+
+
+-H <help-option>
+
+   <help-option>:=
+         (man|html|pdf)][=((1-9)|<help-on-item>[,<help-on-item-list>])
+       | (path|list|listall)
+       | funcList=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | funcListMod=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
+     )
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H <help-option>
+
+     -H help
+        displays available help options.
+
+     -H path
+        displays current help paths.
+
+     -H list
+        displays available online-help files
+        for UnifiedSessionsManager.
+
+        This includes the manuals for online 
+        access.
+
+     -H listall
+        displays all available online-help files
+        including by MANPATH.
+        Default system paths are not implicitly
+        evaluated.
+
+     -H (man|pdf|html)[=({123456789}]
+        calls man page with requested format.
+        Default is "man1" for current call.
+        Another section for current call could be
+        supplied.
+
+     -H [(man|pdf|html)=]<help-on-item>[,<help-on-item>]...)
+        calls man page with requested format,
+        default is "man". Suffixes have to be
+        omitted.
+        The given string is fully used for a pattern
+        search by "
+
+           find -name '*<help-on-item>)*' ..."
+
+        First found item is displayed.
+
+        Firefox with active tab-view is recommended.
+
+     -H (funcList|funcListMod|funcHead)
+        for enumeration of development interfaces.
+
+     -H (funcList|funcListMod|funcHead)=<any-function>[,<any-function>...]
+        for display of a specific item.
+
+The viewer could be changed by configuration variables.
+The defaults are kpdf or gpdf for PDF, firefox of
+konqueror for HTML, and man for manpages.
+
+
+
+
+

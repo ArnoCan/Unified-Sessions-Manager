@@ -1,0 +1,402 @@
+.TH "ctys-uc-VNC" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-uc-VNC - Use-Cases for VNC\fR
+
+.SH USE-CASES
+.SS General
+.P
+The VNC plugin supports access to remote desktops by the NFB protocol.
+The access could be either by combination of provided client and server
+programs to a native target, or by utilizing the client only either to
+an application or hypervisor supoorting the NFB protocol.
+
+.P
+The automated signon when connecting a vncviewer to a vncserver
+requires a password as supported by vncpasswd. In order to avoid any
+user interaction for password requests the password is stored into the
+passwd file in \fB$HOME/.vnc\fR and is set to a default "install".
+This has to be changed once installed.
+
+.P
+The default session type is \fBVNC\fR,
+thus the '\-t vnc' option could be omitted within the following examples.
+The call
+
+.nf
+  
+  ctys -t VNC -a create=l:test
+  
+.fi
+
+
+.P
+is identical to 
+
+.nf
+  
+  ctys -a create=l:test
+  
+.fi
+
+
+.P
+This behaviour could be changed within the configuration file 
+\&'ctys\-conf.sh' by the variable 'DEFAULT_C_SESSIONTYPE'.
+For future safety of scripts despite the pre\-set default the session type 
+should be provided explicitly.
+
+.SS Start a Local Desktop Session
+.P
+This opens a local session, where the VNCserver as well as the
+VNCviewer are executed locally.
+
+.nf
+  
+  ctys -t VNC -a create=l:tst1 
+  
+.fi
+
+
+.P
+The "localhost" is hard\-coded to behave as a sub\-shell call too, thus
+the following call is internally handeled identical to the previous
+
+.nf
+  
+  ctys -t VNC -a createl=l:tst1  $USER@localhost
+  
+.fi
+
+
+.P
+This case is called \fBDISPLAYFORWARDING\fR which is almost the same as the X11 display forwarding.
+
+.TS
+center, tab(^); l.
+ \fBRefer to PDF/HTML for figure: DISPLAYFORWARDING\fR
+.TE
+
+
+.SS Start a Remote Desktop Session
+.P
+This call opens a remote desktop with DISPLAYFORWARDING, which is
+a coallocated VNCserver with a VNCviewer on the <execution\-target>.
+
+.nf
+  
+  ctys -t vnc -a create=l:tst1 -L DISPLAYFORWARDINGF  <host>
+  
+.fi
+
+
+.P
+The same could be written as:
+
+.nf
+  
+  ctys -t vnc -a create=l:tst1 -L DF lab00
+  
+.fi
+
+
+.P
+The Client\-Location "\-L DISPLAYFORWARDING" is default for the original
+distribution, thus could be written as:
+
+.nf
+  
+  ctys -t vnc -a create=l:tst1 lab00
+  
+.fi
+
+
+.SS Start Bulk Desktop Sessions
+.P
+This call opens 3 desktops on the remote host. The internal limit is
+set by default to 20.
+
+.nf
+  
+  ctys -t vnc -a create=bulk:3,l:tst lab00
+  
+.fi
+
+
+.P
+The following call cancels all session by addressing their labels.
+The complete label is required here, which is an extended label by the
+incremental bulk\-counter.
+
+.nf
+  
+  ctys -t vnc -a cancel=l:tst000,l:tst001,l:tst002 app2
+  
+.fi
+
+
+.P
+The same function with usage of IDs.
+
+.nf
+  
+  ctys -t vnc -a cancel=i:2,i:3,i:4 app2
+  
+.fi
+
+
+.P
+Current version supports as an implicit bulk addressing the keyword
+"ALL" only, which kills literally all VNC session where the
+appropriate permissions are available.
+
+.nf
+  
+  ctys -t vnc -a cancel=all app2
+  
+.fi
+
+
+.P
+It should be recognized, that the CANCEL action is just a call to 
+"vncserver \-kill <display>" command, when this does not succeed, a "kill"
+will be placed. The clients are killed by UNIX\-calls when required.
+
+.P
+So the user is responsible for shutting down applications running
+within the CANCEL\-ed sessions.
+
+.SS Start a Remote Desktop with a Local Client
+.P
+In case of a "Remote Desktop with Local Client" the server is started
+on the given <execution\-target>, whereas the client is locally started
+on the caller's machine. 
+This structure is called CONNECTIONFORWARDING and requires beneath the
+client and server processes a third, the connecting encrypted tunnel.
+The tunnel is established by means of OpenSSH and used as the local
+peer for the Client. 
+This whole procedure of starting the  processes and the
+establishment of the tunnel is controlled and preformed by ctys.
+
+.P
+The scenario differs in all steps except the start of the server
+process from the previously described DISPLAYFORWARDING structure.
+In case of CONNECTIONFORWARDING the whole process is set up in three
+steps.
+
+.RS
+.IP 1. 3
+start of server process
+.IP 2. 3
+establishment of the encrypted tunnel
+.IP 3. 3
+start and connect the client process to the tunnel
+.RE
+
+.P
+The tunnel is established in the so
+called \fBone\-shot mode\fR, where the connection is opened for an inital time
+period and closes automatically when the life\-time threshhold is reached,
+or afterwards, when the server disconnects. 
+The period of the initial lifetime is defined by the variable
+"SSH_ONESHOT_TIMEOUT", which is by default set to 20seconds.
+
+.P
+The following call starts a remote server with a local client.
+
+.nf
+  
+  ctys -t vnc -a create=l:tst -L CF lab00
+  
+.fi
+
+
+.P
+\fBREMARK:\fR
+When the error message \fBAuthentication Failure\fR is replied and no client
+window occurs, the reason is the differing passwd files of VNC.
+For the remote client by the option '\-L CF' \- ConnectionForwarding \-
+the local passwd file of VNC has to contain the same password as the remote 
+machine running the vncserver process.
+
+.TS
+center, tab(^); l.
+ \fBRefer to PDF/HTML for figure: DISPLAYFORWARDING\fR
+.TE
+
+
+.P
+The instances could be listed by the LIST action in several variants.
+The basic call with default selection executed on the caller
+workstation is:
+
+.nf
+  
+  ctys -a list ws2
+  
+.fi
+
+
+.P
+The standard assignment to LIST call is "tab_tcp,both", which
+displays:
+
+.nf
+  
+  TCP-container|TCP-guest|label |sesstype|c|user|group    
+  -------------+---------+------+--------+-+----+---------
+  ws2.soho     |-        |tst000|VNC     |C|acue|ldapusers
+  ws2.soho     |-        |tst001|VNC     |C|acue|ldapusers
+  ws2.soho     |ws2.soho.|ws2   |PM      |S|-   |-        
+  ws2.soho     |-        |tst000|SSH(VNC)|T|acue|ldapusers
+  ws2.soho     |-        |tst001|SSH(VNC)|T|acue|ldapusers
+  ws2.soho     |-        |tst000|VNC     |C|acue|ldapusers
+  ws2.soho     |-        |tst001|VNC     |C|acue|ldapusers
+  
+.fi
+
+
+.P
+Here the two tunnels could be identified as "sesstype=SSH(VNC)", and
+"c=T". This indicates, that the tunnels are created for the subsystem
+VNC with  the session label "tst000" and "tst001".
+
+.P
+The following call displays the same table, but with IDs instead of
+LABELs.
+
+.nf
+  
+  ctys -a list=tab_tcp,id ws2
+  
+.fi
+
+
+.P
+Which results to the display:
+
+.nf
+  
+  TCP-cont|TCP-guest|id        |sesstype|c|user|group    
+  --------+---------+----------+--------+-+----+---------
+  ws2.soho|-        |50        |VNC     |C|acue|ldapusers
+  ws2.soho|-        |51        |VNC     |C|acue|ldapusers
+  ws2.soho|-        |../pm.conf|PM      |S|-   |-        
+  ws2.soho|-        |5950-5903 |SSH(VNC)|T|acue|ldapusers
+  ws2.soho|-        |5951-5904 |SSH(VNC)|T|acue|ldapusers
+  ws2.soho|-        |50        |VNC     |C|acue|ldapusers
+  ws2.soho|-        |51        |VNC     |C|acue|ldapusers
+  
+.fi
+
+
+.P
+Indicating by the default ID of tunnels, that these are tunnels
+forwarding the ports "5950" to "5903" and "5951" to "5904".
+
+.P
+The display could be changed as required by usage of specific
+free\-customized tables, e.g. displaying LABEL and ID columns once.
+
+.P
+The call with the whole set of involved machines as one call results to:
+
+.nf
+  
+  ctys -a list=tab_tcp,id ws2 lab00 lab01
+  
+.fi
+
+
+.nf
+  
+  ctys -a list=tab_tcp,id ws2 lab00 lab01
+  
+    
+  TCP-contai|TCP-guest|id        |sesstype|c|user|group    
+  ----------+---------+----------+--------+-+----+---------
+  ws2.soho  |-        |50        |VNC     |C|acue|ldapusers
+  ws2.soho  |-        |51        |VNC     |C|acue|ldapusers
+  ws2.soho  |-        |d/pm.conf |PM      |S|-   |-        
+  ws2.soho  |-        |5950-5903 |SSH(VNC)|T|acue|ldapusers
+  ws2.soho  |-        |5951-5904 |SSH(VNC)|T|acue|ldapusers
+  lab00.soho|-        |3784      |CLI     |C|acue|ldapusers
+  lab00.soho|-        |31206     |CLI     |C|acue|ldapusers
+  lab00.soho|-        |1         |VNC     |S|root|root     
+  lab00.soho|-        |2         |VNC     |S|acue|ldapusers
+  lab00.soho|-        |          |XEN     |S|-   |-        
+  lab00.soho|-        |e/xen/tst1|XEN     |S|-   |-        
+  lab00.soho|-        |d/pm.conf |PM      |S|-   |-        
+  lab01.soho|-        |          |XEN     |S|-   |-        
+  lab01.soho|-        |d/pm.conf |PM      |S|-   |-        
+  
+.fi
+
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR
+,
+\fIctys\-groups(1)\fR
+,
+\fIctys\-macros(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-vhost(1)\fR
+,
+\fIctys\-VNC(1)\fR
+, \fIvncpasswd(1)\fR, \fIvncviewer(1)\fR, \fIvncserver(1)\fR
+
+.P
+\fBFor System Tools:\fR
+
+.P
+\fIRealVNC\fR: [ http://www.realvnc.com ]
+
+.P
+\fITigerVNC\fR: [ http://www.tigervnc.org ]
+
+.P
+\fITightVNC\fR: [ http://www.tightvnc.com ]
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-uc-VNC.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man7/ctys-uc-VNC.7
+
