@@ -1,0 +1,160 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_10_013
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+
+#***********************************************************************
+#
+# REMARK:
+# =======
+#
+#   The contents of this file are 
+#
+#   - even though they reflect the bunch of dependencies -
+#
+#   simply optional!
+#
+#   The only effect of missing these contents is the requirement of 
+#   manual input of the interactively requested values.
+#
+#***********************************************************************
+
+
+
+
+#
+#The contents of this file are forseeen as an quick-startup example
+#by usage of the '--auto-all' option.
+#
+#The actual usage should of the installer should be performed 
+#interactively with manual input of required resources for 
+#installation.
+#
+#Due to the huge amount of permutaion in variants and specifics just 
+#some selected cases are presented.
+#
+#
+#
+
+
+#
+#MYDIST:    
+#   defines the distribution of current execution platform
+#   of the host generating the VM - the HostOS.
+#
+#DIST:
+#   defines the distribution of the target execution platform
+#   within the VM - the GuestOS.
+#
+#RELEASE:
+#   defines the release of the GuestOS distribution
+#
+#C_SESSIONTYPE
+#   defines the type of the session, e.g. QEMU, XEN, VMW, etc.
+#
+#ACCELERATOR
+#   defines the target accelerator, e.g. HVM, PARA.
+#   in some cases such as the "logical" accelerator QEMU/KVM/KQEMU 
+#   these are transparently exchangeable, in case of an actual
+#   accelrators with specific code for the missing case PARA 
+#   para virtualization these cannot be interchanged.
+#
+
+
+printINFO 2 $LINENO $BASH_SOURCE 1 "MYDIST      = $MYDIST"
+printINFO 2 $LINENO $BASH_SOURCE 1 "DIST        = $DIST"
+printINFO 2 $LINENO $BASH_SOURCE 1 "RELEASE     = $RELEASE"
+printINFO 2 $LINENO $BASH_SOURCE 1 "ACCELERATOR = $ACCELERATOR"
+
+
+_MATCHED=0;
+function printInfo () {
+    if((_MATCHED>0));then return;fi
+
+    if [ -n "${AUTO_WITH_DEFAULTS_ALL}" ];then
+	printWNG 1 $LINENO $BASH_SOURCE 1 "."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "For requested VM are no pre-configured defaults available"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "or at least are uncomplete, thus '--auto-all' mode may not "
+	printWNG 1 $LINENO $BASH_SOURCE 1 "be applicable."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "-> MYDIST         = $MYDIST"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "-> DIST           = $DIST"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "-> RELEASE        = $RELEASE"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "-> C_SESSIONTYPE  = $C_SESSIONTYPE"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "-> ACCELERATOR    = $ACCELERATOR"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "Distribution names has to match literally, use 'getCurDistribution'."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "Anyhow, basically this message could be ignored safely, just some"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "values might not be preassigned."
+	printWNG 1 $LINENO $BASH_SOURCE 1 "."
+    fi
+}
+
+
+function printNotSupported () {
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "This variant is not supported:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "$*"
+
+    gotoHell ${ABORT}
+}
+
+
+
+
+SOURCEDIR=;
+if [ -d "${HOME}/.ctys/ctys-createConfVM.d/defaults-sources.d" ];then
+    SOURCEDIR=${HOME}/.ctys/ctys-createConfVM.d/defaults-sources.d
+else
+    if [ -d "${MYCONFPATH}/ctys-createConfVM.d/defaults-sources.d" ];then
+	SOURCEDIR=${MYCONFPATH}/ctys-createConfVM.d/defaults-sources.d
+    else
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing configuration directory:$SOURCEDIR"
+	gotoHell ${ABORT}
+    fi
+fi
+
+
+if [ -f "${SOURCEDIR}/hook.sh" ];then
+    source $SOURCEDIR/hook.sh
+    fetchAvailableDefaults
+else
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing hook for reading default sources \"$SOURCEDIR/hook.sh\""
+    gotoHell ${ABORT}
+fi
+
+
+printInfo
+
+

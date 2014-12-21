@@ -1,0 +1,263 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#ffffcc ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-uc-CLI</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-uc-CLI</H1>
+<FONT SIZE="4">
+May, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-uc-CLI - Use-Cases for CLI</B>
+</P>
+<H1>USE-CASES</H1>
+<H2>General</H2>
+<P>
+The CLI plugin itself is a pure command line interface, but due to the
+default activation of X11 forwarding any X11 command could be executed
+within a CLI session, thus any of the following examples could be used
+as a XTerm starter.
+</P>
+<P>
+E.g. the interactive call of "xclock" will display
+correctly. This is particularly also true for the whole
+login-chain, when CLI is used for cascaded logins.
+</P>
+<P>
+So, basically any firewall could be pierced in a secure manner by an
+SSH gateway in the DMZ. Which depends on the security facility of the
+gateway itself, of course.
+</P>
+<P>
+<B>HINT</B>:
+Spaces within options, including suboptions, have to be masked by
+the reserved character '%'. 
+This means just replace any SPACE with a '%' within any
+options/suboptions. The '%' itself is provided as '%%'.
+</P>
+<H2>Start a Local Interactive Session</H2>
+<P>
+This opens a second shell executed  as login, almost the same as
+an ordinary shell call.
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=l:test
+  
+</PRE>
+<P></P>
+<P>
+The "localhost" is hard-coded to behave as sub-shell call too.
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=l:test localhost
+  
+</PRE>
+<P></P>
+<P>
+<B>REMARK</B>:
+Due to the implemented ambiguity-check for uniqueness of LABELs, only
+one localhost session is supported by the same label, when the label
+has to be non-altered, the usage of "-A 1" disables ambiguity-checks.
+</P>
+<H2>Start a Remote Interactive Session</H2>
+<P>
+This opens a second shell as a remote executed login.
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=l:test lab00
+  
+</PRE>
+<P></P>
+<H2>Execute a Remote Command</H2>
+<P>
+This opens a remote shell and executes the provided command only
+before termination. The connection will be kept open during the
+whole session, thus this is not executed in background mode by default.
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=l:test,cmd:uname%-a lab00
+  
+</PRE>
+<P></P>
+<P>
+The same forced to perform in background mode.
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=l:test,cmd:uname%-a -b 1 lab00
+  
+</PRE>
+<P></P>
+<H2>Execute Multiple Remote Commands</H2>
+<P>
+The full scope of addressing of ctys is supported, thus the
+addressing of multiple targets, where each target could be a
+single host of a preconfigured hosts-group, is applicable. 
+Intermixed addressing is supported too.
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=cmd:uname%-a lab00 lab01
+  
+</PRE>
+<P></P>
+<P>
+The same with parallel background execution:
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=cmd:uname%-a -b 1 lab00 lab01
+  
+</PRE>
+<P></P>
+<P>
+or 
+</P>
+<PRE>
+  
+  ctys -t CLI -a create=cmd:uname%-a &lt;host1&gt; &lt;group1&gt; &lt;host2&gt; &lt;group2&gt; 
+  
+</PRE>
+<P></P>
+<P>
+The full scope of "include" files for group definitions  and
+macros is applicable, thus e.g. tree-like reuse of groups could
+be applied.
+</P>
+<P>
+Beginning with the current version path-based addressing of groups
+is supported, this allows for addressing like:
+</P>
+<PRE>
+  
+  ctys -t CLI -a create dir0/subdir1/sbudir2/group-file 
+  
+</PRE>
+<P></P>
+<P>
+In combination with the enhanced features of <B>ctys-groups</B> for tree-views
+this allows for management of structured groups.
+Typical applications are the management of task-based destops for office 
+applications, development environments, and
+the management of test-cases for Major-Projects.
+</P>
+<P>
+Due to security reasons root-permission should be configured and
+handled properly, of course.
+It might be recognized that there is currently a chance (?) for
+users with appropriate skills and permissions to intercept the
+communications, when on the intermediate hops the message flow
+has to be re-encrypted after decryption.
+</P>
+<P>
+The following call opens a session hop1 to lab01 via the intermediate
+relay lab00 by the session hop0.
+</P>
+<PRE>
+  
+  ctys -t cli -a create=l:hop0cmd:ctys%-t%cli%-a%create=l:hop1%lab00 lab01
+  
+</PRE>
+<P></P>
+<P>
+The following call opens a session hop1 to lab01 via the intermediate
+relay lab00 by the session hop0 and starts a Xterm on lab01.
+</P>
+<PRE>
+  
+  ctys -t cli -a create=l:hop0cmd:ctys%-t%cli%-a%create=l:hop1,cmd:xterm%lab00 lab01
+  
+</PRE>
+<P></P>
+<P>
+This approach is very similar to the equivalent usage of
+OpenSSH, and could be used in same manner to bypass routing as
+well as firewalls, when access and execution permissions on gateways are
+available.
+</P>
+<H2>Start Xterm with tcsh</H2>
+<P>
+This call starts an interactive XTerm session running tcsh inside.
+</P>
+<PRE>
+  
+  ctys -t cli -a create=l:tstcall,s:tcsh%-c,cmd:xterm%-e%tcsh -b 1 lab00
+  
+</PRE>
+<P></P>
+<H2>Start gnome-terminal</H2>
+<P>
+This call starts an interactive gnome-terminal session running tcsh inside.
+</P>
+<PRE>
+  
+  ctys -t cli -a create=l:tstcall,s:tcsh%-c,cmd:gnome-xterminal%-e%tcsh -b 1 lab00
+  
+</PRE>
+<P></P>
+<H1>SEE ALSO</H1>
+<P>
+<I>ctys(1)</I>, <I>ctys-CLI(7)</I>
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+<P></P>
+For additional information refer to enclosed Releasenotes and License files.
+</UL>
+
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-uc-CLI.t2t -o /tmpn/0/ctys/bld/01.11.002/doc-tmp/BASE/en/html/man7/ctys-uc-CLI.html -->
+</BODY></HTML>

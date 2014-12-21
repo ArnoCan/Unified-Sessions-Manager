@@ -1,0 +1,245 @@
+.TH "ctys-wakeup" 1 "May, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-wakeup - WoL and IPMI\fR
+
+.SH SYNTAX
+.P
+\fBctys-wakeup\fR 
+
+
+   [-d <level>]
+   [-h]
+   [-H <help-options>]
+   [-i <interface>]
+   [-L <remote-user>]
+   [-n]
+   [-p <port>]
+   [-R <remote-host>]
+   [-t <TCP/IP address>]
+   [-V]
+   [-X]
+   <mac-address>
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-wakeup\fR 
+sends a so called MagicPacket(TM) to a given destination.
+In case a remote segment is addressed by setting the "\-t" option, a
+UDP message is sent to port "9".
+The script consists of a few lines of bash code with a call to
+Netcat. So it could be adapted easily.
+
+.nf
+  mac=$1;shift
+  ip=$1;shift
+  
+  function buildWOLMagicPacket () {
+   local _mac=$1;shift
+   declare -a _pdu;
+  
+   function macAsc2Hex () {
+     for i in ${@};do
+       printf "\ex$i"
+     done
+   }
+  
+  
+   #frame
+   _pdu=(ff ff ff ff ff ff);
+  
+   #MAC addr in "little endian"
+   addr=(${mac: })
+   addrLitteEndian=(${addr[0]} ${addr[1]} \e
+                    ${addr[2]} ${addr[3]} \e
+                    ${addr[4]} ${addr[5]});
+  
+  
+   #add 16 duplications
+   for((i=0;i<16;i++));do
+     for m in ${addrLitteEndian[@]};do
+       size=${#_pdu[@]}
+       _pdu[${size}]=$m
+     done
+   done
+  
+   macAsc2Hex ${_pdu[@]}
+  }
+  
+  if [ -n "$ip" ];then
+    printf "`buildWOLMagicPacket $mac`\en"|nc -u -w 1 $ip 9
+    else
+      buildWOLMagicPacket $mac
+  fi
+.fi
+
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-wakeup\fR 
+
+.TP
+\fB\-d <level>\fR
+Sets debug.
+
+.TP
+\fB\-h\fR
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-i <broadcast\-interface>\fR
+The ethernet\-broadcast interface for local segment.
+When used "\-t" option is not applicable.
+
+.TP
+\fB\-L <remote\-user>\fR
+The remote user for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+The semantics is somewhat different from the ordinary remote operations, which is 
+application specific, whereas this 'beam\-up' is a generic pre\-execution forwarding.
+
+.TP
+\fB\-n\fR
+No execution, evaluation only.
+
+.TP
+\fB\-p <port>\fR
+The port for destination, which is by default "9" for a hard\-coded UDP message.
+It is not really relevant, might be used only for adaptation to firewall rule.
+
+.TP
+\fB\-R <remote\-host>\fR
+The remote host for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+
+.TP
+\fB\-t <TCP/IP address>\fR
+When provided the packet is send to destination. The destination address 
+could be a "directed\-broadcast" address, which has to be supported by the
+router.
+
+E.g. OpenBSD requires "net.init.ip.directed\-broadcast=1", and the appropriate 
+pf\-rules.
+
+For 1.2.3.4:
+.nf
+  <wol>    {1.2.3.255}
+  
+  pass  in  on \e$ifX  from <wolExec> to <wol>  
+  pass  out on \e$ifY  from <wolExec> to <wol>
+.fi
+
+
+Alternatively a "rdr" \-  Redirection could be set.
+When this option is not provided, a UDP packet will be sent to
+"255:255:255:255:9".
+
+When used "\-i" option is not applicable.
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+See ctys, terse for machine output.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.P
+The MAC address of the targeted NIC, this could be evaluated by
+call of "ctys\-macmap" and/or "ctys\-vhost"
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+\fIctys\-IPMI(7)\fR, \fIctys\-WoL(7)\fR
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(7)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-extractARPlst(1)\fR, \fIctys\-extractMAClst(1)\fR, \fIctys\-genmconf(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vping(1)\fR, \fIctys\-vhost(1)\fR
+
+.TP
+\fBsystem executables\fR
+\fIdmidecode(8)\fR, \fIether\-tool(8)\fR, \fIether\-wake(8)\fR, \fInc(1)<a.k.a. netcat>\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+
+For additional information refer to enclosed Releasenotes and License files.
+.RE
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-wakeup.t2t -o /tmpn/0/ctys/bld/01.11.002/doc-tmp/BASE/en/man/man1/ctys-wakeup.1
+
