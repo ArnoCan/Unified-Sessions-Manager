@@ -1,0 +1,285 @@
+.TH "ctys-uc-RDP" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-uc-RDP - Use-Cases for RDP - Remote Desktop Protocol\fR
+
+.SH USE-CASES
+.SS General
+.P
+The RDP plugin supports access to remote desktops by the RDP protocol.
+The access could be an application, terminal server, or hypervisor 
+supporting the RDP protocol.
+
+.SS Start a Local Desktop Session
+.P
+This opens a local session, where the server as well as the
+RDP client are executed locally.
+
+.nf
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389
+  
+.fi
+
+
+.P
+The "localhost" is hard\-coded to behave as a sub\-shell call too, thus
+the following call is internally handled identical to the previous
+
+.nf
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389  $USER@localhost
+  
+.fi
+
+
+.P
+This case is called \fBDISPLAYFORWARDING\fR which is almost the same as the X11 display forwarding.
+
+.TS
+center, tab(^); l.
+ \fBRefer to PDF/HTML for figure: DISPLAYFORWARDING\fR
+.TE
+
+
+.SS Start a Remote Desktop with a Local Client
+.P
+In case of a "Remote Desktop with Local Client" the server is running 
+on the given <execution\-target>, whereas the client is locally started
+on the caller's machine. 
+This structure is called CONNECTIONFORWARDING and requires beneath the
+client and server processes a third, the connecting encrypted tunnel.
+The tunnel is established by means of OpenSSH and used as the local
+peer for the Client. 
+This whole procedure of starting the  processes and the
+establishment of the tunnel is controlled and preformed by ctys.
+The user has nothing else to do than setting the option
+\fB'\-L CONNECTIONFORWARDING'\fR or for short \fB'\-L CF'\fR.
+
+.TS
+center, tab(^); l.
+ \fBRefer to PDF/HTML for figure: DISPLAYFORWARDING\fR
+.TE
+
+
+.P
+The scenario performed behind the scene by ctys varies slightly from
+the previous.
+In case of CONNECTIONFORWARDING the whole process is set up in two
+steps.
+
+.RS
+.IP 1. 3
+establishment of the encrypted tunnel
+.IP 2. 3
+start and connect the client process to the tunnel
+.RE
+
+.P
+The tunnel is established in the so
+called \fBone\-shot mode\fR, where the connection is opened for an inital time
+period and closes automatically when the life\-time threshhold is reached
+without an actual usage,
+or afterwards, when the client and server are disconnected. 
+The period of the initial timeout for is defined by the variable
+"SSH_ONESHOT_TIMEOUT", which is by default set to 20seconds.
+
+.P
+The following call starts a local client for a remote server.
+
+.nf
+  
+  ctys -t rdp -a create=l:tst -L CF lab00
+  
+.fi
+
+
+.P
+The instances could be listed by the LIST action in several variants.
+The basic call with default selection executed on the caller
+workstation is:
+
+.nf
+  
+  ctys -t rdp -a list ws2
+  
+.fi
+
+
+.P
+The standard assignment to LIST call is "tab_tcp,both", which
+displays:
+
+.nf
+  
+  TCP-container|TCP-guest|label |sesstype|c|user|group    
+  -------------+---------+------+--------+-+----+---------
+  ws2.soho     |-        |tst000|RDP     |C|acue|ldapusers
+  ws2.soho     |-        |tst001|RDP     |C|acue|ldapusers
+  ws2.soho     |ws2.soho.|ws2   |PM      |S|-   |-        
+  ws2.soho     |-        |tst000|SSH(RDP)|T|acue|ldapusers
+  ws2.soho     |-        |tst001|SSH(RDP)|T|acue|ldapusers
+  
+.fi
+
+
+.P
+Here the two tunnels could be identified as "sesstype=SSH(RDP)", and
+"c=T". This indicates, that the tunnels are created for the subsystem
+RDP with  the session label "tst000" and "tst001".
+
+.P
+The following call displays the same table, but with IDs instead of
+LABELs.
+
+.nf
+  
+  ctys -t rdp -a list=tab_tcp,id ws2
+  
+.fi
+
+
+.P
+Which results to the display:
+
+.nf
+  
+  TCP-cont|TCP-guest|id        |sesstype|c|user|group    
+  --------+---------+----------+--------+-+----+---------
+  ws2.soho|-        |3389      |RDP     |C|acue|ldapusers
+  ws2.soho|-        |3390      |RDP     |C|acue|ldapusers
+  ws2.soho|-        |../pm.conf|PM      |S|-   |-        
+  ws2.soho|-        |5950-3389 |SSH(VNC)|T|acue|ldapusers
+  ws2.soho|-        |5951-3390 |SSH(VNC)|T|acue|ldapusers
+  
+.fi
+
+
+.P
+Indicating by the default ID of tunnels, that these are tunnels
+forwarding the ports "5950" to "3389" and "5951" to "3390".
+
+.P
+The display could be changed as required by usage of specific
+free\-customized tables, e.g. displaying LABEL and ID columns once.
+
+.P
+The call with the whole set of involved machines as one call results to:
+
+.nf
+  
+  ctys -t rdp -a list=tab_tcp,id ws2 lab00 lab01
+  
+.fi
+
+
+.nf
+  
+  ctys -t rdp -a list=tab_tcp,id ws2 lab00 lab01
+  
+    
+  TCP-contai|TCP-guest|id        |sesstype|c|user|group    
+  ----------+---------+----------+--------+-+----+---------
+  ws2.soho  |-        |3389      |RDP     |C|acue|ldapusers
+  ws2.soho  |-        |3390      |RDP     |C|acue|ldapusers
+  ws2.soho  |-        |d/pm.conf |PM      |S|-   |-        
+  ws2.soho  |-        |5950-3389 |SSH(RDP)|T|acue|ldapusers
+  ws2.soho  |-        |5951-3390 |SSH(RDP)|T|acue|ldapusers
+  lab00.soho|-        |3784      |CLI     |C|acue|ldapusers
+  lab00.soho|-        |31206     |CLI     |C|acue|ldapusers
+  lab00.soho|-        |1         |VNC     |S|root|root     
+  lab00.soho|-        |2         |VNC     |S|acue|ldapusers
+  lab00.soho|-        |          |XEN     |S|-   |-        
+  lab00.soho|-        |e/xen/tst1|XEN     |S|-   |-        
+  lab00.soho|-        |d/pm.conf |PM      |S|-   |-        
+  lab01.soho|-        |          |XEN     |S|-   |-        
+  lab01.soho|-        |d/pm.conf |PM      |S|-   |-        
+  
+.fi
+
+
+.SS Start Remote Desktop Sessions by Native-RDP
+.P
+This opens a remote session by using the RDP protocol via a
+remote connection to a boxed application or a terminal server.
+In this case actually the RDP client is  attached 'from\-outside'
+to an access port.
+This differs from the preferred 'localhost\-access', where a
+pre\-authorisation by SSH access is performed.
+Thus it is an exception to the common philosopy and therefore
+called 'INSECURE'.
+
+.P
+The main application is the access to appliance\-boxes when these
+provide an RDP access only, or to MS\-Windows(TM) based OS.
+
+.nf
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389,INSECURE:lab02
+  
+.fi
+
+
+.P
+Same could be applied in a relay\-configuration.
+
+.nf
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389,INSECURE:lab02 lab05
+  
+.fi
+
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-RDP(1)\fR
+
+.P
+\fBFor System Tools:\fR
+
+.P
+\fIrdesktop\fR: [ http://www.rdesktop.org ]
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+
+The whole document \- all sections \- is/are defined as invariant.
+.RE
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-uc-RDP.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/man/man7/ctys-uc-RDP.7
+
