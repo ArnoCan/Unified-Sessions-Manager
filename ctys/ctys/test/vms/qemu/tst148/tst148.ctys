@@ -451,7 +451,19 @@ QCALL="${QCALL} -m 256 "
 
 #
 #The kernel module is disabled by default, this is due to the nesting of QEMU.
-QCALL="${QCALL} -no-kqemu "
+#if [ "${MYARCH}" == i386 ];then
+    case ${QEMU_MAGIC} in
+	QEMU_090)
+        #disable for 0.9.0: QCALL="${QCALL} -no-kqemu "
+	    ;;
+	QEMU_091)
+	    QCALL="${QCALL} -no-kqemu "
+	    ;;
+	QEMU_09*)
+	    QCALL="${QCALL} -no-kqemu "
+	    ;;
+    esac
+#fi
 
 
 #######TEMP4TEST

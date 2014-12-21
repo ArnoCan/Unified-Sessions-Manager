@@ -655,10 +655,12 @@ function connectSessionVMW () {
 #
 #FUNCEND###############################################################
 function vmMgrVMW () {
-    printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME} $*"
+    printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
     local _cmd=$1;shift
     local _label=$1;shift;#just for unifying interface
     local _id=$1;shift
+
+    printINFO 1 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Check hypervisor now for remaining VM:$_label"
 
     case $_cmd in
 	START|CREATE|RESUME)
@@ -672,6 +674,7 @@ function vmMgrVMW () {
 		    ;;
 	    esac
             if [ -z "${C_NOEXEC}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
 		case $VMW_MAGIC in
 		    VMW_WS*)
 			case $(_params) in
@@ -703,6 +706,11 @@ function vmMgrVMW () {
 	    fi
 	    ;;
 	STOP|CANCEL)
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Command is not supported:${_cmd}"
+	    gotoHell ${ABORT}
+
+
             if [ -z "${C_NOEXEC}" ];then
 		printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME} Call:SHUTDOWN/STOP"
 		printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "  ID = ${_id}"
@@ -718,6 +726,7 @@ function vmMgrVMW () {
 	    ;;
 	SUSPEND)
             if [ -z "${C_NOEXEC}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:SUSPEND"
 		case $VMW_MAGIC in
 		    VMW_WS*)
 			${VMWMGR} suspend $_id
@@ -730,6 +739,7 @@ function vmMgrVMW () {
 	    ;;
 	RESET)
             if [ -z "${C_NOEXEC}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:RESET"
 		printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME} Call:RESET"
 		printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "  ID = ${_id}"
 		case $VMW_MAGIC in
@@ -746,37 +756,47 @@ function vmMgrVMW () {
             local _timeout=${1:-$DEFAULT_KILL_DELAY_POWEROFF};shift
             local _pid=$1;shift
             ABORT=1;
-            if [ -z "${C_NOEXEC}" ];then
-		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Call:POWEROFF"
-		case $VMW_MAGIC in
-		    VMW_WS*)
-			${VMWMGR} stop $_id
-			;;
-		    VMW_S*)
-			${VMWMGR} $_id stop hard
-			;;
-		esac
-		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Delay forced kill:${_timeout} seconds"
-		sleep $_timeout
-		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Check whether:"
-		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   1.Still running:     pid(${_pid})"
-		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   2.Still what it was: id(${_id})"
-                if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not avoid to kill:${_pid}==${_id}"
-		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} kill $_pid
-		    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Delay forced \"kill -9\":${_timeout} seconds"
+	    local _idX=$(fetchID4PID ${_pid});
+            if [ -z "${_idX}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Server is already stopped by STACK operations."
+	    else
+		if [ -z "${C_NOEXEC}" ];then
+		    printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:POWEROFF"
+		    case $VMW_MAGIC in
+			VMW_WS*)
+			    ${VMWMGR} stop $_id
+			    ;;
+			VMW_S*)
+			    ${VMWMGR} $_id stop hard
+			    ;;
+		    esac
+		    printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Delay before need to kill:${_timeout} seconds"
 		    sleep $_timeout
-                    if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Have to use \"-9\" now:${_pid}==${_id}"
-			callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} kill $_pid
+
+		    local _idX=$(fetchID4PID ${_pid});
+                    if [ -z "${_idX}" ];then
+			printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Server is already stopped by hypervisor."
 		    else
-			printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   \"-9\" was not required."
+			if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
+			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not avoid to kill:${_pid}==${_id}"
+			    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   1.Still running:     pid(${_pid})"
+			    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   2.Still what it was: id(${_id})"
+			    callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} kill $_pid
+			    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Delay forced \"kill -9\":${_timeout} seconds"
+			    sleep $_timeout
+			    if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
+				printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Have to use \"-9\" now:${_pid}==${_id}"
+				callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} kill $_pid
+			    else
+				printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   \"-9\" was not required."
+			    fi
+			    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Done what to have..."
+			    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} ...do not forget \"fsck\""
+			else
+			    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not apply kill, target changed:"
+			    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}   ${_pid} != ${_id}"
+			fi
 		    fi
-		    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} Done what to have..."
-		    printWNG 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME} ...do not forget \"fsck\""
-                else
-		    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not apply kill, target changed:"
-		    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}   ${_pid} != ${_id}"
 		fi
 	    fi
             ;;

@@ -425,7 +425,19 @@ QCALL="${QCALL} -L ${QEMUBIOS} "
 QCALL="${QCALL} -net nic,macaddr=${MAC0} "
 QCALL="${QCALL} -net vde,sock=${QEMUSOCK} "
 QCALL="${QCALL} -name \"${LABEL}\" "
-QCALL="${QCALL} -no-kqemu "
+
+
+case ${QEMU_MAGIC} in
+    QEMU_090)
+        #disable for 0.9.0: QCALL="${QCALL} -no-kqemu "
+	;;
+    QEMU_091)
+	QCALL="${QCALL} -no-kqemu "
+	;;
+    QEMU_09*)
+	QCALL="${QCALL} -no-kqemu "
+	;;
+esac
 
 #
 #Could be ntp, but should be kept.
@@ -553,26 +565,10 @@ case ${CONSOLE} in
 esac
 
 printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "EVAL:QCALL=${QCALL}"
-#    exec ${BASHEXE} -c "${QEMUCALL} ${QCALL}" &
-#    exec /bin/bash  -c "${QEMUCALL} ${QCALL}" &
-# if [ "${C_ASYNC}" == 1 ];then
-#     exec ${BASHEXE} -c "${QEMUCALL} ${QCALL}" &
-# else
-     eval "${QEMUCALL} ${QCALL}"
-# fi
+eval "${QEMUCALL} ${QCALL}"
 
 _ret=$?
 if [ $_ret -ne 0 ];then
     printERR $LINENO $BASH_SOURCE ${ABORT} "ExecFailed(exit=$_ret):QCALL=${QCALL}"
 fi
 gotoHell $_ret
-
-
-
-# printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "EVAL:QCALL=${QCALL}"
-# eval "${QEMUCALL} ${QCALL}"
-# _ret=$?
-# if [ $_ret -ne 0 ];then
-#     printERR $LINENO $BASH_SOURCE ${ABORT} "ExecFailed(exit=$_ret):QCALL=${QCALL}"
-# fi
-# gotoHell $_ret

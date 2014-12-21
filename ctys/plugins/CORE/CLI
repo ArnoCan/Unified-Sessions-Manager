@@ -595,7 +595,7 @@ function fetchOptions () {
 		    ABORT=1;         
 		fi
 		R_USERS="${OPTARG}";
-		if [ "${R_USERS}" != "${R_USERS// /}"];then
+		if [ "${R_USERS}" != "${R_USERS// /}" ];then
 		    ABORT=1;         
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Spaces within user names are not provided:\"${R_USERS}\""
 		    gotoHell 1
@@ -1195,7 +1195,11 @@ function getActionResulting () {
     esac
 
     if [ -z "${_action}" ];then
-	local _action=`echo $*|sed -n 's/^.* -a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
+	if [ "${*//=/}" != "${*}" ];then
+	    local _action=`echo $*|sed -n 's/^.* -a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
+	else
+	    _action=SYNTAX-ERROR;
+	fi
     fi
     _action="`echo ${_action}|tr '[:lower:]' '[:upper:]'`"
 
@@ -1225,7 +1229,7 @@ function getActionResulting () {
 	    ;;
 	*)
 	    ABORT=2;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown _action=$_action"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown _action=$_action(${*})"
 	    gotoHell ${ABORT};
 	    ;;
     esac

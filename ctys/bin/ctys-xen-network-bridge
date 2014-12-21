@@ -561,12 +561,12 @@ function transfer_addrs () {
 	callErrOutWrapper $LINENO $BASH_SOURCE ${_call}
     fi
     # Remove automatic routes on destination device
-    local _call=`$lCTYSIP route list | sed -ne "
-/dev ${dst//\//\\/}\( \|$\)/ {
-	s_^_${lCTYSIP//\//\\/} route del _
+    local _call=`$lCTYSIP route list | sed -ne '
+/dev '"${dst//\//\\/}"'\( \|$\)/ {
+	s_^_'"${lCTYSIP//\//\\/}"' route del _
         s_$_;_
 	p
-	}"`
+	}'`
     if [ -n "${_call}" ];then
 	callErrOutWrapper $LINENO $BASH_SOURCE ${_call}
     fi
@@ -587,19 +587,19 @@ function transfer_routes () {
     # List all routes and grep the ones with $src in.
     # Stick 'ip route del' on the front to delete.
     # Change $src to $dst and use 'ip route add' to add.
-    local _call=`$lCTYSIP route list | sed -ne "
-    /dev ${src//\//\\/}\( \|$\)/ {
+    local _call=`$lCTYSIP route list | sed -ne '
+    /dev '"${src//\//\\/}"'\( \|$\)/ {
 	    h
-	    s_^_${lCTYSIP//\//\\/} route del _
+	    s_^_'"${lCTYSIP//\//\\/}"' route del _
         s_$_;_
 	    P
 	    g
-	    s_${src//\//\\/}_${dst//\//\\/}_
-	    s_^_${lCTYSIP//\//\\/} route add _
+	    s_'"${src//\//\\/}"'_'"${dst//\//\\/}"'_
+	    s_^_'"${lCTYSIP//\//\\/}"'1 route add _
         s_$_;_
 	    P
 	    d
-	    }"`
+	    }'`
     if [ -n "${_call}" ];then
 	callErrOutWrapper $LINENO $BASH_SOURCE ${_call}
     fi

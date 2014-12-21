@@ -33,6 +33,31 @@
 Release Notes:
 ==============
 
+01.08.001b02 / 20080806
+-----------------------
+
+  1. First beta-version to be used publicly for non-critical production
+     environments for flat sessions.
+  2. The usage with stacked sessions as a group by VMSTACK requires
+     some more efforts, but anyhow, could already used for simple
+     tasks.
+     The future versions will support more validation-checks for stack
+     consistency, allow implicit start of partial stacks, reuse of
+     partial stacks, and provide a more user-friendly Stack-Addressing
+     schema.
+  3. Some effort will be spend for the definition of a common
+     configuration syntax to be mapped to the various hypervisor
+     calls. PArticularly the configuration syntax for QEMU is a draft,
+     but fully functioning version.
+  4. Service reallaocation, suspend/resume, and online-reallocation
+     is not yet supported.
+  5. Emulated environments for embedded devices are for now just draftly
+     tested by usage of debian for arm9.
+  6. The basic functionality is quite stable and widely tested.
+  7. Documentation is still in production, but should be absolutely
+     helpful.
+ 
+
 01.07.001a01 / 20080803
 -----------------------
 

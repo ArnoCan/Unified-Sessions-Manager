@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a15
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -109,9 +109,6 @@ function stackerCheckDynamics () {
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_ACT[$x1]=${STACK_ACT[$x1]}"
 
 
-printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:JOB_EXECSERVER[$x]=${JOB_EXECSERVER[$x]}"
-
-
             #################
             #
             #execution target
@@ -124,10 +121,7 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:JOB_EXECSERVER[$x]=${JOB_EXECS
                     #
                     #fetch basic interconnection peers
                     #
-
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]}"
 		    STACK_MACHINE[$x1]=`cacheGetMachineAddressFromCall TCP NONE ${JOB_EXECSERVER[$x]}`
-printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]}"
 		    if [ -n "${STACK_MACHINE[$x1]}" ];then
 			STACK_MACHINE_RAW[$x1]="${STACK_MACHINE[$x1]}"
 			STACK_MACHINE[$x1]=`${MYCALLPATH}/ctys-macmap ${C_DARGS} -i ${STACK_MACHINE[$x1]}`
@@ -140,8 +134,6 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 			printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME: entities."
 			gotoHell ${ABORT}
 		    fi
-
-printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]}"
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_MACHINE_RAW[$x1]=${STACK_MACHINE_RAW[$x1]}"
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_MACHINE[$x1]    =${STACK_MACHINE[$x1]}"
 		    STACK_EXECTARGET[$x1]=${STACK_MACHINE[$x1]}
@@ -161,12 +153,6 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_EXECTARGET[$x1]    =${STACK_EXECTARGET[$x1]}"
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_EXECTARGETDNS[$x1] =${STACK_EXECTARGETDNS[$x1]}"
 
-
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_EXECTARGETRAW =${STACK_EXECTARGET_RAW[$x1]}"
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_EXECTARGET    =${STACK_EXECTARGET[$x1]}"
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_EXECTARGETDNS =${STACK_EXECTARGETDNS[$x1]}"
-
-
             #################
             #
             #Second trial when still missing, requires for distributed caches frequently the <exec-target>
@@ -178,15 +164,11 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 	    if [ -z "${STACK_MACHINE[$x1]}" ];then
 		STACK_MACHINE[$x1]=`cacheGetMachineAddressFromCall VHOST FROMCALL ${JOB_EXECSERVER[$x]}`
 		local _VHOST="${MYCALLPATH}/ctys-vhost ${C_DARGS} -p ${DBPATHLST} -s -M unique "
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]}"
 		STACK_MACHINE[$x1]=`${_VHOST} -o TCP ";PM;" ${STACK_MACHINE[$x1]} E:28:1`
 		STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]// /}
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]}"
-
 
 		if [ -n "${STACK_MACHINE[$x1]}" ];then
 		    STACK_MACHINE_RAW[$x1]="${STACK_MACHINE[$x1]}"
-#		    STACK_MACHINE[$x1]=`${MYCALLPATH}/ctys-macmap ${C_DARGS} -i "${STACK_MACHINE[$x1]};"`
 		fi
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_MACHINE_RAW[$x1]=${STACK_MACHINE_RAW[$x1]}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_MACHINE[$x1]    =${STACK_MACHINE[$x1]}"
@@ -194,19 +176,12 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 	    fi
 
 
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MACHINE[$x1]}"
-
             #fetch entry from cacheDB to mem-cache
             #execution target
 	    case ${_schk} in
 		PM)
                     #tmp workaround
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_VMDATA[$x1]=${STACK_VMDATA[$x1]}"
-
 		    STACK_VMDATA[$x1]=`cacheGetMachineAddressFromCall VHOST FROMCALL ${JOB_EXECSERVER[$x]}`;
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_EXECTARGET[$x1]=${STACK_EXECTARGET[$x1]}"
-#printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_VMDATA[$x1]=${STACK_VMDATA[$x1]}"
-
 
 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_VMDATA[$x1]=${JOB_EXECSERVER[$x]}"
 		    if [ -z "${STACK_VMDATA[$x1]}" ];then
@@ -223,9 +198,6 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 		    fi
 
 		    local _VHOST="${MYCALLPATH}/ctys-vhost ${C_DARGS} -p ${DBPATHLST} -s -M unique"
-
-#		STACK_VMDATA[$x1]=`${_VHOST} -o TCP ";PM;" ${STACK_MACHINE[$x1]} E:28:1`
-
 		    STACK_VMDATA[$x1]=`${_VHOST} -o MACHINE ";PM;" ${STACK_VMDATA[$x1]} E:28:1`
 		    if [ -z "${STACK_VMDATA[$x1]}" ];then
 			ABORT=1;
@@ -286,12 +258,6 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 			printERR $LINENO $BASH_SOURCE ${ABORT} "  $((_index++)). Call: \"ctys-vdbgen ...\""
 			gotoHell ${ABORT}
 		    fi
-
-# 		    STACK_PMDATA[$((x1-1))]=${STACK_EXECTARGET_RAW[$x1]}
-# 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_PMDATA[$((x1-1))]=${STACK_PMDATA[$((x1-1))]}"
-# 		    local _VHOST="${MYCALLPATH}/ctys-vhost ${C_DARGS} -p ${DBPATHLST} -s -M unique"
-# 		    STACK_PMDATA[$((x1-))]=`${_VHOST} -o MACHINE -M first "${STACK_PMDATA[$((x1-1))]}" ";PM;" `
-# 		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:STACK_PMDATA[$((x1-1))]=${STACK_PMDATA[$((x1-1))]}"
 		    ;;
 	    esac
 
@@ -354,7 +320,6 @@ printERR $LINENO $BASH_SOURCE TSTTRACE "$FUNCNAME:STACK_MACHINE[$x1]=${STACK_MAC
 		    local _VHOST="${MYCALLPATH}/ctys-vhost ${C_DARGS} -p ${DBPATHLST} -s -M unique -o PM "
 		    local PM0=`${_VHOST} -o PM "${STACK_MACHINE[$((x-1))]}"`
 		    local PM1=`${_VHOST} -o PM "${STACK_EXECTARGET[$((x))]}"`
-#		    if [ "${STACK_MACHINE[$((x-1))]}" != "${STACK_EXECTARGET[$((x))]}" ];then
 		    if [ "${PM0}" != "${PM1}" ];then
 			ABORT=1;
 			printERR $LINENO $BASH_SOURCE ${ABORT} "The provided addresses seem to be inconsistent"

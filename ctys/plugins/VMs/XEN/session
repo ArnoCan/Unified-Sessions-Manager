@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a10
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_XEN_SESSION="${BASH_SOURCE}"
-_myPKGVERS_XEN_SESSION="01.01.001a00"
+_myPKGVERS_XEN_SESSION="01.07.001b01"
 hookInfoAdd $_myPKGNAME_XEN_SESSION $_myPKGVERS_XEN_SESSION
 _myPKGBASE_XEN_SESSION="`dirname ${_myPKGNAME_XEN_SESSION}`"
 
@@ -353,7 +353,7 @@ function startSessionXEN () {
 
     if [ -z "${C_NOEXEC}" ];then
 	eval ${CALLER} 
-	printINFO 1 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Give DomU some time to start:${XEN_INIT_WAITS}seconds"
+	printINFO 2 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Give DomU some time to start:${XEN_INIT_WAITS}seconds"
 	sleep ${_waitsXEN}
 
 	local _pingok=0;
@@ -660,6 +660,7 @@ function vmMgrXEN () {
     local _id=$1;shift
     local _arg=$1;shift
 
+
     if [ -z "${_cmd}" ];then
 	ABORT=1
 	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing CMD"
@@ -677,41 +678,55 @@ function vmMgrXEN () {
     fi
 
 
-
+    [ "$C_ASYNC" == 1 ]&&local _bg="&"
     case $_cmd in
         #CREATE######################
 	RESUME)
             if [ -z "${C_NOEXEC}" ];then
+		printINFO 2 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
 		if [ -n "${_arg}" ];then
-		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "restore" "${_arg}"
+		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "restore" "${_arg}" ${_bg}
 		else
-		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "resume" "$_label"
+		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "resume" "$_label" ${_bg}
 		fi
 	    fi
 	    ;;
 
         #CANCEL######################
 	SUSPEND)
+	    printINFO 2 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
             if [ -z "${C_NOEXEC}" ];then
-		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "save" "$_label" "${_arg}"
+		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "save" "$_label" "${_arg}" ${_bg}
 	    fi
 	    ;;
 	PAUSE)
+	    printINFO 2 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
             if [ -z "${C_NOEXEC}" ];then
-		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "suspend" "$_label"
+		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "suspend" "$_label" ${_bg}
 	    fi
 	    ;;
 	REBOOT|RESET)
+	    printINFO 2 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
             if [ -z "${C_NOEXEC}" ];then
-		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "reboot" "$_label"
+		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "reboot" "$_label" ${_bg}
 	    fi
 	    ;;
 	POWEROFF)
-	    echo  "POWEROFF-SERVER Session: $_label(delay=${_arg:-1})"
+	    printINFO 2 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:${_cmd}(delay=${_arg:-1})"
             if [ -z "${C_NOEXEC}" ];then
-		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "shutdown" "$_label"
-		sleep ${_arg:-1}
-		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "destroy" "$_label"
+		if [ "$C_ASYNC" == 1 ];then
+		    {
+			callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "shutdown" "$_label";
+			sleep ${_arg:-1};
+			callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "destroy" "$_label";
+		    } &
+		else
+		    {
+			callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "shutdown" "$_label";
+			sleep ${_arg:-1};
+			callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "destroy" "$_label";
+		    }
+		fi
 	    fi
             ;;
     esac

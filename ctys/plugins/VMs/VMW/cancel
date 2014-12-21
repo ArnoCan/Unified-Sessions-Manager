@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -16,7 +16,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_VMW_CANCEL="01.02.001b01"
+_myPKGVERS_VMW_CANCEL="01.07.001b01"
 hookInfoAdd $_myPKGNAME_VMW_CANCEL $_myPKGVERS_VMW_CANCEL
 
 
@@ -50,7 +50,7 @@ function cutCancelSessionVMW () {
     local _pname=;
 
     #Killing server alone is senseless, so client else both is applicable.
-    local _CSB=BOTH;
+    local _CSB=;
 
     local _behaviour=;
     local _i=;
@@ -63,11 +63,7 @@ function cutCancelSessionVMW () {
 	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "kill:${_i}"
 	    local _pid=${_i%;*}
 	    _pid=${_pid##*;}
-	    echo -n "CANCEL-CLIENT Session:\"${_i%%;*}\":PID=$_pid"
-	    echo -n "   ID    =${_i%%;*}"
-	    echo -n "   PID   =$_pid"
-	    kill $_pid
-	    echo
+	    kill ${_pid} 2>&1 2>/dev/null
 	done
     }
 
@@ -262,6 +258,9 @@ function cutCancelSessionVMW () {
 		fi
 	    done
 
+
+	    _CSB=${_CSB:-SERVER};
+
             if((_unambigCSB>1));then
 		ABORT=1;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "The following sub-opts are EXOR applicable only:"
@@ -290,6 +289,7 @@ function cutCancelSessionVMW () {
             if [ -z "${_behaviour// /}" ];then
 		ABORT=1;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing behaviour, the pattern of CANCEL."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "=>REBOOT|RESET|PAUSE|S3|SUSPEND|S4|POWEROFF|S5|INIT"
  		gotoHell ${ABORT}
             fi
 
@@ -480,6 +480,7 @@ function cutCancelSessionVMW () {
 		    esac
 		fi
 	    done
+	    _CSB=${_CSB:-SERVER};
 
 
     #####
@@ -782,7 +783,7 @@ function cutCancelSessionVMW () {
 
 			if [ -z "$_force" ];then
 			    stackerCancelPropagate STACK "POWEROFF:0" "${_self:-$_target}";
- 			    sleep ${_powoffdelay:-DEFAULT_KILL_DELAY_POWEROFF}
+ 			    sleep ${_powoffdelay:-$DEFAULT_KILL_DELAY_POWEROFF}
 			fi
 
 			for _i in ${_pname};do

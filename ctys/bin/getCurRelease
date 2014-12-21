@@ -21,18 +21,24 @@
 CALLDIR=`dirname $0`
 
 CUROS=`${CALLDIR}/getCurOS`
+CURDIST=`${CALLDIR}/getCurDistribution`
 CURREL=;
 case $CUROS in
     Linux) 
-        #Tested for:CentOS 5
 	if [ -z "$CURREL" -a -f /etc/redhat-release ];then
-	    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
+	    case "${CURDIST}" in
+		CentOS) #Tested for:CentOS 5
+		    CURREL=`rpm -q centos-release|sed -n 's/^centos-release-\([0-9]\+\)-\([0-9]\+\).*$/\1\.\2/p'`
+		    ;;
+		Fedora) #Tested for:Fedora 8
+		    CURREL=`rpm -q fedora-release|sed -n 's/^fedora-release-\([0-9]\+\)-\([0-9]\+\).*$/\1\.\2/p'`
+		    ;;
+		*) 
+		    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
+		    ;;
+	    esac
 	fi
 
-        #Tested for:Fedora 8
-	if [ -z "$CURREL" -a -f /etc/redhat-release ];then
-	    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
-	fi
 
         #Tested for:SuSE 9.3+10.3
 	if [ -z "$CURREL" -a -f /etc/SuSE-release ];then

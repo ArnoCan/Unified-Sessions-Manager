@@ -50,7 +50,7 @@ function cutCancelSessionQEMU () {
     local ARG;
 
     #Killing server alone is senseless, so client else both is applicable.
-    local _CSB=BOTH;
+    local _CSB=;
 
     local _behaviour=${QEMU_CANCEL_DEFAULT:-POWEROFF};
     local _i=;
@@ -259,6 +259,8 @@ function cutCancelSessionQEMU () {
 		    fi
 		done
 
+		local _CSB=SERVER;
+
 		if((_unambigCSB>1));then
 		    ABORT=1;
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "The following sub-opts are EXOR applicable only:"
@@ -465,6 +467,7 @@ function cutCancelSessionQEMU () {
 		    esac
 		fi
 	    done
+	    local _CSB=SERVER;
 
 
     #####
@@ -599,7 +602,7 @@ function cutCancelSessionQEMU () {
 	    local _target=;
             local _i7=;
 	    for _i7 in ${_pname};do
-		_target="${_target} ${_i7%;*;*}"
+		_target="${_target} ${_i7%;*;*;*}"
 	    done
 
             if [ "${_CSB}" == CLIENT ];then

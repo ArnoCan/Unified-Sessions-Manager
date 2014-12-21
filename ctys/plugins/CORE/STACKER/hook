@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a15
+#VERSION:      01_07_001b01
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_STACKER="${BASH_SOURCE}"
-_myPKGVERS_STACKER="01.06.001a13"
+_myPKGVERS_STACKER="01.07.001b01"
 hookInfoAdd "$_myPKGNAME_STACKER" "$_myPKGVERS_STACKER"
 
 
@@ -83,7 +83,6 @@ function stackerCreatePropagate () {
     _behaviour=${_behaviour:-$DEFAULT_STACKMODE};
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_behaviour=$_behaviour"
 
-
     case $_behaviour in
 	CONTROLLER)
 	    ;;
@@ -100,9 +99,6 @@ function stackerCreatePropagate () {
 	    ;;
     esac
 
-
-
-
     #method and args
     local _methodall=${1};
     local _method=${1%:*};
@@ -111,11 +107,10 @@ function stackerCreatePropagate () {
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_margs=$_margs"
     shift
 
-
     #list of next level peer-members to be treated
     if [ -z "${@}" ];then
 	local _jobdat="${CALLERJOBID}:$((JOB_IDXSUB++))"
-	local _allact=`ctys -j ${_jobdat} -E -F ${VERSION} ${C_DARGS} -T XEN,QEMU,VMW  -a list=label,id,SERVER`
+	local _allact=`${MYCALLPATH}/ctys -j ${_jobdat} -E -F ${VERSION} ${C_DARGS} -T XEN,QEMU,VMW  -a list=label,id,SERVER`
     else
 	local _allact="${@}"
     fi
@@ -145,7 +140,6 @@ function stackerCreatePropagate () {
 	fi	  
     }
 
-
     local _t=;
     local _l=;
     local _mt=;
@@ -160,7 +154,7 @@ function stackerCreatePropagate () {
 	    continue;
 	fi
 
-	local _i4=`ctys-vhost ${C_DARGS} -s -C macmap -o l,id,t,st -M unique ${MYHOST} ${_cur//;/ }`
+	local _i4=`${MYCALLPATH}/ctys-vhost ${C_DARGS} -s -C macmap -o l,id,t,st -M unique ${MYHOST} ${_cur//;/ }`
 	_mt=${_i4%%;*};
 	_l=${_i4#*;};_l=${_l%%;*};
 	_i=${_i4#*;*;};_i=${_i%%;*};
@@ -188,9 +182,9 @@ function stackerCreatePropagate () {
 		    if [ $? -eq 0 ];then
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)OK:$_i4"
                         #assume access
-			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:ctys -t ${_mt} -a cancel=ALL,SELF,POWEROFF:0 ${_t}"
-			 ctys ${C_DARGS}  -t ${_mt} -a cancel=ALL,SELF,STACK,POWEROFF:0 ${_t}
-#			ssh ${_t} ctys ${C_DARGS}  -t ${_mt} -a cancel=ALL,SELF,STACK,POWEROFF:0 ${_t}
+			local _call="ctys ${D_ARGS} -t ${_mt} -a cancel=ALL,SELF,POWEROFF:0 ${_t}"
+			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:${_call}"
+			${_call}
 			continue	
 		    else
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)NOK"
@@ -269,13 +263,18 @@ function stackerCancelPropagate () {
 
 
     #list of next level peer-members to be treated
-    if [ -z "${@}" ];then
-	local _jobdat="${CALLERJOBID}:$((JOB_IDXSUB++))"
-	local _allact=`ctys -j ${_jobdat} -E -F ${VERSION} ${C_DARGS} -T XEN,QEMU,VMW  -a list=label,id,SERVER`
+    if [ -z "${*}" -o "${*// /}" == ALL ];then
+	local _jobdat="${CALLERJOBID}:$((JOB_IDXSUB++))";
+
+	local _pkgl0=${CTYS_STACKERKILL_DEFAULT:-ALL};
+	if [ "${_pkgl0}" != ALL ];then
+	    local _pkgl1=",PKG:${_pkgl0//,/\%}"
+	fi
+	local _allact=$(${MYCALLPATH}/ctys -j ${_jobdat} ${C_DARGS} -T ${CTYS_STACKERKILL_DEFAULT:-ALL}  -a list=label,id,SERVER,TERSE${_pkgl1})
     else
 	local _allact="${@}"
     fi
-    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_allact=$_allact"
+    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:_allact=$_allact"
 
     local _cur=;
 
@@ -295,7 +294,7 @@ function stackerCancelPropagate () {
 	if [ -n "${__mt}" -a -n "${__i}" ];then
 	    local _jobdat="${CALLERJOBID}:$((JOB_IDXSUB++))"
 	    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:ctys -j ${_jobdat} -E -F ${VERSION} ${C_DARGS} -t ${__mt} -a cancel=i:${__i},${__todo},FORCE"
-	    ctys -j ${_jobdat} -E -F ${VERSION} ${C_DARGS} -t ${__mt} -a cancel=i:${__i},${__todo},FORCE &
+	    ${MYCALLPATH}/ctys -j ${_jobdat} -E -F ${VERSION} ${C_DARGS} -t ${__mt} -a cancel=i:${__i},${__todo},FORCE &
 	else
 	    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:NO-MATCH for:\"${_cur//;/ }\""
 	fi	  
@@ -316,7 +315,7 @@ function stackerCancelPropagate () {
 	    continue;
 	fi
 
-	local _i4=`ctys-vhost ${C_DARGS} -s -C macmap -o l,id,t,st -M unique ${MYHOST} ${_cur//;/ }`
+	local _i4=`${MYCALLPATH}/ctys-vhost ${C_DARGS} -s -C macmap -o l,id,t,st -M unique ${MYHOST} ${_cur//;/ }`
 	_mt=${_i4%%;*};
 	_l=${_i4#*;};_l=${_l%%;*};
 	_i=${_i4#*;*;};_i=${_i%%;*};
@@ -340,13 +339,26 @@ function stackerCancelPropagate () {
 		    callHypervisor "${_mt}" "${_methodall}" "${_i}" 
 		else
 		    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ssh)OK:$_i4"
-		    ssh ${_t} ctys ${C_DARGS} -X -V >/dev/null 2>/dev/null;
+		    ${MYCALLPATH}/ctys ${C_DARGS} ${_t}'(-X -V)' >/dev/null 2>/dev/null;
 		    if [ $? -eq 0 ];then
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)OK:$_i4"
                         #assume access
-			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:ctys -t ${_mt} -a cancel=ALL,SELF,POWEROFF:0 ${_t}"
-			 ctys ${C_DARGS}  -t ${_mt} -a cancel=ALL,SELF,STACK,POWEROFF:0 ${_t}
-#			ssh ${_t} ctys ${C_DARGS}  -t ${_mt} -a cancel=ALL,SELF,STACK,POWEROFF:0 ${_t}
+			local _call="${MYCALLPATH}/ctys ${C_DARGS}  -t PM -T all -a cancel=ALL,SELF,STACK,POWEROFF:0"
+
+			local _rargs=;
+			[ -n "${C_DARGS}" ]&&_rargs="${_rargs} ${C_DARGS}";
+			[ "${USE_SUDO}" == 1 ]&&_rargs="${_rargs} -Z SUDO";
+			[ "${USE_KSU}" == 1 ]&&_rargs="${_rargs} -Z KSU";
+			[ "${C_SSH_PSEUDOTTY}" != 0 ]&&_rargs="${_rargs} -z ${C_SSH_PSEUDOTTY}";
+
+
+			if [ -n "${_rargs}" ];then
+			    _call="${_call} ${_t}(${_rargs})"
+			else
+			    _call="${_call} ${_t}"
+			fi
+			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:_call=${_call}"
+			${_call}
 			continue	
 		    else
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)NOK"

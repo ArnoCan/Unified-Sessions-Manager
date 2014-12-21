@@ -8,18 +8,169 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a11
+#VERSION:      01_07_001b02
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAMEBASH_SOURCE="${BASH_SOURCE}"
-_myPKGVERSBASH_SOURCE="01.01.001a00"
+_myPKGVERSBASH_SOURCE="01.07.001b02"
 hookInfoAdd $_myPKGNAMEBASH_SOURCE $_myPKGVERSBASH_SOURCE
 
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  selfCancelPM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  For native cancel. Calls before cancel itself the contained stack.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: METHOD:ARG
+#  $2: <stack>
+#  $3: ""|SELF
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function selfCancelPM () {
+    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCTION:\$@=$@"
+
+    local _METHOD=${1%:*};local _ARG=${1#*:};shift
+    local _force=${1};shift
+    local _self=${1}
+
+    if [ -z "${_self}" ];then
+	return
+    fi
+
+    case $_METHOD in
+	INIT)
+	    printINFO 1 $LINENO $BASH_SOURCE 0 "$_METHOD ${_ARG}"
+	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:INIT(${_ARG}):${DEFAULT_KILL_DELAY_POWEROFF}"
+	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
+	    wall "${_myMessage}"
+  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
+	    case ${MYOS} in
+		OpenBSD)
+		    case ${_ARG} in
+			0)    eval ${CTYS_HALT} -p;;
+			[12]) eval ${CTYS_INIT} -s;;
+			[345]);;
+			6)    eval ${CTYS_REBOOT};;
+		    esac
+		    ;;
+		SunOS)
+		    case ${_ARG} in
+			0)    eval ${CTYS_POWEROFF};;
+			[12]) eval ${CTYS_INIT} -s;;
+			[345]);;
+			6)    eval ${CTYS_REBOOT};;
+		    esac
+		    ;;
+		Linux)
+		    eval ${CTYS_INIT} ${_ARG}
+		    ;;
+	    esac
+	    gotoHell 0
+	    ;;
+
+        REBOOT)
+	    printINFO 1 $LINENO $BASH_SOURCE 0 "$_METHOD"
+	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:REBOOT:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
+	    wall "${_myMessage}"
+	    wall "System maintenance:REBOOT in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
+  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
+	    eval ${CTYS_REBOOT}
+	    gotoHell 0
+	    ;;
+
+	RESET)
+	    printINFO 1 $LINENO $BASH_SOURCE 0 "$_METHOD"
+	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:RESET:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
+	    wall "${_myMessage}"
+	    wall "System maintenance:RESET in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
+  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
+	    eval  ${CTYS_REBOOT}
+	    gotoHell 0
+	    ;;
+
+        PAUSE|S3)
+	    printINFO 1 $LINENO $BASH_SOURCE 0 "$_METHOD"
+	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:PAUSE:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
+	    wall "${_myMessage}"
+	    wall "System maintenance:RESET in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
+  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
+            #temporary halt
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "PAUSE-S3 not yet supported, mapped to S5"
+	    case ${MYOS} in
+		SunOS)   eval ${CTYS_POWEROFF};;
+		*)       eval ${CTYS_HALT} -p ;;
+	    esac
+	    gotoHell 0
+	    ;;
+
+        SUSPEND|S4)
+	    printINFO 1 $LINENO $BASH_SOURCE 0 "$_METHOD"
+	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:SUSPEND:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
+	    wall "${_myMessage}"
+	    wall "System maintenance:SUSPEND in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
+  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
+	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
+            #temporary halt
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "SUSPEND-S4 not yet supported, mapped to S5"
+	    case ${MYOS} in
+		SunOS)   eval ${CTYS_POWEROFF};;
+		*)       eval ${CTYS_HALT} -p ;;
+	    esac
+	    gotoHell 0
+	    ;;
+
+        POWEROFF|S5)
+	    printINFO 1 $LINENO $BASH_SOURCE 0 "$_METHOD"
+	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:POWEROFF:${_ARG:-$DEFAULT_KILL_DELAY_POWEROFF}"
+	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
+	    wall "${_myMessage}"
+	    wall "System maintenance:POWEROFF in ${_ARG:-$DEFAULT_KILL_DELAY_POWEROFF} seconds"
+  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${_ARG:-DEFAULT_KILL_DELAY_POWEROFF}"
+ 	    sleep ${_ARG:-$DEFAULT_KILL_DELAY_POWEROFF}
+	    case ${MYOS} in
+		SunOS)   eval ${CTYS_POWEROFF};;
+		*)       eval ${CTYS_HALT} -p;;
+	    esac
+	    gotoHell 0
+	    ;;
+
+	*)
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Reached unexpected execution tracepoint"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "'seems to be, that a suboption of cancel is missing????"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "This might be an internal error???"
+	    gotoHell ${ABORT}
+	    ;;
+    esac
+}
 
 
 
@@ -49,174 +200,45 @@ hookInfoAdd $_myPKGNAMEBASH_SOURCE $_myPKGVERSBASH_SOURCE
 function stackerCancelPM () {
     printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCTION:\$@=$@"
 
-    local _METHOD=${1%:*}
-    local _ARG=${1#*:}
-    shift
-    local _force=${1}
-    shift
+    local _METHOD=${1%:*};local _ARG=${1#*:};shift
+    local _force=${1};shift
     local _self=${1}
+
+    if [ -n "$_force" ];then
+	return;
+    fi
 
     case $_METHOD in
 	INIT)
-	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:INIT(${_ARG}):${DEFAULT_KILL_DELAY_POWEROFF}"
-	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
-	    wall "${_myMessage}"
   	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=INIT"
-	    if [ -z "$_force" ];then
-		stackerCancelPropagate "STACK,INIT:${_ARG}";
-	    fi
-  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
-	    if [ -n "${_self}" ];then
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "INIT => \"init ${_ARG}\""
-		case ${MYOS} in
-		    OpenBSD)
-			case ${_ARG} in
-			    0)    callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_HALT} -p;;
-			    [12]) callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_INIT} -s;;
-			    [345]);;
-			    6)    callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_REBOOT};;
-			esac
-			;;
-		    SunOS)
-			case ${_ARG} in
-			    0)    callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_POWEROFF};;
-			    [12]) callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_INIT} -s;;
-			    [345]);;
-			    6)    callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_REBOOT};;
-			esac
-			;;
-		    Linux)
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_INIT} ${_ARG}
-			;;
-		esac
-	    fi
-	    gotoHell 0
+	    stackerCancelPropagate "STACK,INIT:${_ARG}";
 	    ;;
 
-        REBOOT)
-	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:REBOOT:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
-	    wall "${_myMessage}"
-	    wall "System maintenance:REBOOT in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
+	REBOOT)
   	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=REBOOT"
-	    if [ -z "$_force" ];then
-		stackerCancelPropagate "STACK,INIT:0";
-	    fi
-  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
-	    if [ -n "${_self}" ];then
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "REBOOT => \"reboot\""
-		callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_REBOOT}
-	    fi
-	    gotoHell 0
+	    stackerCancelPropagate "STACK,INIT:0";
 	    ;;
 
 	RESET)
-	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:RESET:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
-	    wall "${_myMessage}"
-	    wall "System maintenance:RESET in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
   	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=RESET"
-	    if [ -z "$_force" ];then
-		stackerCancelPropagate "STACK,INIT:0";
-	    fi
-  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
-	    if [ -n "${_self}" ];then
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "RESET => \"reboot\""
-		callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_REBOOT}
-	    fi
-	    gotoHell 0
+	    stackerCancelPropagate "STACK,INIT:0";
 	    ;;
 
-        PAUSE|S3)
-	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:PAUSE:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
-	    wall "${_myMessage}"
-	    wall "System maintenance:RESET in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
-
+	PAUSE|S3)
 	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "PAUSE-S3 not yet supported, mapped temporarily to S5"
   	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=PAUSE-S3"
-	    if [ -z "$_force" ];then
-		stackerCancelPropagate "STACK,PAUSE";
-	    fi
-  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
-            #temporary halt
-	    if [ -n "${_self}" ];then
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "PAUSE-S3 not yet supported, mapped to S5"
-		case ${MYOS} in
-		    "SunOS")
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_POWEROFF}
-			;;
-		    "OpenBSD")
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_HALT} -p
-			;;
-		    "Linux")
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_HALT} -p
-			;;
-		esac
-	    fi
-	    gotoHell 0
+	    stackerCancelPropagate "STACK,PAUSE";
 	    ;;
 
-        SUSPEND|S4)
-	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:SUSPEND:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
-	    wall "${_myMessage}"
-	    wall "System maintenance:SUSPEND in ${DEFAULT_KILL_DELAY_POWEROFF} seconds"
-
+	SUSPEND|S4)
 	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "SUSPEND-S4 not yet supported, mapped temporarily to S5"
   	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=SUSPEND-S4"
-	    if [ -z "$_force" ];then
-		stackerCancelPropagate "STACK,SUSPEND";
-	    fi
-  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${DEFAULT_KILL_DELAY_POWEROFF}"
-	    sleep ${DEFAULT_KILL_DELAY_POWEROFF}
-            #temporary halt
-	    if [ -n "${_self}" ];then
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "SUSPEND-S4 not yet supported, mapped to S5"
-		case ${MYOS} in
-		    "SunOS")
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_POWEROFF}
-			;;
-		    "OpenBSD")
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_HALT} -p
-			;;
-		    "Linux")
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_HALT} -p
-			;;
-		esac
-	    fi
-	    gotoHell 0
+	    stackerCancelPropagate "STACK,SUSPEND";
 	    ;;
 
-        POWEROFF|S5)
-	    local _myMessage="`basename $BASH_SOURCE`:$LINENO:POWEROFF:${_ARG:-$DEFAULT_KILL_DELAY_POWEROFF}"
-	    logger -i -t ${MYCALLNAME} -- "${_myMessage}"
-	    wall "${_myMessage}"
-	    wall "System maintenance:POWEROFF in ${_ARG:-$DEFAULT_KILL_DELAY_POWEROFF} seconds"
-
+	POWEROFF|S5)
   	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=POWEROFF-S5"
-	    if [ -z "$_force" ];then
-		stackerCancelPropagate "STACK,INIT:0";
-	    fi
-  	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "delay:${_ARG:-DEFAULT_KILL_DELAY_POWEROFF}"
- 	    sleep ${_ARG:-$DEFAULT_KILL_DELAY_POWEROFF}
-	    if [ -n "${_self}" ];then
-		case ${MYOS} in
-		    SunOS)
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "POWEROFF-S5 => \"${CTYS_POWEROFF}\""
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_POWEROFF}
-			;;
-		    *)
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "POWEROFF-S5 => \"${CTYS_HALT} -p\""
-			callErrOutWrapper $LINENO $BASH_SOURCE ${CTYS_HALT} -p
-			;;
-		esac
-	    fi
-	    gotoHell 0
+	    stackerCancelPropagate "STACK,INIT:0";
 	    ;;
 
 	*)
@@ -341,6 +363,7 @@ function cutCancelSessionPM () {
 			-o "${KEY}" == "PAUSE"     -o "${KEY}" == "S3" \
 			-o "${KEY}" == "RESET" \
  			-o "${KEY}" == "REBOOT" \
+			-o "${KEY}" == "ALL" \
 			-o "${KEY}" == "WOL" \
 			\) \
 			];then
@@ -442,11 +465,10 @@ function cutCancelSessionPM () {
 				local _wol=0;
 				printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "Set WoL attributes on NIC"
 				R_OPTS="${R_OPTS} -T all"
-				if [ "${MYOS}" != "Linux" ];then
-				    ABORT=1;
-				    printERR $LINENO $BASH_SOURCE ${ABORT} "This version does not support WOL for ${MYOS}"
- 				    gotoHell ${ABORT}
-				fi
+				;;
+
+			    ALL)
+ 				printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "ALL in any case"
 				;;
 
 			    *)
@@ -628,14 +650,22 @@ function cutCancelSessionPM () {
 			    local _if=${ARG};
 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_if=${_if}"
 			    CTYS_ETHTOOL_WOLIF=$_if;
+			    CTYS_ETHTOOL_WOLIF_RAW=$_if;
 			    ;;
-
 
 			WOL)
 			    local _wol=0;
 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "Set WoL attributes on NIC"
+			    if [ "${MYOS}" != "Linux" ];then
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "This version does not support WOL configuration for ${MYOS}"
+ 				gotoHell ${ABORT}
+			    fi
 			    ;;
 
+			ALL)
+ 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "ALL in any case"
+			    ;;
 
 			*)
 			    ABORT=1;
@@ -645,6 +675,7 @@ function cutCancelSessionPM () {
 		    esac
 			fi
 	    done
+
 
 
 	    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "CombineParamaters"
@@ -665,11 +696,18 @@ function cutCancelSessionPM () {
 	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "----------------------"
 
 
-
       ###########################
        #    So, ... let's go!    #
       ###########################
 
+            #switch to new interface
+	    if [ -n "${_if}" ];then
+		checkSyscallsLinuxWoL
+	    fi
+
+            #first clear upper stack, should be finished before eventually changing network setup,
+            #... yes, probably not successful?!
+	    stackerCancelPM "${_behaviour}" "${_force}" "${_self}"; 
 
             #set WOL for next boot if requested, 
             #Validation has been approved before, thus if WoL is set, pre-requisites are mandatory!
@@ -712,19 +750,26 @@ function cutCancelSessionPM () {
 		logger -i -s -t ${MYCALLNAME} -- "Set WoL on:${CTYS_ETHTOOL_WOLIF}"
 
                 if [ -n "${CTYS_ETHTOOL_WOLIF}" ];then
-		    CTYS_ETHTOOL_WOL="${CTYS_ETHTOOL}  -s ${CTYS_ETHTOOL_WOLIF} wol d"
-		    CTYS_ETHTOOL_WOL0="${CTYS_ETHTOOL} -s ${CTYS_ETHTOOL_WOLIF} wol g"
+		    CTYS_ETHTOOL_WOLD="${CTYS_ETHTOOL}  -s ${CTYS_ETHTOOL_WOLIF} wol d"
+		    CTYS_ETHTOOL_WOLG="${CTYS_ETHTOOL} -s ${CTYS_ETHTOOL_WOLIF} wol g"
 
                     #this loop is history, but will be kept anyway!
  		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "CTYS_ETHTOOL_WOL=${CTYS_ETHTOOL_WOL}"
-		    ${CTYS_ETHTOOL_WOL}
+		    eval ${CTYS_ETHTOOL_WOLD}
+		    eval ${CTYS_ETHTOOL_WOLG}
 		    local _woli=0;
-		    local _xwoli=0;
+		    local _xwolid=0;
+		    local _xwolig=0;
 		    for((_woli=0;_woli<10;_woli++));do
-			eval "_xwoli=\"\$CTYS_ETHTOOL_WOL$_woli\""
-			if [ -n "${_xwoli}" ];then
-			    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL$_woli=<$_xwoli>"
- 			    $_xwoli
+			eval "_xwolid=\"\$CTYS_ETHTOOL_WOL$_woli\""
+			eval "_xwolig=\"\$CTYS_ETHTOOL_WOL$_woli\""
+			if [ -n "${_xwolid}" ];then
+			    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL$_wolid=<$_xwolid>"
+ 			    eval ${_xwolid}
+			fi
+			if [ -n "${_xwolig}" ];then
+			    printDBG $S_PM ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME CTYS_ETHTOOL_WOL$_wolig=<$_xwolig>"
+ 			    eval ${_xwolig}
 			fi
 		    done
 		    local _myMessage="`basename $BASH_SOURCE`:$LINENO:Set WoL for:${CTYS_ETHTOOL_WOLIF}"
@@ -733,7 +778,9 @@ function cutCancelSessionPM () {
 		    printERR $LINENO $BASH_SOURCE 0 "Cannot find a WoL interface, continue without initialization of WoL"
                 fi
 	    fi
-	    stackerCancelPM "${_behaviour}" "${_force}" "${_self}"; 
+            #
+            #if requested handle ultimately SELF
+	    selfCancelPM  "${_behaviour}" "${_force}" "${_self}"; 
 	    ;;
     esac
 
