@@ -213,8 +213,9 @@ function cutCancelSessionVBOX () {
 			    let _unambig++;
 			    ;;
 			ID|I|PATHNAME|PNAME|P)
-                              #can (partly for relative names) be checked now
-                            if [ -n "${ARG##/*}" ]; then
+                            #can (partly for relative names) be checked now
+			    local _ta="${ARG//\\}"
+			    if [ -n "${_ta##/*}" ]; then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  PNAME=${ARG}"
@@ -316,6 +317,11 @@ function cutCancelSessionVBOX () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -339,6 +345,7 @@ function cutCancelSessionVBOX () {
 		    -o -z "${ARG}" -a "${KEY}" == "S4" \
 		    -o -z "${ARG}" -a "${KEY}" == "S5" \
 		    -o -z "${ARG}" -a "${KEY}" == "SUSPEND" \
+		    -o -z "${ARG}" -a "${KEY}" == "PAUSE" \
 		    -o -z "${ARG}" -a "${KEY}" == "POWEROFF" \
 		    -o -z "${ARG}" -a "${KEY}" == "RESET" \
 		    -o -z "${ARG}" -a "${KEY}" == "REBOOT" \
@@ -461,7 +468,8 @@ function cutCancelSessionVBOX () {
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RANGE:FILENAME=${_fname}"
 			    ;;
 			ID|I|PATHNAME|PNAME|P)
-                            if [ ! -f "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given pathname"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  _pname=${ARG}"
@@ -540,7 +548,7 @@ function cutCancelSessionVBOX () {
 		local _tmpBuf=`listMySessions ${_CSB},MACHINE`
 		printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "PNAME-EVALUATE-EXPAND-ALL=<$_tmpBuf>"
 		_pname=`for _i2 in ${_tmpBuf};do echo "$_i2"|\
-                        awk -F';' -v p="${_pname}" '$4~p{print $3 ";" $4 ";" $11 ";" $14}';done`
+                        awk -F';' -v p="${_pname}" '$4~p{print $3 ";" $4 ";" $11 ";" $14 ";" $5}';done`
 		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-EXPAND-TO=<$_pname>"
 	    fi
 
@@ -549,7 +557,7 @@ function cutCancelSessionVBOX () {
             #
 	    if [ -n "${_all}" ];then
 		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-ALL"
-		_pname=`listMySessions ${_CSB},MACHINE|awk -F';' '$3!~/Domain-0/{print $3 ";" $4 ";" $11 ";" $14}'`
+		_pname=`listMySessions ${_CSB},MACHINE|awk -F';' '$3!~/Domain-0/{print $3 ";" $4 ";" $11 ";" $14 ";" $5}'`
 	    fi
 
             #
@@ -566,6 +574,7 @@ function cutCancelSessionVBOX () {
 		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Current version does not support cached operations for LIST."
 	    fi
 
+
             #
             #specific instance, resolved from pool of running instances
             #
@@ -574,18 +583,18 @@ function cutCancelSessionVBOX () {
 
 		if [ -n "${_uuid}" ];then
 		    _pname=`listMySessions ${_CSB},MACHINE|\
-                            awk -F';' -v u="${_uuid}" '$5~u{print $3 ";" $4 ";" $11 ";" $14}'`
+                            awk -F';' -v u="${_uuid}" '$5~u{print $3 ";" $4 ";" $11 ";" $14  ";" $5}'`
 		else
 		    if [ -n "${_label}" ];then
 			_pname=`listMySessions ${_CSB},MACHINE|\
-                                awk -F';' -v l="${_label}" '$3~l{print $3 ";" $4 ";" $11 ";" $14}'`
+                                awk -F';' -v l="${_label}" '$3~l{print $3 ";" $4 ";" $11 ";" $14  ";" $5}'`
 		    else
 			if [ -n "${_tcp}" ];then
 			    if [ -n "${_tcp}" -a "${C_NSCACHELOCATE}" != 0 ];then
  				local _cx1=`${MYLIBEXECPATH}/ctys-vhost.sh $_dbg1 -s -o MAC -p ${DBPATHLST} ${_tcp}`
 				if [ -n "$_cx1" ];then
 				    _pname=`listMySessions ${_CSB},MACHINE|\
-                                        awk -F';' -v l="${_cx1}" '$7~l{print $3 ";" $4 ";" $11 ";" $14}'`
+                                        awk -F';' -v l="${_cx1}" '$7~l{print $3 ";" $4 ";" $11 ";" $14  ";" $5}'`
 				fi
 			    else
 				printDBG $S_VBOX ${D_UI} $LINENO $BASH_SOURCE "NS cache is off \"-c off\"."
@@ -594,12 +603,12 @@ function cutCancelSessionVBOX () {
 			else
 	 		    if [ -n "${_mac}" ];then
 				_pname=`listMySessions ${_CSB},MACHINE|\
-                                        awk -F';' -v l="${_mac}" '$6~l{print $3 ";" $4 ";" $11 ";" $14}'`
+                                        awk -F';' -v l="${_mac}" '$6~l{print $3 ";" $4 ";" $11 ";" $14  ";" $5}'`
 				printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
 			    else
 				if [ -n "${_fname}" ];then
    				    _pname=`listMySessions ${_CSB},MACHINE|\
-                                            awk -F';' -v f="${_fname}" '$4~f{print $3 ";" $4 ";" $11 ";" $14}'`
+                                            awk -F';' -v f="${_fname}" '$4~f{print $3 ";" $4 ";" $11 ";" $14  ";" $5}'`
 				    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
 				fi
 			    fi
@@ -624,17 +633,20 @@ function cutCancelSessionVBOX () {
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _reboot    = ${_reboot}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _reset     = ${_reset}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _suspend   = ${_suspend}"
+	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _pause     = ${_pause}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _init      = ${_init} - ${_initstate}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _powoff    = ${_powoff} - ${_powoffdelay}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "----------------------"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "-  _behaviour = ${_behaviour}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "----------------------"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "  PATHNAME    = ${_pname}"
+	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "  UUID        = ${_uuid}"
 	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "----------------------"
 
 	    if [ -z "${_pname}" ];then
 		printDBG $S_VBOX ${D_TST} $LINENO $BASH_SOURCE "$FUNCNAME:ENTRY:OPMODE=${OPMODE}:ACTION=${ACTION}:PNAME=MISSING"
 	    fi
+
 
     ###########################
      #    So, ... let's go!    #
@@ -643,8 +655,16 @@ function cutCancelSessionVBOX () {
             #prepare parameters for STACKER
 	    local _target=;
             local _i7=;
+            local _i8=;
 	    for _i7 in ${_pname};do
-		_target="${_target} ${_i7%;*;*}"
+		_i8=${_i7%;*;*;*}
+		_i8=${_i8#*;}
+		_i8=$(fetchCTYSFile ${_i8})
+		if [ -z "$_i8" ];then
+		    _i8=$(fetchCTYSFile ${_i7#*;*;*;*;})
+		fi
+		_target="${_target} ${_i7%%;*};${_i8}"
+#		_target="${_target} ${_i7%;*;*;*}"
 	    done
 
             if [ "${_CSB}" == CLIENT ];then
@@ -656,9 +676,10 @@ function cutCancelSessionVBOX () {
                 #
   		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "MODE=CANCEL(CLIENT)==KILL'em"
 		for _i in ${_pname};do
-                    [ "${_i##*;}" != CLIENT ]&&continue;
+                    local _si="${_i%;*}";_si="${_si##*;}"
+                    [ "${_si}" != CLIENT ]&&continue;
 		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "kill:${_i}"
-                    local _pid=${_i%;*}
+                    local _pid=${_i%;*;*}
                     _pid=${_pid##*;}
                     echo -n "Session:\"${_i%%;*}\":PID=$_pid"
                     kill $_pid
@@ -701,14 +722,15 @@ function cutCancelSessionVBOX () {
 			fi
 
   			for _i in ${_pname};do
-			    [ "${_i##*;}" == CLIENT ]&&continue;
+			    local _si="${_i%;*}";_si="${_si##*;}"
+			    [ "${_si}" != CLIENT ]&&continue;
 			    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "reset:${_i}"
 
-			    local _id=${_i%;*;*}
-			    _id=${_id#*;}
-			    if [ "$_i" == "$_id" ];then
+			    local _uuid=${_i#*;*;*;*;};_id=${_id%%;*}
+			    local _id=${_i#*;};_id=${_id%%;*}
+			    if [ "$_i" == "$_id" -a "$_i" == "$_uuid" ];then
 				_ret=1;
-				printERR $LINENO $BASH_SOURCE ${_ret} "ID=${_id}:REASON=Erroneous _pname"
+				printERR $LINENO $BASH_SOURCE ${_ret} "ID=${_id}/UUID=${_uuid}:REASON=Erroneous _pname"
 				continue
 			    fi
 
@@ -721,10 +743,11 @@ function cutCancelSessionVBOX () {
 			    echo
 			    echo  "----------------------------"
 			    echo  "RESET-SERVER Session:"
-			    echo  "   ID    =$_id"
 			    echo  "   LABEL =$_label"
+			    echo  "   ID    =$_id"
+			    echo  "   UUID  =$_uuid"
 			    echo  "----------------------------"
-			    vmMgrVBOX RESET "$_label" "$_id"
+			    vmMgrVBOX RESET "$_label" "${_uuid:-$_id}"
 			    echo
 			    echo  "----------------------------"
 			    echo
@@ -738,7 +761,6 @@ function cutCancelSessionVBOX () {
 
 		    PAUSE|S3)
 			_ret=1;
-			printWNG 1 $LINENO $BASH_SOURCE ${_ret} "PAUSE|S3 is not supported by VBOX, partially mapped to S4"
 
 #shifted to later version
 #                       #suspend servers controlled with proprietary tool first
@@ -749,17 +771,23 @@ function cutCancelSessionVBOX () {
 # 		      fi
 
 			for _i in ${_pname};do
-			    [ "${_i##*;}" == CLIENT ]&&continue;
-			    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "MAPPED TO suspend:${_i}"
-			    local _id=${_i%;*;*}
-			    _id=${_id#*;}
+ 			    local _si="${_i%;*}";_si="${_si##*;}"
+ 			    [ "${_si}" == CLIENT ]&&continue;
+			    local _uuid=${_i#*;*;*;*;};_id=${_id%%;*}
+			    local _id=${_i#*;};_id=${_id%%;*}
+			    if [ "$_i" == "$_id" -a "$_i" == "$_uuid" ];then
+				_ret=1;
+				printERR $LINENO $BASH_SOURCE ${_ret} "ID=${_id}/UUID=${_uuid}:REASON=Erroneous _pname"
+				continue
+			    fi
                             echo
 			    echo  "----------------------------"
-			    echo  "MAPPED TO SUSPEND-SERVER Session:"
-			    echo  "   ID    =$_id"
+			    echo  "PAUSE Session:"
 			    echo  "   LABEL =$_label"
+			    echo  "   ID    =$_id"
+			    echo  "   UUID  =$_uuid"
 			    echo  "----------------------------"
-			    vmMgrVBOX SUSPEND "$_label" "$_id"
+			    vmMgrVBOX PAUSE "$_label" "${_uuid:-$_id}"
                             echo
 			    echo  "----------------------------"
 			    echo
@@ -767,7 +795,6 @@ function cutCancelSessionVBOX () {
 
                         #kill remaining clients 
 			killClients ${_pname}
-
 			if [ -n "${_self}" ];then
 			    _ret=1;
 			    printWNG 1 $LINENO $BASH_SOURCE ${_ret} "PAUSE-S3 not yet supported, mapped to S5"
@@ -786,17 +813,26 @@ function cutCancelSessionVBOX () {
 # 		      fi
 
 			for _i in ${_pname};do
-			    [ "${_i##*;}" == CLIENT ]&&continue;
+			    local _si="${_i%;*}";_si="${_si##*;}"
+			    [ "${_si}" == CLIENT ]&&continue;
 			    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "suspend:${_i}"
-			    local _id=${_i%;*;*}
-			    _id=${_id#*;}
+
+			    local _uuid=${_i#*;*;*;*;};_id=${_id%%;*}
+			    local _id=${_i#*;};_id=${_id%%;*}
+			    if [ "$_i" == "$_id" -a "$_i" == "$_uuid" ];then
+				_ret=1;
+				printERR $LINENO $BASH_SOURCE ${_ret} "ID=${_id}/UUID=${_uuid}:REASON=Erroneous _pname"
+				continue
+			    fi
+
                             echo
 			    echo  "----------------------------"
 			    echo  "SUSPEND-SERVER Session:"
-			    echo  "   ID    =$_id"
 			    echo  "   LABEL =$_label"
+			    echo  "   ID    =$_id"
+			    echo  "   UUID  =$_uuid"
 			    echo  "----------------------------"
-			    vmMgrVBOX SUSPEND "$_label" "$_id"
+			    vmMgrVBOX SUSPEND "$_label" "${_uuid:-$_id}"
                             echo
 			    echo  "----------------------------"
 			    echo
@@ -814,21 +850,21 @@ function cutCancelSessionVBOX () {
 
 		    POWEROFF|S5)
   			printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=POWEROFF"
-
 			if [ -z "$_force" ];then
 			    stackerCancelPropagate STACK "POWEROFF:0" "${_self:-$_target}";
  			    sleep ${_powoffdelay:-$DEFAULT_KILL_DELAY_POWEROFF}
 			fi
 
 			for _i in ${_pname};do
-			    [ "${_i##*;}" == CLIENT ]&&continue;
+			    local _si="${_i%;*}";_si="${_si##*;}"
+			    [ "${_si}" == CLIENT ]&&continue;
 			    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "stop:${_i}"
 
-			    local _id=${_i%;*;*}
-			    _id=${_id#*;}
-			    if [ "${_i%;*;*}" == "$_id" ];then
+			    local _uuid=${_i#*;*;*;*;};_id=${_id%%;*}
+			    local _id=${_i#*;};_id=${_id%%;*}
+			    if [ "$_i" == "$_id" -a "$_i" == "$_uuid" ];then
 				_ret=1;
-				printERR $LINENO $BASH_SOURCE ${_ret} "ID=${_id}:REASON=Erroneous _pname"
+				printERR $LINENO $BASH_SOURCE ${_ret} "ID=${_id}/UUID=${_uuid}:REASON=Erroneous _pname"
 				continue
 			    fi
 
@@ -839,14 +875,23 @@ function cutCancelSessionVBOX () {
 				continue
 			    fi
 
-			    local _pid=${_i%;*}
-			    _pid=${_pid##*;}
-			    if [ "${_i%;*}" == "$_pid" ];then
+			    local _pid=${_i#*;*;};_pid=${_pid%%;*}
+			    if [ "${_i}" == "$_pid" ];then
 				_ret=1;
 				printWNG 1 $LINENO $BASH_SOURCE ${_ret} "PID=${_pid}:REASON=Erroneous _pname"
 			    fi
 
-			    vmMgrVBOX POWEROFF "$_label" "$_id" "${_powoffdelay:-$DEFAULT_KILL_DELAY_POWEROFF}" "$_pid"
+			    echo
+			    echo  "----------------------------"
+			    echo  "POWEROFF Session:"
+			    echo  "   LABEL =$_label"
+			    echo  "   ID    =$_id"
+			    echo  "   UUID  =$_uuid"
+			    echo  "----------------------------"
+			    vmMgrVBOX POWEROFF "$_label" "${_uuid:-$_id}" "${_powoffdelay:-$DEFAULT_KILL_DELAY_POWEROFF}" "$_pid"
+			    echo
+			    echo  "----------------------------"
+			    echo
 			done
 
 			if [ "${_CSB}" != SERVER ];then 

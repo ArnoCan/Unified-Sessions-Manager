@@ -1556,3 +1556,79 @@ function getSTARTERCALL () {
 }
 
 
+
+#FUNCBEG###############################################################
+#NAME:
+#  getDEFAULTHOSTS
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns the configured default HOSTs.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getDEFAULTHOSTS () {
+    local _IP=;
+    for i in `getConfFilesList "${1}"`;do
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#DEFAULTHOSTS"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	fi
+    done
+    echo -n -e "${_IP##* }"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getDEFAULTCONSOLE
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns the configured default CONSOLE.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getDEFAULTCONSOLE () {
+    local _IP=;
+    for i in `getConfFilesList "${1}"`;do
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#DEFAULTCONSOLE"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	fi
+    done
+    echo -n -e "${_IP##* }"
+}
+
+

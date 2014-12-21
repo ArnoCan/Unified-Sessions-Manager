@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -46,11 +46,54 @@ printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 
 
 case ${MYDIST} in
+    ESX)
+	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
+	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
+	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
+	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
+	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
+	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
+
+	[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/bin`
+	[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+	[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+	;;
+    XenServer)
+	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
+	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
+	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
+	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
+	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
+	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
+
+	[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/bin`
+	[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+	[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+	;;
+    MeeGo)
+	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
+	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
+	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
+	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
+	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
+	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
+
+	[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/bin`
+	[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+	[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+	;;
     CentOS)
 	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -61,9 +104,25 @@ case ${MYDIST} in
 	;;
     EnterpriseLinux)
 	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/sbin`
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
+	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
+	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
+	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
+
+	[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/bin`
+	[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+	[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+	;;
+    RHEL)
+	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
+	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
+	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -77,6 +136,7 @@ case ${MYDIST} in
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -90,6 +150,7 @@ case ${MYDIST} in
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -114,6 +175,7 @@ case ${MYDIST} in
 
         #exted later
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /opt/kde3/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	;;
     openSUSE)
 	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
@@ -131,12 +193,28 @@ case ${MYDIST} in
 
         #exted later
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	;;
     debian)
 	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/sbin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/sbin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/sbin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
+	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/sbin`
+	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
+	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
+
+	[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/bin`
+	[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+	[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+	;;
+    Knoppix)
+	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/sbin`
+	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/sbin`
+	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/sbin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/sbin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -150,6 +228,7 @@ case ${MYDIST} in
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/sbin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/sbin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/sbin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/sbin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -169,6 +248,7 @@ case ${MYDIST} in
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
 	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
 	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
@@ -194,6 +274,7 @@ case ${MYDIST} in
 
         #exted later
 	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /opt/kde3/bin`
+	[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 	;;
 esac
 

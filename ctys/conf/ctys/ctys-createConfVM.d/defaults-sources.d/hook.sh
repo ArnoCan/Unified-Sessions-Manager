@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -29,7 +29,6 @@
 ########################################################################
 
 
-
 #
 #Common default anchors
 #
@@ -38,17 +37,13 @@ DEFAULT_REPOSITORY_URL_RAW_BASE=${DEFAULT_REPOSITORY_URL_RAW_BASE:-http://delphi
 DEFAULT_MOUNT_BASE=${DEFAULT_MOUNT_BASE:-/mntn/swpool}
 INSTSRCCDROM_BASE=${INSTSRCCDROM_BASE:-$DEFAULT_MOUNT_BASE/UNIXDist}
 INSTSRCFS_BASE=${INSTSRCFS_BASE:-$DEFAULT_MOUNT_BASE/isosrv}
-
 DEFAULT_REPOSITORY_URL_MISCOS_BASE=${DEFAULT_REPOSITORY_URL_MISCOS_BASE:-http://delphi/miscOS}
-
-
 DEFAULT_HTML_TMP_URL_BASE=${DEFAULT_HTML_TMP_URL_BASE:-http://delphi/tmp}
 
 
 
 
 function fetchAvailableDefaults () {
-
     SOURCEDIR=${MYCONFPATH}/ctys-createConfVM.d/defaults-sources.d
     if [ -d "$SOURCEDIR" ];then
 	for i in $SOURCEDIR/*.ctys;do
@@ -60,23 +55,55 @@ function fetchAvailableDefaults () {
 	gotoHell ${ABORT}
     fi
 
-
-
-
     case ${MYDIST} in
-	CentOS)
+	CentOS|EnterpriseLinux|Fedora|RHEL|Scientific)
 	    case ${DIST} in
-		CentOS)          set-CentOS;;
+ 		Android)         set-Android;;
+ 		CentOS)          set-CentOS;;
 		debian)          set-debian;;
+ 		eeeDroid)        set-eeeDroid;;
+		EnterpriseLinux) set-EnterpriseLinux;;
 		Fedora)          set-Fedora;;
 		FreeBSD)         set-FreeBSD;;
 		Gentoo)          set-Gentoo;;
+		Knoppix)         set-Knoppix;;
 		Mandriva)        set-Mandriva;;
+		MeeGo)           set-MeeGo;;
+		NetBSD)          set-NetBSD;;
+		OpenBSD)         set-OpenBSD;;
+		OpenSolaris)     set-OpenSolaris;;
+		openSUSE)        set-openSUSE;;
+ 		RHEL)            set-RHEL;;
+		Scientific)      set-Scientific;;
+		Solaris)         set-Solaris;;
+		Ubuntu)          set-Ubuntu;;
+
+		MSProducts)      set-MSProducts;;
+
+		BootStick)       set-BootSticks;;
+	    esac
+	    ;;
+
+	Mandriva)
+	    case ${DIST} in
+ 		Android)         set-Android;;
+		CentOS)          set-CentOS;;
+		debian)          set-debian;;
+ 		eeeDroid)        set-eeeDroid;;
+		EnterpriseLinux) set-EnterpriseLinux;;
+		Fedora)          set-Fedora;;
+		FreeBSD)         set-FreeBSD;;
+		Gentoo)          set-Gentoo;;
+		Knoppix)         set-Knoppix;;
+		Mandriva)        set-Mandriva;;
+		MeeGo)           set-MeeGo;;
+		NetBSD)          set-NetBSD;;
 		OpenBSD)         set-OpenBSD;;
 		OpenSolaris)     set-OpenSolaris;;
 		openSUSE)        set-openSUSE;;
 		Scientific)      set-Scientific;;
 		Solaris)         set-Solaris;;
+ 		RHEL)            set-RHEL;;
 		Ubuntu)          set-Ubuntu;;
 
 		MSProducts)      set-MSProducts;;
@@ -87,17 +114,24 @@ function fetchAvailableDefaults () {
 
 	openSUSE)
 	    case ${DIST} in
+ 		Android)         set-Android;;
 		CentOS)          set-CentOS;;
 		debian)          set-debian;;
+ 		eeeDroid)        set-eeeDroid;;
+		EnterpriseLinux) set-EnterpriseLinux;;
 		Fedora)          set-Fedora;;
 		FreeBSD)         set-FreeBSD;;
 		Gentoo)          set-Gentoo;;
+		Knoppix)         set-Knoppix;;
 		Mandriva)        set-Mandriva;;
+		MeeGo)           set-MeeGo;;
+		NetBSD)          set-NetBSD;;
 		OpenBSD)         set-OpenBSD;;
 		OpenSolaris)     set-OpenSolaris;;
 		openSUSE)        set-openSUSE;;
 		Scientific)      set-Scientific;;
 		Solaris)         set-Solaris;;
+ 		RHEL)            set-RHEL;;
 		Ubuntu)          set-Ubuntu;;
 
 		MSProducts)      set-MSProducts;;
@@ -106,17 +140,24 @@ function fetchAvailableDefaults () {
 	    esac
 	    ;;
 
-	debian)
+	debian|Ubuntu)
 	    case ${DIST} in
+ 		Android)         set-Android;;
 		CentOS)          set-CentOS;;
 		debian)          set-debian;;
+ 		eeeDroid)        set-eeeDroid;;
+		EnterpriseLinux) set-EnterpriseLinux;;
 		Fedora)          set-Fedora;;
 		FreeBSD)         set-FreeBSD;;
 		Gentoo)          set-Gentoo;;
+		Knoppix)         set-Knoppix;;
 		Mandriva)        set-Mandriva;;
+		MeeGo)           set-MeeGo;;
+		NetBSD)          set-NetBSD;;
 		OpenBSD)         set-OpenBSD;;
 		OpenSolaris)     set-OpenSolaris;;
 		openSUSE)        set-openSUSE;;
+ 		RHEL)            set-RHEL;;
 		Scientific)      set-Scientific;;
 		Solaris)         set-Solaris;;
 		Ubuntu)          set-Ubuntu;;

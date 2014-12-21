@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -40,6 +40,25 @@ printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 ################################################################
 #    Default definitions - User-Customizable  from shell       #
 ################################################################
+
+
+#
+#Controls RDP accessibility of VMs, this is mapped to 
+#"VBoxManage controlvm vrdpaddress=127.0.0.1"
+#If you want to deactivate this, just comment it out.
+#Set your own NIC when desired.
+VBOX_VRDPADDRESS=${VBOX_VRDPADDRESS:-127.0.0.1}
+
+#
+#Controls RDP availability of VMs, this is mapped to 
+#"VBoxManage controlvm vrdp=(on|off)"
+VBOX_VRDP=${VBOX_VRDP:-on}
+
+
+#
+#Force shared-mode for RDP, this is mapped to 
+#"VBoxManage modifyvm vrdpmulticon=(on|off)"
+VBOX_VRDPMULTICON=${VBOX_VRDPMULTICON:-on}
 
 
 #Keeps the tunnel open for connection, but reserves the port!

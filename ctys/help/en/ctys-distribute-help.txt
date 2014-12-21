@@ -11,12 +11,12 @@ ctys-distribute
 
 
    [-d <debug-options>]
-   [-D (0|1)]
    [-F (1|2|3|force|forceclean|forceall)]
    [-h]
    [-H <help-options>]
    [-l <remote login>]
    [-M <access-mask>]
+   [--menu-create=(PRIVATE|SHARED)]
    [-P (
        UserHomeCopy
       |UserHomeLinkonly
@@ -27,11 +27,6 @@ ctys-distribute
    [-V]
    [-X]
    <list-of-target-acounts>
-
-
-
-
-
 
 DESCRIPTION
 ===========

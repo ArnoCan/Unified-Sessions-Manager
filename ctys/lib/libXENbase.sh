@@ -201,6 +201,8 @@ function getXENMAGIC () {
 	[xX][eE][nN]-3.2-1*)      _m=XEN_321;;
 	[xX][eE][nN]-3.2-*)       _m=XEN_32x;;
 	[xX][eE][nN]-3*)          _m=XEN_3x;;
+	[xX][eE][nN]-4.0.0*)      _m=XEN_400;;
+	[xX][eE][nN]-4*)          _m=XEN_4x;;
 	[xX][eE][nN]-*)           _m=XEN_GENERIC;;
         *)                        echo -n NOLOC;return 1;;
     esac

@@ -741,6 +741,11 @@ function createConnectPM () {
 		C_MODE_ARGS="${_call:+$_call,}${C_MODE_ARGS}";
 	    fi
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:C_MODE_ARGS=<${C_MODE_ARGS}>"
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -1072,7 +1077,7 @@ function createConnectPM () {
 	    if [ "$MYHOST" != "$_myDN" -a "$MYHOST" != "$_myIP"  ];then
                 #now TCP/IP address is available, short it up now if REUSE
 		local _pingok=1;
-   		printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myPM}\" \"3\" \"1\""
+   		printFINALCALL 0  $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myPM}\" \"3\" \"1\""
 		netWaitForPing "${_myPM}" 3 1
 		_pingok=$?
 		if [ $_pingok -eq 0 ];then
@@ -1097,14 +1102,14 @@ function createConnectPM () {
 			if [ -n "${_broadcastPort}" ];then
  			    _callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${_broadcastPort} ${C_NOEXEC:+ -n} ${_bmac}"
 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
 			    ${_callDbg}
 			    _wolret=$?
 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
 			else
  			    _callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${C_NOEXEC:+ -n} ${_bmac}"
 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
 			    ${_callDbg}
 			    _wolret=$?
 			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
@@ -1112,7 +1117,7 @@ function createConnectPM () {
 		    else
 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -i ${CTYS_WOL_WAKEUPIF} ${C_NOEXEC:+ -n} ${_myMAC}"
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
 			${_callDbg}
 			_wolret=$?
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
@@ -1135,7 +1140,7 @@ function createConnectPM () {
 
 
                     #wait for basic network stack - remember, it's not sufficient!!!
-   		    printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myPM}\" \"${_pingcntPM}\" \"${_pingsleepPM}\""
+   		    printFINALCALL 0  $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myPM}\" \"${_pingcntPM}\" \"${_pingsleepPM}\""
 		    netWaitForPing "${_myPM}" "${_pingcntPM}" "${_pingsleepPM}"
 		    if [ $? != 0 ];then
 			ABORT=1
@@ -1151,6 +1156,7 @@ function createConnectPM () {
 			gotoHell ${ABORT}
 		    else
  			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ping:${_myPM}"
+   			printFINALCALL 0  $LINENO $BASH_SOURCE "WAIT-TIMER:Accessible by ping:${_myPM}"
 		    fi
 		fi
 
@@ -1158,8 +1164,8 @@ function createConnectPM () {
                 #wait for ssh login. requires access permissions - remember, this is sufficient!
                 #
 		if [ "${_sshpingPM}" == 1 ];then
-   		    printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_SSHPING_ONE_MAXTRIAL_PM,CTYS_SSHPING_ONE_WAIT_PM)" "netWaitForSSH \"${_myPM}\" \"${_sshpingcntPM}\" \"${_sshpingsleepPM}\" \"${_actionuserPM}\""
-		    netWaitForSSH "${_myPM}" "${_sshpingcntPM}" "${_sshpingsleepPM}" "${_actionuserPM}"
+   		    printFINALCALL 0  $LINENO $BASH_SOURCE "WAIT-TIMER:$_myPM(${_label},CTYS_SSHPING_ONE_MAXTRIAL_PM,CTYS_SSHPING_ONE_WAIT_PM)" "netWaitForSSH \"${_myPM}\" \"${_sshpingcntPM}\" \"${_sshpingsleepPM}\" \"${_actionuserPM}\" \"${C_AGNTFWD:+-A}\""
+		    netWaitForSSH "${_myPM}" "${_sshpingcntPM}" "${_sshpingsleepPM}" "${_actionuserPM}" "${C_AGNTFWD:+-A}"
 		    if [ $? != 0 ];then
 			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
 			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  PM =${_myPM}"
@@ -1172,6 +1178,7 @@ function createConnectPM () {
 			gotoHell 0
 		    else
  			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ssh:${_myPM}"
+   			printFINALCALL 0  $LINENO $BASH_SOURCE "WAIT-TIMER:Accessible by ssh:${_myPM}"
 		    fi
 		fi
 	    fi
@@ -1210,7 +1217,7 @@ function createConnectPM () {
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}"
 			fi
 			printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
  			${_args}
 			;;
 		    GTERM)
@@ -1226,7 +1233,7 @@ function createConnectPM () {
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}"
 			fi
 			printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
 			${_args}
 			;;
 		    XTERM)
@@ -1242,7 +1249,7 @@ function createConnectPM () {
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}"
 			fi
 			printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
 			${_args}
 			;;
 		    VNC)
@@ -1258,7 +1265,7 @@ function createConnectPM () {
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}"
 			fi
 			printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
 			${_args}
 
 			;;
@@ -1275,7 +1282,7 @@ function createConnectPM () {
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}"
 			fi
 			printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
 			${_args}
 			;;
 		    EMACSA)
@@ -1291,17 +1298,17 @@ function createConnectPM () {
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}"
 			fi
 			printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${_args}"
 			${_args}
 			;;
 		    *)
 			printWNG 1 $LINENO $BASH_SOURCE 0 "Try generic CONSOLE plugin:\"-t ${_consoleType}\""
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${MYLIBEXECPATH}/ctys.sh -t ${_consoleType} -a create=l:CONSOLE ${C_DARGS} ${_myPM}\"(C_DARGS)\""
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL:" "${MYLIBEXECPATH}/ctys.sh -t ${_consoleType} -a create=l:CONSOLE ${C_DARGS} ${_myPM}\"(C_DARGS)\""
 			${MYLIBEXECPATH}/ctys.sh -t ${_consoleType} -a create=l:CONSOLE ${C_DARGS} ${_myPM}"(C_DARGS)"
 			;;
 		esac
 		[ $? -eq 0 ]&&break;
-		printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:WOL(${_label},CTYS_WOL_WAKEUP_WAIT)" "sleep ${CTYS_WOL_WAKEUP_WAIT}"
+		printFINALCALL 0  $LINENO $BASH_SOURCE "WAIT-TIMER:WOL(${_label},CTYS_WOL_WAKEUP_WAIT)" "sleep ${CTYS_WOL_WAKEUP_WAIT}"
 		sleep ${CTYS_WOL_WAKEUP_WAIT};
 		((i1++));
 	    fi

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_QEMU_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_QEMU_CANCEL="01.11.009"
+_myPKGVERS_QEMU_CANCEL="01.11.011"
 hookInfoAdd $_myPKGNAME_QEMU_CANCEL $_myPKGVERS_QEMU_CANCEL
 _myPKGBASE_QEMU_CANCEL="`dirname ${_myPKGNAME_QEMU_CANCEL}`"
 
@@ -217,7 +217,8 @@ function cutCancelSessionQEMU () {
 				;;
 			    ID|I|PATHNAME|PNAME|P)
                               #can (partly for relative names) be checked now
-				if [ -n "${ARG##/*}" ]; then
+				local _ta="${ARG//\\}"
+				if [ -n "${_ta##/*}" ]; then
 				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "  PNAME=${ARG}"
@@ -308,6 +309,11 @@ function cutCancelSessionQEMU () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -456,13 +462,15 @@ function cutCancelSessionQEMU () {
 			ID|I|PATHNAME|PNAME|P)
                             #can be checked now, no additional combination check required 
                             #due to previous CHECKPARAM.
-                            if [ ! -f "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given pathname"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  _pname=${ARG}"
+				printERR $LINENO $BASH_SOURCE ${ABORT} "  _pname=${_ta}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${_pname:+$_pname|}${ARG}";
+#                            local _pname="${_pname:+$_pname|}${_ta}";
+                            local _pname="${_ta}";
 			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "RANGE:PATHNAME=${_pname}"
 			    ;;
 
@@ -501,7 +509,6 @@ function cutCancelSessionQEMU () {
      #####
     #####
 
-
 	    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "CombineParamaters"
 
             ################################
@@ -531,11 +538,63 @@ function cutCancelSessionQEMU () {
 		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-EXPAND=<$_pname>"
 		local _tmpBuf=`listMySessions ${_CSB},MACHINE`
 		printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "PNAME-EVALUATE-EXPAND-ALL=<$_tmpBuf>"
-		_pname=`for _i2 in ${_tmpBuf};do echo "$_i2"|\
+
+		local _pt0=`for _i2 in ${_tmpBuf};do echo "$_i2"|\
                         awk -F';' -v p="${_pname}" '$4~p{print $3 ";" $4 ";" $11 ";" $14 ";" $10}';done`
+
+                #Handle INSTALL mode too, is slightly different from following similar code.
+		local _pt1="${_pt0#*;}";_pt1="${_pt1%%;*}";
+		if [ -n "$_pt1" ];then
+		    _pname="$_pt0";
+		else
+		    if [ -n "$_pt0" ];then
+			_pt1="${_pt0%%;*}";
+			_pname="$_pt1;$_pname";
+			_pt1="${_pt0#*;*;}";
+			_pname="$_pname;$_pt1";
+		    else
+			if [ -n "${_uuid}" ];then
+			    _pt0=`listMySessions ${_CSB},MACHINE|\
+                            awk -F';' -v u="${_uuid}" '$5~u{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`
+			else
+			    if [ -n "${_label}" ];then
+				_pt0=`listMySessions ${_CSB},MACHINE|\
+                                awk -F';' -v l="${_label}" '$3~l{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`
+			    else
+				if [ -n "${_tcp}" ];then
+				    if [ -n "${_tcp}" -a "${C_NSCACHELOCATE}" != 0 ];then
+ 					local _cx1=`${MYLIBEXECPATH}/ctys-vhost.sh $_dbg1 -s -o MAC -p ${DBPATHLST} ${_tcp}`
+					if [ -n "$_cx1" ];then
+					    _pt0=`listMySessions ${_CSB},MACHINE|\
+                                        awk -F';' -v l="${_cx1}" '$7~l{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`
+					fi
+				    else
+					printDBG $S_QEMU ${D_UI} $LINENO $BASH_SOURCE "NS cache is off \"-c off\"."
+				    fi
+				    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
+				else
+	 			    if [ -n "${_mac}" ];then
+					_pt0=`listMySessions ${_CSB},MACHINE|\
+                                        awk -F';' -v l="${_mac}" '$6~l{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`
+					printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
+				    else
+					if [ -n "${_fname}" ];then
+   					    _pt0=`listMySessions ${_CSB},MACHINE|\
+                                            awk -F';' -v f="${_fname}" '$4~f{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`
+					    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
+					fi
+				    fi
+				fi
+			    fi
+			fi
+			_pt1="${_pt0%%;*}";
+			_pname="$_pt1;$_pname";
+			_pt1="${_pt0#*;*;}";
+			_pname="$_pname;$_pt1";
+		    fi
+		fi
 		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-EXPAND-TO=<$_pname>"
 	    fi
-
 
             #
             #fetch all running instances
@@ -544,7 +603,6 @@ function cutCancelSessionQEMU () {
 		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-ALL"
 		_pname=`listMySessions ${_CSB},MACHINE|awk -F';' '{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`
 	    fi
-
 
             #
             #specific instance, resolved from cache
@@ -560,13 +618,11 @@ function cutCancelSessionQEMU () {
 		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Current version does not support cached operations for LIST."
 	    fi
 
-
             #
             #specific instance, resolved from pool of running instances
             #
             if [ -z "${_pname// /}" ];then
 		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-RUNTIME-SYSTEM"
-
 		if [ -n "${_uuid}" ];then
 		    _pname=`listMySessions ${_CSB},MACHINE|\
                             awk -F';' -v u="${_uuid}" '$5~u{print $3 ";" $4 ";" $11 ";" $14 ";" $10}'`

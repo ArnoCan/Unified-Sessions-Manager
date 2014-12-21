@@ -127,10 +127,6 @@ function printNotSupported () {
 
     gotoHell ${ABORT}
 }
-
-
-
-
 SOURCEDIR=;
 if [ -d "${HOME}/.ctys/ctys-createConfVM.d/defaults-sources.d" ];then
     SOURCEDIR=${HOME}/.ctys/ctys-createConfVM.d/defaults-sources.d
@@ -143,7 +139,6 @@ else
 	gotoHell ${ABORT}
     fi
 fi
-
 
 if [ -f "${SOURCEDIR}/hook.sh" ];then
     source $SOURCEDIR/hook.sh

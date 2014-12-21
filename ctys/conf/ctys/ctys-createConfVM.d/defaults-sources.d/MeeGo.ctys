@@ -1,0 +1,128 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+function set-MeeGo () {
+    case ${DISTREL} in
+	1.0*)
+	    case ${C_SESSIONTYPE} in
+#		XEN)  set-MeeGo-22-XEN;;
+#		VBOX) set-MeeGo-22-XEN;;
+		QEMU) set-MeeGo-10-QEMU;;
+	    esac
+	    ;;
+	*)
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "No defaults for ${DISTREL} of ${DIST} are present."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Set the values manually."
+	    ;;
+
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+    esac
+}
+
+#*******************************************************************
+#
+#DIST: MeeGo-2.2
+#
+# function set-MeeGo-22-XEN () {
+#     DEFAULTINSTMODE=${DEFAULTINSTMODE:-KS};
+#     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_RAW_BASE}/centOS/5/inst/os/x86_64
+#     INSTSRCCDROM=${INSTSRCCDROM_BASE}/centOS/5/raw/isos/x86_64/MeeGo-5.0-x86_64-bin-DVD.iso
+#     case ${ACCELERATOR} in
+# 	PARA)
+# 	    _MATCHED=1;
+# 	    DEFAULT_DOMU_KERNEL=;
+# 	    DEFAULT_DOMU_KERNEL=;
+# 	    DEFAULT_DOMU_MODULESDIR=;
+# 	    DEFAULT_DOMU_INITRD=;
+
+# 	    DEFAULT_INST_KERNEL=${DEFAULT_INST_KERNEL:-$INSTSRCCDROM_BASE/centOS/5/inst/os/x86_64/images/xen/vmlinuz};
+# 	    DEFAULT_INST_INITRD=${DEFAULT_INST_INITRD:-$INSTSRCCDROM_BASE/centOS/5/inst/os/x86_64/images/xen/initrd.img};
+
+# 	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-centos-5.ks"}
+# 	    #Setting console omits graphics output, when not set normally the
+# 	    #call parameters for CONSOLE are sufficient.
+#             #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+# 	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+
+#  	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/bin/pygrub'}
+# 	    ;;
+# 	HVM)
+# 	    _MATCHED=1;
+#  	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+# 	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
+# 	    ;;
+#     esac
+
+# }
+
+function set-MeeGo-10-QEMU () {
+    DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD};
+    DEFAULT_REPOSITORY_URL=;
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/../miscOS/MeeGo/raw/Netbooks/meego-netbook-ia32-1.0.0.20100524.1.img
+    DEFAULT_BOOTLOADER=;
+
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	QEMU|KVM)
+	    _MATCHED=1;
+ 	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL=;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=;
+	    DEFAULT_INST_ROOTARGS=;
+	    DEFAULT_INST_EXTRA=;
+
+	    DEFAULT_KERNEL=${DEFAULT_INST_KERNEL};
+	    DEFAULT_INITRD=${DEFAULT_INST_INITRD};
+	    DEFAULT_EXTRA=${DEFAULT_INST_EXTRA};
+	    ;;
+    esac
+}
+
+
+

@@ -10,11 +10,11 @@ SYNTAX
 ctys
 
 
-   [<action>]
+   [-t <session-type>]
+   [-a <action>]
    [<generic options>]
    [--]
    <arguments>
-
 
 DESCRIPTION
 ===========

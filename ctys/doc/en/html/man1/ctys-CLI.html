@@ -2,9 +2,9 @@
 <HTML>
 <HEAD>
 <STYLE TYPE="text/css">
-body { margin:3em               ;} 
+body { margin:3em               ;background-color:#dcd0bc ;} 
 a    { text-decoration:none     ;} 
-pre  { background-color:#efefef ;} 
+pre  { background-color:#d6bc8f ;} 
 </STYLE>
 <META NAME="generator" CONTENT="http://txt2tags.sf.net">
 <TITLE>ctys-CLI</TITLE>
@@ -21,10 +21,11 @@ June, 2010
 <H1>NAME</H1>
 <P>
 <B>ctys-CLI - Command Line Interface</B>
+<br />
+<br />
 </P>
 <H1>SYNTAX</H1>
 <P>
-<B>ctys-CLI</B> 
 <PRE>
 
    ctys -t CLI -a action[=&lt;suboptions&gt;] ...
@@ -32,6 +33,7 @@ June, 2010
    ctys -T ALL -a action[=&lt;suboptions&gt;] ...
 
 </PRE>
+<br />
 </P>
 <H1>DESCRIPTION</H1>
 <P>
@@ -98,16 +100,25 @@ could be altered interactive by the sub-option "SHELL|S", or
 persistently by the variable
 CLI_SHELL_CMD_DEFAULT.
 </P>
+<P>
+It should be mentioned and explained here that there are two quite similar suboptions, which on the first view
+seems to be redundant, which is actually not the case.
+The main <B>difference betweend</B> the <B>CMD</B> and <B>SHELL</B> suboptions is the behaviour.
+Whereas the SHELL just overlays the standard shell within a Session, the CMD suboption executes
+a command from within the executed shell - either the standard shell, or a pre-set custom shell.
+<br />
+<br />
+</P>
 <H1>OPTIONS</H1>
 <DL>
 <DT><B>-a action[=&lt;suboptions&gt;]</B></DT><DD>
-</DL>
-
-<DL>
-<DT><B>CANCEL</B></DT><DD>
+<P></P>
+<DT><b><a  href="./ctys.html#optCANCEL" >CANCEL</a></b></DT><DD>
 Not applicable.
 <P></P>
-<DT><B>CREATE</B></DT><DD>
+<br />
+<br />
+<DT><b><a  href="./ctys.html#optCREATE" >CREATE</a></b></DT><DD>
 <PRE>
   CREATE=[&lt;machine-address&gt;]
      [REUSE|CONNECT|RECONNECT|RESUME]
@@ -116,6 +127,7 @@ Not applicable.
      [CD:&lt;working-directory&gt;][,]
      [(XOPTS|X):&lt;xopts&gt;]
      [(SHELL|S):&lt;shell&gt;]
+     [(STUBMODE|STUB)[:on]][,]
      [(CMD):&lt;cmd&gt;]
 </PRE>
 </DL>
@@ -129,30 +141,31 @@ applicable.
 The hosting OS has to be handled by it's own plugin.
 The LABEL sub-option is here mandatory.
 <P></P>
- <UL>
- <LI><B>&lt;callopts&gt;</B>
-Refer to common options \callHyperref{it:callopts}{description}.
- <P></P>
- <LI><B>CD:&lt;working-directory&gt;</B>
+<LI><B>CALLOPTS:&lt;callopts&gt;</B>
+Refer to common options 
+callopts description.
+<P></P>
+<LI><B>CD:&lt;working-directory&gt;</B>
 Change current working directory for the started command.
 This provides for example the preconfiguration of specific work-sets,
 where each terminal could be opened for a specific directory.
- <P></P>
- <LI><B>CMD:&lt;cmd&gt;</B>
+<P></P>
+<LI><B>CMD:&lt;cmd&gt;</B>
 Refer to common options CMD description.
- <P></P>
- <LI><B>CONSOLE</B>
+<P></P>
+<LI><B>CONSOLE</B>
 Not yet supported.
- <P></P>
- <LI><B>CMD:&lt;cmd&gt;</B>
+<P></P>
+<LI><B>XOPTS:&lt;xopts&gt;</B>
 Refer to common options xopts description.
- <P></P>
- <LI><B>REUSE|CONNECT|RECONNECT|RESUME</B>
+<P></P>
+<LI><B>REUSE|CONNECT|RECONNECT|RESUME</B>
 Not applicable.
- <P></P>
- <LI><B>CMD:&lt;cmd&gt;</B>
-Refer to common options \callHyperref{it:shell}{description}.
- <P></P>
+<P></P>
+<LI><B>SHELL:&lt;shell&gt;</B>
+Refer to common options 
+description.
+<P></P>
 A specific exception to the synchronous execution style of a
 CLI shell occurs, when multiple execution instances are
 addressed by the arguments of current call. When the "-b
@@ -162,14 +175,23 @@ works quite well. The list of arguments is just executed
 sequentially as expected.
 The CLI CREATE action sets implicitly the forced usage of a 
 pseudotty. This is the same as using "-z pty,pty".
- </UL>
+<P></P>
+<LI><B>STUBMODE|STUB[:on]</B>
+The STUBMODE suppresses the remote execution of the full ctys set, instead
+just a remote shell by a simple SSH call is executed.
+This could be utilized particularly for sessions to machines without an installed
+ctys.
 </UL>
 
+<P>
+<br />
+</P>
 <DL>
-<DT><B>ENUMERATE</B></DT><DD>
+<DT><b><a  href="./ctys.html#optENUMERATE" >ENUMERATE</a></b></DT><DD>
 Not applicable.
 <P></P>
-<DT><B>LIST</B></DT><DD>
+<br />
+<DT><b><a  href="./ctys.html#optLIST" >LIST</a></b></DT><DD>
 Almost the same output as common standard, with following
 changes in semantics.
 <P></P>
@@ -189,18 +211,31 @@ The following values are not applicable: uuid, mac, dsp, cp, sp
  </UL>
 </DL>
 
+<P>
+<br />
+</P>
 <DL>
-<DT><B>-L</B></DT><DD>
+<DT><b><a  href="./ctys.html#optL" >-L</a></b></DT><DD>
 Even though a DISPLAY will actually not be used, this parameter
 also adopts the behavior of the execution to a providing
 environment, which is frequently for ctys true.
 <P></P>
 These are the only location parameters to be applied.
+<P></P>
+<br />
+<br />
 </DL>
 
 <H1>SEE ALSO</H1>
 <P>
-<I>ctys(1)</I>, <I>ctys-uc-CLI(7)</I>
+<I><A HREF="../man1/ctys.html"> ctys(1)</A></I>
+,
+<I><A HREF="../man7/ctys-uc-CLI.html"> ctys-uc-CLI(7)</A></I>
+</P>
+<P>
+<br />
+<br />
+<br />
 </P>
 <H1>AUTHOR</H1>
 <P>
@@ -230,6 +265,14 @@ Written and maintained by Arno-Can Uestuensoez:
 </TABLE>
 
 <P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
 <H1>COPYRIGHT</H1>
 <P>
 Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
@@ -249,11 +292,10 @@ The whole document - all sections - is/are defined as invariant.
 For additional information refer to enclosed Releasenotes and License files.
 </P>
 <P>
-<img src="../../images/60px-Official-gnu.png" />  
-<br />
+<A HREF="http://www.gnu.org"><IMG ALIGN="middle" SRC="../../images/60px-Official-gnu.png" BORDER="0" ALT=""></A>
 <br />
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-CLI.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/html/man1/ctys-CLI.html -->
+<!-- cmdline: txt2tags -t html -i ctys-CLI.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/html/man1/ctys-CLI.html -->
 </BODY></HTML>

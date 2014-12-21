@@ -318,14 +318,18 @@ BEGIN{
     mx=0;td=0;cache="";cacheX="";perror("record="line"$0="$0);
     if(doCount==1){
         curline=line;
+#4TEST:reminder
+#perror("curline=line="curline);
     }else{
-        if($32!~/^$/){
-            curline=$32;
-        }else{
-            #the first, thus not yet initialized
-            $32=line;
-            curline=line;
-        }
+        curline=$32;
+#4TEST:reminder
+#perror("curline=$32="curline);
+#         if($32!~/^$/){
+#             curline=$32;
+#         }else{
+# perror("record-0="line"$0="$0);
+#             curline=line;
+#         }
     }
     if(r0!=""){
         if(r1==""){
@@ -348,12 +352,27 @@ BEGIN{
                 else{if(!match($0,s)){perrorProgress();next;}}
             }
         }
-    }    
-   
+    }  
     perrorProgress(1);
 }
 mach==1&&count!=1{cache=$0;mx=1;perror("cache[0]="cache);}
-mach!=1||(count==1&&mach==1){
+
+
+mach==1{
+    cache=$1
+    for(j=2;j<=NF;j++){
+        if(j==32){
+            cache=cache";"curline
+        }else{
+            cache=cache";"$j
+        }
+    }
+    mx=1;
+    perror("cache[0]="cache);
+}
+
+
+mach!=1{
     if(p==1){cache=cache $1;mx=1;}
     if(st==1){if(mx==1)cache=cache";";cache=cache $2;mx=1;}
     if(l==1){if(mx==1)cache=cache";";cache=cache $3;mx=1;}

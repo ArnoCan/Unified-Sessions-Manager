@@ -144,7 +144,7 @@ function stackerCreatePropagate () {
 
 	    local _call="${MYLIBEXECPATH}/ctys.sh -j ${_jobdat} -E -F ${VERSION} ${C_DARGS}"
 	    local _call="${_call}  -t ${__mt} -a cancel=i:${__i},${__todo},FORCE "
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 	    eval ${_call} &
 	else
 	    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:NO-MATCH for:\"${_cur//;/ }\""
@@ -185,7 +185,7 @@ function stackerCreatePropagate () {
 	if [ -n "$_mt" -a -n "$_i" -a -n "$_t" ];then
 	    printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:native upper stack-peer found:st=$_mt t=$_t"
 	    local _call="ping -c 1 ${_t}" 
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 	    eval ${_call} 2>&1 >/dev/null
 	    if [ $? -ne 0 ];then
 		printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ping)NOK"
@@ -195,15 +195,15 @@ function stackerCreatePropagate () {
 		printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ping)OK:$_i4"
 		if [ "$_t" != "${_t//@/}" ];then
 		    local _call="ssh ${_t} echo" 
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		    eval ${_call} >/dev/null 2>/dev/null;
 		else
 		    local _call="ssh ${_u:+$_u@}${_t} echo ";
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		    eval ${_call} >/dev/null 2>/dev/null;
 		fi
 		local _call="ssh ${_t} echo"
-		printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		eval ${_call} >/dev/null 2>/dev/null;
 		if [ $? -ne 0 ];then
 		    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ssh)NOK"
@@ -212,7 +212,7 @@ function stackerCreatePropagate () {
 		else
 		    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ssh)OK:$_i4"
 		    local _call="ssh ${_t} ctys ${C_DARGS} -X -V "
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		    eval ${_call} >/dev/null 2>/dev/null;
 		    if [ $? -eq 0 ];then
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)OK:$_i4"
@@ -231,13 +231,13 @@ function stackerCreatePropagate () {
 			    _call="${_call} ${_t}"
 			fi
 
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call};
 			continue	
 		    else
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)NOK"
 			local _call="ssh ${_t} halt -p"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call} >/dev/null 2>/dev/null;
 			continue	
 		    fi
@@ -328,13 +328,22 @@ function stackerCancelPropagate () {
 
     local _cur=;
 
+    #only senceful with extended guest data
+    function checkID () {
+	local _t=${1#*;};_t=${_t%%;*}
+	if [ -f "${_t}" ];then
+	    return 0
+	fi
+	return 1
+    }
+
     #checks whether it is the native-container gwhich is listed, else it might be an upper peer
     function checkMe () {
 	local _t=${1#*;*;*;};_t=${_t%%;*}
-	  if [ "${_t}" == "/etc/ctys.d/pm.conf" -o "${_t}" == "/etc/ctys.d/vm.conf" ];then
-	      return 0
-	  fi
-	  return 1
+	if [ "${_t}" == "/etc/ctys.d/pm.conf" -o "${_t}" == "/etc/ctys.d/vm.conf" ];then
+	    return 0
+	fi
+	return 1
     }
 
     function callHypervisor () {
@@ -347,7 +356,7 @@ function stackerCancelPropagate () {
 
 	    local _call="${MYLIBEXECPATH}/ctys.sh -j ${_jobdat} -E -F ${VERSION} ${C_DARGS}"
 	    local _call="${_call}  -t ${__mt} -a cancel=i:${__i},${__todo},FORCE "
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 	    eval ${_call} &
 	else
 	    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:NO-MATCH for:\"${_cur//;/ }\""
@@ -361,6 +370,13 @@ function stackerCancelPropagate () {
     local _i=;
     for _cur in $_allact;do
 	printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:_cur=${_cur//;/ }"
+        #requires guest info
+	checkID $_cur
+	if [ $? -ne 0 ];then
+	    printWNG 1 $LINENO $BASH_SOURCE ${_err1} "${FUNCNAME}:NO-ID:Missing GuestInfo for:<$_cur>"             
+	    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:NO-ID:Missing GuestInfo"
+	    continue;
+	fi
 
         #self is ignored here and has to be treated by the caller.
 	checkMe $_cur
@@ -368,6 +384,7 @@ function stackerCancelPropagate () {
 	    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:MYSELF-CONTINUE"
 	    continue;
 	fi
+
 
 	if [ -n "$DBREC" ];then
 	    local _i4=`${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -s -C macmap -o l,id,t,st,uid -M unique R:$DBREC`
@@ -383,13 +400,14 @@ function stackerCancelPropagate () {
 	_i=${_i4#*;*;};_i=${_i%%;*};
 	_t=${_i4#*;*;*;};_t=${_t%%;*};
 	_u=${_i4##*;};
+
 	printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:_i4=$_i4 =>  st=$_mt t=$_t l=$_l i=$_i u=$_uid"
 
         #_t required for target, _mt for the appropriate plugin to be called
 	if [ -n "$_mt" -a -n "$_i" -a -n "$_t" ];then
 	    printDBG $S_CORE ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:native upper stack-peer found:st=$_mt t=$_t"
 	    local _call="ping -c 1 ${_t}" 
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 	    eval ${_call} 2>&1 >/dev/null
 	    if [ $? -ne 0 ];then
 		printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ping)NOK"
@@ -399,11 +417,11 @@ function stackerCancelPropagate () {
 		printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ping)OK:$_i4"
 		if [ "$_t" != "${_t//@/}" ];then
 		    local _call="ssh ${_t} echo" 
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		    eval ${_call} >/dev/null 2>/dev/null;
 		else
 		    local _call="ssh ${_u:+$_u@}${_t} echo ";
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		    eval ${_call} >/dev/null 2>/dev/null;
 		fi
 		if [ $? -ne 0 ];then
@@ -413,7 +431,7 @@ function stackerCancelPropagate () {
 		else
 		    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ssh)OK:$_i4"
 		    local _call="${MYLIBEXECPATH}/ctys.sh ${C_DARGS} ${_t}'(-X -V)' ";
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 		    eval ${_call} >/dev/null 2>/dev/null;
 		    if [ $? -eq 0 ];then
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)OK:$_i4"
@@ -431,13 +449,13 @@ function stackerCancelPropagate () {
 			else
 			    _call="${_call} ${_t}"
 			fi
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call}
 			continue	
 		    else
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:CHK(ctys)NOK"
 			local _call="ssh ${_t} halt -p"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call} >/dev/null 2>/dev/null;
 			continue	
 		    fi

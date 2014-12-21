@@ -12,7 +12,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_1_003
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -58,7 +58,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_011
 #DESCRIPTION:
 #  Generated a sorted list of 3-column table containing:
 #
@@ -520,9 +520,9 @@ for i in ${hostlist};do
 done
 }|\
 case $sortKey in
-  '-i')awk '{printf("%s;%s;%s;\n",$2,$1,$4);}';;
-  '-m')awk '{printf("%s;%s;%s;\n",$4,$2,$1);}';;
-  '-n'|*)awk '{printf("%s;%s;%s;\n",$1,$4,$2);}';;
+  '-i')awk '{x=toupper($4);printf("%s;%s;%s;\n",$2,$1,x);}';;
+  '-m')awk '{x=toupper($4);printf("%s;%s;%s;\n",x,$2,$1);}';;
+  '-n'|*)awk '{x=toupper($4);printf("%s;%s;%s;\n",$1,x,$2);}';;
 esac|\
 sort|\
 {

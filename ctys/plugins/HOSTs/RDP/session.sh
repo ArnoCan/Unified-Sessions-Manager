@@ -155,7 +155,7 @@ function connectSessionRDP () {
 	DISPLAY=":${C_DISPLAY}";
 	export DISPLAY;
     fi
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-RDP-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-RDP-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
 
     case ${C_DISPLAY// /} in
 	*[a-z][A-Z]*)

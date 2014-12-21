@@ -363,25 +363,12 @@ _ARGSCALL=$*;
 _RUSER0=;
 LABEL=;
 
+MODE=;
+DEFAULT_MODE_SHARED="755";
+
 argLst=;
 while [ -n "$1" ];do
     case $1 in
-	'-D')shift;
-	    _doctrans=$1;
-	    case "${_doctrans}" in
-		0)
-		    ;;
-		1)
-		    ;;
-		2)
-		    ;;
-		*)
-		    echo "$0:ERROR:-D ${_doctrans}" >&2
-		    exit 1
-		    ;;
-	    esac
-	    ;;
-
 	'-F')shift;
 	    FORCE=$1;
 	    case $FORCE in
@@ -406,23 +393,41 @@ while [ -n "$1" ];do
 	    MODE=$1;
 	    ;;
 
+	'--menu-create'*)
+	    cMENU=${1#*=};
+	    case "$cMENU" in
+		[sS][hH][aA][rR][eE][dD])cMENU=SHARED;;
+		[pP][rR][iI][vV][aA][tT][eE])cMENU=PRIVATE;;
+		*)
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Erroneous option:${1}"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Requires one of:--create-menu=<flag>"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "   PRIVATE"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "   SHARED"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Refer to \"ctys-xdg --create-menu\""
+		    gotoHell ${ABORT}
+		;;
+	    esac
+	    ;;
+
 	'-P')shift;
 	    _pkg=$1;
-
-	    case $_pkg in
-		'UserHomeCopy')
+	    _pkgU="`echo ${_pkg}|tr '[:lower:]' '[:upper:]'`";
+	    case $_pkgU in
+		'USERHOMECOPY'|'UHC')
 		    INSTTYPE=UserHomeCopy;
 		    ;;
 
-		'UserHomeLinkonly')
+		'USERHOMELINKONLY'|'UHL')
 		    INSTTYPE=UserHomeLinkonly;
 #		    INSTDIR="${MYLIBPATH}";
 		    LINKONLY="linkonly";
 		    ;;
 
-		'SharedAnyDirectory,'*)
+		'SHAREDANYDIRECTORY,'*|'SAD,'*)
 		    INSTTYPE=SharedAnyDirectory;
-		    INSTDIR="${_pkg/$INSTTYPE,}";
+#4TEST: 		    INSTDIR="${_pkg/$INSTTYPE,}";
+ 		    INSTDIR="${_pkg#*,}";
 		    INSTDIR="${INSTDIR%%,*}";
 
 		    LNKDIRTMP="${_pkg//*,}";
@@ -431,17 +436,20 @@ while [ -n "$1" ];do
 		    fi
  		    ;;
 
-		'SharedAnyLinkonly,'*)
+		'SHAREDANYLINKONLY,'*|'SAL,'*)
 		    INSTTYPE=SharedAnyLinkonly;
-		    INSTDIR="${_pkg/$INSTTYPE,}";
+#4TEST:		    INSTDIR="${_pkg/$INSTTYPE,}";
+ 		    INSTDIR="${_pkg#*,}";
 		    INSTDIR="${INSTDIR%%,*}";
-		    LNKDIR="${_pkg//*,}";
+#4TEST:			    LNKDIR="${_pkg//*,}";
+		    LNKDIR="${_pkg##*,}";
 		    LINKONLY="linkonly";
 		    ;;
 
-		'AnyDirectory,'*)
+		'ANYDIRECTORY,'*|'AD,'*)
 		    INSTTYPE=AnyDirectory;
-		    INSTDIR="${_pkg/$INSTTYPE,}";
+#4TEST:		    INSTDIR="${_pkg/$INSTTYPE,}";
+		    INSTDIR="${_pkg##*,}";
  		    INSTDIR="${INSTDIR%%,*}";
 		    if [ -z "${INSTDIR}" ];then
 			echo "ERROR:Missing installation target:\"$_pkg\"">&2
@@ -502,6 +510,14 @@ if [ -n "$_printVersion" ];then
     exit 0;
 fi
 
+#
+#release public access to shared pools
+#for now easy-doing, 'cause it doesn't hurt
+#but should be done locally a.s.a.p.
+case "$INSTTYPE" in
+    'SharedAnyDirectory'|'AnyDirectory')MODE=${MODE:-$DEFAULT_MODE_SHARED};;
+esac
+
 TARGETLST=`fetchGroupMemberHosts ${TARGETLST}`
 for i in ${TARGETLST};do
     if [ "${i}" == "localhost" ];then
@@ -524,7 +540,8 @@ for i in ${TARGETLST};do
 	fi
  	echo " ->KEYS=\"${KEYS}\""
 
-	case "$INSTTYPE" in
+
+ 	case "$INSTTYPE" in
 	    'UserHomeCopy'|'UserHomeLinkonly'|'UserAnyDirectory'|'SharedAnyDirectory'|'SharedAnyLinkonly'|'AnyDirectory')
 		echo " ->install"
 		echo "   from  :\"$(dirname ${MYCALLPATH})\""
@@ -629,6 +646,28 @@ for i in ${TARGETLST};do
 			ssh -X -t -t ${i} chmod -R ${MODE} "${HOME}/lib/ctys-$(${MYCALLPATH}/getCurCTYSRel.sh)"
 		    fi
 		fi
+
+		case "${cMENU}" in
+		    SHARED)
+			case "$INSTTYPE" in
+			    'AnyDirectory')
+				_mySRC=${INSTDIR}/conf/ctys/xdg.d/SHARED;
+				echo " ->XDG:ctys-xdg --menu-create="${_mySRC}"  --menu-shared --no-user"
+				ssh -X -t -t ${i} PATH=/usr/xpg4/bin:\$PATH\&\&. \~/.bashrc\&\&"${TMPTARGET}"/bin/ctys-xdg.sh --menu-create="${_mySRC}"  --menu-shared="${INSTDIR}"  --no-user
+				;;
+			    *)
+				echo " ->XDG:ctys-xdg --menu-create="${INSTDIR}"  --menu-shared"
+				ssh -X -t -t ${i} PATH=/usr/xpg4/bin:\$PATH\&\&. \~/.bashrc\&\&"${TMPTARGET}"/bin/ctys-xdg.sh --menu-create="${INSTDIR}"  --menu-shared
+				;;
+# 			    'SharedAnyLinkonly');;
+# 			    'UserHomeCopy'|'UserHomeLinkonly'|'SharedAnyDirectory'|'AnyDirectory');;
+			esac
+			;;
+		    PRIVATE)
+			echo " ->XDG:ctys-xdg --menu-create --menu-private"
+			ssh -X -t -t ${i} PATH=/usr/xpg4/bin:\$PATH\&\&. \~/.bashrc\&\&"${TMPTARGET}"/bin/ctys-xdg.sh --menu-create --menu-private
+			;;
+		esac
 		;;
 
 	    *)

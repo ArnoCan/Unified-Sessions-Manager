@@ -25,6 +25,10 @@ CURDIST=`${CALLDIR}/getCurDistribution.sh`
 CURREL=;
 case $CUROS in
     Linux) 
+	if [ -z "$CURREL" -a -f /etc/meego-release ];then
+	    CURREL=$(cat /etc/meego-release|awk '/MeeGo/{printf("%s",$3);}')
+	fi
+
 	if [ -z "$CURREL" -a -f /etc/redhat-release ];then
 	    case "${CURDIST}" in
 		Scientific) #Tested for:Scientific Linux 5
@@ -36,8 +40,23 @@ case $CUROS in
 		Fedora) #Tested for:Fedora 8
 		    CURREL=`rpm -q fedora-release|sed -n 's/^fedora-release-\([0-9]\+\)-\([0-9]\+\).*$/\1\.\2/p'`
 		    ;;
+		RHEL) #Tested for:Red Hat Enterprise Linux 5.5/6.0
+		    CURREL=$(cat /etc/redhat-release|sed -n 's/Red Hat[^0-9]\+\([0-9\.]\+\).*/\1/p')
+		    ;;
 		EnterpriseLinux) #Tested for:Oracle Enterprise Linux 5.4
 		    CURREL=`rpm -q enterprise-release|sed -n 's/^enterprise-release-\([0-9]\+\)-\([0-9.]\+\).*$/\1\.\2/p'`
+		    ;;
+		XenServer) #Tested for:Citrix XenServer 5.5.0
+		    CURREL=`rpm -q xen-hypervisor|sed -n 's/^xen-hypervisor-[^-]\+-\([0-9]\+.[0-9]\+.[0-9]\+\).*$/\1/p'`
+		    ;;
+		ESX) #Tested for:VMware ESX 4.1.0
+		    CURREL=`rpm -q vmware-esx-vmware-release-4|sed -n 's/^vmware-esx-vmware-release-4-\([0-9]\+\).\([0-9.]\+\).*$/\1\.\2/p'`
+		    if [ -z "$CURREL" ];then
+			CURREL=`rpm -q vmware-esx-vmware-release-3|sed -n 's/^vmware-esx-vmware-release-3-\([0-9]\+\)-\([0-9.]\+\).*$/\1\.\2/p'`
+		    fi
+		    if [ -z "$CURREL" ];then
+			CURREL=`rpm -q vmware-esx-vmware-release-5|sed -n 's/^vmware-esx-vmware-release-5-\([0-9]\+\)-\([0-9.]\+\).*$/\1\.\2/p'`
+		    fi
 		    ;;
 		*) 
 		    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
@@ -64,6 +83,16 @@ case $CUROS in
 	    if [ ! -f /etc/lsb-release ];then
 		CURREL="`cat /etc/debian_version`"
                 CURREL=${CURREL// /}
+
+		#now check for Knoppix
+		case $CURREL in
+		    woody*)CURREL=3.0;;
+		    sarge*)CURREL=3.1;;
+		    etch*)CURREL=4.0;;
+		    lenny*)CURREL=5.0;;
+		    squeeze*)CURREL=6.0;;
+		    wheezy*)CURREL=7.0;;
+		esac
 	    else
 		CURREL=`awk -F'=' '/DISTRIB_RELEASE/{printf("%s",$2);}' /etc/lsb-release`
 		if [ -z "$CURREL" ];then

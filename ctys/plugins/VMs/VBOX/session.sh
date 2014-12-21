@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008alpha
+#VERSION:      01_11_011beta
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VBOX_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VBOX_SESSION="01.11.008alpha"
+_myPKGVERS_VBOX_SESSION="01.11.011beta"
 hookInfoAdd $_myPKGNAME_VBOX_SESSION $_myPKGVERS_VBOX_SESSION
 _myPKGBASE_VBOX_SESSION="`dirname ${_myPKGNAME_VBOX_SESSION}`"
 
@@ -198,6 +198,7 @@ function getClientTPVBOX () {
 # $2: ID/pname
 # $3: GuestOS-TCP/IP
 # $4: Console-Type
+# $5: OPt.: start-type: [RESUME]
 #
 #OUTPUT:
 #  RETURN:
@@ -210,10 +211,17 @@ function startSessionVBOX () {
     local _pname=$2;
     local _myVM=$3;
     local _conty=${4:-$CTYS_VBOX_DEFAULTCONTYPE};
+    local _starttype=${5};
+
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL     =$_label"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME     =$_pname"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:VM-TCP/IP =$_myVM"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:CONSOLE   =$_conty"
+    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:START-TYPE=$_starttype"
+
+    case "$_starttype" in
+	RESUME)local _sResume=1;
+    esac
 
     local _isInInventory=NO;
     local _store="";
@@ -254,7 +262,7 @@ function startSessionVBOX () {
 	    checkIsInInventory $_label
 	    if [ $? -ne 0 ];then
 		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:add to inventory:<$_label>"
-		addToInventory $_label
+		inventoryAdd $_label
 		if [ $? -ne 0 ];then
                     ABORT=1;
 		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Check inventory entry:<$_label>"
@@ -274,39 +282,63 @@ function startSessionVBOX () {
     #setup calls
     #
     local CALLER=;
+
+
+
     case ${VBOX_MAGIC} in
 	VBOX_03*)
 	    local _myID=$(fetchUUID ${_pname})
 	    case "${_conty}" in
 		VBOX)
 		    CALLCLIENT=;
-		    CALLSERVER="${VBOXEXE} --startvm $_myID";
+		    if [ -z "$_sResume" ];then
+			CALLSERVER="${VBOXEXE} --startvm $_myID";
+		    else
+			CALLSERVER="vmMgrVBOX RESUME '$_label' '$_myID' gui"
+		    fi
 		    ;;
 
 		SDL)
 		    CALLCLIENT=;
-		    CALLSERVER="${VBOXSDL} --startvm $_myID";
+		    if [ -z "$_sResume" ];then
+			CALLSERVER="${VBOXSDL} --startvm $_myID";
+		    else
+			CALLSERVER="vmMgrVBOX RESUME '$_label' '$_myID' gui"
+		    fi
 		    ;;
 
 		RDP)
-		    #
-		    #for alpha ignoring connectionforwarding for now, will be added a.s.a.p.
+                    #
+	   	    #for alpha ignoring connectionforwarding for now, will be added a.s.a.p.
 		    #
                     _myRDPPort=$(getFirstFreeRDPPort $RDP_BASEPORT)
 		    CALLCLIENT="${RDPRDESK} localhost:$_myRDPPort"
 
 		    CALLCLIENTARGS=
-		    CALLSERVER="${VBOXHEADLESS} --vrdpport $_myRDPPort --startvm $_myID "
+
+		    if [ -z "$_sResume" ];then
+			CALLSERVER="${VBOXHEADLESS} --vrdpport $_myRDPPort --startvm $_myID "
+		    else
+			CALLSERVER="vmMgrVBOX RESUME '$_label' '$_myID' vrdp"
+		    fi
 		    ;;
 
 		NONE)
                     _myRDPPort=$(getFirstFreeRDPPort $RDP_BASEPORT)
 		    CALLCLIENT=;
-		    CALLSERVER="${VBOXHEADLESS} --vrdpport $_myRDPPort --startvm $_myID "
+		    if [ -z "$_sResume" ];then
+			CALLSERVER="${VBOXHEADLESS} --vrdpport $_myRDPPort --startvm $_myID "
+		    else
+			CALLSERVER="vmMgrVBOX RESUME '$_label' '$_myID' vrdp"
+		    fi
 		    ;;
 		*)
 		    CALLCLIENT=;
-		    CALLSERVER="${VBOXEXE} --startvm $_myID";
+		    if [ -z "$_sResume" ];then
+			CALLSERVER="${VBOXEXE} --startvm $_myID";
+		    else
+			CALLSERVER="vmMgrVBOX RESUME '$_label' '$_myID'"
+		    fi
 		    ;;
 	    esac
 	    printDBG $S_VBOX ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:_conty=\"${_conty}\""
@@ -320,10 +352,15 @@ function startSessionVBOX () {
     case ${VBOX_MAGIC} in
 	*)
 	    if [ -n "${CALLSERVER}" ];then
-		CALLSERVER="callErrOutWrapper $LINENO $BASH_SOURCE ${CALLSERVER}"
+		if [ -z "$_sResume" ];then
+		    CALLSERVER="callErrOutWrapper $LINENO $BASH_SOURCE ${CALLSERVER}"
+		fi
+
 	    fi
 	    if [ -n "${CALLCLIENT}" ];then
-		CALLCLIENT="callErrOutWrapper $LINENO $BASH_SOURCE ${CALLCLIENT}"
+		if [ -z "$_sResume" ];then
+		    CALLCLIENT="callErrOutWrapper $LINENO $BASH_SOURCE ${CALLCLIENT}"
+		fi
 	    fi
 	    ;;
     esac
@@ -356,8 +393,12 @@ function startSessionVBOX () {
  	    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VBOX_MAGIC}-CALLSERVER=${_store}"
 	    case ${VBOX_MAGIC} in
 		*)
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER}"
-		    eval ${CALLSERVER}&>/dev/null&
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER}"
+		    if [ -z "$_sResume" ];then
+			eval ${CALLSERVER}&>/dev/null&
+		    else
+			eval ${CALLSERVER}
+		    fi
 		    ;;
 	    esac
 	    sleep ${_waitsVBOX};
@@ -367,11 +408,11 @@ function startSessionVBOX () {
  		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VBOX_MAGIC}-CALLCLIENT=${CALLCLIENT}"
 		case ${VBOX_MAGIC} in
 		    VBOX_03*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
 			eval ${CALLCLIENT} "${CALLCLIENTARGS}"&>/dev/null&
 			;;
 		    *)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
 			eval ${CALLCLIENT} &
 			;;
 		esac
@@ -430,11 +471,11 @@ function startSessionVBOX () {
 	    case ${VBOX_MAGIC} in
 		VBOX_03*)
  		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${CALLCLIENT} ${CALLCLIENTARGS}"
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS:+\"$CALLCLIENTARGS\"}&"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS:+\"$CALLCLIENTARGS\"}&"
 		    eval ${CALLCLIENT} ${CALLCLIENTARGS:+"$CALLCLIENTARGS"}&
 		    ;;
 		*)
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} &"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} &"
 		    eval ${CALLCLIENT} &
 		    ;;
 	    esac
@@ -506,6 +547,7 @@ function connectSessionVBOX () {
     local _actaccessID=${3}
     local _myVM=$4;
     local _myCon=${5:-$CTYS_VBOX_DEFAULTCONTYPE_CONNECT};
+    local _myConStartType=${6};
 
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:ID        =$_pname"
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL     =$_label"
@@ -597,16 +639,16 @@ function connectSessionVBOX () {
 #EXAMPLE:
 #
 #PARAMETERS:
-# $1:                 $2       $3   $4         $5
+# $1:                 $2       $3   $4          $5
 #---------------------------------------------------------------------
-# START|CREATE|RESUME <label>  <id> [<params>]            => START
-# STOP|CANCEL         <label>  <id>                       => STOP
-# SUSPEND             <label>  <id>                       => SUSPEND
-# RESET               <label>  <id>                       => RESET
-# POWEROFF            <label>  <id> <timeout>  <vm-pid>
-#                                                         => STOP \
-#                                                            &&sleep <timeout>  \
-#  <id>:=lable|uuid|pathname                                 &&kill -9 <vm-pid>
+# START|CREATE|RESUME <label>  <id> [<params>]]                 => START
+# STOP|CANCEL         <label>  <id>                             => STOP
+# SUSPEND             <label>  <id>                             => SUSPEND
+# RESET               <label>  <id>                             => RESET
+# POWEROFF            <label>  <id>  <timeout>  <vm-pid>
+#                                                               => STOP \
+#                                                                  &&sleep <timeout>  \
+#  <id>:=label|uuid|pathname                                       &&kill -9 <vm-pid>
 #
 #
 #
@@ -623,26 +665,30 @@ function vmMgrVBOX () {
     local _id=$1;shift
     [ -n "$_id" ]&&_id=$(fetchUUID $_id)
 
-    printINFO 1 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Check hypervisor now for remaining VM:$_label"
+    printINFO 2 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Check hypervisor now for remaining VM:$_label"
     case $_cmd in
 	START|CREATE)
 	    local _params=$1;shift
             if [ -z "${C_NOEXEC}" ];then
-		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
+		printINFO 2 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
 		case $VBOX_MAGIC in
 		    VBOX_03*)
 			case $(_params) in
 			    gui)
 				local _call="${VBOXMGR} startvm '$_id' -type gui"
-				printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+				printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 				eval ${_call}
 				;;
 			    nogui|vrdp)
 				local _call="${VBOXMGR} startvm '$_id' -type vrdp"
-				printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+				printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 				eval ${_call}
 				;;
 			    *)
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing console type:"
+				printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:_id=${_id} - _label=${_label}"
+				gotoHell ${ABORT}
 				;;
 			esac
 			;;
@@ -656,6 +702,10 @@ function vmMgrVBOX () {
             ABORT=1;
 	    local _idX=$(fetchID4PID ${_pid});
             if [ -z "${_idX}" ];then
+		_idX=$(fetchUUID4PID ${_pid});
+	    fi
+
+            if [ -z "${_idX}" ];then
 		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Server is already stopped by STACK operations."
 	    else
 		if [ -z "${C_NOEXEC}" ];then
@@ -663,7 +713,7 @@ function vmMgrVBOX () {
 		    case $VBOX_MAGIC in
 			VBOX_03*)
 			    local _call="${VBOXMGR} controlvm '$_id' poweroff"
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			    eval ${_call}
 			    ;;
 		    esac
@@ -704,7 +754,20 @@ function vmMgrVBOX () {
 		case $VBOX_MAGIC in
 		    VBOX_03*)
 			local _call="${VBOXMGR} controlvm '$_id' savestate"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			eval ${_call}
+			;;
+		esac
+	    fi
+	    ;;
+
+	PAUSE)
+            if [ -z "${C_NOEXEC}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:SUSPEND"
+		case $VBOX_MAGIC in
+		    VBOX_03*)
+			local _call="${VBOXMGR} controlvm '$_id' pause"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call}
 			;;
 		esac
@@ -713,12 +776,30 @@ function vmMgrVBOX () {
 
 	RESUME)
 	    local _params=$1;shift
+	    local _curstate=$(fetchState "$_id");
             if [ -z "${C_NOEXEC}" ];then
 		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:$_cmd"
 		case $VBOX_MAGIC in
 		    VBOX_03*)
-			local _call="${VBOXMGR} controlvm '$_id' resume"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			case "$_curstate" in
+			    PAUSE)
+				local _call="${VBOXMGR} controlvm '$_id' resume "
+				;;
+			    *)
+				case ${_params} in
+				    gui)
+					local _call="${VBOXMGR} startvm '$_id' -type gui"
+					;;
+				    nogui|vrdp)
+					local _call="${VBOXMGR} startvm '$_id' -type vrdp"
+					;;
+				    *)
+					local _call="${VBOXMGR} startvm '$_id' "
+					;;
+				esac
+				;;
+			esac
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call}
 		esac
 	    fi
@@ -732,9 +813,9 @@ function vmMgrVBOX () {
 		case $VBOX_MAGIC in
 		    VBOX_03*)
 			local _call="${VBOXMGR} controlvm '$_id' reset"
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
 			eval ${_call}
-		    ;;
+			;;
 		esac
 	    fi
 	    ;;
@@ -791,7 +872,7 @@ function connectSessionVBOXRDP () {
     #
     local CALLER="${RDPRDESK} ${_vieweropt} 127.0.0.1:${_id}"
     printDBG $S_VBOX ${D_FRAME} $LINENO $BASH_SOURCE "${CALLER}"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
     export C_ASYNC;
 
     if [ -z "${C_NOEXEC}" ];then

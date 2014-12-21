@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_010
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_XEN_CREATE="${BASH_SOURCE}"
-_myPKGVERS_XEN_CREATE="01.11.010"
+_myPKGVERS_XEN_CREATE="01.11.011"
 hookInfoAdd $_myPKGNAME_XEN_CREATE $_myPKGVERS_XEN_CREATE
 _myPKGBASE_XEN_CREATE="`dirname ${_myPKGNAME_XEN_CREATE}`"
 
@@ -80,6 +80,7 @@ function createConnectXEN () {
 			-o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
 			-o -z "${ARG}" -a "${KEY}" == "CONNECT" \
 			-o -z "${ARG}" -a "${KEY}" == "RESUME" \
+			-o -z "${ARG}" -a "${KEY}" == "INSTMODE" \
 			];then
 			case $KEY in
 			    CONNECT)
@@ -161,7 +162,8 @@ function createConnectXEN () {
 				let _unambig++;
 				;;
 			    ID|I|PATHNAME|PNAME|P)
-				if [ -n "${ARG##/*}" ]; then
+				local _ta="${ARG//\\}"
+				if [ -n "${_ta##/*}" ]; then
 				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				    printERR $LINENO $BASH_SOURCE ${ABORT} " PNAME=${ARG}"
@@ -271,6 +273,7 @@ function createConnectXEN () {
 #				    VHDD);;
 				    PXE);;
 				    KS);;
+				    '')_instmode=CONFIG;;
 				    *)
 					ABORT=1;
 					printERR $LINENO $BASH_SOURCE ${ABORT} "Unsupported INSTMODE=${_instmode}"
@@ -454,6 +457,11 @@ function createConnectXEN () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -471,6 +479,7 @@ function createConnectXEN () {
 		    -o -z "${ARG}" -a "${KEY}" == "RECONNECT" \
   		    -o -z "${ARG}" -a "${KEY}" == "CONNECT" \
 		    -o -z "${ARG}" -a "${KEY}" == "RESUME" \
+		    -o -z "${ARG}" -a "${KEY}" == "INSTMODE" \
 		    ];then
 		    case $KEY in
  			CONNECT)
@@ -546,13 +555,14 @@ function createConnectXEN () {
 			ID|PATHNAME|PNAME|P)
                             #can be checked now, no additional combination check required 
                             #due to previous CHECKPARAM.
-                            if [ ! -f "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given file or access permission for ID/PNAME"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${ARG}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${ARG}";
+                            local _pname="${_ta}";
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "PATHNAME=${_pname}"
 			    ;;
 			CALLOPTS|C)
@@ -620,13 +630,14 @@ function createConnectXEN () {
 #				VHDD);;
 				PXE);;
 				KS);;
+				'')_instmode=CONFIG;;
 				*)
 				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "Unsupported INSTMODE=${_instmode}"
  				    gotoHell ${ABORT}
 				    ;;
 			    esac
-			    _instmode="${ARG// /%}";
+			    _instmode="${_instmode// /%}";
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "INSTMODE=${_instmode}"
 			    ;;
 

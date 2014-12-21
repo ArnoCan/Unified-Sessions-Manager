@@ -30,8 +30,6 @@ ctys-genmconf
    [-x (PM|VM)]
    <execution-target-list>
 
-
-
 DESCRIPTION
 ===========
 

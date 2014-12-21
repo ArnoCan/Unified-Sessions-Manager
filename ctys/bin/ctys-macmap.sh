@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_011
 #DESCRIPTION:
 #  Generated a sorted list of output for a matchin regexpr.
 #
@@ -456,6 +456,7 @@ for i in $argLst;do
     awk -F';' -v s="${i}" -v i=$_ip -v m=$_mac -v n=$_name \
           '
           BEGIN       {cache="";mx=0;}
+          s~/[0-9a-fA-F][0-9a-fA-F]:[0-9a-fA-F][0-9a-fA-F]/ {s=toupper(s);}
           $0~s&&n==1  {cache=cache $1;  mx=1;}
           $0~s&&m==1  {if(mx==1)cache=cache ";";cache=cache $2;  mx=1;}
           $0~s&&i==1  {if(mx==1)cache=cache ";";cache=cache $3;  mx=1;}

@@ -21,7 +21,6 @@ X11_VERSTRING=;
 X11_STATE=DISABLED;
 X11SERVER_OPT=;
 X11VIEWER_OPT=;
-X11_PREREQ=;
 X11_PRODVERS=;
 
 
@@ -32,6 +31,8 @@ hookInfoAdd $_myPKGNAME_X11 $_myPKGVERS_X11
 _myPKGBASE_X11="${_myPKGNAME_X11%/hook.sh}"
 
 X11_VERSTRING=${_myPKGVERS_X11};
+X11_PREREQ=;
+X11_PREREQ0="HOST-CAPABILITY:X11-${X11_VERSTRING}-${MYARCH}";
 
 
 C_X11_DEFAULT="${C_X11_DEFAULT:-bash -l -i}"
@@ -196,6 +197,8 @@ function setVersionX11 () {
 	local _checkonly=1;        
     fi
 
+    X11_PREREQ=;
+
     local _verstrg=;
     if [ -z "$X11EXE" ];then
 	ABORT=2
@@ -217,6 +220,7 @@ function setVersionX11 () {
 
 
     _verstrg=`${X11EXE} -version 2>&1|awk '/(X Protocol Version)/{x="X"$4"R"$6"-"$8;gsub(",","",x);printf("%s",x);}'`
+
     if [ -z "${_verstrg}" ];then
 	printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${X11EXE} -version)\"` => [ `setSeverityColor ERR NOK` ]"
 	case ${MYOS} in
@@ -263,10 +267,18 @@ function setVersionX11 () {
     if [ -n "$X11XTERMEXE" ];then
 	local _xtermver=`callErrOutWrapper $LINENO $BASH_SOURCE ${X11XTERMEXE} -version `
 	if [ -n "$_xtermver" ];then
-	    X11_PREREQ="${X11_PREREQ} xterm-${_xtermver}";
-	    _ret=0;
+	    if [ "${_xtermver//urxvt}" != "${_xtermver}" ];then
+		_xtermver=$(${X11XTERMEXE} -version 2>&1|sed -n 's/^rxvt-unicode[^0-9]*\([0-9]\+\.[0-9]\+\).*/\1/p' )
+		X11_PREREQ="${X11_PREREQ} X11:XTerm:${_xtermver}";
+		_ret=0;
+	    else
+		_xtermver=${_xtermver##*\(};
+                _xtermver=${_xtermver%%\)*}
+		X11_PREREQ="${X11_PREREQ} X11:XTerm:${_xtermver}";
+		_ret=0;
+	    fi
 	else
-	    X11_PREREQ="${X11_PREREQ} <disabled:xterm>";
+	    X11_PREREQ="${X11_PREREQ} <disabled:X11:xterm>";
 	    _ret=2;
 	fi
     fi
@@ -286,8 +298,10 @@ function setVersionX11 () {
 
     if [ -n "$X11GDMEXE" ];then
 	local _gdmver=`callErrOutWrapper $LINENO $BASH_SOURCE ${X11GDMEXE} --version|awk '/GDM/{printf("gdm-%s",$2);}' `
+	_gdmver=${_gdmver// /_};
+	_gdmver=${_gdmver##*[^0-9]-};
 	if [ -n "$_gdmver" ];then
-	    X11_PREREQ="${X11_PREREQ} GNOME:${_gdmver// /_}:gdm";
+	    X11_PREREQ="${X11_PREREQ} GNOME:gdm:${_gdmver// /_}";
 	    _ret=0;
 	else
 	    X11_PREREQ="${X11_PREREQ} <disabled:GNOME:gdm>";
@@ -298,7 +312,7 @@ function setVersionX11 () {
     if [ -n "$X11GTERMEXE" ];then
 	local _gtermver=`callErrOutWrapper $LINENO $BASH_SOURCE ${X11GTERMEXE} --version|awk '/terminal/{printf("%s",$3);}' `
 	if [ -n "$_gtermver" ];then
-	    X11_PREREQ="${X11_PREREQ} GNOME:gnome-terminal${_gtermver}";
+	    X11_PREREQ="${X11_PREREQ} GNOME:gnome-terminal:${_gtermver}";
 	    _ret=0;
 	else
 	    X11_PREREQ="${X11_PREREQ} <disabled:GNOME:gnome-terminal>";
@@ -309,7 +323,14 @@ function setVersionX11 () {
     if [ -n "$X11KDMEXE" ];then
 	local _kdmexe=`callErrOutWrapper $LINENO $BASH_SOURCE ${X11KDMEXE} --help `
 	if [ -n "$_kdmexe" ];then
-	    X11_PREREQ="${X11_PREREQ} KDE:kdm";
+	    if [ -n "$X11KDECONFEXE" ];then
+		local _kdexc=$(callErrOutWrapper $LINENO $BASH_SOURCE ${X11KDECONFEXE} --version)
+		local _kdexV=${_kdexc##*KDE:};_kdexV=${_kdexV## };_kdexV=${_kdexV%%[^0-9.]*}
+		local _kdexQ=${_kdexc##*Qt:};_kdexQ=${_kdexQ## };_kdexQ=${_kdexQ%%[^0-9.]*}
+		X11_PREREQ="${X11_PREREQ} KDE:kdm:${_kdexV} KDE:Qt:${_kdexQ}";
+	    else
+		X11_PREREQ="${X11_PREREQ} KDE:kdm:x.x";
+	    fi
 	    _ret=0;
 	else
 	    X11_PREREQ="${X11_PREREQ} <disabled:KDE:kdm>";
@@ -320,7 +341,7 @@ function setVersionX11 () {
     if [ -n "$X11FVWMEXE" ];then
         local _fvwmver=`${X11FVWMEXE} --version 2>&1 |awk '/[^-][vV]ersion/{printf("%s",$3);}'`
 	if [ -n "$_fvwmver" ];then
-	    X11_PREREQ="${X11_PREREQ} FVWM:fvwm-${_fvwmver// /_}:fvwm";
+	    X11_PREREQ="${X11_PREREQ} FVWM:fvwm:fvwm-${_fvwmver// /_}";
 	    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${X11FVWMEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
 	    _ret=0;
 	else
@@ -333,16 +354,22 @@ function setVersionX11 () {
     if [ -n "$X11XFCE4EXE" ];then
 #	local _xfcever=`xfce4-session --version|awk '/xfce4-session 4/{printf("%s-%s",$1,$2);}'`
 	local _xfcever=`callErrOutWrapper $LINENO $BASH_SOURCE ${X11XFCE4SESEXE} --version|awk '/xfce4-session 4/{printf("%s-%s",$1,$2);}' `
+	_xfcever=${_xfcever// /_};
+	_xfcever=${_xfcever##*[^0-9]-};
 	if [ -n "$_xfcever" ];then
-	    X11_PREREQ="${X11_PREREQ} XFCE:${_xfcever// /_}:startxfce4+xfce4-session";
+	    X11_PREREQ="${X11_PREREQ} XFCE:startxfce4+xfce4-session:${_xfcever// /_}";
 	else
-	    X11_PREREQ="${X11_PREREQ} XFCE:${_xfcever// /_}:startxfce+xfce-session";
+	    X11_PREREQ="${X11_PREREQ} XFCE:startxfce+xfce-session:${_xfcever// /_}";
 	fi
 	_ret=0;
-    else
-	X11_PREREQ="${X11_PREREQ} <disabled:Xfce4:startxfce4>";
-	_ret=2;
-    fi
+
+#reminder
+#     else
+# 	X11_PREREQ="${X11_PREREQ} <disabled:Xfce4:startxfce4>";
+# 	_ret=2;
+#     fi
+    fi 
+
 
     #currently somewhat restrictive to specific versions.
     case ${_verstrg} in
@@ -351,13 +378,14 @@ function setVersionX11 () {
 	    X11_STATE=ENABLED;
 	    X11SERVER_OPT=;
 	    X11VIEWER_OPT=;
-	    X11_PREREQ="HOST-CAPABILITY:X11-${X11_VERSTRING}-${MYARCH}%${_verstrg}-${MYARCH} ${X11_PREREQ}";
+	    X11_PREREQ="${X11_PREREQ0}%${_verstrg}-${MYARCH} ${X11_PREREQ}";
 	    _ret=0;
 	    ;;
         *)
 	    X11_MAGIC=X11G;
 	    X11SERVER_OPT=;
 	    X11VIEWER_OPT=;
+	    X11_PREREQ="${X11_PREREQ0} ${X11_PREREQ}";
 	    _ret=2;
 	    ;;
     esac

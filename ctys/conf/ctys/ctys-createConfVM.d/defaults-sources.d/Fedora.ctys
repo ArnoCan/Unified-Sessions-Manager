@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -47,6 +47,21 @@ function set-Fedora () {
 	    case ${C_SESSIONTYPE} in
 		XEN) set-Fedora-12-XEN;;
 	    esac
+	    ;;
+	13)
+	    case ${C_SESSIONTYPE} in
+		QEMU) set-Fedora-13-QEMU;;
+	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
 	    ;;
     esac
 }
@@ -197,3 +212,41 @@ function set-Fedora-12-XEN () {
 }
 
 
+
+
+#*******************************************************************
+#
+#DIST: Fedora-13
+#
+function set-Fedora-13-QEMU () {
+    DEFAULTINSTMODE=CD;
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/fedora/$R/x86_64/iso/Fedora-$R-x86_64-DVD
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/fedora/$R/x86_64/iso/Fedora-$R-x86_64-DVD.iso
+    case ${ACCELERATOR} in
+	QEMU)
+	    _MATCHED=1;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-Fedora-$R.ks"}
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+	    #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+
+ 	    DEFAULT_BOOTLOADER=;
+	    ;;
+	KVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=;
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
+	    ;;
+    esac
+
+}

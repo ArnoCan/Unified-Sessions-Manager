@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_010
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -191,7 +191,8 @@ function createConnectVMW () {
 				;;
 			    ID|I|PATHNAME|PNAME|P)
                                 #can (partly for relative names) be checked now
-				if [ -n "${ARG##/*}" ]; then
+				local _ta="${ARG//\\}"
+				if [ -n "${_ta##/*}" ]; then
 				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				    printERR $LINENO $BASH_SOURCE ${ABORT} " PNAME=${ARG}"
@@ -223,10 +224,17 @@ function createConnectVMW () {
 					;;
 
 				    VMWRC|VMRC)
+					if [ "${C_EXECLOCAL}" ==  1 -a -z "${CTYS_VMW_VMRC// /}" ];then
+					    ABORT=1;
+					    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VMWRC/VMRC."
+ 					    gotoHell ${ABORT}
+					fi
+
 					if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" ];then
 					    printWNG 1 $LINENO $BASH_SOURCE 0 "CONNECTIONFORWARDING for VMRC is currently ALPHA."
-					    printWNG 1 $LINENO $BASH_SOURCE 0 "Due to VMRC the final login may fail for CONNECTIONFORWARDING."
-					    printWNG 1 $LINENO $BASH_SOURCE 0 "If so, use DISPLAYFORWARDING."
+					    printWNG 1 $LINENO $BASH_SOURCE 0 "Due to VMRC the final login may eventually fail "
+					    printWNG 1 $LINENO $BASH_SOURCE 0 "for CONNECTIONFORWARDING. If so, "
+					    printWNG 1 $LINENO $BASH_SOURCE 0 "use DISPLAYFORWARDING."
 					fi
 					;;
 
@@ -477,6 +485,11 @@ function createConnectVMW () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -601,7 +614,8 @@ function createConnectVMW () {
 			    ;;
 
 			ID|PATHNAME|PNAME|P)
-                            if [ -n "${_pname}" -a "${_pname}" != "${ARG}" ];then
+  			    local _ta="${ARG//\\}"
+                            if [ -n "${_pname}" -a "${_pname}" != "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "This version supports just ONE KEY=<${KEY}> "
 				printERR $LINENO $BASH_SOURCE ${ABORT} "for each ACTION=<${ACTION}> call"
@@ -610,13 +624,13 @@ function createConnectVMW () {
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Will be extended soon."
  				gotoHell ${ABORT}
                             fi
-                            if [ ! -f "${ARG}" ];then
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given file or access permission for ID/PNAME"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${ARG}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${ARG}";
+                            local _pname="${_ta}";
 			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RANGE:PATHNAME=${_pname}"
 			    ;;
 

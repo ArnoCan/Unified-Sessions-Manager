@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -61,7 +61,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_011
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -353,7 +353,7 @@ fi
 
 ###################
 #generic
-DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
+DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-CLI}
 DEFAULT_CTYS_MULTITYPE=${DEFAULT_CTYS_MULTITYPE:-DEFAULT}
 DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}

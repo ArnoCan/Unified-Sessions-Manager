@@ -1,0 +1,239 @@
+.TH "ctys-help-on" 1 "October, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-help-on - Einheitliche Online-Schnittstelle fuer Hilfe\fR
+
+.SH SYNTAX
+.P
+\fB<ctys\-command>\fR
+
+-H <help-option>
+
+   <help-option>:=
+         (man|html|pdf)][=((1-9)|<help-on-item>[,<help-on-item-list>])
+       | (path|list|listall)
+       | funcList=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | funcListMod=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
+     )
+
+
+.SH BESCHREIBUNG
+.P
+Die \fB\-H\fR Option is die einheitliche generische Option fuer alle Tools zur ausgabe der Online\-Hilfe.
+
+.P
+Der Default ist die Ausgabe der 'man pages' auf die Konsole.
+Dies kann jedes beliebige Dokument sein, das sich innerhalb der Suchpfade befindet, die durch die Variable MANPATH definiert sind.
+Insabesondere sind auch eindeutige Teil\-Strings zulaessig.
+Das Ausgabeformat kann auch als PDF bzw. HTML spezifiziert werden.
+
+.P
+Dieses Tool wird auch fuer die Menueeintraege der XDG Desktops von Freedesktop.org eingesetzt.
+Dafuer wird als Online\-Manual eine einache Liste  \fBdoc.html\fR fuer das \fBDOC\-Packet\fR,
+und die Datei \fBbase.html\fR fuer das \fBBASE\-Packet\fR bereitgestellt.
+
+.P
+\fBANMERKUNG:\fR
+Fuer die \fB\-H\fR Option der speziellen Aufrufe 'ctys \-H man' und 'ctys\-vhost \-H man' ist der 'man' Parameter Pflicht, alle anderen arfordern diesen nicht explizit, verwenden diesen bei Fehlen als Voreinstellung.
+
+.P
+\&.
+
+.SH OPTIONEN
+.P
+The following suboptions and parameters could be applied:
+
+.TP
+\fB\-H path\fR
+Zeigt den altuellen Dokumenten und MAN Suchpfad.
+
+.TP
+\fB\-H list\fR
+Listet aktuell verfuebare Online\-Documente und MAN\-Pages exclusive dem System\-MAN\-Pages.
+
+.TP
+\fB\-H listall\fR
+Listet aktuell verfuebare Online\-Documente und MAN\-Pages inclusive dem System\-MAN\-Pages.
+
+.TP
+\fB\-H (man|html|pdf)[=([1\-9]|[<help\-on\-item\-list>])\fR
+Zeigt die angeforderte infomation in dem gewaehlten Format:
+\fBman\fR, \fBpdf\fR oder \fBhtml\fR.
+Die folgende Liste zeigt die Voreinstellung in der benutzten Prioritaet abhaengig von der verfuegbarkeit.
+
+.nf
+  CTYS_MANVIEWER=man
+  CTYS_PDFVIEWER=(acroread else kpdf else gpdf)
+  CTYS_HTMLVIEWER=(konqueror else firefox)
+.fi
+
+
+Default ausgabe ist \fBmanpage\fR des aufrufenden Programs mit \fBman 1 ...\fR.
+Es koennen Teilstrings benutzt werden \- einschliesslich System\-Manpages.
+Der erste Treffer wird dann angezeigt.
+
+.TP
+\fB\-H funcList[=[<any\-function>][@<module\-name>[@...]]]\fR
+Zeigt eine Liste aller Funktionsnamen.
+Es werden zusaetzlich Dateiname und Funktionsname ausgegeben.
+
+.TP
+\fB\-H funcListMod[=[<any\-function>][@<module\-name>[@...]]]\fR
+Zeigt eine Liste von Funktionsnamen optional in Modulen an.
+Es werden zusaetzlich Dateiname und Funktionsname ausgegeben.
+
+.TP
+\fB\-H funcHead[=[<any\-function>][@<module\-name>[@...]]]\fR
+Zeigt die aller oder gewaehlter Funktions\-Header in Modulen an.
+
+.P
+\&.
+
+.SH BEISPIELE
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H html=base\fR
+
+Zeigt die Startseite fuer die Online\-Hilfe des \fBBASE package\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H html=doc\fR
+
+Zeigt die Startseite fuer die Online\-Hilfe des \fBDOC package\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H list\fR
+
+Listet verfuegbare Online Dokumente und Manpages.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H ctys\fR
+
+Zeigt die \fBmanpage\fR fuer ctys mit \fBman\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H man=ctys\fR
+
+Zeigt die \fBmanpage\fR fuer ctys mit \fBman\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H html=ctys\fR
+
+Zeigt die \fBmanpage\fR fuer ctys mit CTYS_HTMLVIEWER,
+als Default \fBfirefox\fR oder \fBkonqueror\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H pdf=ctys\fR
+
+Zeigt die \fBmanpage\fR fuer ctys mit CTYS_PDFVIEWER,
+als Default \fBkpdf\fR, \fBgpdf\fR  oder \fBacroread\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H pdf=howto\fR
+
+Zeigt die \fBctys\-howto\-online.pdf\fR, 
+Es erfolgt ein Suchen mit First\-Wins, d.h. der String muss
+eindeutig Treffen, der kuerzere gewinnt.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H pdf=howto\-print\fR
+
+Zeigt die \fBctys\-howto\-print.pdf\fR, 
+Es erfolgt ein Suchen mit First\-Wins, d.h. der String muss
+eindeutig Treffen, der kuerzere gewinnt.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H pdf=command\-ref\fR
+
+Zeigt \fBctys\-command\-reference.pdf\fR.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H html=CLI,X11,VNC,VMW\fR
+
+Zeigt die  \fBmanpage\fR fuer ctys\-CLI, ctys\-X11, ctys\-VNC und
+ctys\-VNM with CTYS_HTMLVIEWER,
+als Default \fBfirefox\fR oder \fBkonqueror\fR.
+Fuer unvollstaendige Namen wird Suchen mit \fBfind\fR benutzt.
+.RE
+
+.RS
+.IP \(bu 3
+\fB<ctys\-command> \-H html=ctys\-extractARPlst,extractMAClst\fR
+.RE
+
+.P
+Zeigt die  \fBmanpage\fR fuer ctys\-extractARPlst und ctys\-extractARPlst
+CTYS_HTMLVIEWER,
+als Default \fBfirefox\fR oder \fBkonqueror\fR.
+Fuer unvollstaendige Namen wird Suchen mit \fBfind\fR benutzt.
+
+.SH SIEHE AUCH
+.TP
+\fBctys manuale\fR
+\fIctys\-command\-reference\-online.pdf\fR, \fIctys\-command\-reference\-print.pdf\fR
+
+.SH AUTOR
+.P
+Kozeption, Design und Implementierung durch Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Wartung:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Kommerziell:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+Dies ist freie Software und Documentation des \fBBASE\fR Pakets,
+
+.RS
+.IP \(bu 3
+fuer Software\-Lizenzen siehe GPL3,
+.IP \(bu 3
+fuer Dokumentations\-Lizenz des BASE\-Pakets siehe GFDL\-1.3 mit
+invarianten Sektionen.
+.RE
+
+.P
+Das gesamte Dokument \- alle Sektionen \- sind als Invariant definiert.
+
+.P
+Fuer weitere Informationen siehe beigefuegte Freigabemitteilung und Lizenz Dateien.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-help-on.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/de/man/man7/ctys-help-on.7
+

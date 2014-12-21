@@ -486,6 +486,7 @@ function setVersionXEN () {
     local _cap=;
     if [ -e "${_syscap}" ];then
 	for i in `cat ${_syscap}`;do
+
 	    if [ -z "${_verstrg}" ];then
 		_verstrg=$i;
 		XEN_PREREQ="${XEN_PREREQ} <${_verstrg}-from(${_syscap// /_})>"
@@ -649,6 +650,22 @@ function setVersionXEN () {
 	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Tested (hypervisor-)versions:"
 	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "->\"xen-3.0.3\"."
 	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "->\"xen-3.2.1\"."
+	    XEN_DEFAULTOPTS="";
+	    XEN_VERSTRING="${_myPKGVERS_XEN}";
+	    XEN_PREREQ="VM-CAPABILITY:XEN-${XEN_VERSTRING}-${MYARCH}${_cap:+%$_cap} ${XEN_PREREQ}"
+	    ;;
+
+	XEN_400)
+	    XEN_DEFAULTOPTS="";
+	    XEN_VERSTRING="${_myPKGVERS_XEN}";
+	    XEN_PREREQ="VM-CAPABILITY:XEN-${XEN_VERSTRING}-${MYARCH}${_cap:+%$_cap} ${XEN_PREREQ}"
+	    ;;
+
+	XEN_4x)
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Setting XEN_MAGIC=\"XEN_4x\" for an untested xen-4.x version."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Tested (hypervisor-)versions:"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "->\"xen-4.0.0_21091_05-6.6\"."
 	    XEN_DEFAULTOPTS="";
 	    XEN_VERSTRING="${_myPKGVERS_XEN}";
 	    XEN_PREREQ="VM-CAPABILITY:XEN-${XEN_VERSTRING}-${MYARCH}${_cap:+%$_cap} ${XEN_PREREQ}"

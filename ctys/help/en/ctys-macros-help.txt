@@ -27,8 +27,6 @@ ctys-macros
    [-X]
    [<macro-list>]
 
-
-
 DESCRIPTION
 ===========
 

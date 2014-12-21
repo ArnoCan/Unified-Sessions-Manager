@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_011
 #
 ########################################################################
 #
-#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_011
 #DESCRIPTION:
 #  Generated a sorted list of 3-column table containing:
 #
@@ -495,7 +495,7 @@ awk -F'=' '
   $1~/_hn/{printf("%s;",$2);}
   /</{block=1;}
   />/{block=0;found=1;}
-  block==1&&$1~/_ma/{printf("%s;",$2);}
+  block==1&&$1~/_ma/{x=toupper($2);printf("%s;",x);}
   block==1&&$1~/_ip/{printf("%s;",$2);}
   found==1{printf("\n");found=0;}
 '|\

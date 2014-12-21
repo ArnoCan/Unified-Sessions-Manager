@@ -20,9 +20,6 @@ ctys-scripts
    [-X]
    [<scripts-list>]
 
-
-
-
 DESCRIPTION
 ===========
 

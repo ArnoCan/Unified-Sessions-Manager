@@ -206,7 +206,8 @@ function cutCancelSessionXEN () {
 			    let _unambig++;
 			    ;;
 			ID|I|PATHNAME|PNAME|P)
-			    if [ -n "${ARG##/*}" ]; then
+			    local _ta="${ARG//\\}"
+			    if [ -n "${_ta##/*}" ]; then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  PNAME=${ARG}"
@@ -301,6 +302,11 @@ function cutCancelSessionXEN () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -443,7 +449,8 @@ function cutCancelSessionXEN () {
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "RANGE:FILENAME=${_fname}"
 			    ;;
 			ID|I|PATHNAME|PNAME|P)
-			    if [ ! -f "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+			    if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given pathname"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  _pname=${ARG}"

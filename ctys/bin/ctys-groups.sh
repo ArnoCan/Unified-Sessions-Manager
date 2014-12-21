@@ -632,6 +632,6 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_GROUPSEDIT ${_editX//%/ }&
+    $CTYS_GROUPSEDIT ${_editX//%/ }&sleep 1
     exit $?
 fi

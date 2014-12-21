@@ -1040,6 +1040,8 @@ function checkAndSetIsHostOrGroup () {
 		printINFO 0 $LINENO $BASH_SOURCE 1 "When using groups check path-prefix,"
 		printINFO 0 $LINENO $BASH_SOURCE 1 "path-prefix is required for 'ctys' start-calls."
 		printINFO 0 $LINENO $BASH_SOURCE 1 "Call 'ctys-groups' for listing available by search."
+		printINFO 0 $LINENO $BASH_SOURCE 1 "Another common reason for this is usage of SPACES in pathnames,"
+		printINFO 0 $LINENO $BASH_SOURCE 1 "SPACES in pathnames are not supported for now."
 #		gotoHell ${ABORT};
 		_myTarget=${1};
 		return ${ABORT};

@@ -1,4 +1,4 @@
-.TH "ctys" 1 "July, 2010" ""
+.TH "ctys" 1 "November, 2010" ""
 
 
 .P
@@ -9,16 +9,14 @@
 \fBctys - Commutate To Your Session\fR
 
 .SH SYNTAX
-.P
-\fBctys\fR 
 
-
-   [<action>]
+   [-t <session-type>]
+   [-a <action>]
    [<generic options>]
    [--]
    <arguments>
 
-
+.SH DESCRIPTION
 .P
 The utility \fBctys\fR is the core interface to be used within the UnifiedSessionsManager.
 \fBctys\fR encapsulates the user interfaces of the whole set of supported hypervisors and
@@ -173,6 +171,7 @@ Internal helper\-methods using the official interface:
 
 .SS CANCEL
 .nf
+  
   CANCEL=(<machine-address>){1}|ALL
     (
       [FORCE|STACK][,]
@@ -189,11 +188,23 @@ Internal helper\-methods using the official interface:
       [TIMEOUT:<timeout-value>]
       [,USER:<user>[%<credentials>]]
     )
+  
 .fi
 
 
 .P
-CANCEL works by default asynchronously, thus is usable in parallel for emergency shutdowns.
+CANCEL terminates running sessions of present plugins.
+This includes HOSTs, VMs, and PMs.
+Thus beneath the handling of virtual and login sessions the management of physical machines is included.
+The CANCEL method includes therefore the handling of state dependencies in a hierarchical manner too.
+This is e.g. when a physical machine is going to be canceled \- shutdown, than the contained remaining
+sessions are going to be canceled too.
+Therefore a vertical dependency is defined, which recognizes and handles the nested execution of
+contained sub\-sessions too.
+
+.P
+CANCEL works by default asynchronously, thus is usable in parallel for emergency shutdowns by typing quickly
+a short syntax.
 
 .TP
 \fB<machine\-address>\fR
@@ -214,7 +225,7 @@ If supported, a kill call is performed after a timeout.
 
 .TP
 \fBSTACK\fR
-Cancels stack by forward propagation of CANCEL request.
+Cancels a stack by forward propagation of CANCEL requests.
 If supported, a kill call is performed after a timeout.
 
 When handling stacks of nested PMs and VMs, the application of CANCEL
@@ -232,7 +243,7 @@ As described above.
 
 .TP
 \fBSTACK\fR
-Uses a chained approach for shutting down by an
+Uses a chained approach for shutting down by a
 top\-down behaviour. Therefore the VM\-stack will be
 first walked up and marked by repetitive sub\-calls
 with defined specific CANCEL suboptions.
@@ -331,6 +342,7 @@ The user to be used for native access to the <action\-target>.
 
 .SS CREATE
 .nf
+  
   CREATE=<machine-address>\e{1\e}
   [
     CONNECT
@@ -342,7 +354,9 @@ The user to be used for native access to the <action\-target>.
   [CONSOLE:<console-type>][,]
   [BOOTMODE:<boot-mode>[%<boot-img-pathname>]][,]
   [(CHDIR|CD):<working-directory-change-to>][,]
-  [INSTMODE:<boot-mode>%<inst-boot-source>%<insttargetmode>%<insttarget>%<inststage>][,]
+  [INSTMODE:
+       <boot-mode>%<inst-boot-source>%<insttargetmode>%<insttarget>%<inststage>]
+       [,]
   [PING:(OFF|<#repetition>%<sleep>)][,]
   [SSHPING:(OFF|<#repetition>%<sleep>)][,]
   [STACKCHECK:<stack-check>][,]
@@ -351,12 +365,70 @@ The user to be used for native access to the <action\-target>.
   [WAITS:<timer>][,]
   [<callopts>][,]
   [<xopts>]
+  
 .fi
 
 
 .P
-Start remote session. 
-The given sub\-options are not order dependent, the
+The CREATE action starts local and remote sessions for supported plugins.
+The desribed part within this document is the generic superset for all plugins,
+where specific plugins may support less options than depicted here.
+This is due to specific restrictions.
+For example the CLI session may not require a configuration file due it's solely dynamic
+nature.
+In some exceptional cases the specific plugin may provide an additional attribute,
+what should be avoided when ever possible.
+
+.P
+The CREATE has to basic modes, the operational creation of session by starting an entity
+and the initial creation of a session, which could be the installation of a VM.
+Therefore the optional parameters BOOTMODE for variation of the default boot for CREATE of
+a VM and the INSTMODE for the initial boot mode from a specific installation medium
+are provided.
+This is the case for the current version for some 'complete open source' solutions, where as
+the more commercial products are for now foreseen to handle the installation of guest systems
+with their own utilities.
+
+.P
+The CREATE action is additionally supported by several utilities, for the virtual machines in particular
+by the guest system installer and configurator 
+\fBctys\-createConfVM(1)\fR
+\&.
+This provides currently for some plugins the plug\-and\-play installation of virtual machines including
+the guest system, while for some commercial products for now the creation of additional configuration
+information is provided only.
+This temporary restriction is due to the actual amount of proprietary interfaces to be adapted, which
+is going to be provided.
+The particular support for the CREATE session is given by persistently provided default values, which
+omit long commandline strings and represent a distributed database for example for the mapping of
+user defined strings as execution shortcuts.
+
+.P
+The main advance of the common neatless syntax for CREATE ist the unique interface syntax for the start
+of plugins with various frontends.
+This particularly provides for the various application fields with either user desktops, or server
+based backend setups.
+Therefore following in addition to the various BOOTMODEs and INSTALLMODEs, the available CONSOLEs
+are listed.
+
+.P
+Another point to be mentioned here is the advanced addressing feature, which is the generic superset for
+all provided pluging.
+This so called \fB<machine\-address>\fR provides particularly a common set of attributes to be used either in
+combination or solely \- when unambitious \- is provided.
+Again some attributes may be omitted case by case, but some in general.
+So the UUID is not applicable by definition for a CLI session, which is just a remote login.
+Whereas it might not be available in some cases only for a VM or a PM, e.g. due to access permissions.
+
+.P
+The CREATE action also provides options, which are listed as generic options but may effect the frame of
+the created session only.
+These are particularly related to sharing and restarting of sessions as well as for their presentation
+on graphical desktops.
+These include sizes as well as screen and workspace position.
+
+.P
+The following given sub\-options are not order dependent, the
 keywords are case\-insensitive.
 For call details refer to the specific package.
 
@@ -367,6 +439,7 @@ Refer to common options parts description.
 .TP
 \fBBOOTMODE[:<boot\-img\-pathname>]\fR
 .nf
+  
   BOOTMODE:
     (
       KERNEL
@@ -377,18 +450,16 @@ Refer to common options parts description.
       |ISO
       |INSTALL
     )
+  
 .fi
 
 
 The BOOTMODE parameter supports the alteration between pre\-configured
 boot setups, which is specific to the boot media and the applied hypervisors.
-
 The usage of this parameters requires a wrapper script specific to
 the UnifiedSessiosnManager or a specific configuration variant to be in place.
-
 For additional information refer to the test\-cases and pattern within the installed 
 directory tree in \fB$HOME/ctys\fR. 
-
 The following table lists the various support options for current base\-plugins.
 
 
@@ -489,7 +560,7 @@ center, allbox, tab(^); lllllll.
 
 .TS
 center, tab(^); l.
- \fBSupported Console\-Types\-A\fR
+ \fBSupported Console\-Types \- Table 1 of 2\fR
 .TE
 
 
@@ -518,7 +589,7 @@ center, allbox, tab(^); lllll.
 
 .TS
 center, tab(^); l.
- \fBSupported Console\-Types\-B\fR
+ \fBSupported Console\-Types \- Table 2 of 2\fR
 .TE
 
 
@@ -532,7 +603,8 @@ Current version supports this option for QEMU/KVM only.
 
 .TP
 \fB<boot\-mode>\fR
-The mode to boot, available modes are: CD, DVD, FDD, HDD, USB, VHDD.
+The mode to boot, available modes are: CD, DVD, FDD, HDD, USB, PXE, VHDD.
+Where VHDD is equivalent to HDD.
 
 .TP
 \fB<inst\-boot\-source>|default\fR
@@ -632,6 +704,7 @@ The STACKCHECK attribute defines and/or deactivates specific
 pre\-checks for the current VM when used in a VMSTACK\-REF
 context.
 .nf
+  
   STACKCHECK:
     OFF
     |
@@ -640,6 +713,7 @@ context.
      [(HWCAP|NOHWCAP)][%]
      [(STACKCAP|NOSTACKCAP)]
     )
+  
 .fi
 
 for additional information refer to STACKCHECK\-REF
@@ -667,6 +741,7 @@ mode only, else may have internal influence only.
 
 .SS ENUMERATE
 .nf
+  
   ENUMERATE
   [=
     (
@@ -746,54 +821,87 @@ mode only, else may have internal influence only.
         | ALL | ENABLED
         | IGNORE
        )
+  
 .fi
 
-.P
-Enumerates static data for local and remote Sessions.
-The data is collected by local and remote scans for stored configurations.
-The data scan could be controlled by provided constraints such as pathnames with
-start\-directories for filesystem scans.
-Data is collected for each loaded plugin wiht stored configuration such as VMs and PMs.
 
 .P
-The scope of scanned entries could be altered by the suboption \fBMATCHVSTAT\fR, where 
-following values could be applied.
+ENUMERATE collects the stored static configuration data of all VMs.
+Therefore the filesystem is scanned for all known types of configuration files with specific matching
+filters.
+These could be displayed in various formats and content\-sets as selected by suboptions.
+The display could be either formatted for human display, e.g. by table output,
+or for machine processing in database conformant ASC\-II formats.
+The set of content is controlled by the provided constraints for specific attributes.
+The enumeration is applied for local and remote sessions, where lists of start\-directories for
+filesystem scans could be individually defined.
+
+.P
+The data is collected for each loaded plugin with stored configuration such as VMs and PMs, dynamic
+plugins such as of type HOSTs have for now no individual static configuration data, thus are not
+included in the enumeration.
+These are displayed by the dynamic method LIST.
+
+.P
+The enumeration includes beneath the filtering for specific VM attributes in addition the filtering
+for some dynamic operational states.
+This comprises additionally the actual availability of the hypervisor, which depends of the
+present runtime configuration.
+In case of Xen for example the appropriate kernel has to be running, or in case of QEMU on x86 the
+KVM or KQEMU kernel modules define whether QEMU is used in emulation mode only, or as KVM with
+kernel based acceleration.
+The same for KQEMU.
+
+.P
+The scan could be either proceeded for collection of the actually executable hypervisors on each node,
+or for the presence of any configuration of potentially executable stored VMs.
+In case of multiple installed hypervisors, which could be used e.g. by the boot with a different kernel,
+the latter has some advantages when a test environment is to be setup.
+Another application is to control the exclusion of templattes and backups, which may cause some ambiguity
+within the database else.
+
+.P
+The scope of the scanned states is controlled by the \fBvstat\-enum\fR  with the commandline attribute
+by the suboption \fBMATCHVSTAT\fR, which controls the output dependent of the dynamic and/or static state.
+Currently the following enumeration attributes are defined.
 
 .RS
 .IP \(bu 3
-ALL
+\fBALL\fR
 Ignores the actual availability of a specific hypervisor.
 This is convenient for test environments, where the hypervisor
 on a machine is exchanged frequently.
 .IP \(bu 3
-ACTIVE
-Active, available for execution.
+\fBACTIVE\fR
+Active, available for execution. This is the configuration file is present, and staticly enabled by the
+VMSTATE attribute.
 .IP \(bu 3
-BACKUP
+\fBBACKUP\fR
 Backup, not available for execution.
 .IP \(bu 3
-CUSTOM
+\fBCUSTOM\fR
 Custom state, available for execution.
 .IP \(bu 3
-DISABLED
+\fBDISABLED\fR
 Disabled, not available for execution.
 .IP \(bu 3
-EMPTY
+\fBEMPTY\fR
 Empty, available for execution.
 .IP \(bu 3
-ENABLED
-Active and executable by actually available hypervisor.
+\fBENABLED\fR
+Active and executable by actually available hypervisor. This is the present ACTIVE state and the operational
+and ENABLED presence of the hypervisor in SERVER mode.
 .IP \(bu 3
-IGNORE
+\fBIGNORE\fR
 Ignored, not available for execution.
 .IP \(bu 3
-PRESENT
+\fBPRESENT\fR
 Present, not available for execution.
 .IP \(bu 3
-TEMPLATE
+\fBTEMPLATE\fR
 Template, not available for execution.
 .IP \(bu 3
-TESTDUMMY
+\fBTESTDUMMY\fR
 Test, available for execution.
 .RE
 
@@ -811,8 +919,6 @@ and PMs resulting in one entry for each interface address.
 Some additional values are supported for basic management
 of VMs by simply adding masked keywords to present
 configuration files and/or directories.
-
-.P
 When "\-X" option is set, the output is prepared as
 ";" semicolon seperated list for post\-processing. The same
 is true, when setting TERSE.
@@ -941,10 +1047,11 @@ Which could be for example:
 Displays miscellaneous static information for the given hosts.
 This action is under development and is planned to be extended.
 Currently some OS and Machine information is displayed.
-Particularly the HW\-Virtualization flags are shown.
+Particularly the present HW\-Virtualization registers of CPUs the are shown.
 For now the Display is given as:
 
 .nf
+  
   bash-3.1$ ctys -a info -W delphi
   #############################
   Node:delphi.soho
@@ -987,37 +1094,40 @@ For now the Display is given as:
   ------------
   ctys:       :01_02_003a10
   Plugings:   :   VNC
+  
 .fi
 
 
 .SS LIST
 .nf
+  
   LIST[=
     (
       (
         (
-          [TUNNEL | (CLIENTS|C) | (SERVER|S) | (BOTH|B)][,]
+          [ACCELERATOR|ACCEL][,]
+          [ARCH][,]
+          [CONTEXTSTRG|CSTRG][,]
           [CPORT][,]
           [DISPLAY][,]
+          [EXECPATH|EXEP][,]
           [GROUP|GID][,]
-          [ID][,]
+          [HYPERRELRUN|HRELRUN|HRELX|HRX][,]
+          [ID|PATHNAME|PNAME|P][,]
+          [IFNAME|IF][,]
           [JOBID|JID][,]
           [LABEL][,]
           [MAC][,]
           [PID][,]
           [PM|HOST][,]
           [PNAME|P]
+          [SITE][,]
           [SPORT][,]
           [TCP][,]
-          [TYPE][,]
-          [UUID][,]
+          [TUNNEL | (CLIENTS|C) | (SERVER|S) | (BOTH|B)][,]
+          [TYPE|ST|STYPE][,]
           [USER|UID][,]
-          [IFNAME|IF][,]
-          [CONTEXTSTRG|CSTRG][,]
-          [EXECPATH|EXEP][,]
-          [HYPERRELRUN|HRELRUN|HRX][,]
-          [ACCELERATOR|ACCEL][,]
-          [ARCH][,]
+          [UUID][,]
         )
         [TITLE|TITLEIDX|TITLEIDXASC][,]
         [MACHINE|MAXKEY][,]
@@ -1035,11 +1145,23 @@ For now the Display is given as:
     [TERSE][,]
     [USER:<user>[%<credentials>]][,]
   ]
+  
 .fi
 
 
 .P
-LIST disyplay current dynamic runtime data, lists active local and remote sessions.
+LIST disyplays the realtime runtime data related to actually running local and remote sessions.
+Therefore the LIST action is a dynamic method in difference to the ENUMERATE action displaying
+static data.
+Even though the LIST action is focussing on dynamic data some additional static data is required for
+mapping purposes and completion of the human readable information.
+Therefore the dynamic runtime information of the plugins may contain at least some identifiers in order
+to access the persistently stored data within the configuration files.
+Also some dynamic data related to the control of jobs and their forked and parallel executed background subjobs
+is stored in semi\-persistend caches.
+This is particularly required for some nested distribution of subjobs.
+
+.P
 All loaded types are listed by filtering according to provided suboptions. 
 The base set to be filtered is defined by the options "\-t"
 and/or "\-T". If "\-t" is not present, the default "\-t ALL" will
@@ -1053,15 +1175,16 @@ The basic influence on the display is described in "Parallel And Background Oper
 the perfomance repercussion is presented in "Performance Measures".
 
 .P
-LIST supports three display modes, where the displayed
+LIST supports various display modes, where the displayed
 subset of fields could be configured by switching on with
 the assigned keyword.
 
 .TP
 \fBTABLES\fR
-
 The tables mode supports semi\-fixed and generic tables.
-The tables are stored as macros and could be listed by call of \fBctys\-macros\fR.
+The tables are stored as macros and could be listed by call of 
+\fBctys\-macros(1)\fR
+\&.
 
 .RS
 .IP \(bu 3
@@ -1117,7 +1240,6 @@ center, allbox, tab(^); lll.
 .RS
 .IP \(bu 3
 \fBgeneric tables\fR
-
 Generic tables are fully customizable.
 Each table has to contain at least one mandatory
 column. The number, order, and repetition is free
@@ -1166,7 +1288,6 @@ added for size calculations. each file
 has one additional marker, minus one
 from the total sum.
 The number of columns is 'unlimited' and could contain repetitions.
-
 .RE
 .RE
 
@@ -1230,7 +1351,6 @@ center, tab(^); l.
 
 .TP
 \fBGENERIC RECORDS\fR
-
 Generic recors are similar to generic tables, just present a line\-oriented format instead.
 Current supported formats are SPEC, REC, and XML.
 
@@ -1245,7 +1365,6 @@ Current supported formats are SPEC, REC, and XML.
 
 .TP
 \fBRaw\-Output \- TERSE/MACHINE\fR
-
 The \fBTERSE\fR mode displays a specified subset, whereas the \fBMACHINE\fR mode 
 displays the complete set in a semicolon seperated raw format.
 This is particularly forseen either to be postprocessed or imported to a
@@ -1259,6 +1378,7 @@ Displays dynamic information for the given hosts.
 For now the Display is given as:
 
 .nf
+  
   bash-3.1\e$ ctys -a show -W delphi
   #############################
   Node:delphi.soho
@@ -1303,6 +1423,7 @@ For now the Display is given as:
   23280 acue      15   0 85696  13m 9.8m S    0  0.3 ...
   HEALTH
   Total ALARMs=0
+  
 .fi
 
 
@@ -1319,20 +1440,20 @@ or may not be allowed to be ambiguous.
 
 Allow ambiguity(\-A 1) or disallow(\-A 0:default).
 
-.TP
-
+.RS
+.IP \(bu 3
 \fBLABEL\fR:    Even though the labels might be ambiguous, the IDs are not,
 thus an unambiguous labels only restrict the access by
 labels, but could be used to group sessions together, if
 access by IDs only is sufficient.
 
-.TP
-
+.IP \(bu 3
 \fBHOST\fR:
 When lists of hosts and groups are applied and resolved to
 redundant hosts within the list, this could be a desired
 circumstance or not. If not activated, redundancies in
 resulting group lists will be removed silently.
+.RE
 
 .TP
 \fB\-b <background\-mode>\fR
@@ -1413,7 +1534,7 @@ Typical examples are
 .IP \(bu 3
 \fBCREATE\fR:
 CREATE is performed by default as a DETACHED job as stated
-before. In the case of DETACHED the PARALLE property has no
+before. In the case of DETACHED the PARALLEL property has no
 effect, because jobs with "ssh \-f" return "successfully"
 straight after execution.
 .IP \(bu 3
@@ -1438,12 +1559,14 @@ the internal job control, which should avoided.
 .TP
 \fB\-c <args>\fR
 .nf
+  
   <args>=(
            ON
            [,(BOTH|LOCAL|REMOTE)]
            [,ONLY]
          )
          |OFF
+  
 .fi
 
 
@@ -1481,7 +1604,9 @@ cacheDB at the remote execution target.
 When no cache data is found, and the scanning of filesystem is still
 active, the filesystem on the final execution target is scanned for
 configuration data for plugins based ob conf\-files. 
-The cache DB is created by the tool \fBctys\-vdbgen\fR.
+The cache DB is created by the tool 
+\fBctys\-vdbgen(1)\fR
+\&.
 This is the default behaviour.
 
 .IP \(bu 3
@@ -1491,7 +1616,9 @@ intermediate relays and on the final execution target are ignored.
 When no cache data is found, and the scanning of filesystem is still
 active, the filesystem on the final execution target is scanned for
 configuration data for plugins based ob conf\-files. 
-The cache DB is created by the tool \fBctys\-vdbgen\fR.
+The cache DB is created by the tool 
+\fBctys\-vdbgen(1)\fR
+\&.
 
 For the Local option one specific point is to be considered.
 The basic design and resulting implementation of the locally
@@ -1537,6 +1664,7 @@ The cache DB has to be created by the tool ctys\-vdbgen.
 .TP
 \fB\-C <args>\fR
 .nf
+  
   <args>=(
            ON
            [,KEEP]
@@ -1547,6 +1675,7 @@ The cache DB has to be created by the tool ctys\-vdbgen.
            [,AUTO]
          )
          |OFF
+  
 .fi
 
 
@@ -1643,8 +1772,8 @@ Uses cache only, no dynamic data is fetched.
 Stores RAW data in cache, if not set the final results of
 current operation on it's actual execution\-target are
 stored.
-
 .RE
+
 .TP
 \fB\-d <debug\-args>\fR
 .nf
@@ -1655,7 +1784,7 @@ stored.
                 [,(WARNING|W):[0-9]]
                 [,(INFO|I):[0-9]]
                 [,(FILELIST|F):<file-list>[,(EXCLUDE|INCLUDE)]]
-                [,(PRINTFINAL|PFIN)]
+                [,(PRINTFINAL|PFIN)[:[0-9]]]
   
   
   <debug-bit-array>=
@@ -1679,6 +1808,7 @@ stored.
     -d <#integer>,MAX,WARNING:1,INFO:1
   
 .fi
+
 
 Sets the level and range of debug output.
 
@@ -1708,7 +1838,6 @@ but only 32bit arrays should be used.
 .nf
   <debug-bit-array>=2#(0|1){1,32}|[0-9]*|<any-bash-format-32bit>
 .fi
-
 
 The following variables are predefined to be used for levels and pattern.
 
@@ -1751,7 +1880,10 @@ This is the the haystack.
 .IP \(bu 3
 \fB(SUBSYSTEM|S):<subsystem\-bit\-array>\fR
 Subsystems as match\-mode bitr array.
-```<subsystem\-bit\-array>=2#(0|1){1,32}|[0\-9]*|<any\-bash\-format\-32\-bit>
+.nf
+  <subsystem-bit-array>=2#(0|1){1,32}|[0-9]*|<any-bash-format-32-bit>
+.fi
+
 The following variables are predefined to be used for subsystems.
 .RS
 .IP \(bu 3
@@ -1809,15 +1941,23 @@ where due to performance reasons a simple pattern\-match is performed
 only.
 For the same reason the EXCLUDE and INCLUDE keywords are applied to the whole
 set at once.
-```<file\-list>=<file>[%<file\-list>]
+.nf
+  <file-list>=<file>[%<file-list>]
+.fi
+
 
 .IP \(bu 3
-\fB(PRINTFINAL|PFIN)\fR
+\fB(PRINTFINAL|PFIN)[:[0\-9]]\fR
 Prints final call assembly as passed to the execution interface and wait\-points.
 In case of a wrapper script, the pre\-wrapper\-script and the final pre\-execution 
 assembly within the wrapper\-script are displayed.
 In case of a wrapper\-script the displayed call string could be used from the command 
 line by cut\-and\-paste for debugging purposes.
+
+LEVEL defines the granularity, where by convention the LEVEL==0 represents the ultimate 
+final call.
+This could be in some cases an internal library call with a bulk of
+subcalls of minor interest, but by definition is the final CLI execution.
 .RE
 
 .TP
@@ -1867,6 +2007,7 @@ Any screen offset has to be calculated manually.
 Xinerama\-alias\-style: <geometryExtended>
 
 .nf
+  
   <geometryExtended>:=
     <Xorg-style>
     [:[<ScreenSection>|<ScreenIndex>]
@@ -1875,6 +2016,7 @@ Xinerama\-alias\-style: <geometryExtended>
         ]
       ]
     ]
+  
 .fi
 
 
@@ -1901,7 +2043,8 @@ required offsets will be calculated from the
 \fB<x\-size>x<y\-size>:4:Layout[0,1]\fR
 The screen from the LayoutSection named "Layout[0,1]" with
 given Screen index will be used. The required offsets will
-be calculated from the \fB/etc/X11/xorg.conf\fR file.
+be calculated from the
+\fB/etc/X11/xorg.conf\fR file.
 
 .IP \(bu 3
 \fB<x\-size>x<y\-size>:4:Layout[0,1]:$HOME/myScreenLayout\fR
@@ -1911,9 +2054,9 @@ to a remote screen array, where the two main alternatives for alias
 usage on remote displays are either the usage of a specific screen
 section within the locally used configuration file and/or a seperate
 configuration file only used for remote DISPLAY targets.
+.RE
+.RE
 
-.RE
-.RE
 .TP
 \fB\-h\fR
 Print help, refer to "\-H" for additional information.
@@ -1973,6 +2116,7 @@ The default is "$USER", when neither "\-l", nor an explicit user is provided.
 .TP
 \fB\-L <execution\-location>\fR
 .nf
+  
   <execution-location>=(
                          (LOCALONLY|LO)
                          |(CONNECTIONFORWARDING|CF)
@@ -1980,6 +2124,7 @@ The default is "$USER", when neither "\-l", nor an explicit user is provided.
                          |(CLIENTONLY|CO)
                          |(SERVERONLY|SO)
                        )
+  
 .fi
 
 This option controls the location and possible split of the
@@ -1989,30 +2134,30 @@ the following basic constellations could be distinguished:
 
 .RS
 .IP \(bu 3
-LOCALONLY
+\fBLOCALONLY\fR
 Client and server components are coallocated on users 
 workstation, the display is driven locally.
 .IP \(bu 3
-DISPLAYFORWARDING
+\fBDISPLAYFORWARDING\fR
 Client and server components are coallocated on server, and 
 the display is forwarded to the users workstation.
 .IP \(bu 3
-CONNECTIONFORWARDING
+\fBCONNECTIONFORWARDING\fR
 Client and server are split, whereas the client component is 
 located on the users workstation and the server component is
 located on the server machine. The connection from
 server/client component is forwarded on application protocol
 level.
 .IP \(bu 3
-CLIENTONLY
+\fBCLIENTONLY\fR
 This is a client in standalone mode, still used internal 
 only, e.g. for COPY when performing phase\-2 with remote\-copy
 from local client.
 .IP \(bu 3
-SERVERONLY
+\fBSERVERONLY\fR
 This is a server in a so called headless\-mode.
-
 .RE
+
 .TP
 \fB\-M <message>\fR
 Free text to be used as prefix for target exec. It will be
@@ -2081,8 +2226,8 @@ Given list.
 .IP \(bu 3
 \fBALL\fR
 This value is remapped to "USRLST=all".
-
 .RE
+
 .TP
 \fB\-S [(on|off)][,][<ignore\-signal\-spec>\fR
 Sets the signal spectrum to be ignored.
@@ -2113,7 +2258,6 @@ CTYS_MULTITYPE or the "\-T" option could be set.
 .RS
 .IP \(bu 3
 \fBVNC\fR
-
 Remote VNC sessions, calls the scripts ctys\-callVncserver and/or
 ctys\-callVncviewer.  The specific behaviour is here to set a
 password for the VNC session from a passwd\-file via CLI
@@ -2123,7 +2267,6 @@ should be checked.
 
 .IP \(bu 3
 \fBQEMU/KVM, (VBOX), VMW, XEN, PM, VNC, X11, and CLI\fR
-
 For details of additional types refer to the specific plugins.
 For now supported are QEMU/KVM, (VBOX), VMW, XEN, PM, VNC, X11, and CLI.
 .RE
@@ -2160,8 +2303,8 @@ This could be even caused by a single module, which exhausts
 available resources \- as in any existing system.
 Thus the default will be set to requested types by "\-t"
 options or NIL by default.
-
 .RE
+
 .TP
 \fB\-v\fR
 Show version. Current version scheme is as follows:
@@ -2172,7 +2315,7 @@ Show version. Current version scheme is as follows:
 
 .RS
 .IP \(bu 3
-AA_BB_CCC[abc]DD**
+\fBAA_BB_CCC[[abc]DD]\fR
 .RS
 .IP \(bu 3
 \fBAA\fR:
@@ -2188,11 +2331,11 @@ Build <\-> Test versions.
 Development versions, Test\-States:
 .RS
 .IP \(bu 3
-[a]lpha
+\fB[a]\fRlpha
 .IP \(bu 3
-[b]eta
+\fB[b]\fReta
 .IP \(bu 3
-[c](g)amma
+\fB[c]\fR(g)amma
 
 .RE
 .IP \(bu 3
@@ -2233,12 +2376,12 @@ applies:
 
 .RS
 .IP \(bu 3
-<WorkspaceId>
+\fB<WorkspaceId>\fR
 The id of the desktop to be used for placing the
 window. Currently 1\-3 digits are supported.
 
 .IP \(bu 3
-<WorkspaceLabel>
+\fB<WorkspaceLabel>\fR
 The user defined label of the desktop
 to be used for placing the window. When beginning with a digit, and is
 shorter than 4 characters, at least one character has to
@@ -2311,12 +2454,14 @@ Control the allocation of a pseudotty by ssh. Therefore one or
 two "\-t" options could be set for the internal "ssh" call.
 
 .nf
+  
   NOPTY    : Eliminates "-l" of standard bash-call
              and "-t" for ssh-call.
   PTY      : "-t" 
   PTY,PTY  : "-t -t" 
   1        : "-t" 
   2        : "-t -t" 
+  
 .fi
 
 
@@ -2472,6 +2617,7 @@ environment variable:
 
 .TP
 \fB<hostname>\fR
+
 .nf
   default:'uname -n'(`uname -n`)
 .fi
@@ -2522,32 +2668,63 @@ support for neatless execution is provided by this tool.
 .SH SEE ALSO
 .TP
 \fBctys use\-cases\fR
-\fIctys\-IPMI(7)\fR, \fIctys\-WoL(7)\fR
+\fIctys\-uc\-IPMI(7)\fR
+,
+\fIctys\-uc\-WoL(7)\fR
 
 .TP
 \fBctys plugins\fR
 .TP
   \fBPMs\fR
-\fIctys\-PM(7)\fR
+\fIctys\-PM(1)\fR
+
 .TP
   \fBVMs\fR
-\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+\fIKVM(1)\fR
+,
+\fIctys\-QEMU(1)\fR
+,
+\fIctys\-VBOX(1)\fR
+,
+\fIctys\-VMW(1)\fR
+,
+\fIctys\-XEN(1)\fR
+
 .TP
   \fBHOSTS\fR
-\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+\fIctys\-CLI(1)\fR
+,
+\fIctys\-RDP(1)\fR
+,
+\fIctys\-VNC(1)\fR
+,
+\fIctys\-X11(1)\fR
 
 .TP
 \fBctys executables\fR
-\fIctys\-distribute(1)\fR, \fIctys\-extractARPlst(1)\fR, \fIctys\-extractMAClst(1)\fR, \fIctys\-genmconf(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vping(1)\fR, \fIctys\-vhost(1)\fR, \fIctys\-wakeup(1)\fR
+\fIctys\-distribute(1)\fR
+,
+\fIctys\-extractARPlst(1)\fR
+,
+\fIctys\-extractMAClst(1)\fR
+,
+\fIctys\-genmconf(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-vping(1)\fR
+,
+\fIctys\-vdbgen(1)\fR
+,
+\fIctys\-vhost(1)\fR
+,
+\fIctys\-wakeup(1)\fR
 
 .TP
 \fBsystem executables\fR
 \fIdmidecode(8)\fR, \fIether\-tool(8)\fR, \fIether\-wake(8)\fR, \fInc(1)<a.k.a. netcat>\fR
 
 .SH AUTHOR
-.P
-Written and maintained by Arno\-Can Uestuensoez:
-
 .TS
 tab(^); ll.
  Maintenance:^<acue_sf1@sourceforge.net>
@@ -2580,5 +2757,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/man/man1/ctys.1
+.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man1/ctys.1
 

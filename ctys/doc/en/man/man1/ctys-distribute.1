@@ -8,14 +8,16 @@
 \fBctys-distribute - local and remote installation, bulk-distribution\fR
 
 .SH SYNTAX
+.P
+\fBctys-distribute\fR 
 
    [-d <debug-options>]
-   [-D (0|1)]
    [-F (1|2|3|force|forceclean|forceall)]
    [-h]
    [-H <help-options>]
    [-l <remote login>]
    [-M <access-mask>]
+   [--menu-create=(PRIVATE|SHARED)]
    [-P (
        UserHomeCopy
       |UserHomeLinkonly
@@ -28,15 +30,11 @@
    <list-of-target-acounts>
 
 
-
-
-
-
 .SH DESCRIPTION
 .P
-\fBctys\-distribute\fR is the main interface for local installation and 
-remote distribution. The installation of a single target and an
-arbitrary list of targets for automated bulk installations is provided.
+\fBctys\-distribute\fR is the main interface for local and  remote installation.
+The installation of a single target and an arbitrary list of remote targets for
+automated bulk installations is provided.
 
 .P
 Various distribution and installation methods for distribution packages
@@ -45,15 +43,70 @@ version:
 
 .TP
 \fBFile based installation:\fR
-File based installation uses an existing installation or any copy of
-the directory tree and either copies it and/or sets appropriate
-symbolic links for execution.
+File based installation uses an existing installation or an arbitrary copy of
+a valid directory tree.
+The contained revision could be either installed as a copy or as
+refrences by symbolic links for execution only.
+The configuration files are installed locally for the calling user in any case.
+These are nor replaced by default, just when '\-F' option is used.
+
+The \fBctys\-distribute\fR utility therefore resolves the actual physical location of the executable
+and performes the installation solely based on it's own physical directory tree.
+Therefore any copy of the ctys subtree could be used for independent local and remote installation,
+which is consistent as defined by the implemented release.
+
+This has particularly some advance for custom installations, e.g. when the set of documents is required
+to be reduced it is sufficient just to delete the relevant files/directories.
 
 In case of remote installation the current version uses excessive local\-remote\-interaction
 by \fBssh/scp\fR based commands, thus for practical reasons requires automated remote login procedures.
 These could be for example either based on Kerberos or SSH\-Keys.
+This might be reduced to at least one authentication in future versions.
 
-The following keys are required to be written literally when applied.
+The call of
+.nf
+  <path-to>/ctys-distribute.sh -F 2 -P UHC userA@hostB
+.fi
+
+installs the complete current installation on for the user 'userA@hostB', where the
+current configuration is deleted and replaced completely by '\-F 2'.
+Where \fBUHC\fR is the shortcut for '\fBU\fRser\fBH\fRome\fBC\fRopy'
+
+The call of
+.nf
+  <path-to>/ctys-distribute.sh -F 2 -P UHL
+.fi
+
+installs the complete current installation on for the user 'userA@hostB', where the
+current configuration is deleted and replaced completely by '\-F 2', and the source executables
+are referenced by symbolic links only.
+The documents are physically shared by search\-path references.
+Where \fBUHL\fR is the shortcut for '\fBU\fRser\fBH\fRome\fBL\fRinkonly'
+
+Once installed one of the following calls may be applied for further help.
+When a full installation with has proceeded, the suffix '.sh' could be omitted
+for the created symbolic links:
+.nf
+  
+  <path-to>/ctys-distribute.sh -H man
+  <path-to>/ctys-distribute.sh -H html=base
+  <path-to>/ctys-distribute.sh -H html=doc
+  
+  <path-to>/ctys.sh -H man
+  <path-to>/ctys.sh -H pdf
+  <path-to>/ctys.sh -H html
+  
+  <path-to>/ctys.sh -H html=base
+  <path-to>/ctys.sh -H html=doc
+  
+  <path-to>/ctys.sh -H path
+  <path-to>/ctys.sh -H list
+  
+.fi
+
+
+The following keys are not case sensitive, additionally the uppercase letters could be used
+as abbreviations \- which are not case sensitive too, e.g. 'UHC' for 'UserHomeCopy', or 'uHc'.
 
 .TP
 
@@ -162,17 +215,6 @@ call path has to be provided explicitly:
 Refer to "ctys" generic options for additional information.
 
 .TP
-\fB\-D (0|1|2)\fR
-This option controls whether documentation is installed or not. For
-low\-bandwidth the documentation could be suppressed.
-
-\fB0\fR No documents
-
-\fB1\fR With documents
-
-\fB2\fR Only documents
-
-.TP
 \fB\-F (1|2|3|force|forceclean|forceall)\fR
 Bypassed to ctys\-install1.sh
 
@@ -202,6 +244,14 @@ Access mask for post\-chmod, where the value is literally passed to:
 "chmod \-R <access\-mask> <base\-lib\-dir>"
 
 The user\-local file access permissions remain unmodified.
+
+.TP
+\fB\-\-menu\-create=(PRIVATE|SHARED)\fR
+Creates menu entries during installation by call of \fBctys\-xdg\fR.
+The creation of SHARED manus requires root permissions.
+The \fB\-\-force\fR option is not provided, thus the entries could be installed
+on supported and verified desktops only.
+For the remaining the tool \fBctys\-xdg\fR has to be called manually.
 
 .TP
 \fB\-P <pkg\-type>\fR
@@ -335,9 +385,6 @@ ffs.
 ffs.
 
 .SH AUTHOR
-.P
-Written and maintained by Arno\-Can Uestuensoez:
-
 .TS
 tab(^); ll.
  Maintenance:^<acue_sf1@sourceforge.net>
@@ -370,5 +417,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/man/man1/ctys-distribute.1
+.\" cmdline: txt2tags -t man -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man1/ctys-distribute.1
 

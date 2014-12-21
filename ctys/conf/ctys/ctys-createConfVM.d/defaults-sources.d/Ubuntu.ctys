@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -44,6 +44,22 @@ function set-Ubuntu () {
 		XEN)  set-ubuntu-910-XEN;;
 		QEMU) set-ubuntu-910-QEMU;;
 	    esac
+	    ;;
+	10.10)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-ubuntu-1010-XEN;;
+		QEMU) set-ubuntu-1010-QEMU;;
+	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
 	    ;;
     esac
 }
@@ -152,6 +168,72 @@ function set-ubuntu-910-QEMU () {
     local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/ubuntu/$R/amd64/ubuntu-$R-desktop-amd64
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/ubuntu/$R/raw/isos/amd64/ubuntu-$R-desktop-amd64.iso
+    DEFAULT_BOOTLOADER=;
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	QEMU)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	KVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+
+
+#*******************************************************************
+#
+#DIST: Ubuntu-10.10
+#
+#
+function set-ubuntu-1010-XEN () {
+#    local R=${DISTREL}
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/ubuntu/$R/amd64/ubuntu-$R-desktop-amd64
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/ubuntu/$R/raw/isos/amd64/ubuntu-$R-desktop-amd64.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "Ubuntu on XEN-PARA"
+
+# 	    DEFAULT_DOMU_KERNEL=${DEFAULT_DOMU_KERNEL:-/boot/vmlinuz-2.6.26-2-xen-amd64};
+# 	    DEFAULT_DOMU_INITRD=${DEFAULT_DOMU_INITRD:-/boot/initrd.img-2.6.26-2-xen-amd64};
+# 	    DEFAULT_DOMU_MODULESDIR=${DEFAULT_DOMU_MODULESDIR:-/lib/modules/2.6.26-2-xen-amd64};
+
+
+# 	    DEFAULT_INST_KERNEL=${DEFAULT_DOMU_KERNEL}
+# 	    DEFAULT_INST_INITRD=${DEFAULT_DOMU_INITRD}
+# 	    DEFAULT_INST_EXTRA=${DEFAULT_DOMU_EXTRA:-"text ip=dhcp"}
+# 	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+# 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen-default1/bin/pygrub'}
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+	    #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+	    ;;
+    esac
+}
+
+function set-ubuntu-1010-QEMU () {
+    local R=${DISTREL}
+    local RC=${DISTREL}-rc
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/ubuntu/$R/amd64/ubuntu-$RC-desktop-amd64
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/ubuntu/$R/raw/isos/amd64/ubuntu-$RC-desktop-amd64.iso
     DEFAULT_BOOTLOADER=;
     case ${ACCELERATOR} in
 #ffs.	KQEMU)

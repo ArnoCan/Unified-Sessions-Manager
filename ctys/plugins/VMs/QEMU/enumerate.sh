@@ -268,8 +268,10 @@ function enumerateMySessionsQEMU () {
 		_out8=;
 		_out8="${_out8};${MYUID}";
 		_out8="${_out8};${MYGID}";
-		_out8="${_out8};${QEMU_DEFAULT_HOSTS}";
-		_out8="${_out8};${QEMU_DEFAULT_CONSOLE}";
+		local _myHosts=$(getDEFAULTHOSTS ${X})
+		_out8="${_out8};${_myHosts:-$QEMU_DEFAULT_HOSTS}";
+		local _myCon=$(getDEFAULTCONSOLE ${X})
+		_out8="${_out8};${_myCon:-$QEMU_DEFAULT_CONSOLE}";
 
 		local i=0;
 		_myMAC=`getMAClst ${X}`;

@@ -2,16 +2,16 @@
 <HTML>
 <HEAD>
 <STYLE TYPE="text/css">
-body { margin:3em               ;} 
+body { margin:3em               ;background-color:#dcd0bc ;} 
 a    { text-decoration:none     ;} 
-pre  { background-color:#efefef ;} 
+pre  { background-color:#d6bc8f ;} 
 </STYLE>
 <META NAME="generator" CONTENT="http://txt2tags.sf.net">
 <TITLE>ctys</TITLE>
 </HEAD><BODY BGCOLOR="white" TEXT="black">
 <P ALIGN="center"><CENTER><H1>ctys</H1>
 <FONT SIZE="4">
-July, 2010
+November, 2010
 </FONT></CENTER>
 
 <P></P>
@@ -21,26 +21,34 @@ July, 2010
 <H1>NAME</H1>
 <P>
 <B>ctys - Commutate To Your Session</B>
+<br />
+<br />
+<br />
 </P>
 <H1>SYNTAX</H1>
 <P>
-<B>ctys</B> 
-</P>
-<P>
+ <br /> 
 <PRE>
 
-   [&lt;action&gt;]
+   [-t &lt;session-type&gt;]
+   [-a &lt;action&gt;]
    [&lt;generic options&gt;]
    [--]
    &lt;arguments&gt;
 
-
 </PRE>
+<br />
+<br />
+<br />
 </P>
+<H1>DESCRIPTION</H1>
 <P>
 The utility <B>ctys</B> is the core interface to be used within the UnifiedSessionsManager.
 <B>ctys</B> encapsulates the user interfaces of the whole set of supported hypervisors and
 native sessions into a common syntax with a single call interface.
+<br />
+<br />
+<br />
 </P>
 <P>
 <H2>Basics</H2>
@@ -54,12 +62,16 @@ configuration guides.
 The basic installation should work almost from the box, once the prerequisites are present.
 The most valuable tool for verifying the setup of ctys is <B>ctys-plugins</B> which performs 
 a validation of local and remote installations and displays a detailed report.
+<br />
+<br />
 </P>
 <P>
 <H3>Configuration</H3>
 The majority  of the preset default values could be changed by configuration files
 and environment variables.
 The configuration files are installed by default within <B>$HOME/.ctys</B> directory tree.
+<br />
+<br />
 </P>
 <P>
 <H3>VMs and PMs - Sessions Namebinding</H3>
@@ -80,15 +92,18 @@ distinguished by their types:
 </P>
 <UL>
 <LI><B>HOSTs</B>: 
+ <br /> 
 HOSTs are pure dynamic sessions, without persistent data.
 Thus for the namebinding the calculation of dynamic values, or in case of present instances
 the mapping of values and instances is required.
 <P></P>
 <LI><B>VMs</B>:
+ <br /> 
 VMs are based on persistent configuration data. Thus stored data from configuration 
 files is evaluated.
 <P></P>
 <LI><B>PMs</B>:
+ <br /> 
 PMs are accessed by a two folded approach. First the external access to the box is performed
 by the addressing schema of the provided access protocol. Second, when configuration data of
 physical host and/or the performed guest OS is required, a single data set positioned at specific
@@ -122,6 +137,8 @@ The supported core utilities are:
 <P>
 These provide particularly the dynamic network related data for caching and offer 
 an enhanced query interface.
+<br />
+<br />
 </P>
 <P>
 <H2>Option Groups</H2>
@@ -138,6 +155,9 @@ loaded plugin controlled by <B>-t</B> and <B>-T</B> options.
 <DT><B>Generic Attributes</B></DT><DD>
 These are the options which are mostly generic within the whole set of utilities.
 They influence the ACTIONS, but are related to the runtime environment.
+<br />
+<br />
+<br />
 </DL>
 
 <P>
@@ -150,6 +170,7 @@ They influence the ACTIONS, but are related to the runtime environment.
 <H2>ACTIONS</H2>
 <P>
 <B>ctys</B> supports the following actions:
+ <br /> 
 </P>
 <DL>
 <DT>Handling of specific sessions:</DT><DD>
@@ -161,6 +182,8 @@ Start and/or connect to sessions
 <DT></DT><DD>
 <B>CANCEL</B>:
 Finish, suspend and kill sessions
+ <br /> 
+ <br /> 
 </DL>
 
 <DL>
@@ -181,6 +204,8 @@ dynamic information about active VMs
 <DT></DT><DD>
 <B>SHOW</B>:
 dynamic details about ENABLED VMs
+ <br /> 
+ <br /> 
 </DL>
 
 <DL>
@@ -190,10 +215,16 @@ dynamic details about ENABLED VMs
 <B>GETCLIENTPORT</B>
 <P></P>
 <br />
+<br />
+<br />
 </DL>
 
+<P>
+<a name="optCANCEL" />
+</P>
 <H3>CANCEL</H3>
 <PRE>
+  
   CANCEL=(&lt;machine-address&gt;){1}|ALL
     (
       [FORCE|STACK][,]
@@ -210,10 +241,25 @@ dynamic details about ENABLED VMs
       [TIMEOUT:&lt;timeout-value&gt;]
       [,USER:&lt;user&gt;[%&lt;credentials&gt;]]
     )
+  
 </PRE>
-<P></P>
 <P>
-CANCEL works by default asynchronously, thus is usable in parallel for emergency shutdowns.
+ <br /> 
+</P>
+<P>
+CANCEL terminates running sessions of present plugins.
+This includes HOSTs, VMs, and PMs.
+Thus beneath the handling of virtual and login sessions the management of physical machines is included.
+The CANCEL method includes therefore the handling of state dependencies in a hierarchical manner too.
+This is e.g. when a physical machine is going to be canceled - shutdown, than the contained remaining
+sessions are going to be canceled too.
+Therefore a vertical dependency is defined, which recognizes and handles the nested execution of
+contained sub-sessions too.
+ <br /> 
+</P>
+<P>
+CANCEL works by default asynchronously, thus is usable in parallel for emergency shutdowns by typing quickly
+a short syntax.
 </P>
 <DL>
 <DT><B>&lt;machine-address&gt;</B></DT><DD>
@@ -230,7 +276,7 @@ Cancels the stack by call to hypervisor without forward propagation.
 If supported, a kill call is performed after a timeout.
 <P></P>
 <DT><B>STACK</B></DT><DD>
-Cancels stack by forward propagation of CANCEL request.
+Cancels a stack by forward propagation of CANCEL requests.
 If supported, a kill call is performed after a timeout.
 <P></P>
 When handling stacks of nested PMs and VMs, the application of CANCEL
@@ -247,7 +293,7 @@ Two basic directions are defined:
 As described above.
  <P></P>
  <DT><B>STACK</B></DT><DD>
-Uses a chained approach for shutting down by an
+Uses a chained approach for shutting down by a
 top-down behaviour. Therefore the VM-stack will be
 first walked up and marked by repetitive sub-calls
 with defined specific CANCEL suboptions.
@@ -339,9 +385,15 @@ The user to be used for native access to the &lt;action-target&gt;.
 
 <P>
 <br />
+<br />
+<br />
+</P>
+<P>
+<a name="optCREATE" />
 </P>
 <H3>CREATE</H3>
 <PRE>
+  
   CREATE=&lt;machine-address&gt;\{1\}
   [
     CONNECT
@@ -353,7 +405,9 @@ The user to be used for native access to the &lt;action-target&gt;.
   [CONSOLE:&lt;console-type&gt;][,]
   [BOOTMODE:&lt;boot-mode&gt;[%&lt;boot-img-pathname&gt;]][,]
   [(CHDIR|CD):&lt;working-directory-change-to&gt;][,]
-  [INSTMODE:&lt;boot-mode&gt;%&lt;inst-boot-source&gt;%&lt;insttargetmode&gt;%&lt;insttarget&gt;%&lt;inststage&gt;][,]
+  [INSTMODE:
+       &lt;boot-mode&gt;%&lt;inst-boot-source&gt;%&lt;insttargetmode&gt;%&lt;insttarget&gt;%&lt;inststage&gt;]
+       [,]
   [PING:(OFF|&lt;#repetition&gt;%&lt;sleep&gt;)][,]
   [SSHPING:(OFF|&lt;#repetition&gt;%&lt;sleep&gt;)][,]
   [STACKCHECK:&lt;stack-check&gt;][,]
@@ -362,11 +416,77 @@ The user to be used for native access to the &lt;action-target&gt;.
   [WAITS:&lt;timer&gt;][,]
   [&lt;callopts&gt;][,]
   [&lt;xopts&gt;]
+  
 </PRE>
-<P></P>
 <P>
-Start remote session. 
-The given sub-options are not order dependent, the
+ <br /> 
+</P>
+<P>
+The CREATE action starts local and remote sessions for supported plugins.
+The desribed part within this document is the generic superset for all plugins,
+where specific plugins may support less options than depicted here.
+This is due to specific restrictions.
+For example the CLI session may not require a configuration file due it's solely dynamic
+nature.
+In some exceptional cases the specific plugin may provide an additional attribute,
+what should be avoided when ever possible.
+ <br /> 
+</P>
+<P>
+The CREATE has to basic modes, the operational creation of session by starting an entity
+and the initial creation of a session, which could be the installation of a VM.
+Therefore the optional parameters BOOTMODE for variation of the default boot for CREATE of
+a VM and the INSTMODE for the initial boot mode from a specific installation medium
+are provided.
+This is the case for the current version for some 'complete open source' solutions, where as
+the more commercial products are for now foreseen to handle the installation of guest systems
+with their own utilities.
+ <br /> 
+</P>
+<P>
+The CREATE action is additionally supported by several utilities, for the virtual machines in particular
+by the guest system installer and configurator 
+<B><A HREF="../man1/ctys-createConfVM.html"> ctys-createConfVM(1)</A></B>
+.
+This provides currently for some plugins the plug-and-play installation of virtual machines including
+the guest system, while for some commercial products for now the creation of additional configuration
+information is provided only.
+This temporary restriction is due to the actual amount of proprietary interfaces to be adapted, which
+is going to be provided.
+The particular support for the CREATE session is given by persistently provided default values, which
+omit long commandline strings and represent a distributed database for example for the mapping of
+user defined strings as execution shortcuts.
+ <br /> 
+</P>
+<P>
+The main advance of the common neatless syntax for CREATE ist the unique interface syntax for the start
+of plugins with various frontends.
+This particularly provides for the various application fields with either user desktops, or server
+based backend setups.
+Therefore following in addition to the various BOOTMODEs and INSTALLMODEs, the available CONSOLEs
+are listed.
+ <br /> 
+</P>
+<P>
+Another point to be mentioned here is the advanced addressing feature, which is the generic superset for
+all provided pluging.
+This so called <B>&lt;machine-address&gt;</B> provides particularly a common set of attributes to be used either in
+combination or solely - when unambitious - is provided.
+Again some attributes may be omitted case by case, but some in general.
+So the UUID is not applicable by definition for a CLI session, which is just a remote login.
+Whereas it might not be available in some cases only for a VM or a PM, e.g. due to access permissions.
+ <br /> 
+</P>
+<P>
+The CREATE action also provides options, which are listed as generic options but may effect the frame of
+the created session only.
+These are particularly related to sharing and restarting of sessions as well as for their presentation
+on graphical desktops.
+These include sizes as well as screen and workspace position.
+ <br /> 
+</P>
+<P>
+The following given sub-options are not order dependent, the
 keywords are case-insensitive.
 For call details refer to the specific package.
 </P>
@@ -376,6 +496,7 @@ Refer to common options parts description.
 <P></P>
 <DT><B>BOOTMODE[:&lt;boot-img-pathname&gt;]</B></DT><DD>
 <PRE>
+  
   BOOTMODE:
     (
       KERNEL
@@ -386,18 +507,19 @@ Refer to common options parts description.
       |ISO
       |INSTALL
     )
+  
 </PRE>
 <P></P>
 The BOOTMODE parameter supports the alteration between pre-configured
 boot setups, which is specific to the boot media and the applied hypervisors.
-<P></P>
 The usage of this parameters requires a wrapper script specific to
 the UnifiedSessiosnManager or a specific configuration variant to be in place.
-<P></P>
 For additional information refer to the test-cases and pattern within the installed 
 directory tree in <B>$HOME/ctys</B>. 
-<P></P>
 The following table lists the various support options for current base-plugins.
+<br />
+<br />
+<br />
 <P></P>
 </DL>
 
@@ -483,7 +605,10 @@ The following table lists the various support options for current base-plugins.
 </TR>
 </TABLE>
 
-<P></P>
+<P>
+<br />
+<br />
+</P>
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
 <TH>Mode</TH>
@@ -557,7 +682,9 @@ The following table lists the various support options for current base-plugins.
 </TR>
 </TABLE>
 
-<P></P>
+<P>
+<br />
+</P>
  <DL>
  <DT><B>&lt;boot-img-pathname&gt;</B></DT><DD>
 Optional pathname to an alternaternative boot image.
@@ -593,6 +720,9 @@ For examples refer to CLI-Examples and X11-Examples.
 <P></P>
 Anyhow, for now the following console types are supported for the
 various plugins as preconfigured enumerations.
+<br />
+<br />
+<br />
 </DL>
 
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
@@ -763,11 +893,14 @@ various plugins as preconfigured enumerations.
 <P></P>
 <TABLE ALIGN="center" CELLPADDING="4">
 <TR>
-<TH>Supported Console-Types-A</TH>
+<TH>Supported Console-Types - Table 1 of 2</TH>
 </TR>
 </TABLE>
 
-<P></P>
+<P>
+<br />
+<br />
+</P>
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
 <TH>CONSOLE</TH>
@@ -900,11 +1033,13 @@ various plugins as preconfigured enumerations.
 <P></P>
 <TABLE ALIGN="center" CELLPADDING="4">
 <TR>
-<TH>Supported Console-Types-B</TH>
+<TH>Supported Console-Types - Table 2 of 2</TH>
 </TR>
 </TABLE>
 
-<P></P>
+<P>
+<br />
+</P>
 <DL>
 <DT><B>INSTMODE:&lt;boot-mode&gt;%&lt;inst-boot-source&gt;%&lt;insttargetmode&gt;%&lt;insttarget&gt;%&lt;inststage&gt;</B></DT><DD>
 The instmode parameter manages the second stage of an installation process, once
@@ -916,7 +1051,8 @@ Current version supports this option for QEMU/KVM only.
 
  <DL>
  <DT><B>&lt;boot-mode&gt;</B></DT><DD>
-The mode to boot, available modes are: CD, DVD, FDD, HDD, USB, VHDD.
+The mode to boot, available modes are: CD, DVD, FDD, HDD, USB, PXE, VHDD.
+Where VHDD is equivalent to HDD.
  <P></P>
  <DT><B>&lt;inst-boot-source&gt;|default</B></DT><DD>
 The path to the install medium. This could be preconfigured within the configuration files.
@@ -977,20 +1113,24 @@ Therefore the hypervisor has to be configured properly for the server behaviour.
 <P></P>
 <DT></DT><DD>
 <B>DISPLAYFORWARDING</B>
+ <br /> 
 Client an server processes run on the server machine, the display is forwarded 
 by means of the GUI only.
 <P></P>
 <DT></DT><DD>
 <B>CONNECTIONFORWARDING</B>
+ <br /> 
 The client process is executed on the caller's machine and connected to the server 
 by a seperate SSH tunnel.
 <P></P>
 <DT></DT><DD>
 <B>SERVERONLY</B>
+ <br /> 
 Not applicable.
 <P></P>
 <DT></DT><DD>
 <B>LOCALONLY</B>
+ <br /> 
 FFS.
 </DL>
 
@@ -1008,6 +1148,7 @@ The STACKCHECK attribute defines and/or deactivates specific
 pre-checks for the current VM when used in a VMSTACK-REF
 context.
 <PRE>
+  
   STACKCHECK:
     OFF
     |
@@ -1016,6 +1157,7 @@ context.
      [(HWCAP|NOHWCAP)][%]
      [(STACKCAP|NOSTACKCAP)]
     )
+  
 </PRE>
 for additional information refer to STACKCHECK-REF
 and to STACKEDSESSIONS-REF.
@@ -1042,10 +1184,16 @@ The effect is visible for the user when operating in SYNCHRONOUS
 mode only, else may have internal influence only.
 <P></P>
 <br />
+<br />
+<br />
 </DL>
 
+<P>
+<a name="optENUMERATE" />
+</P>
 <H3>ENUMERATE</H3>
 <PRE>
+  
   ENUMERATE
   [=
     (
@@ -1125,42 +1273,91 @@ mode only, else may have internal influence only.
         | ALL | ENABLED
         | IGNORE
        )
+  
 </PRE>
 <P>
-Enumerates static data for local and remote Sessions.
-The data is collected by local and remote scans for stored configurations.
-The data scan could be controlled by provided constraints such as pathnames with
-start-directories for filesystem scans.
-Data is collected for each loaded plugin wiht stored configuration such as VMs and PMs.
+ <br /> 
 </P>
 <P>
-The scope of scanned entries could be altered by the suboption <B>MATCHVSTAT</B>, where 
-following values could be applied.
+ENUMERATE collects the stored static configuration data of all VMs.
+Therefore the filesystem is scanned for all known types of configuration files with specific matching
+filters.
+These could be displayed in various formats and content-sets as selected by suboptions.
+The display could be either formatted for human display, e.g. by table output,
+or for machine processing in database conformant ASC-II formats.
+The set of content is controlled by the provided constraints for specific attributes.
+The enumeration is applied for local and remote sessions, where lists of start-directories for
+filesystem scans could be individually defined.
+ <br /> 
+</P>
+<P>
+The data is collected for each loaded plugin with stored configuration such as VMs and PMs, dynamic
+plugins such as of type HOSTs have for now no individual static configuration data, thus are not
+included in the enumeration.
+These are displayed by the dynamic method LIST.
+ <br /> 
+</P>
+<P>
+The enumeration includes beneath the filtering for specific VM attributes in addition the filtering
+for some dynamic operational states.
+This comprises additionally the actual availability of the hypervisor, which depends of the
+present runtime configuration.
+In case of Xen for example the appropriate kernel has to be running, or in case of QEMU on x86 the
+KVM or KQEMU kernel modules define whether QEMU is used in emulation mode only, or as KVM with
+kernel based acceleration.
+The same for KQEMU.
+ <br /> 
+</P>
+<P>
+The scan could be either proceeded for collection of the actually executable hypervisors on each node,
+or for the presence of any configuration of potentially executable stored VMs.
+In case of multiple installed hypervisors, which could be used e.g. by the boot with a different kernel,
+the latter has some advantages when a test environment is to be setup.
+Another application is to control the exclusion of templattes and backups, which may cause some ambiguity
+within the database else.
+</P>
+<P>
+The scope of the scanned states is controlled by the <B>vstat-enum</B>  with the commandline attribute
+by the suboption <B>MATCHVSTAT</B>, which controls the output dependent of the dynamic and/or static state.
+Currently the following enumeration attributes are defined.
 </P>
  <UL>
- <LI>ALL
+ <LI><B>ALL</B>
+ <br /> 
    Ignores the actual availability of a specific hypervisor.
    This is convenient for test environments, where the hypervisor
    on a machine is exchanged frequently.
- <LI>ACTIVE
-   Active, available for execution.
- <LI>BACKUP
+ <LI><B>ACTIVE</B>
+ <br /> 
+   Active, available for execution. This is the configuration file is present, and staticly enabled by the
+   VMSTATE attribute.
+ <LI><B>BACKUP</B>
+ <br /> 
    Backup, not available for execution.
- <LI>CUSTOM
+ <LI><B>CUSTOM</B>
+ <br /> 
    Custom state, available for execution.
- <LI>DISABLED
+ <LI><B>DISABLED</B>
+ <br /> 
    Disabled, not available for execution.
- <LI>EMPTY
+ <LI><B>EMPTY</B>
+ <br /> 
    Empty, available for execution.
- <LI>ENABLED
-   Active and executable by actually available hypervisor.
- <LI>IGNORE
+ <LI><B>ENABLED</B>
+ <br /> 
+   Active and executable by actually available hypervisor. This is the present ACTIVE state and the operational
+   and ENABLED presence of the hypervisor in SERVER mode.
+ <LI><B>IGNORE</B>
+ <br /> 
    Ignored, not available for execution.
- <LI>PRESENT
+ <LI><B>PRESENT</B>
+ <br /> 
    Present, not available for execution.
- <LI>TEMPLATE
+ <LI><B>TEMPLATE</B>
+ <br /> 
    Template, not available for execution.
- <LI>TESTDUMMY
+ <LI><B>TESTDUMMY</B>
+ <br /> 
    Test, available for execution.
  </UL>
 
@@ -1178,8 +1375,6 @@ and PMs resulting in one entry for each interface address.
 Some additional values are supported for basic management
 of VMs by simply adding masked keywords to present
 configuration files and/or directories.
-</P>
-<P>
 When "-X" option is set, the output is prepared as
 ";" semicolon seperated list for post-processing. The same
 is true, when setting TERSE.
@@ -1553,6 +1748,10 @@ The following table depicts the complete set of fields for current data record.
 <P>
 <br />
 <br />
+<br />
+</P>
+<P>
+<a name="optGETCLIENTPORT" />
 </P>
 <H3>GETCLIENTPORT</H3>
 <P>
@@ -1585,16 +1784,21 @@ Which could be for example:
 <P>
 <br />
 <br />
+<br />
+</P>
+<P>
+<a name="optINFO" />
 </P>
 <H3>INFO</H3>
 <P>
 Displays miscellaneous static information for the given hosts.
 This action is under development and is planned to be extended.
 Currently some OS and Machine information is displayed.
-Particularly the HW-Virtualization flags are shown.
+Particularly the present HW-Virtualization registers of CPUs the are shown.
 For now the Display is given as:
 </P>
 <PRE>
+  
   bash-3.1$ ctys -a info -W delphi
   #############################
   Node:delphi.soho
@@ -1637,40 +1841,47 @@ For now the Display is given as:
   ------------
   ctys:       :01_02_003a10
   Plugings:   :   VNC
+  
 </PRE>
 <P></P>
 <P>
 <br />
 <br />
+<br />
+</P>
+<P>
+<a name="optLIST" />
 </P>
 <H3>LIST</H3>
 <PRE>
+  
   LIST[=
     (
       (
         (
-          [TUNNEL | (CLIENTS|C) | (SERVER|S) | (BOTH|B)][,]
+          [ACCELERATOR|ACCEL][,]
+          [ARCH][,]
+          [CONTEXTSTRG|CSTRG][,]
           [CPORT][,]
           [DISPLAY][,]
+          [EXECPATH|EXEP][,]
           [GROUP|GID][,]
-          [ID][,]
+          [HYPERRELRUN|HRELRUN|HRELX|HRX][,]
+          [ID|PATHNAME|PNAME|P][,]
+          [IFNAME|IF][,]
           [JOBID|JID][,]
           [LABEL][,]
           [MAC][,]
           [PID][,]
           [PM|HOST][,]
           [PNAME|P]
+          [SITE][,]
           [SPORT][,]
           [TCP][,]
-          [TYPE][,]
-          [UUID][,]
+          [TUNNEL | (CLIENTS|C) | (SERVER|S) | (BOTH|B)][,]
+          [TYPE|ST|STYPE][,]
           [USER|UID][,]
-          [IFNAME|IF][,]
-          [CONTEXTSTRG|CSTRG][,]
-          [EXECPATH|EXEP][,]
-          [HYPERRELRUN|HRELRUN|HRX][,]
-          [ACCELERATOR|ACCEL][,]
-          [ARCH][,]
+          [UUID][,]
         )
         [TITLE|TITLEIDX|TITLEIDXASC][,]
         [MACHINE|MAXKEY][,]
@@ -1688,40 +1899,65 @@ For now the Display is given as:
     [TERSE][,]
     [USER:&lt;user&gt;[%&lt;credentials&gt;]][,]
   ]
+  
 </PRE>
-<P></P>
 <P>
-LIST disyplay current dynamic runtime data, lists active local and remote sessions.
+<br />
+</P>
+<P>
+LIST disyplays the realtime runtime data related to actually running local and remote sessions.
+Therefore the LIST action is a dynamic method in difference to the ENUMERATE action displaying
+static data.
+Even though the LIST action is focussing on dynamic data some additional static data is required for
+mapping purposes and completion of the human readable information.
+Therefore the dynamic runtime information of the plugins may contain at least some identifiers in order
+to access the persistently stored data within the configuration files.
+Also some dynamic data related to the control of jobs and their forked and parallel executed background subjobs
+is stored in semi-persistend caches.
+This is particularly required for some nested distribution of subjobs.
+<br />
+</P>
+<P>
 All loaded types are listed by filtering according to provided suboptions. 
 The base set to be filtered is defined by the options "-t"
 and/or "-T". If "-t" is not present, the default "-t ALL" will
 be applied to all pre loaded plugins.
 For changing the selection scope of listed users refer to "-s" option.
+<br />
 </P>
 <P>
 The LIST action is deeply influenced by the setting of the option "-b"
 concerning the performance, and the option "-C" concerning the way the output data is displayed.
 The basic influence on the display is described in "Parallel And Background Operations" 
 the perfomance repercussion is presented in "Performance Measures".
+<br />
 </P>
 <P>
-LIST supports three display modes, where the displayed
+LIST supports various display modes, where the displayed
 subset of fields could be configured by switching on with
 the assigned keyword.
+<br />
+<br />
 </P>
 <DL>
 <DT><B>TABLES</B></DT><DD>
-<P></P>
+ <br /> 
 The tables mode supports semi-fixed and generic tables.
-The tables are stored as macros and could be listed by call of <B>ctys-macros</B>.
+The tables are stored as macros and could be listed by call of 
+<B><A HREF="../man1/ctys-macros.html"> ctys-macros(1)</A></B>
+.
 </DL>
 
  <UL>
  <LI><B>semi-fixed tables</B>: 
+ <br /> 
 These tables have a fixed number of displayed columns with limited content variation, but fully
 resizable column-widths.
  <P></P>
 The most important view is the TAB_TCP, which shows the following columns:
+<br />
+<br />
+<br />
  <P></P>
  </UL>
 
@@ -1766,6 +2002,7 @@ The most important view is the TAB_TCP, which shows the following columns:
 
  <DL>
  <DT>_</DT><DD>
+<br />
  <P></P>
 The sizes could be defined by providing an integer
 width for each column seperated by "%". Contents
@@ -1830,7 +2067,7 @@ This defines the following sizes:
 </P>
  <UL>
  <LI><B>generic tables</B>
- <P></P>
+ <br /> 
 Generic tables are fully customizable.
 Each table has to contain at least one mandatory
 column. The number, order, and repetition is free
@@ -1850,12 +2087,14 @@ For each column the triple of data is required:
  <P></P>
   <UL>
   <LI><B>&lt;idx&gt;</B>
+ <br /> 
 Canonical index of field to be
 displayed. The value could be evaluated
 by calling list with the "titleidx"
 option.
   <P></P>
   <LI><B>&lt;colname&gt;</B>
+ <br /> 
 The arbitrary name of the column to be displayed. 
 Following restrictions apply:
   <P></P>
@@ -1866,6 +2105,7 @@ Following restrictions apply:
    <P></P>
    </UL>
   <LI><B>&lt;width&gt;</B>
+ <br /> 
 The width of the column, this excludes
 the border marker, which will has to be
 added for size calculations. each file
@@ -1874,7 +2114,7 @@ from the total sum.
 The number of columns is 'unlimited' and could contain repetitions.
 <br />
 <br />
-  <P></P>
+<br />
   </UL>
  </UL>
 
@@ -2034,6 +2274,7 @@ The number of columns is 'unlimited' and could contain repetitions.
 
 <P>
 <br />
+<br />
 </P>
 <TABLE ALIGN="center" CELLPADDING="4" BORDER="1">
 <TR>
@@ -2098,7 +2339,7 @@ The number of columns is 'unlimited' and could contain repetitions.
 </P>
 <DL>
 <DT><B>GENERIC RECORDS</B></DT><DD>
-<P></P>
+ <br /> 
 Generic recors are similar to generic tables, just present a line-oriented format instead.
 Current supported formats are SPEC, REC, and XML.
 <P></P>
@@ -2111,7 +2352,7 @@ Current supported formats are SPEC, REC, and XML.
 
 <DL>
 <DT><B>Raw-Output - TERSE/MACHINE</B></DT><DD>
-<P></P>
+ <br /> 
 The <B>TERSE</B> mode displays a specified subset, whereas the <B>MACHINE</B> mode 
 displays the complete set in a semicolon seperated raw format.
 This is particularly forseen either to be postprocessed or imported to a
@@ -2123,12 +2364,16 @@ current record format.
 <br />
 </DL>
 
+<P>
+<a name="optSHOW" />
+</P>
 <H3>SHOW</H3>
 <P>
 Displays dynamic information for the given hosts. 
 For now the Display is given as:
 </P>
 <PRE>
+  
   bash-3.1\$ ctys -a show -W delphi
   #############################
   Node:delphi.soho
@@ -2173,13 +2418,18 @@ For now the Display is given as:
   23280 acue      15   0 85696  13m 9.8m S    0  0.3 ...
   HEALTH
   Total ALARMs=0
+  
 </PRE>
 <P></P>
 <P>
 <br />
 <br />
+<br />
 </P>
 <H2>Generic Options</H2>
+<P>
+<a name="optA" />
+</P>
 <DL>
 <DT><B>-A &lt;ambiguity-mode&gt;</B></DT><DD>
 Allow ambiguity, this has several effects on values which may
@@ -2191,20 +2441,26 @@ or may not be allowed to be ambiguous.
 <P></P>
 Allow ambiguity(-A 1) or disallow(-A 0:default).
 <P></P>
-<DT></DT><DD>
-<B>LABEL</B>:    Even though the labels might be ambiguous, the IDs are not,
+ <UL>
+ <LI><B>LABEL</B>:    Even though the labels might be ambiguous, the IDs are not,
     thus an unambiguous labels only restrict the access by
     labels, but could be used to group sessions together, if
     access by IDs only is sufficient.
-<P></P>
-<DT></DT><DD>
-<B>HOST</B>:
+ <P></P>
+ <LI><B>HOST</B>:
     When lists of hosts and groups are applied and resolved to
     redundant hosts within the list, this could be a desired
     circumstance or not. If not activated, redundancies in
     resulting group lists will be removed silently.
+<br />
+<br />
+<br />
+ </UL>
 </DL>
 
+<P>
+<a name="optb" />
+</P>
 <DL>
 <DT><B>-b &lt;background-mode&gt;</B></DT><DD>
 Background and/or parallel execution. This option combines the
@@ -2232,6 +2488,7 @@ refer to "Stacks As Vertical Subgroups".
 <P></P>
  <UL>
  <LI><B>stack-mode</B>:
+ <br /> 
   The stack-mode is a specific enforcement of an appropriate combination
   for asynchronous operation sof the VMs within an sequential dependant
   nested VMSTACK.
@@ -2246,6 +2503,7 @@ refer to "Stacks As Vertical Subgroups".
   a VM/PM.
  <P></P>
  <LI><B>detachment of jobs</B>:
+ <br /> 
   The detachment of jobs from the callers console causes the
   top level dispatcher to start all resulting jobs by the "-f"
   option of "ssh" and to return immediately. This results in a
@@ -2257,10 +2515,12 @@ refer to "Stacks As Vertical Subgroups".
  <P></P>
   <UL>
   <LI><B>CREATE</B>:
+ <br /> 
     CREATE is performed by default as a DETACHED job, because it
     just creates interactive desktop sessions which are
     frequently not dependent on each other.
   <LI><B>LIST</B>:
+ <br /> 
     LIST is performed by default as ATTACHED job, because it
     has some overall properties for tasks spanning multiple
     targets like SORTALL, where the individual sets could be
@@ -2268,6 +2528,7 @@ refer to "Stacks As Vertical Subgroups".
   <P></P>
   </UL>
  <LI><B>execution</B>:
+ <br /> 
   The high-level PARALLEL execution with ATTACHED console
   combines both advantages. The parallel execution reduces for
   bulk lists of targets the overall processing time to the
@@ -2276,11 +2537,13 @@ refer to "Stacks As Vertical Subgroups".
   Typical examples are
   <UL>
   <LI><B>CREATE</B>:
+ <br /> 
     CREATE is performed by default as a DETACHED job as stated
-    before. In the case of DETACHED the PARALLE property has no
+    before. In the case of DETACHED the PARALLEL property has no
     effect, because jobs with "ssh -f" return "successfully"
     straight after execution.
   <LI><B>LIST</B>:
+ <br /> 
     LIST is performed by default as ATTACHED job, thus the
     PARALLEL property has frequently a tremendous effect. 
     When listing a a set of 20 machines where each requires
@@ -2296,15 +2559,25 @@ some similar effects could occur.
 <P></P>
 <B>REMARK</B>: The usage of "&amp;" by shell expansion will just superpose
 the internal job control, which should avoided.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optc" />
+</P>
+<DL>
 <DT><B>-c &lt;args&gt;</B></DT><DD>
 <PRE>
+  
   &lt;args&gt;=(
            ON
            [,(BOTH|LOCAL|REMOTE)]
            [,ONLY]
          )
          |OFF
+  
 </PRE>
 <P></P>
 The operations of ctys utilize special virtual-nameservice information where this 
@@ -2335,21 +2608,27 @@ For additional information refer to Section "Distributed Nameservice and CacheDB
 <P></P>
  <UL>
  <LI><B>BOTH</B>
+ <br /> 
   Use first local cacheDB, if no match occurs than delay for usage of
   cacheDB at the remote execution target.
   When no cache data is found, and the scanning of filesystem is still
   active, the filesystem on the final execution target is scanned for
   configuration data for plugins based ob conf-files. 
-  The cache DB is created by the tool <B>ctys-vdbgen</B>.
+  The cache DB is created by the tool 
+<B><A HREF="../man1/ctys-vdbgen.html"> ctys-vdbgen(1)</A></B>
+.
   This is the default behaviour.
  <P></P>
  <LI><B>LOCAL</B>
+ <br /> 
   Use local cacheDB at the caller's site. The remote cacheDB on
   intermediate relays and on the final execution target are ignored.
   When no cache data is found, and the scanning of filesystem is still
   active, the filesystem on the final execution target is scanned for
   configuration data for plugins based ob conf-files. 
-  The cache DB is created by the tool <B>ctys-vdbgen</B>.
+  The cache DB is created by the tool 
+<B><A HREF="../man1/ctys-vdbgen.html"> ctys-vdbgen(1)</A></B>
+.
  <P></P>
   For the Local option one specific point is to be considered.
   The basic design and resulting implementation of the locally
@@ -2372,26 +2651,36 @@ For additional information refer to Section "Distributed Nameservice and CacheDB
   from the cacheDB should be in sync.
  <P></P>
  <LI><B>OFF</B>
+ <br /> 
   Deactivates both types of caches, could only used alone.
  <P></P>
  <LI><B>ON</B>
   Activates cache, is set implicitly by all others.
  <P></P>
  <LI><B>ONLY</B>
+ <br /> 
   Uses cache only, no dynamic data is fetched.
  <P></P>
  <LI><B>REMOTE</B>
+ <br /> 
   Use remote cacheDB at the final execution target.
   When no cache data is found, and the scanning of filesystem is still
   active, the filesystem on the final execution target is scanned for
   configuration data for plugins based ob conf-files. 
   The cache DB has to be created by the tool ctys-vdbgen.
+<br />
+<br />
+<br />
  </UL>
 </DL>
 
+<P>
+<a name="optC" />
+</P>
 <DL>
 <DT><B>-C &lt;args&gt;</B></DT><DD>
 <PRE>
+  
   &lt;args&gt;=(
            ON
            [,KEEP]
@@ -2402,7 +2691,9 @@ For additional information refer to Section "Distributed Nameservice and CacheDB
            [,AUTO]
          )
          |OFF
+  
 </PRE>
+<br />
 <P></P>
 For ctys two basic types of data-caches are used. 
 The first one is the plugin specific in-mem cache, where frequent
@@ -2438,10 +2729,12 @@ ordinary call, this could not be said clearly for remote calls
 with on-disk caching. Thus on-disk caching of runtime data is
 off by default, except for collector actions, which do not
 reuse the "pure-data" cache.
+ <br /> 
  <P></P>
 Following suboptions are applicable:
  <P></P>
  <LI><B>AUTO</B>
+ <br /> 
   The behaviour in case of an LIFETIME exceed is changed to
   automatic remove of cache data. Missing files are silently
   created from origination. This is particularly foreseen for
@@ -2449,44 +2742,61 @@ Following suboptions are applicable:
   The AUTO suboptions is supported for local access only.
  <P></P>
  <LI><B>FIN:&lt;cache-filepath&gt;</B>
+ <br /> 
   A user-defined cache file to be used instead of collecting
   remote data. This file has to contain previously cached
   data, which was held by usage of "KEEP" suboption.
   The same &lt;cache-filepath&gt; should be used.
  <P></P>
  <LI><B>FOUT:&lt;cache-filepath&gt;</B>
+ <br /> 
   A user-defined cache file to be used instead of default,
   this is the read-write runtime cache.
   The filepath, if relative, is relative to "$MYTMP", but no "mkdir" is called.
   An absolute path is used literally.
  <P></P>
  <LI><B>KEEP</B>
+ <br /> 
   Keeps cache-files instead of removing them before exit.
  <P></P>
  <LI><B>KEEPALL</B>
+ <br /> 
   Keeps cache-files of all subcalls, instead of removing them before exit.
  <P></P>
  <LI><B>LIFETIME</B>
+ <br /> 
   The maximum age a provided cache for "ONLY" is allowed to
   be. If the age exceeds, than as default the action is
   aborted. This behaviour is the default due to data
   safety.
  <P></P>
  <LI><B>OFF</B>
+ <br /> 
   Deactivates both types of caches, could only used alone.
  <P></P>
  <LI><B>ON</B>
+ <br /> 
   Activates cache, is set implicitly by all others.
  <P></P>
  <LI><B>ONLY</B>
+ <br /> 
   Uses cache only, no dynamic data is fetched.
  <P></P>
  <LI><B>RAW</B>
+ <br /> 
   Stores RAW data in cache, if not set the final results of
   current operation on it's actual execution-target are
   stored.
- <P></P>
+<br />
+<br />
+<br />
  </UL>
+</DL>
+
+<P>
+<a name="optd" />
+</P>
+<DL>
 <DT><B>-d &lt;debug-args&gt;</B></DT><DD>
 <PRE>
   
@@ -2496,7 +2806,7 @@ Following suboptions are applicable:
                 [,(WARNING|W):[0-9]]
                 [,(INFO|I):[0-9]]
                 [,(FILELIST|F):&lt;file-list&gt;[,(EXCLUDE|INCLUDE)]]
-                [,(PRINTFINAL|PFIN)]
+                [,(PRINTFINAL|PFIN)[:[0-9]]]
   
   
   &lt;debug-bit-array&gt;=
@@ -2520,19 +2830,24 @@ Following suboptions are applicable:
     -d &lt;#integer&gt;,MAX,WARNING:1,INFO:1
   
 </PRE>
+<br />
+<P></P>
 Sets the level and range of debug output.
 <P></P>
  <UL>
  <LI><B>&lt;debug-bit-array&gt;[,(PATTERN|P)|MIN|MAX]</B>
+ <br /> 
   The debug output could be controlled by one of two basic styles, the
   level-mode(MIN|MAX) or the match-mode(PATTERN).
   <UL>
   <LI><B>level-mode(MIN|MAX)</B>
+ <br /> 
     The level-mode sets a threshold from which on(MIN), or up to
     which(MAX) a trace output is displayed.
     The switch-on value has to be increment one above the destination
     output level.
   <LI><B>match-mode(PATTERN)</B>
+ <br /> 
     The match mode displays trace only by bitwise AND operation.
   <P></P>
   </UL>
@@ -2544,11 +2859,12 @@ The debug mode value could be provided in any bash supported notation,
 <PRE>
   &lt;debug-bit-array&gt;=2#(0|1){1,32}|[0-9]*|&lt;any-bash-format-32bit&gt;
 </PRE>
-<P></P>
+ <br /> 
 The following variables are predefined to be used for levels and pattern.
 <P></P>
  <UL>
  <LI><B>ERRORS</B>:
+ <br /> 
   Traced independently and in any case.
   <UL>
   <LI><B>D_UI=1=2#1</B>
@@ -2574,8 +2890,11 @@ The following variables are predefined to be used for levels and pattern.
   <P></P>
   </UL>
  <LI><B>(SUBSYSTEM|S):&lt;subsystem-bit-array&gt;</B>
-  Subsystems as match-mode bitr array.
-```&lt;subsystem-bit-array&gt;=2#(0|1){1,32}|[0-9]*|&lt;any-bash-format-32-bit&gt;
+ <br /> 
+ Subsystems as match-mode bitr array.
+<PRE>
+  &lt;subsystem-bit-array&gt;=2#(0|1){1,32}|[0-9]*|&lt;any-bash-format-32-bit&gt;
+</PRE>
 The following variables are predefined to be used for subsystems.
   <UL>
   <LI><B>S_CONF</B>=1
@@ -2600,33 +2919,50 @@ The following variables are predefined to be used for subsystems.
   <P></P>
   </UL>
  <LI><B>(WARNING|W):[0-9]</B>
+ <br /> 
   Warnings to be displayed, level-mode only and no subsystem.
   "0" switches off.
   The switch-on value has to be increment one above the destination
   output level.
  <LI><B>(INFO|I):[0-9]</B>
+ <br /> 
   Info to be displayed, level-mode only and no subsystem.
   "0" switches off.
   The switch-on value has to be increment one above the destination
   output level.
  <LI><B>(FILELIST|F):&lt;file-list&gt;[,(EXCLUDE|INCLUDE)]</B>
+ <br /> 
   A list of files to be included exclusively or excluded.
   The names are matched with the presented string on output "&lt;dir&gt;/&lt;file&gt;",
   where due to performance reasons a simple pattern-match is performed
   only.
   For the same reason the EXCLUDE and INCLUDE keywords are applied to the whole
   set at once.
-```&lt;file-list&gt;=&lt;file&gt;[%&lt;file-list&gt;]
+<PRE>
+  &lt;file-list&gt;=&lt;file&gt;[%&lt;file-list&gt;]
+</PRE>
  <P></P>
- <LI><B>(PRINTFINAL|PFIN)</B>
+ <LI><B>(PRINTFINAL|PFIN)[:[0-9]]</B>
+ <br /> 
 Prints final call assembly as passed to the execution interface and wait-points.
 In case of a wrapper script, the pre-wrapper-script and the final pre-execution 
 assembly within the wrapper-script are displayed.
 In case of a wrapper-script the displayed call string could be used from the command 
 line by cut-and-paste for debugging purposes.
+ <P></P>
+LEVEL defines the granularity, where by convention the LEVEL==0 represents the ultimate 
+final call.
+This could be in some cases an internal library call with a bulk of
+subcalls of minor interest, but by definition is the final CLI execution.
+<br />
+<br />
+<br />
  </UL>
 </DL>
 
+<P>
+<a name="optD" />
+</P>
 <DL>
 <DT><B>-D (&lt;display&gt;[.&lt;screen&gt;])|&lt;LABEL&gt;</B></DT><DD>
 This option controls the output of local display.
@@ -2635,20 +2971,38 @@ resons for localhost only.
 Thus this is practically applicable to the display target VNC and
 physical multi-monitor configurations only.
 VMs are from the point of view for TCP/IP generally different hosts.
+<br />
+<br />
+<br />
 </DL>
 
+<P>
+<a name="optf" />
+</P>
 <DL>
 <DT><B>-f</B></DT><DD>
   Force execution and ignore minor warnings. Basically no
   "destructive" operation, particularly nothing irreversible will
   be performed.
+<br />
+<br />
+<br />
 </DL>
 
+<P>
+<a name="optF" />
+</P>
 <DL>
 <DT><B>-F &lt;remote_version&gt;</B></DT><DD>
   Force remote version.
+<br />
+<br />
+<br />
 </DL>
 
+<P>
+<a name="optg" />
+</P>
 <DL>
 <DT><B>-g &lt;geometry&gt;|&lt;geometryExtended&gt;</B></DT><DD>
   The geometry for client-side representation. It is the exact
@@ -2674,6 +3028,7 @@ VMs are from the point of view for TCP/IP generally different hosts.
   <LI>Xinerama-alias-style: &lt;geometryExtended&gt;
   <P></P>
 <PRE>
+  
   &lt;geometryExtended&gt;:=
     &lt;Xorg-style&gt;
     [:[&lt;ScreenSection&gt;|&lt;ScreenIndex&gt;]
@@ -2682,6 +3037,7 @@ VMs are from the point of view for TCP/IP generally different hosts.
         ]
       ]
     ]
+  
 </PRE>
   <P></P>
 All values are evaluated and calculated at the callee's site, thus has
@@ -2690,35 +3046,56 @@ remote DISPLAY in case of DISPLAYFORWARDING.
   <P></P>
    <UL>
    <LI><B>&lt;x-size&gt;x&lt;y-size&gt;:Screen4</B>
+ <br /> 
   The screen from the first ServerLayout section with given
   Screen section name as alias will be used. The required
   offsets will be calculated from the "/etc/X11/xorg.conf"
   file.
    <P></P>
    <LI><B>&lt;x-size&gt;x&lt;y-size&gt;:Screen4:Layout[0,1]</B>
+ <br /> 
   The screen from the LayoutSection named "Layout[0,1]" with
   given Screen section name as alias will be used. The
   required offsets will be calculated from the
   <B>/etc/X11/xorg.conf</B> file.
    <P></P>
    <LI><B>&lt;x-size&gt;x&lt;y-size&gt;:4:Layout[0,1]</B>
+ <br /> 
   The screen from the LayoutSection named "Layout[0,1]" with
   given Screen index will be used. The required offsets will
-  be calculated from the <B>/etc/X11/xorg.conf</B> file.
+  be calculated from the
+ <B>/etc/X11/xorg.conf</B> file.
    <P></P>
    <LI><B>&lt;x-size&gt;x&lt;y-size&gt;:4:Layout[0,1]:$HOME/myScreenLayout</B>
+ <br /> 
   The same as before, but with it's own Xinerama configuration file.
   This could particularly applied in case DISPLAYFORWARDING
   to a remote screen array, where the two main alternatives for alias
   usage on remote displays are either the usage of a specific screen
   section within the locally used configuration file and/or a seperate
   configuration file only used for remote DISPLAY targets.
-   <P></P>
+<br />
+<br />
+<br />
    </UL>
   </UL>
+</DL>
+
+<P>
+<a name="opth" />
+</P>
+<DL>
 <DT><B>-h</B></DT><DD>
 Print help, refer to "-H" for additional information.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optH" />
+</P>
+<DL>
 <DT><B>-H &lt;help-options&gt;</B></DT><DD>
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
@@ -2726,7 +3103,15 @@ This comprises the man pages and installed manuals.
 <P></P>
 For additional help refer to the documents chapter
 <B>Online-Help</B> or type <B>ctys -H help</B>.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optj" />
+</P>
+<DL>
 <DT><B>-j &lt;job-id&gt;</B></DT><DD>
   The ID of current job. This is an internal call and therefore
   should just used by developers for test purposes. Any variation
@@ -2754,21 +3139,34 @@ For additional help refer to the documents chapter
   <LI>"CALLERDATETIME=${DATETIME}"
   <LI>"CALLERJOB_IDX=${JOB_IDX}"
   <LI>"CTYS_SUBCALL=${1}"
+<br />
+<br />
+<br />
   </UL>
  </UL>
 </DL>
 
+<P>
+<a name="optl" />
+</P>
 <DL>
 <DT><B>-l &lt;login-name&gt;</B></DT><DD>
   The users, which will be used for hosts without an exlicitly given
   user. The hosts/groups entries provide the common EMail-Style
   "&lt;user&gt;@&lt;execution-target&gt;". 
   The default is "$USER", when neither "-l", nor an explicit user is provided.
+<br />
+<br />
+<br />
 </DL>
 
+<P>
+<a name="optL" />
+</P>
 <DL>
 <DT><B>-L &lt;execution-location&gt;</B></DT><DD>
 <PRE>
+  
   &lt;execution-location&gt;=(
                          (LOCALONLY|LO)
                          |(CONNECTIONFORWARDING|CF)
@@ -2776,6 +3174,7 @@ For additional help refer to the documents chapter
                          |(CLIENTONLY|CO)
                          |(SERVERONLY|SO)
                        )
+  
 </PRE>
 This option controls the location and possible split of the
 involved client and server parts of current session.
@@ -2783,33 +3182,62 @@ When connecting a user interface with it's server components
 the following basic constellations could be distinguished:
 <P></P>
  <UL>
- <LI>LOCALONLY
+ <LI><B>LOCALONLY</B>
+<br />
   Client and server components are coallocated on users 
   workstation, the display is driven locally.
- <LI>DISPLAYFORWARDING
+ <LI><B>DISPLAYFORWARDING</B>
+<br />
   Client and server components are coallocated on server, and 
   the display is forwarded to the users workstation.
- <LI>CONNECTIONFORWARDING
+ <LI><B>CONNECTIONFORWARDING</B>
+<br />
   Client and server are split, whereas the client component is 
   located on the users workstation and the server component is
   located on the server machine. The connection from
   server/client component is forwarded on application protocol
   level.
- <LI>CLIENTONLY
+ <LI><B>CLIENTONLY</B>
+<br />
   This is a client in standalone mode, still used internal 
   only, e.g. for COPY when performing phase-2 with remote-copy
   from local client.
- <LI>SERVERONLY
+ <LI><B>SERVERONLY</B>
+<br />
   This is a server in a so called headless-mode.
- <P></P>
+<br />
+<br />
+<br />
  </UL>
+</DL>
+
+<P>
+<a name="optM" />
+</P>
+<DL>
 <DT><B>-M &lt;message&gt;</B></DT><DD>
   Free text to be used as prefix for target exec. It will be
   printed before output.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optn" />
+</P>
+<DL>
 <DT><B>-n</B></DT><DD>
   Just display, do not execute. For test only.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optp" />
+</P>
+<DL>
 <DT><B>-p &lt;db-directory-path-list&gt;</B></DT><DD>
   Path list to directories containing DBs for name resolution,
   same for each &lt;db-directory-path&gt; as for ctys-vdbgen. 
@@ -2829,10 +3257,26 @@ the following basic constellations could be distinguished:
   command is used internally. This option sets the databases for
   operations of ctys-vhost. If not present ctys-vhost defaults 
   will be applied.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optP" />
+</P>
+<DL>
 <DT><B>-P</B></DT><DD>
   Use default &lt;db-directory-path&gt;.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optr" />
+</P>
+<DL>
 <DT><B>-r &lt;xsize&gt;x&lt;ysize&gt;</B></DT><DD>
   Remote resolution, which is by default the same as local client
   size given by "-g" option.
@@ -2844,25 +3288,44 @@ the following basic constellations could be distinguished:
 <P></P>
  <UL>
  <LI>VNC: for vncserver
+<br />
+<br />
+<br />
  </UL>
 </DL>
 
+<P>
+<a name="opts" />
+</P>
 <DL>
 <DT><B>-s &lt;scope&gt;</B></DT><DD>
   Restrics/expands the scope/selected set for mode of operations.
  <UL>
  <LI><B>USER</B>
+ <br /> 
     Own sessions.
  <LI><B>GROUP</B>
+ <br /> 
     Sessions of own group.
  <LI><B>USRLST=(usr1[,usr2][,...])|all</B>
+ <br /> 
     Given list.
  <LI><B>GRPLST=(grp1[,grp2][,...])|all</B>
+ <br /> 
     Given list.
  <LI><B>ALL</B>
+ <br /> 
     This value is remapped to "USRLST=all".
- <P></P>
+<br />
+<br />
+<br />
  </UL>
+</DL>
+
+<P>
+<a name="optS" />
+</P>
+<DL>
 <DT><B>-S [(on|off)][,][&lt;ignore-signal-spec&gt;</B></DT><DD>
   Sets the signal spectrum to be ignored.
   The values are accepted as numeric values only.
@@ -2873,7 +3336,15 @@ the following basic constellations could be distinguished:
 <P></P>
   In case of CLI, generally for any multi-session call, it has to be
   considered thoroughly whether and which signals could be set.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optt" />
+</P>
+<DL>
 <DT><B>-t &lt;session-type&gt;[=suboptions]</B></DT><DD>
   Defines the context of execution and the resulting applicable
   feature set.  This could be a flat endpoint-user-session in
@@ -2889,7 +3360,7 @@ the following basic constellations could be distinguished:
  <LI><B>&lt;session_type&gt;(default:VNC)</B>
   <UL>
   <LI><B>VNC</B>
-  <P></P>
+ <br />
       Remote VNC sessions, calls the scripts ctys-callVncserver and/or
       ctys-callVncviewer.  The specific behaviour is here to set a
       password for the VNC session from a passwd-file via CLI
@@ -2898,13 +3369,19 @@ the following basic constellations could be distinguished:
       should be checked.
   <P></P>
   <LI><B>QEMU/KVM, (VBOX), VMW, XEN, PM, VNC, X11, and CLI</B>
-  <P></P>
+ <br /> 
       For details of additional types refer to the specific plugins.
       For now supported are QEMU/KVM, (VBOX), VMW, XEN, PM, VNC, X11, and CLI.
+<br />
+<br />
+<br />
   </UL>
  </UL>
 </DL>
 
+<P>
+<a name="optT" />
+</P>
 <DL>
 <DT><B>-T &lt;session-type&gt;[,&lt;session-type&gt;[,...]] | all</B></DT><DD>
   Preloads given list of &lt;session_type&gt; instead of loading the
@@ -2923,27 +3400,45 @@ the following basic constellations could be distinguished:
 <P></P>
  <UL>
  <LI><B>&lt;session_type&gt;</B>
+ <br /> 
     The name of a dynamic loaded plugin, which is the
     &lt;session_type&gt;.
     For now supported are QEMU/KVM, (VBOX), VMW, XEN, PM, VNC, X11, and CLI.
  <P></P>
  <LI><B>all</B>
+ <br /> 
     Tries to load all present plugins, this would frequently
     fail, when the configured resources of bash are exceeded.
     This could be even caused by a single module, which exhausts
     available resources - as in any existing system.
     Thus the default will be set to requested types by "-t"
     options or NIL by default.
- <P></P>
+<br />
+<br />
+<br />
  </UL>
+</DL>
+
+<P>
+<a name="optv" />
+</P>
+<DL>
 <DT><B>-v</B></DT><DD>
   Show version. Current version scheme is as follows:
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optV" />
+</P>
+<DL>
 <DT><B>-V</B></DT><DD>
   Show version. Current version scheme is as follows:
 <P></P>
  <UL>
- <LI>AA_BB_CCC[abc]DD**
+ <LI><B>AA_BB_CCC[[abc]DD]</B>
   <UL>
   <LI><B>AA</B>:
       Official major upgrades.
@@ -2954,9 +3449,9 @@ the following basic constellations could be distinguished:
   <LI><B>abc</B>:
       Development versions, Test-States:
    <UL>
-   <LI>[a]lpha
-   <LI>[b]eta
-   <LI>[c](g)amma
+   <LI><B>[a]</B>lpha
+   <LI><B>[b]</B>eta
+   <LI><B>[c]</B>(g)amma
    <P></P>
    </UL>
   <LI><B>DD</B>:
@@ -2982,10 +3477,16 @@ the following basic constellations could be distinguished:
   <P></P>
   When using this option alone, only the initial by
   default-loaded-components are listed.
+<br />
+<br />
+<br />
   </UL>
  </UL>
 </DL>
 
+<P>
+<a name="optW" />
+</P>
 <DL>
 <DT><B>-W &lt;WorkspaceId&gt;|&lt;WorkspaceLabel&gt;</B></DT><DD>
   This parameter requires the tool 'wmctrl' to be present, if not
@@ -2996,11 +3497,13 @@ the following basic constellations could be distinguished:
   applies:
 <P></P>
  <UL>
- <LI>&lt;WorkspaceId&gt;
+ <LI><B>&lt;WorkspaceId&gt;</B>
+ <br /> 
     The id of the desktop to be used for placing the
     window. Currently 1-3 digits are supported.
  <P></P>
- <LI>&lt;WorkspaceLabel&gt;
+ <LI><B>&lt;WorkspaceLabel&gt;</B>
+ <br /> 
     The user defined label of the desktop
     to be used for placing the window. When beginning with a digit, and is
     shorter than 4 characters, at least one character has to
@@ -3014,9 +3517,15 @@ the following basic constellations could be distinguished:
   Where the first column is the id of the desktop, and the last
   is the label. For further information on wmctrl refer to
   related man page.
+<br />
+<br />
+<br />
  </UL>
 </DL>
 
+<P>
+<a name="optx" />
+</P>
 <DL>
 <DT><B>-x &lt;OFF|STAR|CHAIN&gt;</B></DT><DD>
 Defines the resolution of required nested access to a chain of servers.
@@ -3031,24 +3540,41 @@ When using Keberos with the ticket forwarding option, the CHAIN option should be
 <P></P>
  <UL>
  <LI><B>OFF</B>
+ <br /> 
 No remote resolution is performed. The application should provide for
 appropriate output.
  <P></P>
  <LI><B>CHAIN</B>
+ <br /> 
 Chained access, which is the immediate forwarding of requests form the site
 where these occur.
  <P></P>
  <LI><B>STAR</B>
+ <br /> 
 STAR access, which is the forwarding of requests form the site
 initiating machine only, remote issues have to be replied first.
+<br />
+<br />
+<br />
  </UL>
 </DL>
 
+<P>
+<a name="optX" />
+</P>
 <DL>
 <DT><B>-X</B></DT><DD>
   Generate terse output for post processing.  The '-v Verbose'
   flag is not effected and should be only used for testing.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="opty" />
+</P>
+<DL>
 <DT><B>-y</B></DT><DD>
   Activates some terminal capabilities, mainly coloring of ERROR,
   WARNING, and WARNINGEXT. Very handy when debugging, but
@@ -3057,26 +3583,52 @@ initiating machine only, remote issues have to be replied first.
   "0".
   When selected the local and remote settings are both set at once.
   In current version this is set by default when the variable TERM is set to "xterm".
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optY" />
+</P>
+<DL>
 <DT><B>-Y</B></DT><DD>
 Activate <B>'ForwardAgent yes'/'-A'</B> of OpenSSH.
 If not active, another SSH authentication is required for each hop.
 When no mechanism like keys or Kerberos is in place, password authentication will be used.
 The basic configuration of SSH has to be prepared appropriately.
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optz" />
+</P>
+<DL>
 <DT><B>-z (NOPTY|PTY|1|2)</B></DT><DD>
   Control the allocation of a pseudotty by ssh. Therefore one or
   two "-t" options could be set for the internal "ssh" call.
 <P></P>
 <PRE>
+  
   NOPTY    : Eliminates "-l" of standard bash-call
              and "-t" for ssh-call.
   PTY      : "-t" 
   PTY,PTY  : "-t -t" 
   1        : "-t" 
   2        : "-t -t" 
+  
 </PRE>
-<P></P>
+<br />
+<br />
+<br />
+</DL>
+
+<P>
+<a name="optZ" />
+</P>
+<DL>
 <DT><B>-Z (KSU|NOKSU|SUDO|NOSUDO|ALL)</B></DT><DD>
   Controls call permission-grant. The calls requiring
   impersonation to another users ID, frequently "root" for
@@ -3177,6 +3729,9 @@ When using "<B>sudo</B>" the flag "<B>requirestty</B>" within "<B>/etc/sudoers</
 control whether a TTY is required or not. When in order to
 avoid this uncomment the flag within sudoers file. The "<B>-z</B>"
 option could be used to activate a pseudotty.
+<br />
+<br />
+<br />
  </UL>
 </DL>
 
@@ -3199,10 +3754,12 @@ as for common call.
 </P>
 <DL>
 <DT><B>[--]</B></DT><DD>
+<br />
 is required when using remote options, otherwise some problems with 
 standard remote options might occur.
 <P></P>
 <DT><B>&lt;user&gt;</B> default:${USER}=${USER}</DT><DD>
+<br />
 When instead the "-l" option likewise the r-functions is supported
 the given user(list) is permutated with the listed hosts.
 Particularly nice for bulk-tests, but anyhow a limit of about 20
@@ -3215,15 +3772,18 @@ environment variable:
 </PRE>
 <P></P>
 <DT><B>&lt;hostname&gt;</B></DT><DD>
+<P></P>
 <PRE>
   default:'uname -n'(`uname -n`)
 </PRE>
 <P></P>
 <DT><B>&lt;groupname&gt;</B></DT><DD>
+<br />
 Any user defined group/macro, for additional information refer to
 ctys manual.
 <P></P>
 <DT><B>&lt;any-options&gt;</B></DT><DD>
+<br />
 Any global option could be provided individually for each host.
 E.g. individual debugging level on that host only.
 One implementation specific to be aware of is, that these options
@@ -3250,33 +3810,78 @@ So, the given options results in the following scenario:
 </PRE>
 <P></P>
 <DT><B>&lt;command&gt;</B></DT><DD>
+<br />
 Command to be executed on the target host, which could be a
 native physical providing a remote desktop based on VNC, or a
 virtual machine like Xen. In any case the login will be
 performed by means of the target system, but the administrative
 support for neatless execution is provided by this tool.
+<br />
+<br />
+<br />
 </DL>
 
 <H1>SEE ALSO</H1>
 <DL>
 <DT><B>ctys use-cases</B></DT><DD>
-<I>ctys-IPMI(7)</I>, <I>ctys-WoL(7)</I>
-<P></P>
+<I><A HREF="../man7/ctys-uc-IPMI.html"> ctys-uc-IPMI(7)</A></I>
+,
+<I><A HREF="../man7/ctys-uc-WoL.html"> ctys-uc-WoL(7)</A></I>
+</DL>
+
+<DL>
 <DT><B>ctys plugins</B></DT><DD>
  <DL>
  <DT>  <B>PMs</B></DT><DD>
-<I>ctys-PM(7)</I>
+<I><A HREF="../man1/ctys-PM.html"> ctys-PM(1)</A></I>
+ <P></P>
  <DT>  <B>VMs</B></DT><DD>
-<I>ctys-KVM(7)</I>, <I>ctys-QEMU(7)</I>, <I>ctys-VMV(7)</I>, <I>ctys-XEN(7)</I>, <I>ctys-VBOX(7)</I>
+<I><A HREF="../man1/ctys-QEMU.html"> KVM(1)</A></I>
+,
+<I><A HREF="../man1/ctys-QEMU.html"> ctys-QEMU(1)</A></I>
+,
+<I><A HREF="../man1/ctys-VBOX.html"> ctys-VBOX(1)</A></I>
+,
+<I><A HREF="../man1/ctys-VMW.html"> ctys-VMW(1)</A></I>
+,
+<I><A HREF="../man1/ctys-XEN.html"> ctys-XEN(1)</A></I>
+ <P></P>
  <DT>  <B>HOSTS</B></DT><DD>
-<I>ctys-CLI(7)</I>, <I>ctys-PM(7)</I>, <I>ctys-VNC(7)</I>, <I>ctys-X11(7)</I>
+<I><A HREF="../man1/ctys-CLI.html"> ctys-CLI(1)</A></I>
+,
+<I><A HREF="../man1/ctys-RDP.html"> ctys-RDP(1)</A></I>
+,
+<I><A HREF="../man1/ctys-VNC.html"> ctys-VNC(1)</A></I>
+,
+<I><A HREF="../man1/ctys-X11.html"> ctys-X11(1)</A></I>
  <P></P>
  </DL>
 <DT><B>ctys executables</B></DT><DD>
-<I>ctys-distribute(1)</I>, <I>ctys-extractARPlst(1)</I>, <I>ctys-extractMAClst(1)</I>, <I>ctys-genmconf(1)</I>, <I>ctys-plugins(1)</I>, <I>ctys-vping(1)</I>, <I>ctys-vhost(1)</I>, <I>ctys-wakeup(1)</I>
-<P></P>
+<I><A HREF="../man1/ctys-distribute.html"> ctys-distribute(1)</A></I>
+,
+<I><A HREF="../man1/ctys-extractARPlst.html"> ctys-extractARPlst(1)</A></I>
+,
+<I><A HREF="../man1/ctys-extractMAClst.html"> ctys-extractMAClst(1)</A></I>
+,
+<I><A HREF="../man1/ctys-genmconf.html"> ctys-genmconf(1)</A></I>
+,
+<I><A HREF="../man1/ctys-plugins.html"> ctys-plugins(1)</A></I>
+,
+<I><A HREF="../man1/ctys-vping.html"> ctys-vping(1)</A></I>
+,
+<I><A HREF="../man1/ctys-vdbgen.html"> ctys-vdbgen(1)</A></I>
+,
+<I><A HREF="../man1/ctys-vhost.html"> ctys-vhost(1)</A></I>
+,
+<I><A HREF="../man1/ctys-wakeup.html"> ctys-wakeup(1)</A></I>
+</DL>
+
+<DL>
 <DT><B>system executables</B></DT><DD>
 <I>dmidecode(8)</I>, <I>ether-tool(8)</I>, <I>ether-wake(8)</I>, <I>nc(1)&lt;a.k.a. netcat&gt;</I>
+<br />
+<br />
+<br />
 </DL>
 
 <H1>AUTHOR</H1>
@@ -3307,6 +3912,14 @@ Written and maintained by Arno-Can Uestuensoez:
 </TABLE>
 
 <P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
 <H1>COPYRIGHT</H1>
 <P>
 Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
@@ -3326,11 +3939,10 @@ The whole document - all sections - is/are defined as invariant.
 For additional information refer to enclosed Releasenotes and License files.
 </P>
 <P>
-<img src="../../images/60px-Official-gnu.png" />  
-<br />
+<A HREF="http://www.gnu.org"><IMG ALIGN="middle" SRC="../../images/60px-Official-gnu.png" BORDER="0" ALT=""></A>
 <br />
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/html/man1/ctys.html -->
+<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/html/man1/ctys.html -->
 </BODY></HTML>

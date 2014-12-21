@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -30,7 +30,6 @@
 
 
 function set-Scientific () {
-    DEFAULTINSTMODE=KS;
     case ${DISTREL} in
 	5.*)
 
@@ -38,6 +37,16 @@ function set-Scientific () {
 		XEN)  set-Scientific-5x-XEN;;
 		QEMU) set-Scientific-5x-QEMU;;
 	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
 	    ;;
     esac
 }
@@ -48,7 +57,7 @@ function set-Scientific () {
 #DIST: SL-5.4.1
 #
 function set-Scientific-5x-XEN () {
-
+    DEFAULTINSTMODE=KS;
     local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/scientific/$R/x86_64/dvd/SL.${R//./}.110309.DVD.x86_64.disc1
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/scientific/5.4/raw/iso/x86_64/dvd/SL.${R//./}.110309.DVD.x86_64.disc1.iso
@@ -74,6 +83,31 @@ function set-Scientific-5x-XEN () {
 	HVM)
 	    _MATCHED=1;
  	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
+	    ;;
+    esac
+
+}
+
+
+function set-Scientific-5x-QEMU () {
+    DEFAULTINSTMODE=CD;
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/scientific/$R/x86_64/dvd/SL.${R//./}.110309.DVD.x86_64.disc1
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/scientific/5.4/raw/iso/x86_64/dvd/SL.${R//./}.110309.DVD.x86_64.disc1.iso
+    case ${ACCELERATOR} in
+	QEMU)
+	    _MATCHED=1;
+	    DEFAULT_INST_KERNEL=;
+	    DEFAULT_INST_INITRD=;
+	    DEFAULT_INST_EXTRA=;
+	    DEFAULT_INST_ROOTARGS=;
+
+ 	    DEFAULT_BOOTLOADER=;
+	    ;;
+	KVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=;
 	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
 	    ;;
     esac

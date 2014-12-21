@@ -49,6 +49,30 @@ if [ -n "$C_EXECLOCAL" ];then
     [ -z "$CTYS_INIT" ]&&CTYS_INIT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT init /sbin`
 
     case ${MYDIST} in
+	ESX)
+	    [ -z "$CTYS_REBOOT" ]&&CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
+	    [ -z "$CTYS_HALT" ]&&CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
+	    [ -z "$CTYS_POWEROFF" ]&&CTYS_POWEROFF=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT poweroff /sbin`
+	    [ -z "$CTYS_ETHTOOL" ]&&CTYS_ETHTOOL=`getPathName   $LINENO $BASH_SOURCE WARNINGEXT ethtool /sbin`
+	    [ -z "$CTYS_WOL_LOCAL" ]&&CTYS_WOL_LOCAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT ether-wake /sbin`
+	    [ -z "$CTYS_NETCAT0" ]&&CTYS_NETCAT0=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    ;;
+	XenServer)
+	    [ -z "$CTYS_REBOOT" ]&&CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
+	    [ -z "$CTYS_HALT" ]&&CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
+	    [ -z "$CTYS_POWEROFF" ]&&CTYS_POWEROFF=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT poweroff /sbin`
+	    [ -z "$CTYS_ETHTOOL" ]&&CTYS_ETHTOOL=`getPathName   $LINENO $BASH_SOURCE WARNINGEXT ethtool /sbin`
+	    [ -z "$CTYS_WOL_LOCAL" ]&&CTYS_WOL_LOCAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT ether-wake /sbin`
+	    [ -z "$CTYS_NETCAT0" ]&&CTYS_NETCAT0=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    ;;
+	MeeGo)
+	    [ -z "$CTYS_REBOOT" ]&&CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
+	    [ -z "$CTYS_HALT" ]&&CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
+	    [ -z "$CTYS_POWEROFF" ]&&CTYS_POWEROFF=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT poweroff /sbin`
+	    [ -z "$CTYS_ETHTOOL" ]&&CTYS_ETHTOOL=`getPathName   $LINENO $BASH_SOURCE WARNINGEXT ethtool /sbin`
+	    [ -z "$CTYS_WOL_LOCAL" ]&&CTYS_WOL_LOCAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT ether-wake /sbin`
+	    [ -z "$CTYS_NETCAT0" ]&&CTYS_NETCAT0=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    ;;
 	CentOS)
 	    [ -z "$CTYS_REBOOT" ]&&CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
 	    [ -z "$CTYS_HALT" ]&&CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
@@ -58,6 +82,14 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_NETCAT0" ]&&CTYS_NETCAT0=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
 	    ;;
 	EnterpriseLinux)
+	    [ -z "$CTYS_REBOOT" ]&&CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
+	    [ -z "$CTYS_HALT" ]&&CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
+	    [ -z "$CTYS_POWEROFF" ]&&CTYS_POWEROFF=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT poweroff /sbin`
+	    [ -z "$CTYS_ETHTOOL" ]&&CTYS_ETHTOOL=`getPathName   $LINENO $BASH_SOURCE WARNINGEXT ethtool /sbin`
+	    [ -z "$CTYS_WOL_LOCAL" ]&&CTYS_WOL_LOCAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT ether-wake /sbin`
+	    [ -z "$CTYS_NETCAT0" ]&&CTYS_NETCAT0=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    ;;
+	RHEL)
 	    [ -z "$CTYS_REBOOT" ]&&CTYS_REBOOT=`getPathName    $LINENO $BASH_SOURCE WARNINGEXT reboot /sbin`
 	    [ -z "$CTYS_HALT" ]&&CTYS_HALT=`getPathName      $LINENO $BASH_SOURCE WARNINGEXT halt /sbin`
 	    [ -z "$CTYS_POWEROFF" ]&&CTYS_POWEROFF=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT poweroff /sbin`

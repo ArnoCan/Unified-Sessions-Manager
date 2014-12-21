@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_011
 #DESCRIPTION:
 #  Configures the VDE based TAP device and virtual switch.
 #
@@ -340,7 +340,6 @@ if [ -f "${MYCONFPATH}/ctys.conf.sh" ];then
     . "${MYCONFPATH}/ctys.conf.sh"
 fi
 
-
 #system tools
 if [ -f "${HOME}/.ctys/systools.conf-${MYDIST}.sh" ];then
     . "${HOME}/.ctys/systools.conf-${MYDIST}.sh"
@@ -379,12 +378,36 @@ if [ -f "${MYCONFPATH}/kvm/kvm.conf-${MYOS}.sh" ];then
 fi
 
 
-
-
 ###############################
 #verify presence of required tools
 ###############################
+
+#
+#Required for some OSs as pre-delay for socket initialisation,
+#thus do it here for ultimate force.
+#Change these only if you are definitely sure about.
+#For common settings use the configuration files.
+
+case $MYDIST in
+    openSUSE)
+	CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+	printINFO 2 $LINENO $BASH_SOURCE 1 "Running on $(setSeverityColor WNG $MYDIST):Set $(setSeverityColor WNG CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY}sec)"
+	if [ -z "$CTYS_NETCAT" ];then
+	    ABORT=2
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "$(setSeverityColor ERR Missing) mandatory \"$(setSeverityColor ERR nc)\" variant of netcat $(setSeverityColor WNG with \"-U\" option)  for $(setSeverityColor ERR $MYDIST)."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "QEMU/KVM may not work correctly on this distribution due to internal"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "communications faults with vde_switch(${VDE_SWITCH})."
+#	gotoHell ${ABORT}  
+	else
+	    CTYS_NETCAT="$CTYS_NETCAT ${CTYS_NETCAT_ACCESS_DELAY:+ -i $CTYS_NETCAT_ACCESS_DELAY} "
+	fi
+	;;
+esac
+
+
+
 function showVDERef() {
+    ABORT=2
     printERR $LINENO $BASH_SOURCE ${ABORT} "Refer for additonal Information to:"
     printERR $LINENO $BASH_SOURCE ${ABORT} "  \"http://wiki.virtualsquare.org/index.php/VDE_Basic_Networking\""
 
@@ -611,15 +634,10 @@ function cancelSwitch () {
     fi
 
     if [ -n "${CTYS_NETCAT}" ];then
-	local _myTap=`{
-          if [ "$USER" == root ];then
-	    callErrOutWrapper $LINENO $BASH_SOURCE echo "port/print"|$CTYS_NETCAT -U $_msock
-          else
+        if [ "$USER" != root ];then
 	    checkedSetSUaccess  "${_myHint}" BRCTLCALL  CTYS_NETCAT -h
-            callErrOutWrapper $LINENO $BASH_SOURCE echo "port/print"|$CTYS_NETCAT -U $_msock 
-          fi
-        }|awk '/tuntap/{print $NF}'
-        `
+        fi
+	local _myTap=$(callErrOutWrapper $LINENO $BASH_SOURCE "echo 'port/print'|$CTYS_NETCAT -U $_msock|awk '/tuntap/{print \$NF}'")
     else
 	local _myTap=`{
 	    callErrOutWrapper $LINENO $BASH_SOURCE $VDE_UNIXTERM $_msock <<EOF
@@ -629,11 +647,18 @@ EOF
 	`
     fi
 
-
     if [ -n "$_myTap" ];then
-	checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  VDE_UNIXTERM $_msock <<EOF
+	if [ -n "${CTYS_NETCAT}" ];then
+            if [ "$USER" != root ];then
+		checkedSetSUaccess  "${_myHint}" BRCTLCALL  CTYS_NETCAT -h
+            fi
+	    callErrOutWrapper $LINENO $BASH_SOURCE "echo shutdown|$CTYS_NETCAT -U $_msock">/dev/null
+	else
+	    checkedSetSUaccess retry norootpreference "${_myHint}" BRCTLCALL  VDE_UNIXTERM $_msock <<EOF
 shutdown
 EOF
+	fi
+
     else
 	if [ -e "$_pfile" ];then
 	    local _mypid=`cat ${_pfile}`
@@ -752,7 +777,6 @@ function listPortsSwitch () {
 	return 1
     fi
     echo "SWITCH-PORTS:"
-
     if [ -n "$CTYS_NETCAT" ];then
 	if [ "$USER" == root ];then
 	    callErrOutWrapper $LINENO $BASH_SOURCE "echo 'port/print'|$CTYS_NETCAT -U $_msock "
@@ -1148,7 +1172,7 @@ if [ -n "${_RHOSTS}" ];then
     _MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
 
     _call="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS} ${_RUSER:+-l $_RUSER} ${_RHOSTS}"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
+    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
     ${_call}
     exit $?
 fi

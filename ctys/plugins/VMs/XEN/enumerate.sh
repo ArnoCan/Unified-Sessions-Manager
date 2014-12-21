@@ -255,9 +255,11 @@ function enumerateMySessionsXEN () {
 		_out8=;
 		_out8="${_out8};${MYUID}";
 		_out8="${_out8};${MYGID}";
-		_out8="${_out8};${XEN_DEFAULT_HOSTS}";
-		_out8="${_out8};${XEN_DEFAULT_CONSOLE}";
 
+		local _myHosts=$(getDEFAULTHOSTS ${X})
+		_out8="${_out8};${_myHosts:-$XEN_DEFAULT_HOSTS}";
+		local _myCon=$(getDEFAULTCONSOLE ${X})
+		_out8="${_out8};${_myCon:-$XEN_DEFAULT_CONSOLE}";
 
 		local i=0;
 		_myMAC=`getMAClst_XEN ${X}`;

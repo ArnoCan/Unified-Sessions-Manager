@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_EXEC="${BASH_SOURCE}"
-_myPKGVERS_EXEC="01.11.007"
+_myPKGVERS_EXEC="01.11.011"
 hookInfoAdd "$_myPKGNAME_EXEC" "$_myPKGVERS_EXEC"
 
 
@@ -30,11 +30,13 @@ EXECCALLBASE=""
 #Set of all resulting target hosts after completion of permutation with 
 #user@host-EMail-Form only.
 declare -a EXECCALLS;
+unset JOB_EXECCALLS[*];
 
 
 #Set of user@host specific sessions remote parameters, gwhich would be applied 
 #on the remote host only.
 declare -a EXECOPTIONS;
+unset JOB_EXECOPTIONS[*];
 
 
 #Index for linked-handling of JOB_-arrays.
@@ -72,6 +74,18 @@ CALLERCACHE=;
 CALLERCACHEREUSE=;
 
 
+
+#Controls whether the remote call is a stub-only instead of
+#a call transfer by ctys.
+#Not neccessarily, but in almost any case the stub-only is a 
+#terminating call too.
+C_STUBCALL=;
+
+#Controls in conjunction with C_STUBCALL the usage of a wrapper
+#for the remote stub-call.
+C_NOWRAPPER=1;
+
+
 #Set of local clients when the 'CONNECTIONFORWARDING' option is choosen and a 
 #local client for the remote server is requested.
 #Storing the client requests in a temporary cache and executing the server
@@ -89,6 +103,7 @@ CALLERCACHEREUSE=;
 #
 #This array contains just complete calls, to be used as they are.
 declare -a JOB_EXECCLIENTS;
+unset JOB_EXECCLIENTS[*];
 
 
 #This array is used for statistics, debugging and macro-recording purposes.
@@ -98,7 +113,7 @@ declare -a JOB_EXECCLIENTS;
 #This array contains just complete calls, to be used as they are.
 #This could be a server-only call as well as a server+client-on-server call.
 declare -a JOB_EXECSERVER;
-
+unset JOB_EXECSERVER[*];
 
 #
 #This is - to be honest - more or less a temporary patchwork.
@@ -109,6 +124,7 @@ declare -a JOB_EXECSERVER;
 #This solution requires less additional effort, than the target solution.
 #
 declare -a JOB_EXECCALLS;
+unset JOB_EXECCALLS[*];
 
 
 #FUNCBEG###############################################################
@@ -150,8 +166,6 @@ function assembleExeccall () {
 	    local  _propagate=1
 	    ;;
     esac
-
-
     if [ "$C_MODE" == DEFAULT -a -z "${_propagate}" ];then
 	ABORT=2;
 	printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:ACTION \"-a\" not yet set."
@@ -237,9 +251,9 @@ function assembleExeccall () {
     else
 	EXECCALL="${EXECCALL} ${C_CLIENTLOCATION} ${R_OPTS} ${X_OPTS} ${R_TEXT}"
     fi
-
     EXECCALL="${MYCALLNAME} ${EXECCALL}"
     printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Post:EXECCALL=\"${EXECCALL}\""
+    echo -n "${EXECCALL}"
 }
 
 
@@ -379,7 +393,6 @@ function pushExecCall () {
 
     local _JOB_IDX=${#JOB_EXECSERVER[@]};
     JOB_CNT=$_JOB_IDX;
-
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:EXECCALL=\"${EXECCALL}\""
 
     if [ -n "${_ST}" -a "${_ST}" != DEFAULT -a "${_ST}" != ALL -a -n "${EXECCALLS[$x]// /}" ];then
@@ -469,8 +482,7 @@ function expandExecCall () {
 		    if [ -n "$C_EXECLOCAL" ];then
 			eval handleGENERIC EXECUTE ${C_MODE} 
 		    else
-			eval handleGENERIC ASSEMBLE ${C_MODE} 
-			assembleExeccall
+			EXECCALL=$(eval handleGENERIC ASSEMBLE ${C_MODE})
 		    fi
 		    pushExecCall $x
 		    local _match=1;
@@ -486,8 +498,7 @@ function expandExecCall () {
 			    if [ -n "$C_EXECLOCAL" ];then
 				eval handle${i} EXECUTE ${C_MODE}
 			    else
-				eval handle${i} ASSEMBLE ${C_MODE}
-				assembleExeccall
+				EXECCALL=$(eval handle${i} ASSEMBLE ${C_MODE})
 			    fi
 
 			    printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:EXECCALL=\"${EXECCALL}\""
@@ -500,7 +511,7 @@ function expandExecCall () {
 			printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH-SUBTASK"
 			R_OPTS="${R_OPTS} -w"
 			if [ -z "$C_EXECLOCAL" ];then
-			    assembleExeccall PROPAGATE
+			    EXECCALL=$(eval handle${DEFAULT_C_SESSIONTYPE} PROPAGATE ${C_MODE})
 			fi
 
 			case ${EXECCALLS[$x]} in 
@@ -528,16 +539,14 @@ function expandExecCall () {
 			    if [ -n "$C_EXECLOCAL" ];then
 				eval handleGENERIC EXECUTE ${C_MODE} 
 			    else
- 				eval handleGENERIC ASSEMBLE ${C_MODE} 
-				assembleExeccall
+ 				EXECCALL=$(eval handleGENERIC ASSEMBLE ${C_MODE} )
 			    fi
 			    ;;
 			*)
 			    if [ -n "$C_EXECLOCAL" ];then
 				eval handle${i} EXECUTE ${C_MODE}
 			    else
-				eval handle${i} ASSEMBLE ${C_MODE}
-				assembleExeccall
+				EXECCALL=$(eval handle${i} ASSEMBLE ${C_MODE})
 			    fi
 			    ;;
 		    esac
@@ -595,12 +604,13 @@ function finalizeExecCall () {
     local x=$1;shift
     local _calltarget=;
     local _ret=0;
-    
+   
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "PutExecPrefix-Pre:JOB_EXECSERVER[$x]=<${JOB_EXECSERVER[$x]}>"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "PutExecPrefix-Pre:JOB_EXECCALLS[$x]=<${JOB_EXECCALLS[$x]}>"
 
     #Now the remote execution caller-prefix will be assembled
     JOB_EXECSERVER[$x]=`echo ${JOB_EXECSERVER[$x]}|sed 's/^ //'`;
+
     if [ -n "${JOB_EXECSERVER[$x]## /}" ];then
 	EXECCALLBASE="`digGetExecLink ${JOB_EXECCALLS[$x]}` "
         #so local execution for $USER@localhost, change '-L' option for further processing
@@ -663,34 +673,38 @@ function finalizeExecCall () {
 	else
             if [ -z "$C_EXECLOCAL" ];then
 		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:FORWARD - remote execution"
-		if [ -n "${R_PATH}" ];then
-		    EXECCALLBASE="${EXECCALLBASE} export PATH=${R_PATH}\&\&"
-		    JOB_EXECSERVER[$x]="${EXECCALLBASE}${JOB_EXECSERVER[$x]}";
-		else
-                    #yes, this is because of PATH/env is for OpenSSH different with "-t" option!
-                    #is not absolutely reliable, but almost!
-		    if [ "${EXECCALLBASE//ssh }" != "${EXECCALLBASE}" ];then
-                        #eval remote
-			if [ "$C_SSH_PSEUDOTTY" == 0 ];then
-			    EXECCALLBASE="${EXECCALLBASE}${EXECSHELLWRAPPERNOPTY} "
-			    [ -n "${EXECSHELLWRAPPER// /}" ]&&local _wrapped=1;
-			else
-			    EXECCALLBASE="${EXECCALLBASE}${EXECSHELLWRAPPER} "
-			    [ -n "${EXECSHELLWRAPPERNOPTY// /}" ]&&local _wrapped=1;
-			fi
-                        #maybe redundant, but anyhow, ssh does not provide an error code, when exec fails
-                        #whithin a bash-wrapper
-			JOB_EXECSERVER[$x]="export PATH=\\\${PATH}:\\\${HOME}/bin\&\&${JOB_EXECSERVER[$x]}";
-			if [ -n "${_wrapped}" ];then
-			    JOB_EXECSERVER[$x]="${EXECCALLBASE}\'${JOB_EXECSERVER[$x]}\'";
-			else
-			    JOB_EXECSERVER[$x]="${EXECCALLBASE} ${JOB_EXECSERVER[$x]}";
-			fi
-		    else
-                        #eval local
-			EXECCALLBASE="${EXECCALLBASE} export PATH=${PATH}:${HOME}/bin&&"
+		if [ -z "$C_STUBCALL" -o \( -n "$C_STUBCALL" -a -z "$C_NOWRAPPER" \) ];then
+		    if [ -n "${R_PATH}" ];then
+			EXECCALLBASE="${EXECCALLBASE} export PATH=${R_PATH}\&\&"
 			JOB_EXECSERVER[$x]="${EXECCALLBASE}${JOB_EXECSERVER[$x]}";
+		    else
+                        #yes, this is because of PATH/env is for OpenSSH different with "-t" option!
+                        #is not absolutely reliable, but almost!
+			if [ "${EXECCALLBASE//ssh }" != "${EXECCALLBASE}" ];then
+                            #eval remote
+			    if [ "$C_SSH_PSEUDOTTY" == 0 ];then
+				EXECCALLBASE="${EXECCALLBASE}${EXECSHELLWRAPPERNOPTY} "
+				[ -n "${EXECSHELLWRAPPER// /}" ]&&local _wrapped=1;
+			    else
+				EXECCALLBASE="${EXECCALLBASE}${EXECSHELLWRAPPER} "
+				[ -n "${EXECSHELLWRAPPERNOPTY// /}" ]&&local _wrapped=1;
+		 	    fi
+                            #maybe redundant, but anyhow, ssh does not provide an error code, when exec fails
+                            #whithin a bash-wrapper
+			    JOB_EXECSERVER[$x]="export PATH=\\\${PATH}:\\\${HOME}/bin\&\&${JOB_EXECSERVER[$x]}";
+			    if [ -n "${_wrapped}" ];then
+				JOB_EXECSERVER[$x]="${EXECCALLBASE}\'${JOB_EXECSERVER[$x]}\'";
+			    else
+				JOB_EXECSERVER[$x]="${EXECCALLBASE} ${JOB_EXECSERVER[$x]}";
+			    fi
+			else
+                            #eval local
+			    EXECCALLBASE="${EXECCALLBASE} export PATH=${PATH}:${HOME}/bin&&"
+			    JOB_EXECSERVER[$x]="${EXECCALLBASE}${JOB_EXECSERVER[$x]}";
+			fi
 		    fi
+		else
+		    JOB_EXECSERVER[$x]="${EXECCALLBASE}${JOB_EXECSERVER[$x]}";
 		fi
 	    fi
 	    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:EXECCALLBASE=${EXECCALLBASE}"
@@ -755,39 +769,28 @@ function doExecCall () {
         #SSH manages asynchronous operations by '-f'
         #jobcontrol bundels parallel tasks
 
-	local _call=;
-	_call=$(cacheReplaceCtysAddress $@);
-	_ret=$?;
+	if [ -z "$C_STUBCALL" ];then
+	    local _call=;
+	    _call=$(cacheReplaceCtysAddress $@);
+	    _ret=$?;
 
-        #################
-        #if no hit,
-        # -> due to error
-        #    -> if nscacheonly 
-        #       -> that's it
-        #    -> else
-        #       -> don't mind, just inform(as done)
-        # -> if nscacheonly 
-        #    -> that's it
-        # -> don't mind
-        #################
-	if((_ret!=0));then
-	    case ${C_NSCACHELOCATE} in
-		1|2)
-		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Cache error for requested resolution by."
-		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:local cacheDB."
-		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Most common reason for that is ambiguity,"
-		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:check your cacheDB."
-		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:CALL=<${@}>"
-		    if((C_NSCACHEONLY==1));then
-			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:ABORT current CALL."
-			return $_ret
-		    fi
-		    ;;
-		3)
-                    #relevant? ...anyhow
-		    if [ -z "C_EXECLOCAL" ];then
+            #################
+            #if no hit,
+            # -> due to error
+            #    -> if nscacheonly 
+            #       -> that's it
+            #    -> else
+            #       -> don't mind, just inform(as done)
+            # -> if nscacheonly 
+            #    -> that's it
+            # -> don't mind
+            #################
+
+	    if((_ret!=0));then
+		case ${C_NSCACHELOCATE} in
+		    1|2)
 			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Cache error for requested resolution by."
-			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:remote cacheDB."
+			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:local cacheDB."
 			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Most common reason for that is ambiguity,"
 			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:check your cacheDB."
 			printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:CALL=<${@}>"
@@ -795,26 +798,41 @@ function doExecCall () {
 			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:ABORT current CALL."
 			    return $_ret
 			fi
-		    fi
-		    ;;
-	    esac
-	    printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:Cache error for requested resolution, continue"
-	    printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:with scan, if should stop use \"-c ONLY\"."
+			;;
+		    3)
+                    #relevant? ...anyhow
+			if [ -z "C_EXECLOCAL" ];then
+			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Cache error for requested resolution by."
+			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:remote cacheDB."
+			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Most common reason for that is ambiguity,"
+			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:check your cacheDB."
+			    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:CALL=<${@}>"
+			    if((C_NSCACHEONLY==1));then
+				printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:ABORT current CALL."
+				return $_ret
+			    fi
+			fi
+			;;
+		esac
+		printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:Cache error for requested resolution, continue"
+		printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:with scan, if should stop use \"-c ONLY\"."
+	    fi
+	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:CALL-CACHE-RESOLVED=<${_call}>"
+	    if [ -z "$_call" ];then
+		_ret=3;
+		printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Internal error in NAMESERVICE-CACHE=>empty CALL:"
+		printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:  INPUT   =<${@}>"
+		printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:  RESOLVED=<${_call}>"
+		printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:temporary workaround: \"-c off\""
+		printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Please forward a bug report."
+		return $_ret
+	    fi
+	    if [ $_ret -ne 0 ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_call=<${_call}>"
+	    fi
+	else
+	    _call="$@";
 	fi
-	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:CALL-CACHE-RESOLVED=<${_call}>"
-	if [ -z "$_call" ];then
-	    _ret=3;
-	    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Internal error in NAMESERVICE-CACHE=>empty CALL:"
-	    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:  INPUT   =<${@}>"
-	    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:  RESOLVED=<${_call}>"
-	    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:temporary workaround: \"-c off\""
-	    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Please forward a bug report."
-	    return $_ret
-	fi
-	if [ $_ret -ne 0 ];then
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_call=<${_call}>"
-	fi
-
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:C_PARALLEL=<${C_PARALLEL}>"
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:C_STACK   =<${C_STACK}>"
         #activate job-control
@@ -828,31 +846,31 @@ function doExecCall () {
 		X11)
 		    _call=${_call//ssh/ssh -f};
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "$FUNCNAME:VMSTACK:_call => <${_call}>"
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval ${_call} &"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval ${_call} &"
  		    eval "${_call} &"; 
 		    ;;
 		VNC)
 		    _call=${_call//ssh/ssh -f};
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "$FUNCNAME:VMSTACK:_call => <${_call}>"
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
  		    { eval "${_call}"; } &
 		    ;;
 		*)
 		    if [ "${C_PARALLEL}" == 1 ];then
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
  			{ eval "${_call}"; } &
 		    else
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }"
 			{ eval "${_call}"; }
 		    fi
 		    ;;
 	    esac
 	else
 	    if [ "${C_PARALLEL}" == 1 ];then
-		printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
+		printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
  		{ eval "${_call}"; } &
 	    else
-		printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval ${_call}"
+		printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval ${_call}"
  		eval "${_call}"       
 	    fi
 	fi
@@ -903,6 +921,7 @@ function doExecCalls () {
     L_VERS=${L_VERS:-$VERSION}
     ssiz=${#JOB_EXECSERVER[@]};
     csiz=${#JOB_EXECCLIENTS[@]};
+
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Number of pending EXECCALLS     []=${#EXECCALLS[@]}"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Number of pending JOB_EXECSERVER[]=$siz"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Number of pending JOB_EXECCLIENTS[]=$siz"
@@ -920,7 +939,7 @@ function doExecCalls () {
     #Shortcut for single jobs. Anyhow, check stack first.
     printDBG $S_CORE ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:SINGLE-CHECK"
     if((csiz==0&&ssiz==1));then
-	doExecCall ${JOB_EXECSERVER[0]}
+	doExecCall ${JOB_EXECSERVER[1]}
 	JOB_EXECSERVER[$x]=;
 	return
     fi

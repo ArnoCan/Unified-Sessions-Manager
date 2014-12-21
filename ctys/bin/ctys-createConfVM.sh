@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -58,7 +58,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_005
+VERSION=01_11_011
 #DESCRIPTION:
 #  Utility of project ctys for generation of PM data supporting 
 #  ENUMERATE. This is seperated, due to some of the data requires
@@ -295,6 +295,19 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 ################################################################
 
 
+
+
+##############################################
+#Temporary workaround
+if [ -n "${DISTREL}" ];then
+    RELEASE=${DISTREL}
+else
+    if [ -n "${RELEASE}" ];then
+	DISTREL=${RELEASE}
+    fi
+fi
+##############################################
+
 #
 #Verify OS support
 #
@@ -440,6 +453,23 @@ case ${C_SESSIONTYPE} in
 	. ${MYLIBPATH}/lib/libVMWserver2.sh
 	. ${MYLIBPATH}/lib/libVMWconf.sh
 	;;
+
+    VBOX)
+	if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vbox" ];then
+	    if [ -f "${HOME}/.ctys/vbox/vbox.conf-${MYOS}.sh" ];then
+		. "${HOME}/.ctys/vbox/vbox.conf-${MYOS}.sh"
+	    fi
+	fi
+
+	if [ -d "${MYCONFPATH}/vbox" ];then
+	    if [ -f "${MYCONFPATH}/vbox/vbox.conf-${MYOS}.sh" ];then
+		. "${MYCONFPATH}/vbox/vbox.conf-${MYOS}.sh"
+	    fi
+	fi
+	. ${MYLIBPATH}/lib/libVBOXbase.sh
+	. ${MYLIBPATH}/lib/libVBOX.sh
+	. ${MYLIBPATH}/lib/libVBOXconf.sh
+	;;
     *)
 	ABORT=1;
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Sessiontype not supported:C_SESSIONTYPE=${C_SESSIONTYPE}"
@@ -484,6 +514,29 @@ if [ -f "${MYCONFPATH}/ctys-createConfVM.d/defaults-${C_SESSIONTYPE}.ctys" ];the
 else
     printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Cannot load system defaults, just check it."
 fi
+
+
+#
+#Set access defualts
+#
+case ${C_SESSIONTYPE} in
+    QEMU)
+	DEFAULTCONSOLE=${DEFAULTCONSOLE:-$QEMU_DEFAULT_CONSOLE};
+	DEFAULTHOSTS=${DEFAULTHOSTS:-$QEMU_DEFAULT_HOSTS};
+	;;
+    VBOX)
+	DEFAULTCONSOLE=${DEFAULTCONSOLE:-$VBOX_DEFAULT_CONSOLE};
+	DEFAULTHOSTS=${DEFAULTHOSTS:-$VBOX_DEFAULT_HOSTS};
+	;;
+    VMW)
+	DEFAULTCONSOLE=${DEFAULTCONSOLE:-$VMW_DEFAULT_CONSOLE};
+	DEFAULTHOSTS=${DEFAULTHOSTS:-$VMW_DEFAULT_HOSTS};
+	;;
+    XEN)
+	DEFAULTCONSOLE=${DEFAULTCONSOLE:-$XEN_DEFAULT_CONSOLE};
+	DEFAULTHOSTS=${DEFAULTHOSTS:-$XEN_DEFAULT_HOSTS};
+	;;
+esac
 
 
 AUTO_WITH_DEFAULTS_ALL=;
@@ -728,6 +781,72 @@ function getValues () {
 
 
     case ${C_SESSIONTYPE} in
+
+#4TEST-VBOX
+#TODO: xml-symlink!!!
+	VBOX)
+	    rcnt=0;
+	    FINISHED="";
+	    while [ -z "$FINISHED" ];do
+		getAttrVal LABEL "${LABEL}" MANDATORY "${_prefix1}"
+		let rcnt++;
+		if [ -e "${IDDIR}/${LABEL}.vdi" ];then
+		    echo
+		    echo "${_prefix1}""CONF-FILE = ${IDDIR}/${LABEL}.ctys"
+		    echo "${_prefix1}""VDI-FILE  = ${IDDIR}/${LABEL}.vdi"
+		    XMLFILE=$(fetchCFGFile ${IDDIR}/${LABEL}.vdi)
+		    echo "${_prefix1}""XML-FILE  = ${XMLFILE}"
+		    echo -e "\033[2K";
+		    FINISHED=1;
+
+ 		    local dName=$(getVBOXLABEL "${IDDIR}/${LABEL}.vdi")
+		    if [ -z "$dName" ];then
+			echo -n "${_prefix1}""Missing'"
+			setSeverityColor WNG "displayName"
+			echo "' in vdi/xml-file. "
+		    else
+			if [ "$dName" != "$LABEL" ];then
+			    echo -n "${_prefix1}""The '"
+			    setSeverityColor WNG "displayName=${dName}"
+			    echo -n "' and the '"
+			    setSeverityColor WNG "LABEL=${LABEL}"
+			    echo "' are different. "
+			    echo "${_prefix1}""These should match for convenience. "
+			fi
+		    fi
+		else
+		    echo
+		    echo "${_prefix1}""CONF-FILE = ${IDDIR}/${LABEL}.ctys"
+		    echo -n "${_prefix1}"
+		    setSeverityColor ERR "Missing"
+		    echo -n " prerequired "
+		    setSeverityColor ERR "peer-vdi-file:"
+		    echo
+		    echo -n "${_prefix1}""VDI-FILE  = "
+		    setSeverityColor ERR "${IDDIR}/${LABEL}.vdi"
+		    echo
+		    echo
+		    echo  -n "${_prefix1}"
+		    setSeverityColor ERR "Requires a present VM created by the suppliers tools."
+		    echo
+		    echo
+		    echo  -n "${_prefix1}"
+		    setSeverityColor INF "TIP:"
+		    echo  " Try as a 'work-around' the creation of a segmented virtual disk"
+		    echo  "${_prefix1}""- at least as a dummy - before creating an actual disk."
+
+		    [ -n "${AUTO_WITH_DEFAULTS_ALL}" ]&&echo&&exit 1;
+ 		    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[12A\033[2K\033[1A";
+		fi
+		echo
+	    done
+ 	    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[1A\033[2K\033[1A";
+ 	    echo
+ 	    echo
+ 	    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[2K\033[2A";
+	    ;;
+
+
 	VMW)
 	    rcnt=0;
 	    FINISHED="";
@@ -767,15 +886,18 @@ function getValues () {
 		    echo -n "${_prefix1}""VMX-FILE  = "
 		    setSeverityColor ERR "${IDDIR}/${LABEL}.vmx"
 		    echo
-
-
+		    echo
+		    echo  -n "${_prefix1}"
+		    setSeverityColor ERR "Requires a present VM created by the suppliers tools."
+		    echo
+		    echo
 		    echo  -n "${_prefix1}"
 		    setSeverityColor INF "TIP:"
 		    echo  " Try as a 'work-around' the creation of a segmented virtual disk"
 		    echo  "${_prefix1}""- at least as a dummy - before creating an actual disk."
 
 		    [ -n "${AUTO_WITH_DEFAULTS_ALL}" ]&&echo&&exit 1;
- 		    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[9A\033[2K\033[1A";
+ 		    [ "${CTYS_XTERM}" == 0 ]&&echo -n -e "\033[12A\033[2K\033[1A";
 		fi
 		echo
 	    done
@@ -809,12 +931,33 @@ function getValues () {
     echo "($((_idx++))/${_sum})";
     echo
     case ${C_SESSIONTYPE} in
+	VBOX)
+#4TEST 	    local u=$(fetchUUID "${IDDIR}/${LABEL}.vdi")
+ 	    local u=$(getVBOXUUID "${IDDIR}/${LABEL}.vdi")
+	    if [ -n "${u// /}" ];then
+		printOut "${_prefix1}""The Unique-Unified-ID of the vdi-file will be used."
+		printOut "${_prefix1}""Make changes by means of supplier."
+		printOut " "
+		printOut "${_prefix1}""UUID=$u"
+		UUID=$u
+	    else
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "No access to VM data, missing mandatory UUID of VM."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "->> VDI-FILE  = ${IDDIR}/${LABEL}.vdi"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Check your machine, some hints:"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "1. Is the machine registered in VirtualBox?"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "2. Does the current user has access permissions/ownership?"
+		gotoHell ${ABORT}
+	    fi
+	    ;;
+
 	VMW)
  	    local u=$(getVMWUUID "${IDDIR}/${LABEL}.vmx")
 	    printOut "${_prefix1}""The Unique-Unified-ID of the vmx-file will be used."
 	    printOut "${_prefix1}""Make changes by means of supplier."
 	    printOut " "
 	    printOut "${_prefix1}""UUID=$u"
+	    UUID=$u
 	    ;;
 	*)
 	    printOut "${_prefix1}""The Unique-Unified-ID of the VM, generated by uuidgen."
@@ -844,6 +987,11 @@ function getValues () {
     printOut "${_prefix1}""Current version supports the interactive creation of"
     printOut "${_prefix1}"$(setSeverityColor TRY "Single-Interface-Configurations only.")
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    printOut "${_prefix1}"" Thus the first"
+	    printOut "${_prefix1}""interface from the vbox-file is recognized only."
+	    ;;
+
 	VMW)
 	    printOut "${_prefix1}"" Thus the first"
 	    printOut "${_prefix1}""interface from the vmx-file is recognized only."
@@ -860,6 +1008,49 @@ function getValues () {
 	for _ix in $MACx;do let _nx++;done
 
 	case ${C_SESSIONTYPE} in
+
+	    VBOX)
+#4TEST		local MACy=$(fetchMAC "${IDDIR}/${LABEL}.vdi"|tr '[:lower:]' '[:upper:]')
+		local MACy=$(getVBOXMAClst "${IDDIR}/${LABEL}.vdi"|tr '[:lower:]' '[:upper:]')
+		MACy=${MACy#*=};MACy=${MACy%% *};
+		if [ -n "$MACx" -a -n "$MACy" ];then
+		    if [  "$MACx" != "$MACy" ];then
+			suspic=1;
+			if [  $_nx -eq 1 ];then
+			    echo -n "${_prefix1}""The address from the database for  '"
+			    setSeverityColor ERR "LABEL=${LABEL}"
+			    echo "' is"
+			    echo -n "${_prefix1}""'"
+			    setSeverityColor ERR "MAC(db)=${MACx}"
+			    echo "' but the entry"
+			    echo -n "${_prefix1}""from the vmx-file is '"
+			    setSeverityColor ERR "MAC(vmx)=${MACy}"
+			    echo "'."
+			    echo
+			    echo "${_prefix1}""This may cause some ugly errors."
+			    echo
+			    MACx=$MACy
+			else
+			    echo -n "${_prefix1}""Multiple addresses found for '"
+			    setSeverityColor ERR "LABEL=${LABEL}"
+			    echo "'"
+			    echo -n "${_prefix1}""'"
+			    setSeverityColor ERR "MAC(db)=${_ix}..."
+			    echo "' but the entry"
+			    echo -n "${_prefix1}""from the vmx-file is '"
+			    setSeverityColor ERR "MAC(vmx)=${MACy}"
+			    echo "'."
+			    echo
+			    echo "${_prefix1}""This may cause some ugly errors."
+			    echo
+			    MACx=$MACy
+			fi
+		    fi
+		else
+		    [ -z "$MACx" ]&&MACx=$MACy;
+		fi
+		;;
+
 	    VMW)
 		local MACy=$(getVMWMAClst "${IDDIR}/${LABEL}.vmx"|tr '[:lower:]' '[:upper:]')
 		MACy=${MACy#*=};MACy=${MACy%% *};
@@ -927,6 +1118,13 @@ function getValues () {
 		done
 		echo
 		case ${C_SESSIONTYPE} in
+		    VBOX)
+			echo -n -e "${_prefix1}""Default is the vdi-entry:"
+			MAC=${MACy}
+			setFontAttrib FMAGENTA "${MAC}";
+			echo
+			;;
+
 		    VMW)
 			echo -n -e "${_prefix1}""Default is the vmx-entry:"
 			MAC=${MACy}
@@ -1127,6 +1325,9 @@ function getValues () {
     echo
 
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    ;;
+
 	VMW)
 	    ;;
 	*)
@@ -1159,6 +1360,13 @@ function getValues () {
     printOut "${_prefix1}""Architecture of CPU for GuestOS"
     printOut "${_prefix1}""When empty default is used."
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    echo
+	    printOut "${_prefix1}""Ignored for VBOX configuration, but used for ENUMERATE"
+	    printOut "${_prefix1}""into the database, thus has to be in sync."
+	    ARCH=$(getVBOXGUESTARCH "${IDDIR}/${LABEL}.vdi");
+	    ;;
+
 	VMW)
 	    echo
 	    printOut "${_prefix1}""Ignored for VMW configuration, but used for ENUMERATE"
@@ -1175,6 +1383,12 @@ function getValues () {
     echo
 
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    if [ -z "${ACCELERATOR}" ];then
+		ACCELERATOR=$(getVBOXACCEL "${IDDIR}/${LABEL}.vdi");
+	    fi
+	    ;;
+
 	XEN)
 	    echo -e -n "${_prefix0}"
 	    setFontAttrib BOLD "ACCELERATOR";
@@ -1211,6 +1425,11 @@ function getValues () {
 		    echo 
 		fi
 	    done
+	    if [ $loopcnt -eq 20 ];then
+		ABORT=127
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Max trials exceeded"
+		gotoHell ${ABORT}
+	    fi		
 	    ;;
 	QEMU)
 	    echo -e -n "${_prefix0}"
@@ -1229,12 +1448,14 @@ function getValues () {
 
 	    fi
 	    local _r123=;
-	    while [ -z "$_r123" ];do
+	    local loopcnt=0;
+	    while [ -z "$_r123" -a $loopcnt -lt 20 ];do
 		getAttrVal ACCELERATOR "${ACCELERATORinfo// /}" MANDATORY "${_prefix1}"
 		case "${ACCELERATOR}" in
 		    KVM)_r123=1;;
 		    QEMU)_r123=1;;
 #ffs		    KQEMU)_r123=1;;
+		    *)let loopcnt++;
 		esac
 		if [ -z "$_r123" ];then
 		    echo 
@@ -1249,6 +1470,11 @@ function getValues () {
 		    echo 
 		fi
 	    done
+	    if [ $loopcnt -eq 20 ];then
+		ABORT=127
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Max trials exceeded"
+		gotoHell ${ABORT}
+	    fi		
 	    ;;
     esac
     echo
@@ -1260,6 +1486,11 @@ function getValues () {
     printOut "${_prefix1}""When empty default is used."
     echo
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    SMPinfo=$(getVBOXGUESTVCPU "${IDDIR}/${LABEL}.vmx");
+	    SMPinfo=${SMPinfo:-$SMP};
+	    ;;
+
 	VMW)
 	    SMPinfo=$(getVMWGUESTVCPU "${IDDIR}/${LABEL}.vmx");
 	    SMPinfo=${SMPinfo:-$SMP};
@@ -1277,6 +1508,11 @@ function getValues () {
     printOut "${_prefix1}""The assigned amount of RAM."
     echo
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    MEMSIZE=$(getVBOXGUESTVRAM "${IDDIR}/${LABEL}.vmx");
+	    MEMSIZE=${MEMSIZE:-512}
+	    ;;
+
 	VMW)
 	    MEMSIZE=$(getVMWGUESTVRAM "${IDDIR}/${LABEL}.vmx");
 	    MEMSIZE=${MEMSIZE:-512}
@@ -1289,6 +1525,9 @@ function getValues () {
     echo
 
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    ;;
+
 	VMW)
 	    ;;
 	*)
@@ -1310,8 +1549,7 @@ function getValues () {
     #
     #
     printINFO 2 $LINENO $BASH_SOURCE 1 "${MYCONFPATH}/ctys-createConfVM.d/defaults-sources.ctys"
-
-
+    #
     #Source pre-set environment from user
     if [ -f "${HOME}/.ctys/ctys-createConfVM.d/defaults-sources.ctys" ];then
 	. "${HOME}/.ctys/ctys-createConfVM.d/defaults-sources.ctys"
@@ -1327,294 +1565,302 @@ function getValues () {
     ##############################################################################
 
 
-    case ${C_SESSIONTYPE} in
-	VMW)
+
+    echo -e -n "${_prefix0}"
+    setFontAttrib BOLD "DEFAULTBOOTMODE";
+    echo "($((_idx++))/${_sum})";
+    printOut "${_prefix1}""The default mode for 'BOOTMODE' parameter when omitted."
+    printOut
+    echo "${_prefix1}""Available: VHDD, HDD, FDD, CD, DVD, USB"
+    echo
+    DEFAULTBOOTMODE=${DEFAULTBOOTMODE:-VHDD}
+    getAttrVal DEFAULTBOOTMODE "$DEFAULTBOOTMODE" OPTIONAL "${_prefix1}"
+    DEFAULTBOOTMODE=$(echo ${DEFAULTBOOTMODE}|tr 'a-z' 'A-Z')
+    echo
+    case ${DEFAULTBOOTMODE} in
+	VHDD|HDD)
+	    local _sum0=$_sum;
+	    let _sum+=2;
+
+	    DEFAULTINSTTARGET=${IDDIR}/${HDDBOOTIMAGE}
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "HDDBOOTIMAGE_INST_SIZE";
+	    echo -e "($((_idx++))/${_sum0}->HDD:"$(setFontAttrib FMAGENTA "${_sum}")")";
+	    printOut "${_prefix2}""For installation only, the size of the HDD bootimage."
+	    printOut "${_prefix2}""Additional drives could be activated manually within the "
+	    printOut "${_prefix2}""configuration files, refer to inline comments."
+	    printOut 
+	    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
+	    echo
+	    HDDBOOTIMAGE_INST_SIZE=${HDDBOOTIMAGE_INST_SIZE:-5G}
+	    getAttrVal HDDBOOTIMAGE_INST_SIZE "$HDDBOOTIMAGE_INST_SIZE" OPTIONAL "${_prefix2}"
+	    echo
+
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "HDDBOOTIMAGE_INST_BLOCKSIZE";
+	    echo -e "($((_idx++))/"$(setFontAttrib FMAGENTA "${_sum}")")";
+	    printOut "${_prefix2}""For installation only, the size of blocks for HDD bootimage."
+	    echo "${_prefix2}""The BLOCKSIZE must match following formula:"
+	    echo
+	    echo "${_prefix2}"" SIZE = BLOCKCOUNT * BLOCKSIZE"
+	    echo
+	    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
+	    printOut
+	    HDDBOOTIMAGE_INST_BLOCKSIZE=${HDDBOOTIMAGE_INST_BLOCKSIZE:-1G}
+	    getAttrVal HDDBOOTIMAGE_INST_BLOCKSIZE "$HDDBOOTIMAGE_INST_BLOCKSIZE" OPTIONAL "${_prefix2}"
+	    echo
+
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "HDDBOOTIMAGE_INST_BLOCKCOUNT";
+	    echo -e "($((_idx++))/"$(setFontAttrib FMAGENTA "${_sum}")")";
+	    printOut "${_prefix2}""For installation only, the number of blocks for HDD bootimage."
+	    echo "${_prefix2}""The BLOCKCOUNT must match following formula:"
+	    echo
+	    echo "${_prefix2}"" SIZE = BLOCKCOUNT * BLOCKSIZE"
+	    echo
+	    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
+	    printOut
+	    HDDBOOTIMAGE_INST_BLOCKCOUNT=${HDDBOOTIMAGE_INST_BLOCKCOUNT:-5}
+	    getAttrVal HDDBOOTIMAGE_INST_BLOCKCOUNT "$HDDBOOTIMAGE_INST_BLOCKCOUNT" OPTIONAL "${_prefix2}"
+	    echo
+
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "HDDBOOTIMAGE_INST_BALLOON";
+	    echo -e "($((_idx++))/${_sum0}->HDD:"$(setFontAttrib FMAGENTA "${_sum}")")";
+	    printOut "${_prefix2}""This is experimental, it deactivates the initial total"
+	    printOut "${_prefix2}""allocation of storage. Storage is 'blown up' in chunks"
+	    printOut "${_prefix2}""of BLOCKSIZE as required."
+	    printOut 
+	    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
+	    echo
+	    HDDBOOTIMAGE_INST_BALLOON=${HDDBOOTIMAGE_INST_BALLOON:-y}
+	    getAttrVal HDDBOOTIMAGE_INST_BALLOON "$HDDBOOTIMAGE_INST_BALLOON" OPTIONAL "${_prefix2}"
+	    echo
+
 	    ;;
-	*)
-	    echo -e -n "${_prefix0}"
-	    setFontAttrib BOLD "DEFAULTBOOTMODE";
-	    echo "($((_idx++))/${_sum})";
-	    printOut "${_prefix1}""The default mode for 'BOOTMODE' parameter when omitted."
+    esac
+
+    echo -e -n "${_prefix0}"
+    setFontAttrib BOLD "DEFAULTINSTMODE";
+    echo "($((_idx++))/${_sum})";
+    printOut "${_prefix1}""The default mode for 'INSTMODE' parameter when omitted."
+    printOut
+    echo "${_prefix1}""Available: VHDD, HDD, FDD, CD, DVD, USB, NET"
+    echo
+    echo "${_prefix1}""Refer to manual for tested combinations."
+    echo
+    DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD}
+    getAttrVal DEFAULTINSTMODE "$DEFAULTINSTMODE" OPTIONAL "${_prefix1}"
+    DEFAULTINSTMODE=$(echo ${DEFAULTINSTMODE}|tr 'a-z' 'A-Z')
+    echo
+    echo
+    case ${DEFAULTINSTMODE} in
+	CD)
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "INSTSRCCDROM";
+	    echo -e "($((_idx++))/${_sum})";
+	    echo "${_prefix2}""Bootable CD/DVD media - ISO file"
+	    printOut "${_prefix2}""This could be any bootable cdrom/dvd or iso-file."
 	    printOut
-	    echo "${_prefix1}""Available: VHDD, HDD, FDD, CD, DVD, USB"
-	    echo
-	    DEFAULTBOOTMODE=${DEFAULTBOOTMODE:-VHDD}
-	    getAttrVal DEFAULTBOOTMODE "$DEFAULTBOOTMODE" OPTIONAL "${_prefix1}"
-	    DEFAULTBOOTMODE=$(echo ${DEFAULTBOOTMODE}|tr 'a-z' 'A-Z')
-	    echo
-	    case ${DEFAULTBOOTMODE} in
-		VHDD|HDD)
-		    local _sum0=$_sum;
-		    let _sum+=2;
-
-		    DEFAULTINSTTARGET=${IDDIR}/${HDDBOOTIMAGE}
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "HDDBOOTIMAGE_INST_SIZE";
-		    echo -e "($((_idx++))/${_sum0}->HDD:"$(setFontAttrib FMAGENTA "${_sum}")")";
-		    printOut "${_prefix2}""For installation only, the size of the HDD bootimage."
-		    printOut "${_prefix2}""Additional drives could be activated manually within the "
-		    printOut "${_prefix2}""configuration files, refer to inline comments."
-		    printOut 
-		    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
-		    echo
-		    HDDBOOTIMAGE_INST_SIZE=${HDDBOOTIMAGE_INST_SIZE:-5G}
-		    getAttrVal HDDBOOTIMAGE_INST_SIZE "$HDDBOOTIMAGE_INST_SIZE" OPTIONAL "${_prefix2}"
-		    echo
-
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "HDDBOOTIMAGE_INST_BLOCKSIZE";
-		    echo -e "($((_idx++))/"$(setFontAttrib FMAGENTA "${_sum}")")";
-		    printOut "${_prefix2}""For installation only, the size of blocks for HDD bootimage."
-		    echo "${_prefix2}""The BLOCKSIZE must match following formula:"
-		    echo
-		    echo "${_prefix2}"" SIZE = BLOCKCOUNT * BLOCKSIZE"
-		    echo
-		    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
-		    printOut
-		    HDDBOOTIMAGE_INST_BLOCKSIZE=${HDDBOOTIMAGE_INST_BLOCKSIZE:-1G}
-		    getAttrVal HDDBOOTIMAGE_INST_BLOCKSIZE "$HDDBOOTIMAGE_INST_BLOCKSIZE" OPTIONAL "${_prefix2}"
-		    echo
-
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "HDDBOOTIMAGE_INST_BLOCKCOUNT";
-		    echo -e "($((_idx++))/"$(setFontAttrib FMAGENTA "${_sum}")")";
-		    printOut "${_prefix2}""For installation only, the number of blocks for HDD bootimage."
-		    echo "${_prefix2}""The BLOCKCOUNT must match following formula:"
-		    echo
-		    echo "${_prefix2}"" SIZE = BLOCKCOUNT * BLOCKSIZE"
-		    echo
-		    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
-		    printOut
-		    HDDBOOTIMAGE_INST_BLOCKCOUNT=${HDDBOOTIMAGE_INST_BLOCKCOUNT:-5}
-		    getAttrVal HDDBOOTIMAGE_INST_BLOCKCOUNT "$HDDBOOTIMAGE_INST_BLOCKCOUNT" OPTIONAL "${_prefix2}"
-		    echo
-
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "HDDBOOTIMAGE_INST_BALLOON";
-		    echo -e "($((_idx++))/${_sum0}->HDD:"$(setFontAttrib FMAGENTA "${_sum}")")";
-		    printOut "${_prefix2}""This is experimental, it deactivates the initial total"
-		    printOut "${_prefix2}""allocation of storage. Storage is 'blown up' in chunks"
-		    printOut "${_prefix2}""of BLOCKSIZE as required."
-		    printOut 
-		    printOut "${_prefix2}""Values/Units must be valid for 'qemu-img' and 'dd', e.g. 'M' or 'G'."
-		    echo
-		    HDDBOOTIMAGE_INST_BALLOON=${HDDBOOTIMAGE_INST_BALLOON:-y}
-		    getAttrVal HDDBOOTIMAGE_INST_BALLOON "$HDDBOOTIMAGE_INST_BALLOON" OPTIONAL "${_prefix2}"
-		    echo
-
-		    ;;
-	    esac
-
-	    echo -e -n "${_prefix0}"
-	    setFontAttrib BOLD "DEFAULTINSTMODE";
-	    echo "($((_idx++))/${_sum})";
-	    printOut "${_prefix1}""The default mode for 'INSTMODE' parameter when omitted."
+	    printOut "${_prefix2}""Prepare iso files on linux/UNIX with:"
 	    printOut
-	    echo "${_prefix1}""Available: VHDD, HDD, FDD, CD, DVD, USB, NET"
+	    printOut "${_prefix2}"" \"dd if=/dev/cdrom of=<install-filename>.iso\""
+	    printOut
+	    printOut "${_prefix2}""An example list is contained within the template file."
 	    echo
-	    echo "${_prefix1}""Refer to manual for tested combinations."
+	    INSTSRCCDROM=${INSTSRCCDROM:-/dev/cdrom}
+	    getAttrVal INSTSRCCDROM "$INSTSRCCDROM" MANDATORY "${_prefix2}"
 	    echo
-	    DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD}
-	    getAttrVal DEFAULTINSTMODE "$DEFAULTINSTMODE" OPTIONAL "${_prefix1}"
-	    DEFAULTINSTMODE=$(echo ${DEFAULTINSTMODE}|tr 'a-z' 'A-Z')
+	    DEFAULTINSTSOURCE=${INSTSRCCDROM:-$DEFAULTINSTSOURCE}
+	    ;;
+	DVD)
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "INSTSRCDVD";
+	    echo -e "($((_idx++))/${_sum})";
+	    echo "${_prefix2}""Bootable CD/DVD media"
+	    printOut "${_prefix2}""This could be any bootable cdrom/dvd or iso-file."
+	    printOut
+	    printOut "${_prefix2}""Prepare iso files on linux/UNIX with:"
+	    printOut
+	    printOut "${_prefix2}"" \"dd if=/dev/dvd of=<install-filename>.iso\""
+	    printOut
+	    printOut "${_prefix2}""An example list is contained within the template file."
 	    echo
+	    INSTSRCDVD=${INSTSRCDVD:-/dev/dvd}
+	    getAttrVal INSTSRCDVD "$INSTSRCDVD" MANDATORY "${_prefix2}"
 	    echo
-	    case ${DEFAULTINSTMODE} in
-		CD)
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "INSTSRCCDROM";
-		    echo -e "($((_idx++))/${_sum})";
-		    echo "${_prefix2}""Bootable CD/DVD media - ISO file"
-		    printOut "${_prefix2}""This could be any bootable cdrom/dvd or iso-file."
-		    printOut
-		    printOut "${_prefix2}""Prepare iso files on linux/UNIX with:"
-		    printOut
-		    printOut "${_prefix2}"" \"dd if=/dev/cdrom of=<install-filename>.iso\""
-		    printOut
-		    printOut "${_prefix2}""An example list is contained within the template file."
-		    echo
-		    INSTSRCCDROM=${INSTSRCCDROM:-/dev/cdrom}
-		    getAttrVal INSTSRCCDROM "$INSTSRCCDROM" MANDATORY "${_prefix2}"
-		    echo
-		    DEFAULTINSTSOURCE=${INSTSRCCDROM}
-		    ;;
-		DVD)
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "INSTSRCDVD";
-		    echo -e "($((_idx++))/${_sum})";
-		    echo "${_prefix2}""Bootable CD/DVD media"
-		    printOut "${_prefix2}""This could be any bootable cdrom/dvd or iso-file."
-		    printOut
-		    printOut "${_prefix2}""Prepare iso files on linux/UNIX with:"
-		    printOut
-		    printOut "${_prefix2}"" \"dd if=/dev/dvd of=<install-filename>.iso\""
-		    printOut
-		    printOut "${_prefix2}""An example list is contained within the template file."
-		    echo
-		    INSTSRCDVD=${INSTSRCDVD:-/dev/dvd}
-		    getAttrVal INSTSRCDVD "$INSTSRCDVD" MANDATORY "${_prefix2}"
-		    echo
-		    DEFAULTINSTSOURCE=${INSTSRCDVD}
-		    ;;
-		FDD)
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "INSTSRCFDD";
-		    echo -e "($((_idx++))/${_sum})";
-		    echo "${_prefix2}""Bootable floppy media"
-		    printOut "${_prefix2}""This could be any bootable fdd or img-file."
-		    printOut
-		    printOut "${_prefix2}""Prepare img files on linux/UNIX with:"
-		    printOut
-		    printOut "${_prefix2}"" \"dd if=/dev/fd0 of=fda.img\""
-		    echo
-		    INSTSRCFDD=${INSTSRCFDD:-/dev/fd0}
-		    getAttrVal INSTSRCFDD "$INSTSRCFDD" MANDATORY "${_prefix2}"
-		    echo
-		    DEFAULTINSTSOURCE=${INSTSRCFDD}
-		    ;;
-		HDD)
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "INSTSRCHDD";
-		    echo -e "($((_idx++))/${_sum})";
-		    echo "${_prefix2}""Bootable harddisk media"
-		    printOut "${_prefix2}""This could be any bootable hdd or img-file."
-		    printOut
-		    printOut "${_prefix2}""Prepare img files on linux/UNIX with:"
-		    printOut
-		    printOut "${_prefix2}"" \"dd if=/dev/hda of=hda.img\""
-		    echo
-		    INSTSRCHDD=${INSTSRCHDD:-hda}
-		    getAttrVal INSTSRCHDD "$INSTSRCHDD" MANDATORY "${_prefix2}"
-		    echo
-		    DEFAULTINSTSOURCE=${INSTSRCHDD}
-		    ;;
-		USB)
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "INSTSRCUSB";
-		    echo -e "($((_idx++))/${_sum})";
-		    echo "${_prefix2}""Bootable USB media"
-		    printOut "${_prefix2}""This could be any bootable fdd or img-file."
-		    printOut
-		    printOut "${_prefix2}""Prepare img files on linux/UNIX with:"
-		    printOut
-		    printOut "${_prefix2}"" \"dd if=/dev/usb of=<install-filename>.img\""
-		    echo
-		    INSTSRCUSB=${INSTSRCUSB:-/dev/usb}
-		    getAttrVal INSTSRCUSB "$INSTSRCUSB" MANDATORY "${_prefix2}"
-		    echo
-		    DEFAULTINSTSOURCE=${INSTSRCUSB}
-		    ;;
+	    DEFAULTINSTSOURCE=${INSTSRCDVD}
+	    ;;
+	FDD)
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "INSTSRCFDD";
+	    echo -e "($((_idx++))/${_sum})";
+	    echo "${_prefix2}""Bootable floppy media"
+	    printOut "${_prefix2}""This could be any bootable fdd or img-file."
+	    printOut
+	    printOut "${_prefix2}""Prepare img files on linux/UNIX with:"
+	    printOut
+	    printOut "${_prefix2}"" \"dd if=/dev/fd0 of=fda.img\""
+	    echo
+	    INSTSRCFDD=${INSTSRCFDD:-/dev/fd0}
+	    getAttrVal INSTSRCFDD "$INSTSRCFDD" MANDATORY "${_prefix2}"
+	    echo
+	    DEFAULTINSTSOURCE=${INSTSRCFDD}
+	    ;;
+	HDD)
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "INSTSRCHDD";
+	    echo -e "($((_idx++))/${_sum})";
+	    echo "${_prefix2}""Bootable harddisk media"
+	    printOut "${_prefix2}""This could be any bootable hdd or img-file."
+	    printOut
+	    printOut "${_prefix2}""Prepare img files on linux/UNIX with:"
+	    printOut
+	    printOut "${_prefix2}"" \"dd if=/dev/hda of=hda.img\""
+	    echo
+	    INSTSRCHDD=${INSTSRCHDD:-hda}
+	    getAttrVal INSTSRCHDD "$INSTSRCHDD" MANDATORY "${_prefix2}"
+	    echo
+	    DEFAULTINSTSOURCE=${INSTSRCHDD}
+	    ;;
+	USB)
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "INSTSRCUSB";
+	    echo -e "($((_idx++))/${_sum})";
+	    echo "${_prefix2}""Bootable USB media"
+	    printOut "${_prefix2}""This could be any bootable fdd or img-file."
+	    printOut
+	    printOut "${_prefix2}""Prepare img files on linux/UNIX with:"
+	    printOut
+	    printOut "${_prefix2}"" \"dd if=/dev/usb of=<install-filename>.img\""
+	    echo
+	    INSTSRCUSB=${INSTSRCUSB:-/dev/usb}
+	    getAttrVal INSTSRCUSB "$INSTSRCUSB" MANDATORY "${_prefix2}"
+	    echo
+	    DEFAULTINSTSOURCE=${INSTSRCUSB}
+	    ;;
 
 
-		KS)
-		    echo -e -n "${_prefix1}"
-		    setFontAttrib BOLD "KS";
-		    echo -e "($((_idx++))/${_sum})";
-		    echo "${_prefix2}""KickStart."
-		    printOut "${_prefix2}""Kernel boot and network install"
-		    printOut "${_prefix2}""by various protocols."
-		    printOut
-		    case ${DIST} in
-			CentOS)
-			    setExtras4Kickstart
+	KS)
+	    case ${C_SESSIONTYPE} in
+		QEMU);;
+		VBOX)
+		    ABORT=127
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Kickstart is not supported by means of ${C_SESSIONTYPE}"
+		    gotoHell ${ABORT}
+		    ;;
+		VMW)
+		    ABORT=127
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Kickstart is not supported by means of ${C_SESSIONTYPE}"
+		    gotoHell ${ABORT}
+		    ;;
+		XEN)
+		    case $ACCELERATOR in
+			HVM)
+			    ABORT=127
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Kickstart configured solely by Xen facilities requires an"
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "external kernel. This is not supported by HVM, use PARA."
+			    gotoHell ${ABORT}
 			    ;;
 		    esac
 		    ;;
-
 	    esac
 
+	    echo -e -n "${_prefix1}"
+	    setFontAttrib BOLD "KS";
+	    echo -e "($((_idx++))/${_sum})";
+	    echo "${_prefix2}""KickStart."
+	    printOut "${_prefix2}""Kernel boot and network install"
+	    printOut "${_prefix2}""by various protocols."
+	    printOut
+	    case ${DIST} in
+		CentOS)
+		    setExtras4Kickstart
+		    ;;
+	    esac
+	    ;;
+
+    esac
+
+    case ${C_SESSIONTYPE} in
+	XEN)
+	    echo -e -n "${_prefix0}"
+	    setFontAttrib BOLD "BOOTLOADER";
+	    echo "($((_idx++))/${_sum})";
+	    echo "${_prefix1}""The bootloader to be used."
+	    echo
+	    BOOTLOADER=${BOOTLOADER:-$DEFAULT_BOOTLOADER};
+	    getAttrVal BOOTLOADER "${BOOTLOADER// /}" MANDATORY "${_prefix1}"
+	    echo
+	    ;;
+	QEMU)
+	    ;;
+    esac
+
+    case ${C_SESSIONTYPE} in
+	XEN|QEMU)
+	    echo -e -n "${_prefix0}"
+	    setFontAttrib BOLD "INST_KERNEL";
+	    echo "($((_idx++))/${_sum})";
+	    echo "${_prefix1}""Kernel to be used for initial boot in INSTMODE."
+	    printOut "${_prefix1}""The kernel image has to be suitable to the GuestOS,"
+	    printOut "${_prefix1}""e.g. for CentOS the image is on the install media within"
+	    printOut "${_prefix1}""the relative path 'images/xen/vmlinuz'."
+	    printOut
+	    printOut "${_prefix1}""When empty default is used."
+	    echo
+	    INST_KERNEL=${INST_KERNEL:-$DEFAULT_INST_KERNEL};
 	    case ${C_SESSIONTYPE} in
 		XEN)
-		    echo -e -n "${_prefix0}"
-		    setFontAttrib BOLD "BOOTLOADER";
-		    echo "($((_idx++))/${_sum})";
-		    echo "${_prefix1}""The bootloader to be used."
-		    echo
-		    BOOTLOADER=${BOOTLOADER:-$DEFAULT_BOOTLOADER};
-		    getAttrVal BOOTLOADER "${BOOTLOADER// /}" MANDATORY "${_prefix1}"
-		    echo
+		    getAttrVal INST_KERNEL "${INST_KERNEL// /}" MANDATORY "${_prefix1}"
 		    ;;
 		QEMU)
+		    getAttrVal INST_KERNEL "${INST_KERNEL// /}" OPTIONAL "${_prefix1}"
 		    ;;
 	    esac
 
-	    case ${C_SESSIONTYPE} in
-		XEN|QEMU)
-		    echo -e -n "${_prefix0}"
-		    setFontAttrib BOLD "INST_KERNEL";
-		    echo "($((_idx++))/${_sum})";
-		    echo "${_prefix1}""Kernel to be used for initial boot in INSTMODE."
-		    printOut "${_prefix1}""The kernel image has to be suitable to the GuestOS,"
-		    printOut "${_prefix1}""e.g. for CentOS the image is on the install media within"
-		    printOut "${_prefix1}""the relative path 'images/xen/vmlinuz'."
-		    printOut
-		    printOut "${_prefix1}""When empty default is used."
+	    case ${ACCELERATOR} in
+		PARA|QEMU)
 		    echo
-		    INST_KERNEL=${INST_KERNEL:-$DEFAULT_INST_KERNEL};
+		    echo -e -n "${_prefix0}"
+		    setFontAttrib BOLD "INST_EXTRA";
+		    echo "($((_idx++))/${_sum})";
+		    echo "${_prefix1}""Value of kernel parameters."
+		    echo
+		    INST_EXTRA=${INST_EXTRA:-$DEFAULT_INST_EXTRA};
 		    case ${C_SESSIONTYPE} in
 			XEN)
-			    getAttrVal INST_KERNEL "${INST_KERNEL// /}" MANDATORY "${_prefix1}"
+			    getAttrVal INST_EXTRA "${INST_EXTRA}" OPTIONAL "${_prefix1}"
 			    ;;
 			QEMU)
-			    getAttrVal INST_KERNEL "${INST_KERNEL// /}" OPTIONAL "${_prefix1}"
+			    getAttrVal INST_EXTRA "${INST_EXTRA}" OPTIONAL "${_prefix1}"
 			    ;;
 		    esac
+		    echo
 
+		    echo
+		    echo -e -n "${_prefix0}"
+		    setFontAttrib BOLD "INST_ROOTARGS";
+		    echo "($((_idx++))/${_sum})";
+		    echo "${_prefix1}""Value of root in install configuraiotn."
+		    echo
+		    INST_ROOTARGS=${INST_ROOTARGS:-$DEFAULT_INST_ROOTARGS};
+		    case ${C_SESSIONTYPE} in
+			XEN)
+			    getAttrVal INST_ROOTARGS "${INST_ROOTARGS}" OPTIONAL "${_prefix1}"
+			    ;;
+			QEMU)
+			    getAttrVal INST_ROOTARGS "${INST_ROOTARGS}" OPTIONAL "${_prefix1}"
+			    ;;
+		    esac
+		    echo
+		    ;;
+	    esac
+	    echo
+	    case ${C_SESSIONTYPE} in
+		XEN)
 		    case ${ACCELERATOR} in
 			PARA)
-			    echo
-			    echo -e -n "${_prefix0}"
-			    setFontAttrib BOLD "INST_EXTRA";
-			    echo "($((_idx++))/${_sum})";
-			    echo "${_prefix1}""Value of kernel parameters."
-			    echo
-			    INST_EXTRA=${INST_EXTRA:-$DEFAULT_INST_EXTRA};
-			    case ${C_SESSIONTYPE} in
-				XEN)
-				    getAttrVal INST_EXTRA "${INST_EXTRA}" OPTIONAL "${_prefix1}"
-				    ;;
-				QEMU)
-				    getAttrVal INST_EXTRA "${INST_EXTRA}" OPTIONAL "${_prefix1}"
-				    ;;
-			    esac
-			    echo
-
-			    echo
-			    echo -e -n "${_prefix0}"
-			    setFontAttrib BOLD "INST_ROOTARGS";
-			    echo "($((_idx++))/${_sum})";
-			    echo "${_prefix1}""Value of root in install configuraiotn."
-			    echo
-			    INST_ROOTARGS=${INST_ROOTARGS:-$DEFAULT_INST_ROOTARGS};
-			    case ${C_SESSIONTYPE} in
-				XEN)
-				    getAttrVal INST_ROOTARGS "${INST_ROOTARGS}" OPTIONAL "${_prefix1}"
-				    ;;
-				QEMU)
-				    getAttrVal INST_ROOTARGS "${INST_ROOTARGS}" OPTIONAL "${_prefix1}"
-				    ;;
-			    esac
-			    echo
-			    ;;
-		    esac
-		    echo
-		    case ${C_SESSIONTYPE} in
-			XEN)
-			    case ${ACCELERATOR} in
-				PARA)
-				    echo -e -n "${_prefix0}"
-				    setFontAttrib BOLD "INST_INITRD";
-				    echo "($((_idx++))/${_sum})";
-				    echo "${_prefix1}""Initrd to be used for initial boot in INSTMODE."
-				    echo
-				    printOut "${_prefix1}""When empty default is used."
-				    printOut
-				    INST_INITRD=${INST_INITRD:-$DEFAULT_INST_INITRD};
-				    getAttrVal INST_INITRD "${INST_INITRD// /}" MANDATORY "${_prefix1}"
-				    ;;
-			    esac
-			    ;;
-			QEMU)
 			    echo -e -n "${_prefix0}"
 			    setFontAttrib BOLD "INST_INITRD";
 			    echo "($((_idx++))/${_sum})";
@@ -1623,96 +1869,110 @@ function getValues () {
 			    printOut "${_prefix1}""When empty default is used."
 			    printOut
 			    INST_INITRD=${INST_INITRD:-$DEFAULT_INST_INITRD};
-			    getAttrVal INST_INITRD "${INST_INITRD// /}" OPTIONAL "${_prefix1}"
+			    getAttrVal INST_INITRD "${INST_INITRD// /}" MANDATORY "${_prefix1}"
+			    ;;
+			HVM)
+#4TEST:
 			    ;;
 		    esac
+		    ;;
+		QEMU)
+		    echo -e -n "${_prefix0}"
+		    setFontAttrib BOLD "INST_INITRD";
+		    echo "($((_idx++))/${_sum})";
+		    echo "${_prefix1}""Initrd to be used for initial boot in INSTMODE."
 		    echo
+		    printOut "${_prefix1}""When empty default is used."
+		    printOut
+		    INST_INITRD=${INST_INITRD:-$DEFAULT_INST_INITRD};
+		    getAttrVal INST_INITRD "${INST_INITRD// /}" OPTIONAL "${_prefix1}"
+		    ;;
+	    esac
+	    echo
 
-		    case ${DIST} in
-			debian)
-			    case ${ACCELERATOR} in
-				PARA)
-				    echo -e -n "${_prefix0}"
-				    setFontAttrib BOLD "DOMU_KERNEL";
-				    echo "($((_idx++))/${_sum})";
-				    echo "${_prefix1}""Kernel to be executed within DomU."
-				    echo
-				    DOMU_KERNEL=${DOMU_KERNEL:-$DEFAULT_DOMU_KERNEL};
-				    case ${C_SESSIONTYPE} in
-					XEN)
-					    getAttrVal DOMU_KERNEL "${DOMU_KERNEL// /}" MANDATORY "${_prefix1}"
-					    ;;
-					QEMU)
-					    getAttrVal DOMU_KERNEL "${DOMU_KERNEL// /}" OPTIONAL "${_prefix1}"
-					    ;;
-				    esac
-				    echo
-
-				    echo -e -n "${_prefix0}"
-				    setFontAttrib BOLD "DOMU_MODULESDIR";
-				    echo "($((_idx++))/${_sum})";
-				    echo "${_prefix1}""Modules for kernel to be executed within DomU."
-				    echo
-				    DOMU_MODULESDIR=${DOMU_MODULESDIR:-$DEFAULT_DOMU_MODULESDIR};
-				    case ${C_SESSIONTYPE} in
-					XEN)
-					    getAttrVal DOMU_MODULESDIR "${DOMU_MODULESDIR// /}" MANDATORY "${_prefix1}"
-					    ;;
-					QEMU)
-					    getAttrVal DOMU_MODULESDIR "${DOMU_MODULESDIR// /}" OPTIONAL "${_prefix1}"
-					    ;;
-				    esac
-				    echo
-
-				    echo -e -n "${_prefix0}"
-				    setFontAttrib BOLD "DOMU_INITRD";
-				    echo "($((_idx++))/${_sum})";
-				    echo "${_prefix1}""Initrd to be used within the DomU."
-				    echo
-				    DOMU_INITRD=${DOMU_INITRD:-$DEFAULT_DOMU_INITRD};
-				    case ${C_SESSIONTYPE} in
-					XEN)
-					    getAttrVal DOMU_INITRD "${DOMU_INITRD// /}" MANDATORY "${_prefix1}"
-					    ;;
-					QEMU)
-					    getAttrVal DOMU_INITRD "${DOMU_INITRD// /}" OPTIONAL "${_prefix1}"
-					    ;;
-				    esac
-				    echo
-
-				    echo -e -n "${_prefix0}"
-				    setFontAttrib BOLD "DOMU_EXTRA";
-				    echo "($((_idx++))/${_sum})";
-				    echo "${_prefix1}""Kernel parameters for the DomU."
-				    echo
-				    DOMU_EXTRA=${DOMU_EXTRA:-$DEFAULT_DOMU_EXTRA};
-				    case ${C_SESSIONTYPE} in
-					XEN)
-					    getAttrVal DOMU_EXTRA "${DOMU_EXTRA// /}" OPTIONAL "${_prefix1}"
-					    ;;
-					QEMU)
-					    getAttrVal DOMU_EXTRA "${DOMU_EXTRA// /}" OPTIONAL "${_prefix1}"
-					    ;;
-				    esac
-				    echo
-
-				    echo -e -n "${_prefix0}"
-				    setFontAttrib BOLD "DOMU_ROOT";
-				    echo "($((_idx++))/${_sum})";
-				    echo "${_prefix1}""Root for the DomU."
-				    echo
-				    DOMU_ROOT=${DOMU_ROOT:-$DEFAULT_DOMU_ROOT};
-				    case ${C_SESSIONTYPE} in
-					XEN)
-					    getAttrVal DOMU_ROOT "${DOMU_ROOT// /}" OPTIONAL "${_prefix1}"
-					    ;;
-					QEMU)
-					    getAttrVal DOMU_ROOT "${DOMU_ROOT// /}" OPTIONAL "${_prefix1}"
-					    ;;
-				    esac
-				    echo
+	    case ${DIST} in
+		debian)
+		    case ${ACCELERATOR} in
+			PARA|QEMU)
+			    echo -e -n "${_prefix0}"
+			    setFontAttrib BOLD "DOMU_KERNEL";
+			    echo "($((_idx++))/${_sum})";
+			    echo "${_prefix1}""Kernel to be executed within DomU."
+			    echo
+			    DOMU_KERNEL=${DOMU_KERNEL:-$DEFAULT_DOMU_KERNEL};
+			    case ${C_SESSIONTYPE} in
+				XEN)
+				    getAttrVal DOMU_KERNEL "${DOMU_KERNEL// /}" MANDATORY "${_prefix1}"
+				    ;;
+				QEMU)
+				    getAttrVal DOMU_KERNEL "${DOMU_KERNEL// /}" OPTIONAL "${_prefix1}"
 				    ;;
 			    esac
+			    echo
+
+			    echo -e -n "${_prefix0}"
+			    setFontAttrib BOLD "DOMU_MODULESDIR";
+			    echo "($((_idx++))/${_sum})";
+			    echo "${_prefix1}""Modules for kernel to be executed within DomU."
+			    echo
+			    DOMU_MODULESDIR=${DOMU_MODULESDIR:-$DEFAULT_DOMU_MODULESDIR};
+			    case ${C_SESSIONTYPE} in
+				XEN)
+				    getAttrVal DOMU_MODULESDIR "${DOMU_MODULESDIR// /}" MANDATORY "${_prefix1}"
+				    ;;
+				QEMU)
+				    getAttrVal DOMU_MODULESDIR "${DOMU_MODULESDIR// /}" OPTIONAL "${_prefix1}"
+				    ;;
+			    esac
+			    echo
+
+			    echo -e -n "${_prefix0}"
+			    setFontAttrib BOLD "DOMU_INITRD";
+			    echo "($((_idx++))/${_sum})";
+			    echo "${_prefix1}""Initrd to be used within the DomU."
+			    echo
+			    DOMU_INITRD=${DOMU_INITRD:-$DEFAULT_DOMU_INITRD};
+			    case ${C_SESSIONTYPE} in
+				XEN)
+				    getAttrVal DOMU_INITRD "${DOMU_INITRD// /}" MANDATORY "${_prefix1}"
+				    ;;
+				QEMU)
+				    getAttrVal DOMU_INITRD "${DOMU_INITRD// /}" OPTIONAL "${_prefix1}"
+				    ;;
+			    esac
+			    echo
+
+			    echo -e -n "${_prefix0}"
+			    setFontAttrib BOLD "DOMU_EXTRA";
+			    echo "($((_idx++))/${_sum})";
+			    echo "${_prefix1}""Kernel parameters for the DomU."
+			    echo
+			    DOMU_EXTRA=${DOMU_EXTRA:-$DEFAULT_DOMU_EXTRA};
+			    case ${C_SESSIONTYPE} in
+				XEN)
+				    getAttrVal DOMU_EXTRA "${DOMU_EXTRA// /}" OPTIONAL "${_prefix1}"
+				    ;;
+				QEMU)
+				    getAttrVal DOMU_EXTRA "${DOMU_EXTRA// /}" OPTIONAL "${_prefix1}"
+				    ;;
+			    esac
+			    echo
+
+			    echo -e -n "${_prefix0}"
+			    setFontAttrib BOLD "DOMU_ROOT";
+			    echo "($((_idx++))/${_sum})";
+			    echo "${_prefix1}""Root for the DomU."
+			    echo
+			    DOMU_ROOT=${DOMU_ROOT:-$DEFAULT_DOMU_ROOT};
+			    case ${C_SESSIONTYPE} in
+				XEN)
+				    getAttrVal DOMU_ROOT "${DOMU_ROOT// /}" OPTIONAL "${_prefix1}"
+				    ;;
+				QEMU)
+				    getAttrVal DOMU_ROOT "${DOMU_ROOT// /}" OPTIONAL "${_prefix1}"
+				    ;;
+			    esac
+			    echo
 			    ;;
 		    esac
 		    ;;
@@ -1720,6 +1980,30 @@ function getValues () {
 	    ;;
     esac
 
+
+    #
+    ###
+    #
+    echo -e -n "${_prefix0}"
+    setFontAttrib BOLD "DEFAULTCONSOLE";
+    echo "($((_idx++))/${_sum})";
+    echo "${_prefix1}""Default console for ${C_SESSIONTYPE}."
+    echo
+    printOut "${_prefix1}""When empty default is used."
+    printOut
+    getAttrVal DEFAULTCONSOLE "${DEFAULTCONSOLE// /}" OPTIONAL "${_prefix1}"
+
+    echo -e -n "${_prefix0}"
+    setFontAttrib BOLD "DEFAULTHOSTS";
+    echo "($((_idx++))/${_sum})";
+    echo "${_prefix1}""Default console for login into the GuestOS."
+    echo
+    printOut "${_prefix1}""When empty default is used."
+    printOut
+    getAttrVal DEFAULTHOSTS "${DEFAULTHOSTS// /}" OPTIONAL "${_prefix1}"
+    #
+  ###
+    #
 
 
     echo -e -n "${_prefix0}"
@@ -1761,7 +2045,22 @@ function displaySystemValues () {
     echo "${_prefix1}""HOST                           = ${MYHOST}";
     echo
     echo "${_prefix1}""ID                             = $ID"
-    echo "${_prefix1}""CTYS                           = ${ID//.conf/.ctys}"
+
+    case ${C_SESSIONTYPE} in
+	QEMU)
+	    echo "${_prefix1}""CTYS                           = ${ID}"
+	    ;;
+	VBOX)
+	    echo "${_prefix1}""CTYS                           = ${ID//.vdi/.ctys}"
+	    ;;
+	VMW)
+	    echo "${_prefix1}""CTYS                           = ${ID//.vmx/.ctys}"
+	    ;;
+	XEN)
+	    echo "${_prefix1}""CTYS                           = ${ID//.conf/.ctys}"
+	    ;;
+    esac
+
     echo "${_prefix1}""SERNO                          = $DATETIME"
     echo "${_prefix1}""VERNO                          = ${VERSION//_/.}"
 
@@ -1840,6 +2139,8 @@ function displaySystemValues () {
 	    ;;
     esac
     case ${C_SESSIONTYPE} in
+	VBOX);;
+
 	VMW);;
 	*)
 	    echo "${_prefix1}""INITIAL-INST-BOOSTRAP-MACHINE  : DEFAULTINSTMODE=${DEFAULTINSTMODE:-(Not yet defined.)}"
@@ -1881,6 +2182,11 @@ function displayValues () {
     echo
     echo "${_prefix1}""CONF-FILE                      = ${IDDIR}/${LABEL}.ctys"
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    echo "${_prefix1}""VBOX-FILE                      = ${IDDIR}/${LABEL}.vdi"
+	    echo "${_prefix1}""XML-FILE                       = ${XMLFILE}"
+	    ;;
+
 	VMW)
 	    echo "${_prefix1}""VMX-FILE                       = ${IDDIR}/${LABEL}.vmx"
 	    ;;
@@ -1941,6 +2247,9 @@ function displayValues () {
     esac
     echo
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    ;;
+
 	VMW)
 	    ;;
 	XEN)
@@ -1964,6 +2273,8 @@ function displayValues () {
     echo
     echo "${_prefix1}""ARCH                           = $ARCH"
     case ${C_SESSIONTYPE} in
+	VBOX);;
+
 	VMW);;
 	*)
 	    echo "${_prefix1}""ACCELERATOR                    = $ACCELERATOR"
@@ -1972,6 +2283,8 @@ function displayValues () {
     echo "${_prefix1}""SMP                            = $SMP"
     echo "${_prefix1}""MEMSIZE                        = $MEMSIZE"
     case ${C_SESSIONTYPE} in
+	VBOX);;
+
 	VMW);;
 	*)
 	    echo "${_prefix1}""KBD_LAYOUT                     = $KBD_LAYOUT"
@@ -1979,6 +2292,15 @@ function displayValues () {
     esac
     echo
     case ${C_SESSIONTYPE} in
+	VBOX)
+# 	    echo "${_prefix1}""XM                             = ${XM}"
+# 	    echo "${_prefix1}""VIRSH                          = ${VIRSH}"
+# 	    echo "${_prefix1}""XENTRACE                       = ${XENTRACE}"
+# 	    echo "${_prefix1}""MAGICID                        = ${XEN_MAGICID}"
+# 	    echo "${_prefix1}""HYPERREL-XEN                   = ${XEN_HYPERREL}"
+ 	    echo "${_prefix1}""HYPERREL-VBOX-ACCELERATOR      = ${ACCELERATOR}"
+	    ;;
+
 	VMW)
 # 	    echo "${_prefix1}""XM                             = ${XM}"
 # 	    echo "${_prefix1}""VIRSH                          = ${VIRSH}"
@@ -2008,6 +2330,8 @@ function displayValues () {
 	    ;;
     esac
     case ${C_SESSIONTYPE} in
+	VBOX);;
+
 	VMW);;
 	*)
 	    echo
@@ -2048,6 +2372,8 @@ function displayValues () {
 	    ;;
     esac
     case ${C_SESSIONTYPE} in
+	VBOX);;
+
 	VMW);;
 	*)
 	    case ${DEFAULTINSTMODE} in
@@ -2131,6 +2457,9 @@ function displayValues () {
 	    ;;
     esac
     echo
+    echo "${_prefix1}""DEFAULTHOSTS                   = $DEFAULTHOSTS"
+    echo "${_prefix1}""DEFAULTCONSOLE                 = $DEFAULTCONSOLE"
+    echo
     echo
     echo "${_prefix1}""VMSTATE                        = $VMSTATE"
     echo
@@ -2158,6 +2487,10 @@ function createConf () {
 	XEN|VMW)
 	    setFontAttrib BCYAN "         |  ";
 	    ;;
+
+	VBOX)
+	    setFontAttrib BCYAN "        |  ";
+	    ;;
     esac
     echo
     setFontAttrib BCYAN "  |                             Version:${VERSION//_/.}                             |  "
@@ -2176,6 +2509,10 @@ function createConf () {
 	XEN)
 	    ID="${IDDIR}/${LABEL:-<LABEL>}.ctys"
 	    ;;
+	VBOX)
+	    ID="${IDDIR}/${LABEL:-<LABEL>}.vdi"
+	    ;;
+
 	VMW)
 	    ID="${IDDIR}/${LABEL:-<LABEL>}.vmx"
 	    ;;
@@ -2335,6 +2672,8 @@ function exchangeMARKER () {
 	       gsub("MARKER_VNCCONSOLE",                   "'"${VNCCONSOLE:-1}"'"                );
 	       gsub("MARKER_VNCUNUSED",                    "'"${VNCUNUSED:-1}"'"                 );
 
+	       gsub("MARKER_DEFAULTCONSOLE",               "'"${DEFAULTCONSOLE}"'"               );
+	       gsub("MARKER_DEFAULTHOSTS",                 "'"${DEFAULTHOSTS}"'"                 );
 
 	       gsub("MARKER_LOCALTIME",                    "'"${TIMEOPT:-1}"'"                   );
 
@@ -2347,6 +2686,8 @@ function exchangeMARKER () {
 	       gsub("MARKER_DOMU_INITRD",                  "'"${DOMU_INITRD:-$DEFAULT_DOMU_INITRD}"'"   );
 	       gsub("MARKER_DOMU_EXTRA",                   "'"${DOMU_EXTRA:-$DEFAULT_DOMU_EXTRA}"'"   );
 	       gsub("MARKER_DOMU_ROOT",                    "'"${DOMU_ROOT:-$DEFAULT_DOMU_ROOT}"'"   );
+
+	       gsub("MARKER_XMLCFG",                       "'"${XMLFILE}"'"   );
 
                if(vstate=="ACTIVE"){
    	         gsub("MAGICID-IGNORE", "MAGICID-do-not-IGNORE =>ACTIVATED");
@@ -2849,7 +3190,7 @@ function createImage () {
     [ $? -ne 0 ]&&return
     echo
     _mcall="$_mcall ${DARGS:--d printfinal} --initmodeonly --instmode --console=none "
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${_mcall}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${_mcall}"
     echo
     setFontAttrib FRED   "."
     setFontAttrib FGREEN "."
@@ -3101,6 +3442,24 @@ while [ -n "$1" ];do
     shift
 done
 
+#
+#set directory position
+IDDIR=${_RDIRECTORY:-$PWD}
+
+
+case ${C_SESSIONTYPE} in
+    VBOX)
+	if [ "${HDDBOOTIMAGE//.img/}" != "${HDDBOOTIMAGE}" ];then
+	    HDDBOOTIMAGE=${LABEL}.vdi
+	fi
+	;;
+    VMW)
+	if [ "${HDDBOOTIMAGE//.img/}" != "${HDDBOOTIMAGE}" ];then
+	    HDDBOOTIMAGE=${LABEL}.vmx
+	fi
+	;;
+esac
+
 if [ -n "${AUTO_WITH_DEFAULTS_ALL}" -a -z "$LABEL" ];then
     ABORT=1;
     printERR $LINENO $BASH_SOURCE ${ABORT} "Auto-Mode-All requires presetting of all"
@@ -3132,9 +3491,12 @@ function fListEnvVarOptions () {
 	_lval=$(setFontAttrib $_col "$_lval")
 	if [ -z "$2" ];then
 	    local x=$(eval echo \${$1})
-	    printf $FSTRG "$_lval" "$x"
+	    shift
+	    printf $FSTRG "$_lval" "$x${*:- $*}"
 	else
-	    printf $FSTRG "$_lval" "$2"
+	    shift
+	    printf $FSTRG "$_lval" "$*"
+#4TEST:	    printf $FSTRG "$_lval" "$2"
 	fi
     }
 
@@ -3147,9 +3509,11 @@ function fListEnvVarOptions () {
     printf "  %-10s = %s\n" "no-marker" "Pre-Set value, either from defaults configuration, or by commandline."
     printf "  %-10s = %s\n" "no-value" "Either requested by dialog later, or the defaults of the finally called"
     printf "  %10s   %s\n" "" "application are used."
-    printf "  %-10s = %s\n" "(g)" "Dynamically generated."
     printf "  %-10s = %s\n" "(c)" "Read from actual configuration file, e.g. vmx-file."
+    printf "  %-10s = %s\n" "(d)" "Read from database."
+    printf "  %-10s = %s\n" "(g)" "Dynamically generated."
     printf "  %-10s = %s\n" "(h)" "Used from current host as default."
+    printf "  %-10s = %s\n" "(m)" "Received from mapping definitions."
     echo
     echo "Applicable modifications:"
     _hvar=$(printf "%-10s" blue)
@@ -3176,17 +3540,53 @@ function fListEnvVarOptions () {
     echo
     printIt FBLUE    C_SESSIONTYPE
     printIt FBLUE    LABEL
-    printIt FCYAN    MAC
-    printIt FCYAN    IP
+
+    case ${C_SESSIONTYPE} in
+	VBOX) 
+	    MAC=$(fetchMAC "${IDDIR}/${LABEL}.vdi"|tr '[:lower:]' '[:upper:]')
+	    printIt FCYAN    MAC "" "(c)"
+	    ;;
+	VMW)
+            MAC=$(getVMWMAC0 "${IDDIR}/${LABEL}.vmx"|tr '[:lower:]' '[:upper:]')
+	    printIt FCYAN    MAC "" "(c)"
+	    ;;
+	QEMU)
+	    MAC=$(${MYLIBEXECPATH}/ctys-macmap.sh -m $LABEL)
+	    printIt FCYAN    MAC "" "(m)"
+	    ;;
+	*)
+	    printIt FCYAN    MAC
+	    ;;
+    esac
+    if [ -n "${MAC}" ];then
+	IP=$(${MYLIBEXECPATH}/ctys-macmap.sh -i $MAC)
+    fi
+    if [ -n "${IP}" ];then
+	printIt FCYAN    IP "" "(m)"
+    else
+	printIt FCYAN    IP
+    fi
+
     printIt FCYAN    BRIDGE
     printIt FCYAN    DHCP
     printIt FCYAN    NETMASK
-    printIt FCYAN    TCP
+
+    if [ -z "$TCP" ];then
+	TCP=$(${MYLIBEXECPATH}/ctys-macmap.sh -n $MAC)
+	printIt FCYAN    TCP "" "(m)"
+    else
+	printIt FCYAN    TCP
+    fi
     printIt FCYAN    GATEWAY
     echo
     printIt FGREEN EDITOR
 
     case ${C_SESSIONTYPE} in
+	VBOX)
+	    _hvar=$(getVBOXUUID "${IDDIR}/${LABEL}.vdi")
+	    _hvar=${_hvar:+$_hvar (c)}
+	    ;;
+
 	VMW)
 	    _hvar=$(getVMWUUID "${IDDIR}/${LABEL}.vmx")
 	    _hvar=${_hvar:+$_hvar (c)}
@@ -3204,9 +3604,18 @@ function fListEnvVarOptions () {
 
     echo
     printIt FGREEN DIST "${DIST:-$MYDIST (h)}"
+    [ -z "${DIST}" ]&&DIST="${MYDIST}"
+
     printIt FGREEN DISTREL "${DISTREL:-$MYREL (h)}"
+    [ -z "${DISTREL}" ]&&DISTREL="${MYREL}"
+    [ -z "${RELEASE}" ]&&RELEASE="${DISTREL}"
+
     printIt FGREEN OS "${OS:-$MYOS (h)}"
+    [ -z "${OS}" ]&&OS="${MYOS}"
+
     printIt FGREEN OSREL "${OSREL:-$MYOSREL (h)}"
+    [ -z "${OSREL}" ]&&OSREL="${MYOSREL}"
+
     echo
     printIt FGREEN ARCH "${ARCH:-$(getCurArch.sh) (h)}"
 
@@ -3214,32 +3623,41 @@ function fListEnvVarOptions () {
 	XEN)_hvar="$(getACCELERATOR_XEN)"
 	    _hvar=${_hvar// /}
 	    _hvar=${_hvar:-PARA}
+	    ACCELERATOR=${ACCELERATOR:-$_hvar}
+	    printIt FGREEN ACCELERATOR "${ACCELERATOR}"  "${_hvar:+ (h)}"
 	    ;;
-	QEMU)_hvar="$(getACCELERATOR_QEMU)"
+	QEMU)_hvar="$(getACCELERATOR_QEMU $QEMU)"
 	    _hvar=${_hvar:-QEMU}
+	    ACCELERATOR=${ACCELERATOR:-$_hvar}
+	    printIt FGREEN ACCELERATOR "${ACCELERATOR}"  "${_hvar:+ (h)}"
 	    ;;
-	*)_hvar=;;
+	VBOX)_hvar=$(getVBOXACCEL "${IDDIR}/${LABEL}.vdi")
+	    ACCELERATOR=${ACCELERATOR:-$_hvar}
+	    printIt FGREEN ACCELERATOR "${ACCELERATOR}"  "${_hvar:+ (c)}"
+	    ;;
+	*)_hvar=
+	    printIt FGREEN ACCELERATOR "${ACCELERATOR}"
+	    ;;
     esac
-    ACCELERATOR=${ACCELERATOR:-$_hvar}
-    [ -n "${_hvar}" ]&&_hvar="$_hvar (h)"
-    printIt FGREEN ACCELERATOR "${ACCELERATOR:-$_hvar}"
 
     case ${C_SESSIONTYPE} in
+	VBOX)_hvar="$(getVBOXGUESTVCPU "${IDDIR}/${LABEL}.vdi")";;
 	VMW)_hvar="$(getVMWGUESTVCPU "${IDDIR}/${LABEL}.vmx")";;
 	*)_hvar=;;
     esac
-    [ -n "$_hvar" ]&&_hvar="$_hvar (h)"
-    printIt FGREEN SMP ${SMP:-$_hvar}
+    [ -n "$_hvar" ]&&_hvar="$_hvar (c)"
+    printIt FGREEN SMP ${_hvar:-$SMP}
  
     case ${C_SESSIONTYPE} in
+	VBOX)_hvar="$(getVBOXGUESTVRAM "${IDDIR}/${LABEL}.vdi")";;
 	VMW)_hvar="$(getVMWGUESTVRAM "${IDDIR}/${LABEL}.vmx")";;
 	*)_hvar=;;
     esac
-    [ -n "$_hvar" ]&&_hvar="$_hvar (h)"
+    [ -n "$_hvar" ]&&_hvar="$_hvar (c)"
+    MEMSIZE=${_hvar:-$MEMSIZE}
     printIt FGREEN MEMSIZE ${MEMSIZE:-512}
 
     printIt FGREEN KBD_LAYOUT ${KBD_LAYOUT:-de}
-
 
     ########
     #
@@ -3259,17 +3677,49 @@ function fListEnvVarOptions () {
 
     echo
     STARTERCALL=${STARTERCALL:-$DEFAULTSTARTERCALL}
-    if [ -n "${STARTERCALL}" ];then
-	printIt FGREEN STARTERCALL ${STARTERCALL}
-    else
-	printIt FGREEN STARTERCALL ${QEMU}
-    fi
+    case ${C_SESSIONTYPE} in
+ 	QEMU) STARTERCALL=${STARTERCALL:-$QEMU};;
+ 	VBOX) STARTERCALL=${STARTERCALL:-$VBOXEXE};;
+ 	VMW)  STARTERCALL=${STARTERCALL:-$VMWEXE};;
+ 	XEN)  STARTERCALL=${STARTERCALL:-$XENEXE};;
+    esac
+    printIt FGREEN STARTERCALL ${STARTERCALL}
 
-    printIt FGREEN WRAPPERCALL ${WRAPPERCALL:-$DEFAULTWRAPPERCALL}
+
+    WRAPPERCALL=${WRAPPERCALL:-$DEFAULTWRAPPERCALL}
+    case ${C_SESSIONTYPE} in
+ 	QEMU) WRAPPERCALL=${WRAPPERCALL:-$LABEL}.sh;;
+ 	VBOX) ;;
+ 	VMW)  ;;
+ 	XEN)  WRAPPERCALL=${WRAPPERCALL:-$LABEL}.sh;;
+    esac
+    if [ -n "${WRAPPERCALL}" ];then
+	printIt FGREEN WRAPPERCALL ${WRAPPERCALL}
+    fi
     echo
 
     case ${C_SESSIONTYPE} in
-	VMW)
+ 	VBOX)
+	    DEFAULTBOOTMODE=${DEFAULTBOOTMODE:-VHDD}
+	    printIt FGREEN DEFAULTBOOTMODE 
+	    case ${DEFAULTBOOTMODE} in
+		VHDD|HDD)
+		    echo
+		    DEFAULTINSTTARGET=${IDDIR}/${HDDBOOTIMAGE}
+		    printIt FGREEN DEFAULTINSTTARGET
+		    case ${C_SESSIONTYPE} in
+			VBOX) HDDBOOTIMAGE_INST_SIZE=$(getVBOXBOOTHDDSIZE "${IDDIR}/${LABEL}.vdi");;
+#4TEST:VMW
+			*)  HDDBOOTIMAGE_INST_SIZE=${HDDBOOTIMAGE_INST_SIZE:-5G};;
+		    esac
+
+		    printIt FGREEN HDDBOOTIMAGE_INST_SIZE
+		    ;;
+	    esac
+
+	    ;;
+
+ 	VMW)
 	    ;;
 	*)
 	    DEFAULTBOOTMODE=${DEFAULTBOOTMODE:-VHDD}
@@ -3279,12 +3729,23 @@ function fListEnvVarOptions () {
 		    echo
 		    DEFAULTINSTTARGET=${IDDIR}/${HDDBOOTIMAGE}
 		    printIt FGREEN DEFAULTINSTTARGET
-		    HDDBOOTIMAGE_INST_SIZE=${HDDBOOTIMAGE_INST_SIZE:-5G}
+		    case ${C_SESSIONTYPE} in
+			VBOX) HDDBOOTIMAGE_INST_SIZE=$(getVBOXBOOTHDDSIZE "${IDDIR}/${LABEL}.vdi");;
+#4TEST:VMW
+			*)  HDDBOOTIMAGE_INST_SIZE=${HDDBOOTIMAGE_INST_SIZE:-5G};;
+		    esac
+
 		    printIt FGREEN HDDBOOTIMAGE_INST_SIZE
-		    HDDBOOTIMAGE_INST_BLOCKSIZE=${HDDBOOTIMAGE_INST_BLOCKSIZE:-1G}
-		    printIt FGREEN HDDBOOTIMAGE_INST_BLOCKSIZE
-		    printIt FGREEN HDDBOOTIMAGE_INST_BLOCKCOUNT
-		    printIt FGREEN HDDBOOTIMAGE_INST_BALLOON
+		    case ${C_SESSIONTYPE} in
+			VBOX) ;;
+			VMW) ;;
+			*)  
+			    HDDBOOTIMAGE_INST_BLOCKSIZE=${HDDBOOTIMAGE_INST_BLOCKSIZE:-1G}
+			    printIt FGREEN HDDBOOTIMAGE_INST_BLOCKSIZE
+			    printIt FGREEN HDDBOOTIMAGE_INST_BLOCKCOUNT
+			    printIt FGREEN HDDBOOTIMAGE_INST_BALLOON
+			    ;;
+		    esac
 		    ;;
 	    esac
 	    echo
@@ -3342,32 +3803,43 @@ function fListEnvVarOptions () {
 	    esac
 
 	    case ${C_SESSIONTYPE} in
-		XEN|QEMU)
+		QEMU)
 		    INST_KERNEL=${INST_KERNEL:-$DEFAULT_INST_KERNEL};
 		    printIt FGREEN INST_KERNEL
+		    INST_EXTRA=${INST_EXTRA:-$DEFAULT_INST_EXTRA};
+		    printIt FGREEN INST_EXTRA
+		    INST_ROOTARGS=${INST_ROOTARGS:-$DEFAULT_INST_ROOTARGS};
+		    printIt FGREEN INST_ROOTARGS
+		    INST_INITRD=${INST_INITRD:-$DEFAULT_INST_INITRD};
+		    printIt FGREEN INST_INITRD
+		    ;;
+
+		XEN)
 		    case ${ACCELERATOR} in
+			HVM)
+#4TEST:
+			    case ${DEFAULTINSTMODE} in
+				KS) 
+				    ABORT=127
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "Kickstart configured solely by Xen facilities requires an"
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "external kernel. This is not supported by HVM, use PARA."
+				    gotoHell ${ABORT}
+				    ;;
+			    esac
+
+			    ;;
 			PARA)
+			    INST_KERNEL=${INST_KERNEL:-$DEFAULT_INST_KERNEL};
+			    printIt FGREEN INST_KERNEL
 			    INST_EXTRA=${INST_EXTRA:-$DEFAULT_INST_EXTRA};
 			    printIt FGREEN INST_EXTRA
 			    INST_ROOTARGS=${INST_ROOTARGS:-$DEFAULT_INST_ROOTARGS};
 			    printIt FGREEN INST_ROOTARGS
-			    ;;
-		    esac
-
-		    case ${C_SESSIONTYPE} in
-			XEN)
-			    case ${ACCELERATOR} in
-				PARA)
-				    INST_INITRD=${INST_INITRD:-$DEFAULT_INST_INITRD};
-				    printIt FGREEN INST_INITRD
-				    ;;
-			    esac
-			    ;;
-			QEMU)
 			    INST_INITRD=${INST_INITRD:-$DEFAULT_INST_INITRD};
 			    printIt FGREEN INST_INITRD
 			    ;;
 		    esac
+
 		    case ${DIST} in
 			debian)
 			    case ${ACCELERATOR} in
@@ -3391,6 +3863,11 @@ function fListEnvVarOptions () {
 	    esac
 	    ;;
     esac
+    echo
+    echo
+    printIt FGREEN DEFAULTHOSTS
+    printIt FGREEN DEFAULTCONSOLE
+    echo
     echo
     printIt FGREEN VMSTATE
     echo
@@ -3448,6 +3925,15 @@ createConf
 createData
 
 case ${C_SESSIONTYPE} in
+    VBOX)
+	if [ -n "$_CREATEIMAGE"  ];then
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Image creation for VBOX is not yet supported"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Use tools of supplier."
+	    gotoHell ${ABORT}
+	fi
+	;;
+
     VMW)
 	if [ -n "$_CREATEIMAGE"  ];then
 	    ABORT=1;
@@ -3480,6 +3966,12 @@ esac
 
 
 case ${C_SESSIONTYPE} in
+    VBOX)
+	if [ -n "$_SAVEPARAKERN" ];then
+            printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	fi
+	;;
+
     VMW)
 	if [ -n "$_SAVEPARAKERN" ];then
             printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
@@ -3537,6 +4029,13 @@ case ${C_SESSIONTYPE} in
 	setFontAttrib BOLD   "ctys-configuration-QEMU(7)"
 	echo " for additional information."
 	;;
+    VBOX)
+	echo -n -e "Refer to the document "
+	setFontAttrib BOLD   "ctys-configuration-VBOX(7)"
+	echo " for additional information."
+	echo
+	;;
+
     VMW)
 	echo -n -e "Refer to the document "
 	setFontAttrib BOLD   "ctys-configuration-VMW(7)"

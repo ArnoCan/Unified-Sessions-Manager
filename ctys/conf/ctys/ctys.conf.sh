@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -46,12 +46,15 @@ CTYS_PRIVATE=${MYLIBPATH}/../..
 #
 #export PM_IGNORE=1
 #export CLI_IGNORE=1
-#export X11_IGNORE=1
+#export RDP_IGNORE=1
 #export VNC_IGNORE=1
+#export X11_IGNORE=1
+#
 #export XEN_IGNORE=1
 #export VBOX_IGNORE=1
 #export VMW_IGNORE=1
 #export QEMU_IGNORE=1
+#
 #export OVZ_IGNORE=1
 #
 #
@@ -194,15 +197,28 @@ fi
 ###########################################################################
 
 
-
 ###################
-#generic
+#GENERIC
+
+#
+#The following values pre-define values for session types as defaults.
+#
 DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
 DEFAULT_CTYS_MULTITYPE=${DEFAULT_CTYS_MULTITYPE:-DEFAULT}
+
+#
+#The following values pre-define values for selection scope default.
+#
 DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
-DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
 DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,BOTH}
 
+#
+#The following values pre-define the value for a pre-timeout
+#before Luke attempts to use the force.
+#
+DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
+
+#
 #The account to be used for generic network actions.
 #When root permissions are required, the user root will be 
 #called, but has to be preconfigured for network login or a 
@@ -736,3 +752,16 @@ NET_PORTSEED=100
 #Number of cincurrent execution of scanning by ctys-vdbgen on remote targets.
 #
 CTYS_VDBGEN_PARTARGETS=${CTYS_VDBGEN_PARTARGETS:-10}
+
+
+
+#
+#Default paths for menue entries
+#
+MENU_DEFAULT_PRIVATE_LST="$HOME/.config/menus:$HOME/.local/share/applications:$HOME/.local/share/desktop-directories"
+MENU_DEFAULT_SHARED_LST="/etc/xdg/menus:/usr/share/applications:/usr/share/desktop-directories"
+
+#
+#Default menue scope
+#
+MENU_DEFAULT_SCOPE=${MENU_DEFAULT_SCOPE:-PRIVATE};

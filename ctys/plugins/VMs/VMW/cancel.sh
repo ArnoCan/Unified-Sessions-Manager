@@ -214,8 +214,9 @@ function cutCancelSessionVMW () {
 			    let _unambig++;
 			    ;;
 			ID|I|PATHNAME|PNAME|P)
-                              #can (partly for relative names) be checked now
-                            if [ -n "${ARG##/*}" ]; then
+                            #can (partly for relative names) be checked now
+			    local _ta="${ARG//\\}"
+			    if [ -n "${_ta##/*}" ]; then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  PNAME=${ARG}"
@@ -320,6 +321,11 @@ function cutCancelSessionVMW () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -466,7 +472,8 @@ function cutCancelSessionVMW () {
 			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RANGE:FILENAME=${_fname}"
 			    ;;
 			ID|I|PATHNAME|PNAME|P)
-                            if [ ! -f "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given pathname"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  _pname=${ARG}"
@@ -875,7 +882,7 @@ function cutCancelSessionVMW () {
 			    killClients ${_pname}
 			fi
 			if [ -n "${_self}" ];then
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "halt -p"
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "halt -p"
 			    halt -p
 			fi
 			;;

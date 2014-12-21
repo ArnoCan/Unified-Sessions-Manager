@@ -21,7 +21,6 @@ ctys-macmap
    <simple awk-regexpr>
 
 
-
 DESCRIPTION
 ===========
 

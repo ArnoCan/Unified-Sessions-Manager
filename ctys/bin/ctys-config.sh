@@ -545,7 +545,7 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_CONFIGEDIT ${_editX//%/ }&
+    $CTYS_CONFIGEDIT ${_editX//%/ }&sleep 1
     exit $?
 fi
 

@@ -207,6 +207,11 @@ function cutCancelSessionVNC () {
 	  ;;
 
       ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	  ;;
 
       EXECUTE)

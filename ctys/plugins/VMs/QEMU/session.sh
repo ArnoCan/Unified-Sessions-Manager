@@ -384,7 +384,7 @@ function startSessionQEMU () {
   ###
 
   if [ -z "${C_NOEXEC}" ];then
-      printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER} --check"
+      printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER} --check"
       export PATH=${QEMU_PATHLIST}:${PATH}&&eval ${CALLER} --check
       if [ $? -ne 0 ];then
 	  ABORT=1
@@ -394,7 +394,7 @@ function startSessionQEMU () {
 
 	  gotoHell ${ABORT}
       fi
-      printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
+      printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
       export PATH=${QEMU_PATHLIST}:${PATH}&&eval ${CALLER} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
       sleep ${QEMU_INIT_WAITS}
 

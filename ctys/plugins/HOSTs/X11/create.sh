@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_X11_CREATE="${BASH_SOURCE}"
-_myPKGVERS_X11_CREATE="01.11.006"
+_myPKGVERS_X11_CREATE="01.11.011"
 hookInfoAdd $_myPKGNAME_X11_CREATE $_myPKGVERS_X11_CREATE
 _myPKGBASE_X11_CREATE="`dirname ${_myPKGNAME_X11_CREATE}`"
 
@@ -75,6 +75,8 @@ function createConnectX11 () {
 			-o -z "${ARG}" \
 			-a \( \
                         "${KEY}" == "DUMMY"  \
+                        -o "${KEY}" == "STUB" \
+                        -o "${KEY}" == "STUBMODE" \
                         -o "${KEY}" == "NOTITLE" \
                         -o "${KEY}" == "DH"  \
                         -o "${KEY}" == "SH"  \
@@ -126,6 +128,16 @@ function createConnectX11 () {
 				let _unambig+=1;
 				;;
 
+                            STUBMODE|STUB)
+				C_STUBCALL=1;
+ 				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "STUBMODE"
+                                local _wrapper="${ARG// /}";
+				case "$_wrapper" in
+				    [oO][nN])C_NOWRAPPER=;
+				esac
+ 				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "WRAPPER=${_wrapper:-OFF}"
+				;;
+
                         ###########
 			    NOTITLE)
 				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "_notitle=${ARG}"
@@ -139,11 +151,12 @@ function createConnectX11 () {
 				local _conty="`echo ${ARG}|tr '[:lower:]' '[:upper:]'`";
 				case ${_conty} in
 				    EMACSAM|EMACSA|EMACSM|EMACS|XTERM|GTERM)
-					if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" ];then
-					    ABORT=1;
-					    printERR $LINENO $BASH_SOURCE ${ABORT} "\"CONNECTIONFORWARDING\" is not supported for ${_conty}"
- 					    gotoHell ${ABORT}
-					fi
+#4TEST:OBSOLETE - TEMP REMINDER
+# 					if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" ];then
+# 					    ABORT=1;
+# 					    printERR $LINENO $BASH_SOURCE ${ABORT} "\"CONNECTIONFORWARDING\" is not supported for ${_conty}"
+#  					    gotoHell ${ABORT}
+# 					fi
 					if [ "${C_ASYNC}" == 0 ];then
 					    if [ "${C_STACK}" == 1 ];then
 						printINFO 2 $LINENO $BASH_SOURCE ${ABORT} "CONSOLE:${_conty} will be set to \"-b async,par\""
@@ -176,6 +189,25 @@ function createConnectX11 () {
 		    fi
 		done
 
+		if [ -n "$C_STUBCALL" ];then
+		    case "${C_CLIENTLOCATION#-L }" in
+			CONNECTIONFORWARDING|CF);;
+			*)
+			    case ${_conty} in
+				EMACSAM|EMACSA|EMACSM|EMACS)
+				    ABORT=1;
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "STUBMODE is not supported for CONSOLE:\"${_conty}\""
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "Use: GTERM|XTERM"
+ 				    gotoHell ${ABORT}
+				    ;;
+				*)
+				    ;;
+			    esac  
+			    ;;
+		    esac  
+		fi
+				
+
 		if [ -n "$_dh" -a -n "$_sh" ];then
 		    ABORT=1;
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "The suboptions DH and SH are EXOR."
@@ -202,6 +234,22 @@ function createConnectX11 () {
 
 
 	ASSEMBLE)
+            case "${C_CLIENTLOCATION#-L }" in
+		CONNECTIONFORWARDING|CF)
+		    ${FUNCNAME} EXECUTE $ACTION 
+		    ;;
+		*)
+		    if [ -z "$C_STUBCALL" ];then
+			assembleExeccall 
+		    else
+			${FUNCNAME} EXECUTE $ACTION 
+		    fi
+		    ;;
+	    esac
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -273,6 +321,16 @@ function createConnectX11 () {
 			    LABEL|L)
                                 local _label="${ARG}";
  				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "LABEL=${_label}"
+				;;
+
+                            STUBMODE|STUB)
+				C_STUBCALL=1;
+ 				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "STUBMODE"
+                                local _wrapper="${ARG// /}";
+				case "$_wrapper" in
+				    [oO][nN])C_NOWRAPPER=;
+				esac
+ 				printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "WRAPPER=${_wrapper:-OFF}"
 				;;
 
 			    NOTITLE)
@@ -380,12 +438,25 @@ function createConnectX11 () {
 		_label=NOTITLE
 	    fi
 
+            if [ -z "${_label}" ];then
+                _label="DEFAULT-${DATETIME}"
+            fi
+
             case "${C_CLIENTLOCATION#-L }" in
 		LOCALONLY|DISPLAYFORWARDING)
-                    if [ -z "${_label}" ];then
-                        _label="DEFAULT-${DATETIME}"
-                    fi
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "startSessionX11 \"${_label}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_label}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_cmd}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_shell}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_callopts}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_xopts}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_titlekey}\""
+		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_chdir}\""
+                    startSessionX11 "${_label}"  "${_cmd}" "${_shell}" "${_callopts}" "${_xopts}" "${_titlekey}" "${_chdir}"
+		    gotoHell 0
+		    ;;
 
+		CONNECTIONFORWARDING)
 		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "startSessionX11 \"${_label}\""
 		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_label}\""
 		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_cmd}\""
@@ -395,11 +466,28 @@ function createConnectX11 () {
 		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_titlekey}\""
 		    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE " ->\"${_chdir}\""
 
+		    hookPackage CLI
+		    hookInitPropagate4Package CLI
+
+		    if [ -z "$C_STUBCALL" ];then
+			_shell="${MYLIBEXECPATH}/ctys -t cli -a create=l:${_label} $R_HOSTS"
+		    else
+			_shell=;
+			_shell="${_shell} -t CLI -a create=l:${_label}"
+			if [ -n "$C_STUBCALL" ];then
+			    _shell="${_shell},STUB"
+			    if [ -z "$C_NOWRAPPER" ];then
+				_shell="${_shell}:on"
+			    fi
+			fi
+			_shell="${MYLIBEXECPATH}/ctys.sh ${_shell} $R_HOSTS"
+			printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "_shell=${_shell}"
+		    fi
                     startSessionX11 "${_label}"  "${_cmd}" "${_shell}" "${_callopts}" "${_xopts}" "${_titlekey}" "${_chdir}"
 		    gotoHell 0
 		    ;;
 
-		CONNECTIONFORWARDING|*)
+		*)
 		    ABORT=1
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Execution locality error:${C_CLIENTLOCATION}"
 		    gotoHell ${ABORT}

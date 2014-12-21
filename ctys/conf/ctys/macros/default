@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -164,13 +164,20 @@ F_STACKREQ1  = 22_StackReq_30_B
 #Change this carefully, otherwise ctys-vhost.sh might come 
 #into trouble.
 #
-TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_ACCEL%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_IFNAME%%macro:F_TCP
+DAT_CTYS_VHOST_DEFAULT=macro:F_LABEL%%macro:F_STYPE%%macro:F_ACCEL%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_IFNAME%%macro:F_TCP
+
+TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:DAT_CTYS_VHOST_DEFAULT
+REC_CTYS_VHOST_DEFAULT=rec_gen:macro:DAT_CTYS_VHOST_DEFAULT
 
 listdefault=-a list=macro:TAB_CTYS_VHOST_DEFAULT
 ldefault=-a list=macro:TAB_CTYS_VHOST_DEFAULT
 
-enumdefault=-a enumerate=macro:TAB_CTYS_VHOST_DEFAULT
-edefault=-a enumerate=macro:TAB_CTYS_VHOST_DEFAULT
+enumdefault=-a enumerate=tab_gen:macro:DAT_CTYS_VHOST_DEFAULT
+
+edefault=-a enumerate=tab_gen:macro:DAT_CTYS_VHOST_DEFAULT
+erecdefault=-a enumerate=rec_gen:macro:DAT_CTYS_VHOST_DEFAULT
+especdefault=-a enumerate=spec_gen:macro:DAT_CTYS_VHOST_DEFAULT
+exmldefault=-a enumerate=xml_gen:macro:DAT_CTYS_VHOST_DEFAULT
 
 vhostdefault=-o macro:TAB_CTYS_VHOST_DEFAULT
 vdefault=-o macro:TAB_CTYS_VHOST_DEFAULT

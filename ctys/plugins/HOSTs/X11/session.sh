@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_X11_SESSION="${BASH_SOURCE}"
-_myPKGVERS_X11_SESSION="01.10.013"
+_myPKGVERS_X11_SESSION="01.11.011"
 hookInfoAdd $_myPKGNAME_X11_SESSION $_myPKGVERS_X11_SESSION
 _myPKGBASE_X11_SESSION="`dirname ${_myPKGNAME_X11_SESSION}`"
 
@@ -124,6 +124,10 @@ function startSessionX11 () {
 		local _emacsrun="exec ${CLIEXE} -i ${_copts:+\"$_copts\"}"
 	    else
 		local _emacsrun="exec ${CLIEXE} -c \"${_xclientsh} ${_copts}\""
+	    fi
+
+	    if [ -n "$C_STUBCALL" ];then
+		_emacsrun=$(echo " ${_emacsrun} "|sed "s/(/'(/g;s/)/)'/g;" );
 	    fi
 
 	    local _emacsrunfile=${MYTMP}/emacs.${MYPID}.${RANDOM}
@@ -314,7 +318,7 @@ function startSessionX11 () {
 
     printDBG $S_X11 ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_xcall =\"${_xcall}\""
     printDBG $S_X11 ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:C_STACK=\"${C_STACK}\""
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-X11-CCONSOLE:STARTER(${_label})" "${_xcall}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-X11-CCONSOLE:STARTER(${_label})" "${_xcall}"
     case ${C_DISPLAY// /} in
 	*[a-z][A-Z]*)
 	    export DISPLAY=":$(C_SESSIONTYPE=ALL fetchDisplay4Label ALL ${C_DISPLAY})";
@@ -326,7 +330,14 @@ function startSessionX11 () {
 	    ;;
     esac
 
-    if [ -z "${C_NOEXEC}" ];then
-	eval ${_xcall}
-    fi
+
+    #stub is remote only
+    [ -z "${C_NOEXEC}" ]&&eval ${_xcall}
+
+#     C_STUBCALL=;
+#     if [ -n "${C_STUBCALL}" ];then
+# 	echo -n ${_xcall}
+#     else
+# 	[ -z "${C_NOEXEC}" ]&&eval ${_xcall}
+#     fi
 }

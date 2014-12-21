@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_009
+VERSION=01_11_011
 #DESCRIPTION:
 #  See manual.
 #
@@ -183,6 +183,10 @@ fi
 #set real path to install, resolv symbolic links
 _MYLIBEXECPATHNAME=`bootstrapGetRealPathname ${MYLIBEXECPATHNAME}`
 MYLIBEXECPATH=`dirname ${_MYLIBEXECPATHNAME}`
+if [ "${MYLIBEXECPATH%/bin}" == "${MYLIBEXECPATH}" ];then
+    MYLIBEXECPATH="${MYLIBEXECPATH/*}/bin"
+fi
+
 
 _MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
 MYCALLPATHNAME=`dirname ${_MYCALLPATHNAME}`
@@ -264,6 +268,7 @@ libManagerRegisterLib
 if [ ! -d "${MYINSTALLPATH}" ];then
     ABORT=1;
     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    guiERR ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
     gotoHell ${ABORT}
 fi
 
@@ -272,6 +277,7 @@ checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    guiERR ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
     gotoHell ${ABORT}
 fi
 
@@ -312,7 +318,8 @@ case ${MYOS} in
     SunOS);;
     *)
         printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
-	gotoHell 0
+	guiERR 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 1
 	;;
 esac
 
@@ -362,6 +369,7 @@ else
 	    ABORT=1;
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf-${MYDIST}.sh\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    guiERR ${ABORT} "Missing system tools configuration file:\"systools.conf-${MYDIST}.sh\""
 	    gotoHell ${ABORT}
 	fi
     fi
@@ -375,12 +383,13 @@ fi
 
 if [ -z "$CTYS_ZENITY" ];then
     ABORT=1;
-    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing 'zenity'"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Requires 'zenity' from GNOME."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Works on other WMs too."
+    guiERR ${ABORT} "Requires 'zenity' from GNOME.\nWorks on other WMs too."
     gotoHell ${ABORT}
 fi
 
 
-echo "4TEST:$*">&2
 _action=${1:-CREATE};shift
 _target=${1:-CONSOLE};shift
 _scope=${1:-ALL};shift
@@ -389,17 +398,19 @@ _scope=${1:-ALL};shift
 function guiCheckCacheDB () {
     n=$(ctys-vhost -o index |wc -l)
     if [ "$n" == 0 ];then
-	txt="Missing cacheDB, requires the default DB.\n" 
-	txt="${txt}Use 'ctys-vdbgen' for creation.\n" 
+	txt="Missing cacheDB:\n\n" 
+	txt="The starter requires a present database with actually available machines." 
+	txt="${txt} Use 'ctys-vdbgen' for creation.\n" 
 	txt="${txt}\n" 
-	txt="${txt}Refer to manuals for additonal information by typing one of:\n" 
+	txt="${txt}Refer to manuals for additonal information by typing at the commandline one of:\n" 
 	txt="${txt}\n" 
 	txt="${txt}'ctys-vdbgen -H'\n" 
 	txt="${txt}'ctys-vdbgen -H html'\n" 
 	txt="${txt}'ctys-vdbgen -H man'\n" 
 	txt="${txt}'ctys-vdbgen -H pdf'\n" 
-	zenity --error \
-	    --text="$txt" 
+	txt="${txt}\n" 
+	txt="${txt}'ctys -H html=configuration-Gnome'\n" 
+	guiERR 1 "$txt" 
 	exit 1
     else
 	return 0;
@@ -408,7 +419,7 @@ function guiCheckCacheDB () {
 
 function guiGetConfirm () {
     if zenity --entry \
-	--width=600 \
+	--width=700 \
 	--title="ctys - Selection " \
 	--text="Execute or modify:" \
 	--entry-text "$1"
@@ -537,20 +548,21 @@ function guiListAction () {
 	    ;;
 	LIST)
 	    guiCheckCacheDB
-	    x=$(guiGetALL)
+	    x=$(guiGetLIST ALL)
 	    if [ $? -eq 0 ];then
 		echo $x
 	    fi
 	    exit 
 	    ;;
 	*)
-	    zenity --error \
-		--text="Unknown choice:$1"
+	    guiERR 1 "Unknown choice:$1"
 	    ;;
     esac
 }
 
 
+
+guiCHECKEXIT
 guiListAction
 
 

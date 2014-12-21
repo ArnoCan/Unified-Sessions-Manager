@@ -282,3 +282,21 @@ EXECSHELLWRAPPERNOPTY="${CLISHELL} -c "
 [ -n "$CTYS_TERMINAL" -a -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT="$CTYS_TERMINAL -e $CTYS_VIM"
 #
 [ -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nautilus /usr/bin`
+
+
+
+#
+#ctys-menu editor
+#
+#Emacs
+[ -z "$CTYS_MENUEDIT" ]&&CTYS_MENUEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+#
+[ -z "$CTYS_MENUEDIT" ]&&CTYS_MENUEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT konqueror /usr/bin`
+#
+#vi
+[ -z "$CTYS_MENUEDIT" ]&&CTYS_MENUEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gvim /usr/bin`
+[ -z "$CTYS_TERMINAL" ]&&CTYS_TERMINAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_MENUEDIT" ]&&CTYS_VIM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vim /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -n "$CTYS_VIM" -a -z "$CTYS_MENUEDIT" ]&&CTYS_MENUEDIT="$CTYS_TERMINAL -e $CTYS_VIM"
+#
+[ -z "$CTYS_MENUEDIT" ]&&CTYS_MENUEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nautilus /usr/bin`
