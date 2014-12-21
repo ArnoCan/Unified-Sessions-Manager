@@ -1,0 +1,45 @@
+NOW
+  TARGET_OS      = Linux: CentOS/RHEL(5+), SuSE-Professional 9.3, Ubuntu, OpenSuSE, FreeBSD, Solaris
+  TARGET_VM      = KVM, QEMU, VMware(WS6<Native+VNC>+Server+Player), Xen
+  TARGET_WM      = fvwm, fxce, Gnome
+
+  NAMESERVICE    = Integrated Multi-Stack-Addressing by CONF-File, PATH, TCP/IP, MAC, UUID, LABEL
+                   NFS-Based load distribution by extendable COST calculations
+                   Tree-Based "Attribute-Value-Assertion" for VM-Conf searches, ENUMERATION
+                   Enhanced awk-regexpr for addresses
+                   Performance-Enhancements and Configurable Scopes: FileDB(fdb) + CacheDB(cdb)
+                   Preconfigured Access-Groups
+
+  SECURITY       = OpenSSH-Dynamic-Forwarding+Tunnels, EncryptedConnectionsOnly
+                   Nested-Encryption, OpenSSH-Static/Dynamic-VCircuits
+                   PKI-CAExt ctys certificate generator/distributor
+                   IPSec
+
+  UI_CLI           bash, Remote-Consoles
+  UI_GUI           X11-XClients/XServer/Desktops/Workspaces-bash-NameBinding
+                   DISPLAY and CONNECTION-Forwarding
+                   Desktop/Workspace-Management
+                   Display-Arrays/Xinerama
+                   geometryExt-Logical Screens, Windows and Workspace/Desktop Addressing
+
+NEXT/SOON
+  TARGET_OS      = NetBSD, UnbreakableLinux
+                   (CPU-QEMU:ARM+PPC)
+                   (uCLinux(QEMU:ARM+PPC), eCOS(QEMU:ARM+PPC))
+  TARGET_VM      = (OpenVZ), VirtualBox
+  TARGET_WM      = KDE
+
+  NAMESERVICE    = LDAP-DB/Access+Distribution, Nested-VM-Stack-Addressing
+
+  SECURITY       = Nested-Encryption, OpenSSH-Static/Dynamic-VCircuits
+                   PKI-CAExt ctys certificate generator/distributor
+                   IPSec
+
+  UI_CLI           Remote RS232-Console-Server
+                   Perl
+  UI_GUI           Sub-GRID-Management, Encrypted-Remote-DISPLAY-Redirection
+                   Nagios-Integration
+
+LICENCE          = GPL3
+
+

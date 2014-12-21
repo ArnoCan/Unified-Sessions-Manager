@@ -1,0 +1,31 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=administrator@w2k8
+Comment=administrator@w2k8
+Name[en_CA]=administrator@w2k8
+Name[en_GB]=administrator@w2k8
+Name[de_DE]=administrator@w2k8
+Exec=_MYHOME_/bin/ctys -t rdp -a create=l:w2k8 administrator@w2k8
+Icon=ctys-rdp
+Terminal=true
+Categories=X-USM;X-PMs;

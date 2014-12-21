@@ -1,0 +1,11 @@
+#  -*- mode: conf; -*-
+#
+[Desktop Entry]
+Name=Desktops
+Name[de]=Desktops
+Name[en]=Desktops
+Comment=Desktops
+Comment[de]=Desktops
+Type=Directory
+Icon=ctys-multiple-desktops
+Encoding=UTF-8

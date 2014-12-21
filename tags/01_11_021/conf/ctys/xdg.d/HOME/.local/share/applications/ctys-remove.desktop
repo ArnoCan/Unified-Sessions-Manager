@@ -1,0 +1,33 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Version=1.0
+Encoding=UTF-8
+Name=Remove menus
+Type=Application
+Comment=Remove MENUS
+Comment[en]=Remove MENUS
+Comment[de]=Entfernen der Menues
+Name[en]=Remove MENUS
+Name[de]=Enfernen MENUES
+Exec=_MYHOME_/bin/ctys-xdp.sh --menu-cancel --menu-gui
+Icon=edit-delete
+Terminal=false
+Categories=X-USM;
+GenericName[de]=

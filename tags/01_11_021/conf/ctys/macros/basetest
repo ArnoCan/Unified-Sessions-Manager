@@ -1,0 +1,198 @@
+#!/bin/bash #4syncolors
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a09
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+##########################################################
+#
+#Basic test macros.
+#
+#
+#
+#ContainingMachine(1);
+#SessionType(2);
+#Label(3);
+#ID(4);
+#UUID(5);
+#MAC(6);
+#TCP(7);
+#DISPLAY(8);
+#ClientAccessPort(9);
+#VNCbasePort(10);
+F_PM        = 1_PM_15
+F_STYPE     = 2_stype_10
+F_LABEL     = 3_label_10
+F_ID        = 4_ID_25_L
+F_UUID      = 5_UUID_32
+F_MAC       = 6_MAC_18
+F_TCP       = 7_TCP_15
+F_DISP      = 8_DISP_4
+F_CPORT     = 9_cport_5_L
+F_SPORT     = 10_sport_5_L
+F_VNCBASE   = 11_vncbase_7
+
+##########################################################
+#
+#Specific additional MACROS for LIST
+#PID(11);
+#UID(12);
+#GUID(13);
+#C/S-Type(14)
+F_PID       = 11_pid_5
+F_UID       = 12_uid_8
+F_GUID      = 13_gid_8
+F_CST       = 14_cst_1
+
+
+##########################################################
+#
+#Specific additional MACROS for ENUMERATE
+#
+#VNCbaseport(11);
+#Distro(12);
+#Distrorel(13);
+#OS(14);
+#OS(15);
+#VersNo(16);
+#SerialNo(17);
+#Category(18)
+#VMstate(19)
+#hyperrel(20)
+#StackCap(21)
+#StackReq(22)
+#rsrv(23)
+#rsrv(24)
+#rsrv(25)
+#rsrv(26)
+#rsrv(27)
+#rsrv(28)
+#rsrv(29)
+#rsrv(30)
+#rsrv(31)
+#rsrv(32)
+#rsrv(33)
+#rsrv(34)
+#rsrv(35)
+#rsrv(36)
+#rsrv(37)
+#Arch(38)
+#Platform(39)
+#VRAM(40)
+#VCPU(41)
+#ContextStg(42)
+#UserStrg(43)
+
+F_DIST      = 12_distro_12
+F_DISTREL   = 13_distrorel_15
+F_OS        = 14_os_10
+F_OSREL     = 15_osrel_10
+F_VERNO     = 16_verno_9
+F_SERNO     = 17_serno_14
+F_CATEGORY  = 18_category_8
+
+F_VMSTATE   = 19_VMstate_9
+F_HYPERREL  = 20_hyperrel_15
+F_STACKCAP  = 21_StackCap_15
+F_STACKREQ  = 22_StackReq_15
+F_HWCAP     = 23_HWcap_60_B
+F_HWREQ     = 24_HWreq_25
+F_EXECLOC   = 25_execloc_15
+F_RELOCCAP  = 26_reloccap_8
+F_SSHPORT   = 27_SSH_5
+F_RSRV6     = 28_r_1
+F_RSRV7     = 29_r_1
+F_RSRV8     = 30_r_1
+F_RSRV9     = 31_r_1
+F_RSRV10    = 32_r_1
+F_IFNAME    = 33_if_7
+F_CTYSREL   = 34_CTYSrel_10
+F_NETMASK   = 35_netmask_15
+F_GATEWAY   = 36_Gateway_15
+F_RELAY     = 37_Relay_15
+F_ARCH      = 38_Arch_6
+F_PLATFORM  = 39_Platform_10
+F_VRAM      = 40_VRAM_5
+F_VCPU      = 41_VCPU_4
+F_CSTRG     = 42_ContextStg_20
+F_USTRG     = 43_UserStrg_20
+
+
+##########################################################
+#
+#DEFAULT for ctys-vhost.sh, when no "-o" option is selected.
+#Change this carefully, otherwise ctys-vhost.sh might come 
+#into trouble.
+#
+TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_TCP
+
+
+TAB_TST000=tab_gen:macro:F_LABEL%%macro:F_STYPE
+test000=-a enumerate=b:ctys,sort,macro:TAB_TST000%basetest
+
+
+TAB_TST001=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_VMSTATE%%macro:F_OS%%macro:F_OSREL%%macro:F_ARCH%%macro:F_VCPU%%macro:F_VRAM
+
+TAB_TST002=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_VMSTATE%%macro:F_OS%%macro:F_OSREL%%macro:F_DIST%%macro:F_DISTREL
+
+
+TAB_TST003=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_VMSTATE%%macro:F_OS%%macro:F_OSREL%%macro:F_STACKCAP%%macro:F_STACKREQ
+
+TAB_TST004=tab_gen:macro:F_LABEL%%macro:F_PM%%macro:F_TCP%%macro:F_MAC
+
+TAB_TST005=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_CST%%macro:F_DISP%%macro:F_CPORT%%macro:F_SPORT%%macro:F_VNCBASE%%macro:F_PM%%macro:F_TCP
+
+TAB_TST006=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_CSTRG
+
+TAB_TST007=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_USTRG
+
+TAB_TST008=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_UUID
+
+TAB_TST009=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_HYPERREL%%macro:F_STACKCAP%%macro:F_STACKREQ
+
+TAB_TST010=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_HYPERREL%%macro:F_HWCAP%%macro:F_HWREQ
+
+TAB_TST011=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_EXECLOC%%macro:F_RELOCCAP%%macro:F_HWCAP
+
+
+TAB_TST012=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_PM%%macro:F_IFNAME%%macro:F_MAC%%macro:F_TCP%%macro:F_NETMASK%%macro:F_RELAY%%macro:F_GATEWAY%%macro:F_SSHPORT
+
+TAB_TST013=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_PM%%macro:F_IFNAME%%macro:F_MAC%%macro:F_TCP%%macro:F_NETMASK%%macro:F_RELAY%%macro:F_GATEWAY%%27_SSH_5_B
+
+TAB_TST014=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_PM%%macro:F_ARCH%%macro:F_PLATFORM%%macro:F_VCPU%%macro:F_VRAM
+
+
+TAB_TST015=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_VERNO%%macro:F_SERNO%%macro:F_HYPERREL%%macro:F_DIST%%macro:F_DISTREL%macro:F_OS%%macro:F_OSREL
+
+
+
+#####
+#just for test
+ison=on
+TEST_ONLY1=tab_gen:macro:F_LABEL%%macro:F_STYPE%%1_PM_15%%macro:F_TCP%%macro:F_MAC%%macro:F_UUID%%macro:F_ID -b macro:ison -d 99

@@ -1,0 +1,109 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_10_013
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+function set-OpenBSD () {
+    DEFAULTINSTMODE=PXE;
+    case ${DISTREL} in
+	4.6)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-OpenBSD-4x-XEN;;
+		QEMU) set-OpenBSD-4x-QEMU;;
+	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+    esac
+}
+
+
+
+
+#*******************************************************************
+#
+#DIST: OpenBSD-4.6
+#
+function set-OpenBSD-4x-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/OpenBSD/4.6/raw/amd64/install46/4.6/amd64/
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/OpenBSD/4.6/raw/amd64/install46.iso
+    ACCELERATOR=${ACCELERATOR:-HVM}
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    printNotSupported "OpenBSD on XEN-PARA"
+	    ;;
+	HVM)
+	    _MATCHED=1;
+#	    DEFAULTINSTMODE=PXE
+
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-OpenBSD-4x-QEMU () {
+    local R=${DISTREL}
+    DEFAULT_BOOTLOADER=;
+    ACCELERATOR=${ACCELERATOR:-KVM}
+
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64}
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64.iso
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	QEMU)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	KVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+
+}
+
+
