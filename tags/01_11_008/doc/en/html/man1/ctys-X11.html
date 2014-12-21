@@ -1,0 +1,265 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#efefef ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-X11</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-X11</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-X11 - X11 Interface</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>ctys-X11</B> 
+</P>
+<P>
+<PRE>
+
+   ctys -t X11 -a action[=&lt;suboptions&gt;] ...
+   ctys -T X11 -a action[=&lt;suboptions&gt;] ...
+   ctys -T ALL -a action[=&lt;suboptions&gt;] ...
+
+</PRE>
+</P>
+<H1>DESCRIPTION</H1>
+<P>
+The X11-plugin starts a remote shell within a terminal
+emulation by default.
+Alternatively any X11 command with an arbitrary shell could be
+executed.
+When executing a command, the functionality is almost equivalent to
+the CLI plugin.
+The primary application of X11 is to utilize the default behaviour of
+starting an Xsession within it's own terminal emulation on the desktop.
+Therefore the pre-configured choices are: XTERM, GTERM,
+and EMACS, which is started in "shell-mode".
+</P>
+<P>
+The X11 plugin opens an X terminal window with an interactive bash.
+Various consoles could be used, which are actually X-terminals
+such as Xterm ore gnome-terminal.
+</P>
+<P>
+Due to the different usage of hyphens for the variuos graphical user interfaces
+the suboptions 'SH' and 'DH' - 'single hyphen' and 'double hyphen' - were introduced.
+The "SH" suboption is here mandatory for the usage of Xterm, because the Xterm
+emulation requires a single-hyphen for it's options, default is "DH".
+</P>
+<P>
+The default behaviour concerning the terminal emulation is to scan for
+a gnome-terminal first and prefer it if found, else an xterm emulation
+will be started by default.
+</P>
+<H1>OPTIONS</H1>
+<DL>
+<DT><B>-a action[=&lt;suboptions&gt;]</B></DT><DD>
+</DL>
+
+<DL>
+<DT><B>CANCEL</B></DT><DD>
+Not applicable.
+<P></P>
+<DT><B>CREATE</B></DT><DD>
+<PRE>
+  
+  CREATE=&lt;machine-address&gt;[,]
+    [
+     (CONSOLE:XTERM|GTERM|EMACS|EMACSA)
+     |
+     (CMD:&lt;cmd&gt;)
+    ][,]
+    [(CALLOPTS|C):&lt;callopts&gt;][,]
+    [CD:&lt;working-directory&gt;][,]
+    [(XOPTS|X):&lt;xopts&gt;][,]
+    [(SHELL|S):&lt;shell&gt;][,]
+    [(DH|SH)][,]
+    [(TITLEKEY:&lt;key-name-label&gt;|NOTITLE)]
+  
+</PRE>
+</DL>
+
+<UL>
+<LI><B>&lt;machine-address&gt;</B>
+The LABEL suboption is here the only supported and
+mandatory part.
+<P></P>
+ <UL>
+ <LI><B>&lt;callopts&gt;</B>
+Refer to common options parts description.
+ </UL>
+</UL>
+
+ <UL>
+ <LI><B>CD:&lt;working-directory&gt;</B>
+Change current working directory for the started command.
+This provides for example the preconfiguration of specific work-sets,
+where each terminal could be opened for a specific directory.
+ <P></P>
+ <LI><B>CMD:&lt;cmd&gt;</B>
+Refer to common options parts description.
+The CMD could be provided alternatively to a fixed CONSOLE.
+ <P></P>
+ <LI><B>CONSOLE:XTERM|GTERM|EMACS|EMACSA</B>
+A fixed type of a CONSOLE, folowing types are supported.
+ <P></P>
+ <LI><B>CONSOLE:GTERM</B>
+Starts the "gnome-terminal".
+ <LI><B>CONSOLE:XTERM</B>
+Starts the Xterm.
+ <LI><B>CONSOLE:EMACS</B>
+Starts an emacs and opens a "shell" buffer.
+ <LI><B>CONSOLE:EMACSA</B>
+Starts an emacs and opens an "ansi-term" buffer.
+ <P></P>
+ <LI><B>(DH|SH)</B>
+Sets a double-hyphen or a single-hyphen for call
+arguments. Where the single hyphen e.g. is required for
+old style X11 utility options, the double-hyphen for
+new options style of Gnome.
+ <P></P>
+ <LI><B>NOTITLE</B>
+Suppresses the generation of title either from LABEL, or from default.
+ <P></P>
+Be aware, that dynamic sessions like X11 without an LABEL visible by
+ps, are not - or just limited - recognized by LIST action. 
+Thus the only reliable support for sessions started with this flag is the
+start itself.
+ <P></P>
+ <LI><B>SHELL|S:&lt;shell&gt;</B>
+Refer to common options parts description.
+ <P></P>
+ <LI><B>TITLEKEY:&lt;title-name-key&gt;</B>
+Alters the options keyword to be used to set the title of an Xwindow, which is
+set by default to "title".
+Some older applications, like Xclock support different, e.g. "name" as
+options keyword only.
+Due to the crucial role of the window title, which is the LABEL, this
+approach should be prefered when "title" is not supported.
+Do use NOTITLE only if definetly unavoidable.
+ <P></P>
+ <LI><B>&lt;xopts&gt;</B>
+Refer to common options parts description.
+ </UL>
+
+<DL>
+<DT>_</DT><DD>
+<P></P>
+A specific exeception to the sysnchronous character of an
+CLI shell occurs, when multiple execution instaces are
+addressed by the arguments of current call. When the "-b
+off" option for background a.k.a asynchronous operations
+is selected, the standard synchronous foreground operation
+works quite well. The list of arguments is just executed
+sequentially as expected.
+<P></P>
+In current implementation the user is responsible for
+handling the appropriate values, which are assigned by
+default. The enforcement of resetting user defined values
+could be somewhat tricky due to permutation of bulk
+arguments, thus is shifted because of priorities.
+Resulting of this, the actual environment is a superposition of all
+previous executed target options with the global options.
+</DL>
+
+<DL>
+<DT><B>ENUMERATE</B></DT><DD>
+Not applicable to CLI.
+<P></P>
+<DT><B>LIST</B></DT><DD>
+Almost the same output as common standard, with following
+changes in semantics.
+<P></P>
+[id]
+The PID of the first local call below of SSH
+termination point, which is the locally executed
+relay-instance of ctys and is the parent shell of
+actual running batch/interactive shell.
+Thus the topmost ctys-call.
+<P></P>
+[pid]
+PID of current ctys sessions top.
+The following values are not applicable:
+uuid, mac, dsp, cp, sp
+</DL>
+
+<DL>
+<DT><B>-L &lt;location&gt;</B></DT><DD>
+Even though a DISPLAY will actually not be used, this parameter
+also adopts the behavior of the execution to a providing
+environment, which is frequently for ctys true.
+So these are the only location parameters to be applied.
+</DL>
+
+<H1>SEE ALSO</H1>
+<P>
+<I>ctys(1)</I>, <I>ctys-uc-X11(7)</I>, <I>ctys-plugins(1)</I>, <I>bash(1)</I>, <I>xterm(1)</I>
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<img src="../../images/60px-Official-gnu.png" />  
+<br />
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-X11.t2t -o /tmpn/0/ctys/bld/01.11.008/doc-tmp/BASE/en/html/man1/ctys-X11.html -->
+</BODY></HTML>

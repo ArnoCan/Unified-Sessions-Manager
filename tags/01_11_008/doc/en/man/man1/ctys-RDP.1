@@ -1,0 +1,197 @@
+.TH "ctys-RDP" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-RDP - Remote Desktop Protocol Interface\fR
+
+.SH SYNTAX
+.P
+\fBctys-RDP\fR 
+
+
+   ctys -t RDP -a action[=<suboptions>] ...
+   ctys -T RDP -a action[=<suboptions>] ...
+   ctys -T ALL -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+\fBATTENTION:\fR
+This plugin is actually in \fBalpha\-release\fR, thus might have some drawbacks.
+The interface and integration of tools is going to be extended, currently
+\fB rdesktop (http://www.rdesktop.org)\fR is the only supported client.
+
+.P
+This plugin manages within the UnifiedSessionManger RDP sessions particularly to VirtualBox(TM)
+and Microsof\-Windows(TM) based machines.
+Due to the intention of the RDP protocol this plugin has only a client component and
+utilizes any server providing access for RDP based client attachement.
+The RDP plugin encapsulates and handles the complete interaction with the local and remote
+components provided by means of the client \fB rdesktop (http://www.rdesktop.org)\fR.
+
+.P
+SSH based connections are the only one supported, thus the only actual connections allowed
+are to 'localhost'.
+In case of servers not offering the local\-only attachement the user should setup additional
+security measures e.g. by activating packetfilter rules.
+The 'unmentioned\-exception' within the UnifiedSessionsManager is the attachement of consoles
+to NON\-Unix boxes.
+In that case a network connection is required for the current version(might change soon) and 
+should be used in secure segments only,
+e.g. by usage of the \fBctys\-beamer\fR to inteconnect to a secure gateway by an SSH tunnel
+and bridging the last hop by native RDP.
+
+.P
+The sessions are generally categorized into two basic configurations, the coallocation of the 
+client with the targeted server \- 
+ \fBDISPLAYFORWARDING\fR \-
+and the distributed client and server
+location on different hosts \- 
+ \fBCONNECTIONFORWARDING\fR
+\&.
+In the latter case an intermediary SSH tunnel is created, which handles the port\-forwarding and an has
+to do a remapping due to ambiguity within the network scope.
+Thus the local port number and the remote portnumber on the server may frequently differ.
+The required option to control the forwarding is \fB'\-L'\fR.
+
+.SH OPTIONS
+.TP
+\fB\-a action[=<suboptions>]\fR
+
+.TP
+\fBCANCEL\fR
+.nf
+  
+  CANCEL=(<machine-address>)\e{1,n\e}
+    |ALL|CLIENT|SERVER|BOTH
+  
+.fi
+
+
+.TP
+
+\fB<machine\\-address>\fR
+For RDP the following parts of a <machine\-address> are applicable:
+ID|I, LABEL|L
+
+When the RDP client is used in shared\-mode,
+the address applies to all sharing clients are handled
+as one logical unit and CANCEL is applied to all at once.
+
+The address could be supported with multiple instances.
+
+.TP
+
+\fBALL|BOTH|CLIENT|SERVER\fR
+
+All enumerates are handled identical due to a client only
+applicability.
+
+.TP
+\fBCREATE\fR
+.nf
+  CREATE=[<machine-address>]
+     [RDPPORT:<portnumber>]
+     [(INSECURE):<ext-host>]
+     [CONNECT|RECONNECT]
+     [CONSOLE:<rdesktop>]
+     [(CALLOPTS|C):<callopts>]
+     [(XOPTS|X):<xopts>]
+.fi
+
+
+.RS
+.IP \(bu 3
+\fB<machine\-address>\fR
+For RDP the following parts of a <machine\-address> are applicable:
+LABEL|L and port, here RDPPORT
+
+When the RDP server is used in shared\-mode, the
+address applies to all sharing clients.
+The LABEL suboption is here mandatory.
+
+.IP \(bu 3
+\fBCONNECT\fR
+Almost the same as REUSE, but no new server will be
+started if missing.
+
+.IP \(bu 3
+\fBCONSOLE\fR
+Current version supports \fBrdesktop\fR.
+
+.IP \(bu 3
+\fBINSECURE <ext\-host>\fR
+The external(!=localhost) host to be accessed by remotely attached RDP
+client.
+This is foreseen for blackboxes and access to MS\-Windows(TM) based 
+hosts.
+It should not be forced for UNIX/Linux based boxes.
+
+.IP \(bu 3
+\fBRECONNECT\fR
+Similiar to REUSE, with the difference, that any
+previous active client will be killed before attaching
+ONE new client. Therefore in shared mode, when multiple
+clients could simultaneously share one server, all
+sharing clients are handled as one logical unit and will
+be thus killed together.
+Specific exchange of a single client is not supported.
+
+A special may be recognized, when a local client of a CONNECTIONFORWARDING
+is going to be reconnected, the replacement has to be of the same forwarding type.
+This applies in general, though one machine is accessed for the new client only.
+.RE
+
+.TP
+\fBENUMERATE\fR
+Not applicable.
+
+.TP
+\fBLIST\fR
+The same output as common standard.
+
+.SH SEE ALSO
+.P
+\fIctys\-uc\-RDP(7)\fR, \fIctys(1)\fR, \fIctys\-plugins(1)\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-RDP.t2t -o /tmpn/0/ctys/bld/01.11.008/doc-tmp/BASE/en/man/man1/ctys-RDP.1
+

@@ -1,0 +1,252 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#efefef ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-help-on</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-help-on</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-help-on - Common Online-Help Interface</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>&lt;any-ctys-call&gt;</B> 
+<PRE>
+
+-H &lt;help-option&gt;
+
+   &lt;help-option&gt;:=
+         (man|html|pdf)][=((1-9)|&lt;help-on-item&gt;[,&lt;help-on-item-list&gt;])
+       | (path|list|listall)
+       | funcList=&lt;any-function&gt;][@&lt;module-name&gt;[@...]][,&lt;any-function&gt;...]
+       | funcListMod=&lt;any-function&gt;][@&lt;module-name&gt;[@...]][,&lt;any-function&gt;...]
+       | funcHead=&lt;any-function&gt;][@&lt;module-name&gt;[@...]][,&lt;any-function&gt;...]
+     )
+
+
+</PRE>
+</P>
+<P>
+The <B>-H</B> option is the common generic option for all tools requesting extended online help.
+</P>
+<P>
+The <B>-H</B> option enables the extended help based on various system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+</P>
+<P>
+The &lt;help-option&gt; represents single entries as well as a list of entries,
+which could be utilized e.g. with the tab-view of firefox.
+</P>
+<P>
+.
+</P>
+<H1>OPTIONS</H1>
+<P>
+The following suboptions and parameters could be applied:
+</P>
+<DL>
+<DT><B>-H path</B></DT><DD>
+<P></P>
+Displays current document and man path.
+<P></P>
+<DT><B>-H list</B></DT><DD>
+<P></P>
+Lists available online documents and manpages.
+<P></P>
+<DT><B>-H listall</B></DT><DD>
+<P></P>
+Lists available online documents and manpages including the documents
+available by MANPATH.
+<P></P>
+<DT><B>-H (man|html|pdf)[=([1-9]|[&lt;help-on-item-list&gt;])</B></DT><DD>
+<P></P>
+Displays the requested information with one of the formats
+<B>man</B>, <B>pdf</B>, or <B>html</B>.
+The following viewers are preconfigured as shell variables within the 
+configuration files and can be adapted as required:
+<P></P>
+<PRE>
+  CTYS_MANVIEWER=man
+  CTYS_PDFVIEWER=(acroread else kpdf else gpdf)
+  CTYS_HTMLVIEWER=(konqueror else firefox)
+</PRE>
+<P></P>
+Default is <B>manpage</B> for the current process with <B>man 1 ...</B>.
+Additional constraints could be applied such as another man-section
+or a filename, which could be either literally matching or
+a string to be expanded.
+In case of expansion the first match is taken.
+<P></P>
+<DT><B>-H funcList[=[&lt;any-function&gt;][@&lt;module-name&gt;[@...]]]</B></DT><DD>
+<P></P>
+List of function names, sorted by function names. In
+addition the file names and line numbers are displayed too.
+<P></P>
+<DT><B>-H funcListMod[=[&lt;any-function&gt;][@&lt;module-name&gt;[@...]]]</B></DT><DD>
+<P></P>
+List of function names, sorted by file names. In addition
+the file names and line numbers are displayed too.
+<P></P>
+<DT><B>-H funcHead[=[&lt;any-function&gt;][@&lt;module-name&gt;[@...]]]</B></DT><DD>
+<P></P>
+Displays the contents of function headers, sorted by file names.
+The following constraints could be applied:
+<DT></DT><DD>
+&lt;any-function&gt;:
+    If given &lt;any-function&gt; than only this is displayed.
+<DT></DT><DD>
+&lt;module-name&gt;:
+    If given &lt;module-name&gt;, than the functions contained
+    within this module only are displayed.
+</DL>
+
+<P>
+.
+</P>
+<H1>EXAMPLES</H1>
+<UL>
+<LI><B>-H html=base</B>
+<P></P>
+Displays a summary of links for all documents contained in the <B>BASE package</B>.
+<P></P>
+<LI><B>-H html=doc</B>
+<P></P>
+Displays a summary of links for all documents contained in the <B>DOC package</B>.
+<P></P>
+<LI><B>-H list</B>
+<P></P>
+Lists available online documents and manpages.
+<P></P>
+<LI><B>-H list</B>
+<P></P>
+Lists available online documents and manpages.
+<P></P>
+<LI><B>-H ctys</B>
+<P></P>
+Displays the <B>manpage</B> for ctys with <B>man</B>.
+<P></P>
+<LI><B>-H man=ctys</B>
+<P></P>
+Displays the <B>manpage</B> for ctys with <B>man</B>.
+<P></P>
+<LI><B>-H html=ctys</B>
+<P></P>
+Displays the <B>manpage</B> for ctys with CTYS_HTMLVIEWER,
+by default <B>firefox</B> or <B>konqueror</B>.
+<P></P>
+<LI><B>-H pdf=ctys</B>
+<P></P>
+Displays the <B>manpage</B> for ctys with CTYS_PDFVIEWER,
+by default <B>kpdf</B>, <B>gpdf</B>, or <B>acroread</B>.
+<P></P>
+<LI><B>-H pdf=howto</B>
+<P></P>
+Displays the <B>ctys-howto-online.pdf</B>, which is
+displayed in alphabetical order before <B>ctys-howto-print.pdf</B>.
+</UL>
+
+<UL>
+<LI><B>-H pdf=howto-print</B>
+<P></P>
+Displays the <B>ctys-howto-print.pdf</B>, which is
+the first appropriate match.
+</UL>
+
+<UL>
+<LI><B>-H pdf=command-ref</B>
+<P></P>
+Displays the <B>ctys-command-reference.pdf</B>.
+</UL>
+
+<UL>
+<LI><B>-H html=CLI,X11,VNC,VMW</B>
+<P></P>
+Displays the <B>manpage</B> for ctys-CLI, ctys-X11, ctys-VNC and
+ctys-VNM with CTYS_HTMLVIEWER,
+by default <B>firefox</B> or <B>konqueror</B>.
+For incomplete names a search with <B>find</B> is utilized for name expansion.
+<P></P>
+<LI><B>-H html=ctys-extractARPlst,extractMAClst</B>
+<P></P>
+Displays the <B>manpage</B> for ctys-extractARPlst and ctys-extractARPlst
+<P></P>
+with CTYS_HTMLVIEWER, by default <B>firefox</B> or <B>konqueror</B>.
+For incomplete names a search with <B>find</B> is utilized for name expansion.
+</UL>
+
+<H1>SEE ALSO</H1>
+<DL>
+<DT><B>ctys manuals</B></DT><DD>
+<I>ctys-command-reference-online.pdf</I>, <I>ctys-command-reference-print.pdf</I>
+</DL>
+
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<img src="../../images/60px-Official-gnu.png" />  
+<br />
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-help-on.t2t -o /tmpn/0/ctys/bld/01.11.008/doc-tmp/BASE/en/html/man7/ctys-help-on.html -->
+</BODY></HTML>

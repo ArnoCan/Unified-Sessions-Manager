@@ -1,0 +1,1636 @@
+.TH "ctys-vhost" 1 "June, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-vhost -  core address resolution interface\fR
+
+.SH SYNTAX
+.P
+\fBctys-vhost\fR 
+
+
+   [-c <spent cost on execution environment>
+      =MINCNT|MAXCNT|CNT
+      ]
+   [-C <DB sources>
+      =(
+        OFF
+        |CLEARTMP
+        |CLEARALL
+        |GROUPS
+        |KEEPALL
+        |LIST
+        |LISTCACHE
+        |LISTARGETS
+        |LISTGROUPS
+        |MEMBERSDB
+        |MACMAPONLY
+        |MACMAP
+        |REBUILDCACHE
+      )
+   [-d <debug-level>]
+   [-h]
+   [-H <help-options>]
+   [-i <input-list>=[CTYSADDRESS|CTYS]]
+   [-I <0-9>]
+   [-l <USER>]
+   [-M <result-set-output-reduction>
+      =(FIRST|LAST|ALL|COMPLEMENT|SORT|USORT|UNIQUE)
+      ]
+   [-o <output-list>
+      =(
+         (
+           ( 
+             [ARCH][,]
+             [CATEGORY|CAT][,]
+             [CONTEXTSTRING|CSTRG][,]
+             [CPORT|VNCPORT][,]
+             [CTYSADDRESS|CTYS][,]
+             [CTYSRELEASE][,]
+             [DIST][,]
+             [DISTREL][,]
+             [EXECLOCATION][,]
+             [GATEWAY][,]
+             [HWCAP][,]
+             [HWREQ][,]
+             [HYPERREL|HYREL][,]
+             [IDS|ID|I][,]
+             [IFNAME][,]
+             [LABEL|L][,]
+             [MAC|M][,]
+             [NETMASK][,]
+             [NETNAME][,]
+             [TYPE|STYPE|ST][,]
+             [OS|O][,]
+             [OSREL][,]
+             [PLATFORM|PFORM][,]
+             [PM|HOST|H][,]
+             [PNAME|P][,]
+             [RELAY][,]
+             [RELOCCAP][,]
+             [SERIALNUMBER|SERNO][,]
+             [SERVERACCESS|SPORT|S][,]
+             [SSHPORT][,]
+             [STACKCAP|SCAP][,]
+             [STACKREQ|SREQ][,]
+             [TCP|T][,]
+             [USERSTRING|USTRG][,]
+             [UUID|U][,]
+             [VCPU][,]
+             [VERSION|VERNO|VER][,]
+             [VMSTATE|VSTAT][,]
+             [VNCBASE][,]
+             [VNCDISPLAY|DISP][,]
+             [VRAM][,]
+           )
+           [TITLE|TITLEIDX|TITLEIDXASC][,]
+           [MACHINE|MAXKEY][,]
+         )
+         | TAB_GEN|TAB[:<tab-args>]
+         | REC_GEN|REC[:<tab-args>]
+         | SPEC_GEN|SPEC[:<tab-args>]
+         | XML_GEN|XML[:<tab-args>]
+       )
+      [IP|DNS|D][,]
+      [,SORT[:ALL|A|UNIQUE|U|REVERSE|R|EACH|([0-9][0-9][0-9]|[0-9][0-9]|[0-9])]
+   ]
+   [-p <db-directory-path-list>]
+   [-r]
+   [-R <runtime states>
+      =[MARK|(REVERSE|R|-),]PING|SSH[,PM|VM]
+      ]
+   [-s]
+   [-S <BasicDataManagementSupport>
+     =(
+        CONTENTGROUP
+        |LISTALL
+        |LIST
+        |LISTDB
+        |MEMBERSDB
+        |LISTGROUP
+        |MEMBERSGROUP([2345678])|([678]u)[:<groups-list>]
+      )
+      [-T <type-list>]
+      [-V]
+      [-X]
+      <awk-regexpr>[ <awk-regexpr>[ <...>]]
+
+
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-vhost\fR 
+is the basic address resolution interface for runtime
+execution of commands based on ctys addressing. 
+
+.P
+The similarity of UNIX 'host' function is expanded with several
+features, which take into account the roaming of VMs and thus
+changing their actual execution path within a so called 
+\&'execution stack' assembled by PMs, VMs, and HOSTs.
+Due to technical reasons the locator functionality required for
+building complete fully qualified ctys\-addresses of execution
+stacks, which could be seen as a UNIX 'ping' similarity, is
+included.
+
+.P
+Particularly a basic load\-balancing is included, which is very
+basic of course, but could be extended easily. The current version
+requires at least one of the potential ExecTargets to be active,
+which could be a PM for execution of a VM to perform a command, or a
+VM for execution of a command only, no automatic start of
+deactivated sessions are performed.
+
+.P
+The main task of this tool is supporting a scripting\-IF as a link 
+with an convenient name\-binding scheme between a GuestOS and it's
+containing VM and PM by an open and GuestOS\-Native interface. The
+whole access and security facility of VMs and PMs including 
+HOSTs(e.g. VNC) is handled by encrypted connections only. It is 
+designed and implemented as a seamless SSH\-based authorization and 
+authentication system. The authors environment utilizes Kerberos, 
+LDAP, and SSH with automount for SSO. The ctys\-vhost  supports
+mainly the glue for seamless binding of roaming VMs on a homogeneous
+UNIX platform.
+
+.P
+Due to targeted simplicity and efficiency the address resolution 
+is based on simple unstructured pattern matching by regular 
+expressions onyl whenever possible(which is almost for each call).
+Even though the line\-record is structured by fields
+as given by 
+\&'\-a LIST=MACHINE'
+ and 
+\&'\-a ENUMERATE=MACHINE'
+, the match 
+itself will be performed as a simple regexpr by 
+\&'awk\-match'
+\&. 
+Whereas the output is performed on the level of fields. Multiple
+regexprs are supported and will be iterative applied on the
+intermediary results. The reduction of the output as requested by
+the '\-o' option is performed on the final set of resulting records
+only.
+
+.P
+This fits perfectly, as long as the given IDs are kept unique,
+when ambiguity occurs, the match will be taken as defined by
+\&'\-M' option.
+
+.P
+Ambiguity occurs frequently when using a VM with NFS(or an other
+some more secure network file system) from multiple machines and
+using the nodes as processing\-capacity\-only. Accessing the same
+files and enumerating them for selection of the appropriate
+execution machine could be a mandatory requirement for
+load\-distribution policies. In this case a basic COST option '\-C'
+supports the very basic '\-M' option for some quite usable load
+distribution within execution\-groups.
+
+.P
+In most other cases uniqueness should be given, e.g. the key
+UUID is defined to be unique, but could be tampered e.g. by
+co\-allocated backups. For avoiding of backup\-access the '\-M first'
+option might be helpful.
+
+.P
+Anyhow, the management of up to some hundred VMs might not be a
+challange by the current file\-DB and not really
+performance\-optimized toolset. One of the next versions will
+additionally support LDAP based nameservices, targeting an
+enterprise environment with 'unlimited' and 'volatile' distributed
+services to be managed.
+
+.P
+When a MAC\-IPAddress\-HostName mapping table a.k.a. 'macmap\-DB'
+is present this will be used for open mappings which are not
+configured within the VM configuration files a.k.a. enum\-DB. 
+Particularly any IP or PM/Hostname address for given MAC\-Address
+will be resolved when not present within the enum\-DB.
+
+.P
+The address resolution will be performed by the following steps
+:
+
+.RS
+.IP \(bu 3
+Check the static list of given ExecGroup for possible candidates.
+.IP \(bu 3
+List the active sessions on the given ExecGroup.
+.IP \(bu 3
+Take the appropriate PM/VM by utilising '\-C' and/or '\-M' option.
+.RE
+
+.P
+For additional help refer to online help within  'ctys' to the 
+section 'NAMESERVICE\-BASE'.
+
+.P
+Now some real benefits when using ctys\-vhost as interactive tool 
+instead of using id from scripts:
+
+.RS
+.IP \(bu 3
+Given partial strings, e.g. '192.168.1' lists all machines of 
+that subnet. When the '\-M active' option is choosen, all
+currently active sessions within that subnet are listed.
+
+.IP \(bu 3
+Any string could be used as partial pattern, e.g. parts of
+MAC\-Ids of fragments of UUIDs. The given string will be matched
+against complete record, mostly an awk\-regexpr, thus any part,
+even spanning multiple FIELDS could be used. But currently not
+regexpr, just literal characters are supported.
+
+.IP \(bu 3
+The database founding the mapping information of ctys\-vhost
+could be altered by '\-p' option for handling of multiple sets,
+e.g. for test\-purposes. 
+
+.IP \(bu 3
+The databases enum\-DB and macmap\-DB are populated just with the 
+native information provided by their main sources, dhcpd.conf
+and the config\-files of supported VMs. Therefore not any
+information might be present in each of them, e.g. the
+IP\-Address of the GuestOS might be present within the macmap\-DB,
+but not within the VM\-config. The '\-S' option allows the
+combined usage of multiple sources, e.g. by values 'all',
+\&'macmap', or 'enum'.
+
+.IP \(bu 3
+ctys specific configurations\-extensions as described for the 
+\&'\-a ENUMERATE' option are fully supported. This includes
+particularly the storage of GuestOS information within the
+VM\-config by specific ctys\-Prefixes(#@#) and some helpful
+keywords.
+
+The format of the generated data records is literally the same as the MACHINE output of the ENUMERATE action.
+
+Additionally to the flat\-matching by simple regular expressions some
+additional keywords are defined.
+These are
+
+AND,
+OR,
+NOT,
+E:,and
+F:,
+
+described within the
+section related to the arguments.
+.RE
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-vhost\fR 
+
+.TP
+\fB\-c <spent cost on execution environment>\fR
+Cost as for load distribution when selecting a target.
+Companion options apply to resulting set of equal cost.
+
+<spent cost on execution environment>=(MINCNT|MAXCNT|CNT)
+
+.TP
+
+\fBMINCNT\fR: 
+Gives minimum loaded target, number of given types are simply counted.
+
+.TP
+
+\fBMAXCNT\fR: 
+Gives maximum loaded target, number of given types are simply counted.
+
+.TP
+
+\fBCNT\fR: 
+Lists each target with it's TYPE\-COUNT.
+
+.TP
+\fB\-C <DB sources>\fR
+Limits the generation of the cache DB to the for
+mapping\-resolution to the listed sources. Default is to use
+all. Only available databases will be used, missing are
+silently ignored.
+
+Due to some performance issues when repetitively accessing same
+temporary runtime data, some internal caches are defined. These
+can be controlled, and reused  or cleared by usage of some of
+the following keywords. But additionally some automatic checks
+apply.
+For data from static information, which has to be
+pre\-processed a local cache\-DB is created. This cache\-DB
+will be checked for modification time of it's sources before
+each access and updated when outdated.
+The modification time of the cache files will be checked
+additionally for their age. When these exceeds the value
+defined by CACHECLEARPERIOD, which is by default 3600seconds,
+the caches are forced\-cleared and rebuild silently by next
+call.
+
+The following data sources are utilized:
+
+\fBENUM\fR 
+
+Enumaration results only, as supplied by cached local"enum.fdb".
+
+\fBMACMAP\fR 
+
+DHCP information for MAC resolution, the macmap\-DB
+should be available, but is otherwise simply ignored.
+This will be utilized in conjunction with an enumeation
+result, e.g. ENUM. 
+
+\fBGROUPS\fR
+
+Adds caching of GROUPS for all group files from the
+current CTYS_GROUPS_PATH variable. Therefore each
+group file will be completely expanded by nested
+evaluation and replacement of "#include" statements
+and stored by replacing each resulting entry with it's
+MACHINE format entry from the staticCacheDB.
+
+Each group is cached within an file by it's own,
+thus the access could be performed by just one
+file\-selection for the complete nested resolution of
+it's entities.
+
+.nf
+  <DB sources>=
+    (
+      OFF|
+      CLEARTMP|
+      CLEARALL|
+      GROUPS|
+      KEEPALL|
+      LIST|
+      LISTARGETS|
+      LISTGROUPS|
+      MEMBERSDB|
+      MACMAPONLY|
+      MACMAP|
+      REBUILDCACHE
+    )
+.fi
+
+
+This group of keywords controls the runtime behaviour, which
+has an impact to the overall performance.
+
+.TP
+
+\fBADJUST\fR 
+clears enum.fdb from redundant records of multiple scans.
+This is not neccessarily required because the \fBREBUILDCACHE\fR clears 
+redundant records before importing the current set.
+
+.TP
+
+\fBOFF\fR 
+bypasses the usage of caches.
+
+.TP
+
+\fBMACMAPONLY\fR 
+uses the macmap.fdb only for mapping, this is just
+senseful for mappings between DNS, MAC, and TCP. The
+request will be rejected, when "\-o" option contains
+any other input.
+
+For matching entities within MACMAP this might be the
+fastest approach. It is the only applicable approach,
+when the target is not yet populated in standard DB,
+for example due to pre\-initial conditions.
+
+.TP
+
+\fBMACMAP\fR 
+activates the raw usage of macmap.fdb for DNS, MAC,
+and TCP as preferred source of resolution.
+
+This has two flavours, depending from selected output
+attributes:
+
+.RS
+.IP \(bu 3
+Only one of, or all: TCP|MAC|DNS
+In this case the MACMAP DB will be utilized within
+the "bigger awk", due complete probable
+containment of information thus first a raw access
+to MACMAP will be tried. When no result was found,
+the general script with DNS/Bind access will be
+performed. In standard manner(due to SW
+architecture, ignoring previous trial).
+
+.IP \(bu 3
+Additional output requested:
+In this case particularly the field positions of
+the resulting output can not be handled in a smart
+manner for an independent pre\-filter, though the
+standard execution path is performed.
+
+When the macmap.fdb is properly maintained and
+contains the complete scope of mapping information,
+this enhances the performance, else it could have an
+negative impact, even though it will not be dramatic,
+or for small amounts almost not recognizable.
+
+Another aspect to be aware of is, that the two
+different databases might diverge. Particularly the
+order of the stored records could not be relied on to
+be the same. When using the option "\-M all" the order
+might not be relevant, but for "\-M first"(default) and
+for "\-M last" the results might frequently be
+different.
+
+The basic difference of the contents is the fact, that
+the macmap.fdb (let us say!) contains any networked
+host, whereas the standard enum.fdb the registered VMs
+only, so might be a subset of macmap.fdb.
+
+The correlation of both will be performed, when a
+cache is build and addressing references are resolved
+for faster access.
+
+.RE
+.TP
+
+\fBGROUPS\fR 
+activates the usage of GROUPS and it's related cache
+data which is due to performance issues deactivated
+for now by default.
+
+The following additional keywords control and support the
+management of internal caches.
+
+.TP
+
+\fBLISTCACHE\fR 
+lists all current caches.
+This call terminates immediately after performing, so
+any remaining options are ignored.
+
+.TP
+
+\fBLISTTARGETS\fR 
+lists all current cached targets.
+
+This call terminates immediately after performing, so
+any remaining options are ignored.
+
+.TP
+
+\fBLISTGROUPS\fR 
+lists all current cached groups.
+This call terminates immediately after performing, so
+any remaining options are ignored.
+
+.TP
+
+\fBMEMBERSDB\fR 
+displays a list of all current staticCacheDB members
+in ctys\-stacked\-address notation.
+
+.TP
+
+\fBCLEARTMP\fR 
+clear it's internal temporary caches first and
+rebuild on demand.
+
+.TP
+
+\fBCLEARALL\fR 
+clear all it's internal caches first and rebuild on demand.
+This includes a directory\-wildcard\-clear, which
+includes probably the caches of other tasks, so use it
+considerably.
+
+This call terminates immediately after performing, so
+any remaining options are ignored.
+
+.TP
+
+\fBREBUILDCACHE\fR 
+the static data to be concatenated from static
+assembly databases, for now the enum\-DB and the
+macmap\-DB is cached within a static database and
+concatenated with the volatile RT data into the
+RTCACHE.
+Redundant record from multiple\-rescans are cleared.
+
+The requirement of rebuild for the static data is
+checked by modification time of it's components, and
+when required updated silently. 
+When setting this flag, the data is rebuild in any case.
+
+Additional information is available from description of:
+
+.RS
+.IP \(bu 3
+NAMESERVICES of "ctys \-H"
+.IP \(bu 3
+"ctys \-a ENUMERATE...." 
+.IP \(bu 3
+"ctys\-extractMAClst"
+.IP \(bu 3
+"ctys\-vdbgen"
+.RE
+
+.TP
+\fB\-d <debug\-level>\fR
+Same as ctys.
+
+.TP
+\fB\-h\fR
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-i <input\-list>\fR
+Options controlling input content for specific cases.
+.nf
+  <input-list>=[CTYSADDRESS|CTYS]
+.fi
+
+
+.TP
+
+\fBCTYSADDRESS|CTYS\fR
+A fully qualified address is supported for mapping of one
+of the given output attributes.
+
+.TP
+\fB\-I <0\-9>\fR
+Interactive, gives summarised display of progress for main values.
+The degree of display depends on the choosen level:
+
+.TP
+
+0
+For completeness only, switches the display OFF, same as omitting the option at all.
+.TP
+
+1
+Activates a moderate level with display of basic benchmark data.
+.TP
+
+2
+Activates a more informative level with intermediate QUERY data
+reduction pattern.
+This particularly supports the design of multi\-key selection
+queries for perfomance optimization.
+.nf
+  ctys-vhost <in-out-options> <arg1> <arg2> <agr3>
+.fi
+
+For the  display of the actual contents of a specific intermediate step in
+addition to it's draft performance\-overview, just drop all following
+filters/arguments from the call, what will display the requested result as final.
+This result is identical to the covered intermediate result when
+using it within a chained set of filters.
+
+.TP
+\fB\-l <login\-name>\fR
+The users, which will be used for hosts without an exlicitly given
+user. The hosts/groups entries provide the common EMail\-Style
+"<user>@<execution\-target>". 
+The default is "$USER", when neither "\-l", nor an explicit user is provided.
+
+.TP
+\fB\-L <USER>\fR
+Remote user to be used for SSH\-access\-checks, when the "\-x"
+option is activated.
+.nf
+  DEFAULT=CTYS_NETACCOUNT(DEFAULT->USER)
+.fi
+
+
+.TP
+\fB\-M <record\-filter>\fR
+Restricts a set of multiple results with additional 
+constrains for output:
+.nf
+  <result-set-output-reduction>
+     =(FIRST|LAST|ALL|COMPLEMENT|SORT|USORT|UNIQUE)
+.fi
+
+
+.TP
+
+\fBFIRST\fR
+First matching entity.
+
+.TP
+
+\fBLAST\fR
+Last matching entity.
+
+.TP
+
+\fBALL\fR
+All matching entities.
+
+.TP
+
+\fBCOMPLEMENT\fR
+All entities NOT matching.
+
+.TP
+
+\fBSORT\fR
+Final result is sorted by "sort".
+
+.TP
+
+\fBUSORT\fR
+Final result is sorted by "sort \-u".
+Only full matches are reduced.
+
+.TP
+
+\fBUNIQUE\fR
+Final result is sorted by "sort \-u" but only displayed when actually
+one record only results. 
+When multiple records are matched, an empty string is returned and
+the exit value is set to "1".
+
+.TP
+\fB\-o <output\-list>\fR
+Options controlling output content. Values of all given options are
+listed as one RECORD per line for each matched entity. The keywords
+are not case sensitive and could be used as a comma\-seperated list.
+Shortcuts are applicable mostly as one\-character alternatives as
+listed.
+
+The default output when this option is not provided is to display a
+pre\-configured table
+stored as a 
+MACRO
+in the default\-macros file with the name 
+.nf
+  TAB_CTYS_VHOST_DEFAULT
+.fi
+
+
+This table could be customized as required, but should be handeled
+carefully.
+
+.nf
+  <output-list>=
+  (
+    (
+      (
+        [ARCH][,]
+        [CATEGORY|CAT][,]
+        [CONTEXTSTRING|CSTRG][,]
+        [CPORT|VNCPORT][,]
+        [CTYSADDRESS|CTYS][,]
+        [CTYSRELEASE][,]
+        [DIST][,]
+        [DISTREL][,]
+        [EXECLOCATION][,]
+        [GATEWAY][,]
+        [HWCAP][,]
+        [HWREQ][,]
+        [HYPERREL|HYREL][,]
+        [IDS|ID][,]
+        [IFNAME][,]
+        [LABEL|L][,]
+        [MAC|M][,]
+        [NETMASK][,]
+        [TYPE|STYPE|ST][,]
+        [OS][,]
+        [OSREL][,]
+        [PLATFORM|PFORM][,]
+        [PM|HOST][,]
+        [PNAME|P][,]
+        [RELAY][,]
+        [RELOCCAP][,]
+        [SERIALNUMBER|SERNO][,]
+        [SERVERACCESS|SPORT|S][,]
+        [SSHPORT][,]
+        [STACKCAP|SCAP][,]
+        [STACKREQ|SREQ][,]
+        [TCP|T][,]
+        [USERSTRING|USTRG][,]
+        [UUID|U][,]
+        [VCPU][,]
+        [VERSION|VERNO|VER][,]
+        [VMSTATE|VSTAT][,]
+        [VNCBASE][,]
+        [VNCDISPLAY|DISP][,]
+        [VRAM][,]
+      )
+      [TITLE|TITLEIDX|TITLEIDXASC][,]
+      [MACHINE|MAXKEY][,]
+    )
+    | TAB_GEN[:<tab-args>]
+    | REC_GEN|REC[:<tab-args>]
+    | SPEC_GEN|SPEC[:<tab-args>]
+    | XML_GEN|XML[:<tab-args>]
+  )
+  [IP|DNS][,]
+  [,SORT[:<sort-args>]]
+  
+.fi
+
+
+The previous keywords for specific fields set the related bit for
+output. 
+These will be OR\-ed to the resulting output.
+Thus the MACHINE keyword includes all fields, whether individually set
+or not.
+
+The format keys IP and DNS change the representation of the IP field.
+
+.TP
+
+\fBARCH\fR
+The architecture presented by the hypervisor to the GuestOS.
+
+.TP
+
+\fBCATEGORY|CAT\fR
+The category of the plugin, which could be for now one of: HOSTs, PMs VMs.
+
+.TP
+
+\fBCONTEXTSTRING|CSTRG\fR
+A string stored for the use by responsible the plugin.
+
+.TP
+
+\fBCTYSADDRESS|CTYS\fR
+A fully qualified address to be used within ctys. This
+includes the complete address for the whole execution\-stack
+of the destination instance, beginning with hosting PM.
+
+Whereas almost any other output is just a subset of the
+generated static database, this value is the result of the
+assembly of multiple items to a complete address for an
+unambiguous execution path. The namespace could be the
+private network or even the global network, when globally
+unique PM addresses as FQDN are used.
+
+.TP
+
+\fBCTYSRELEASE\fR
+The release of ctys used for creation of the VM.
+
+.TP
+
+\fBDIST\fR
+Output of distribution installed within VMs guest. 
+
+.TP
+
+\fBDISTREL\fR
+Release of distribution.
+
+.TP
+
+\fBDNS\fR
+Output of TCP/IP address (any valid for the VM). This
+option supports the name representation as reported by DNS,
+for the numerical representation refer to IP.
+
+\fBATTENTION\fR:
+Only the first match will be listed when
+multiple addresses are present for the same
+entity.
+
+.TP
+
+\fBEXECLOCATION\fR
+The location of execution for the VM.
+Either a keyword, or a list of hosts/groups.
+
+.TP
+
+\fBGATEWAY\fR
+The TCP gateway to be used for the current interface, which is
+for the standard case the one for the whole multihomed node.
+
+.TP
+
+\fBHWCAP\fR
+The offered hardware capacity by the VM to the GuestOS.
+
+.TP
+
+\fBHWREQ\fR
+The required hardware capacity of the VM from the PM, which could be
+a lower peer VM within a stack.
+
+.TP
+
+\fBHYPERREL|HYREL\fR
+The release of the hypervisor the current VM is created with.
+E.g. "Xen\-3.0\-x86_64".
+
+.TP
+
+\fBIDS|ID|I\fR
+Output of static ID, which is a pathname for VMs, and a
+runtime ID for HOSTs. The IDs are (foreseen to be!?) unique
+within the namespace of their PM or VM. This should be
+considered when roaming VMs between PMs.
+
+Following current exceptions apply:
+
+.RS
+.IP \(bu 3
+\fBXEN\fR
+The value is the configuration path statically unique on 
+local host, common to IDs of other VMs. 
+
+The domain\-ID is handled \- due to hypervisor architecture 
+and structural and dynamic means of accessibility \-
+similar to an ordinary "UNIX\-pid", but not considered within ctys.
+
+.IP \(bu 3
+\fBHOST\fR
+For plugins of type HOST, which are more or less simple 
+processes offering specific services, the "UNIX\-ID" is 
+utilized.
+
+The "UNIX\-ID" could consist of several kinds of
+entries. A common example is VNC, where the entries
+semantic could be one of:
+.RS
+.IP \(bu 3
+DISPLAY = VNC\-port\-offset
+.IP \(bu 3
+DISPLAY = VNC\-port
+.IP \(bu 3
+Any of above could be context\-specific, and utilized
+more or less correlated by any other FBP\-aware
+application too. E.g. vncviewer for XEN and
+WMWare\-Workstation 6.
+
+In addition, for a plugin a ctys specific ID might be
+defined, e.g. based on "UNIX\-PID".
+
+So, ... it is just an abstract ID, no generic
+overall\-algorithm applicable.
+.RE
+.RE
+
+.RS
+.IP \(bu 3
+\fBIP\fR
+Output of TCP/IP address. 
+This option supports the numerical
+representation, for the DNS name
+representation refer to DNS.
+
+.IP \(bu 3
+\fBLABEL|L\fR
+Output of LABEL.
+
+.IP \(bu 3
+\fBMAC|M\fR
+Output of MAC address.
+
+\fBATTENTION\fR:
+Only the first match will be listed when multiple 
+addresses are present for the same entity.
+
+.IP \(bu 3
+\fBMACHINE\fR
+Complete records matching the <regexpr\-list> in terse
+format for postprocessing.
+
+.IP \(bu 3
+\fBMAXKEY\fR
+The maximum common set of attributes for LIST and ENUMERATE.
+
+.IP \(bu 3
+\fBNETMASK\fR
+The TCP netmask of current interface.
+
+.IP \(bu 3
+\fBOS|O\fR
+Output of OS as configured.
+
+.IP \(bu 3
+\fBOSREL\fR
+Release of OS.
+
+.IP \(bu 3
+\fBPLATFORM|PFORM\fR
+The HW platform provided for the GuestOS.
+
+.IP \(bu 3
+\fBPM|HOST|H\fR
+Output of TCP/IP address of the PM\-Physical Machine, which
+is the hosting machine.
+
+.IP \(bu 3
+\fBPNAME|P\fR
+The same as <ID|I>, this is due to the usage of filepathname of the
+configuration as an unique ID at least within the namespace of a sigle
+hosts filesystem.
+
+.IP \(bu 3
+\fBREC_GEN|REC\fR
+Generates output format as structured proprietary record format, which is 
+foreseen for online validation as well as automated postprocessing.
+Refer to common format of generic tables for additional information.
+.RE
+
+.RS
+.IP \(bu 3
+\fBRELAY\fR
+The relay interface, device, virtual bridge, virtual switch, or
+virtual hub, the VM is interconnected too witin it's PM/lower\-stack\-peer.
+
+.IP \(bu 3
+\fBRELOCCAP\fR
+The available capacity for relocation of the VM, either to another
+compatible virtual PM as a stack\-entity, or an actual physical PM.
+The destination container has to provide the required HWREQ and
+STACKREQ of the VM, which has to be compatible with the HWCAP and
+STACKCAP ot the target.
+
+.IP \(bu 3
+\fBSERIALNUMBER|SERNO\fR
+An arbitrary serial number for the VM stored in the configuration
+file. 
+This number should be unambigiuos.
+
+.IP \(bu 3
+\fBSERVERACCESS|SPORT|S\fR
+Server access port for execution of a TCP/IP connect. This
+is the raw port to be used for server specific admin tools,
+which is different from user's client access. This port is
+currently rarely supported, namely not utilized due to
+security reasons, e.g. in case of XEN.
+
+The main intention of ctys is to avoid propriatery
+interfaces as much as possible, and support "bare support
+tools" only. This interface could only be propriatery. So
+being honest, 'do not really like that!
+
+.IP \(bu 3
+\fBSPEC_GEN|SPEC\fR
+Generates table output format where each attribute is on a seperate line.
+This format is particularly forseen to check values with tight reference to the documentation.
+Refer to common format of generic tables for additional information.
+
+.IP \(bu 3
+\fBSSHPORT\fR
+A list of provided SSH ports on this interface.
+Currently supported for OpenSSH only.
+
+.IP \(bu 3
+\fBSORT[:<sort\-args>]\fR
+Enables the post\-sort filter.
+
+.nf
+  <sort-args>=[ALL|A|EACH][%(UNIQUE|U)][%(REVERSE|R)][%<sort-key>]
+.fi
+
+
+.RS
+.IP \(bu 3
+\fBREVERSE|R\fR 
+Activates a final filter for call of "sort \-r".
+.IP \(bu 3
+\fBUNIQUE|U\fR 
+Activates a pre\-final filter for call of "sort \-u".
+.IP \(bu 3
+\fB<sort\-key>\fR 
+Defines a sort key as "\-k" option for "sort \-k <sort\-key>".
+
+The capacity offered by the hypervisor to nested VMs.
+
+.RE
+.IP \(bu 3
+\fBSTACKREQ|SREQ\fR
+The capacity required by the hypervisor as a nested VM itself.
+
+.IP \(bu 3
+\fBSTYPE|ST\fR
+Output of the session type, either of category VM, PM, or a HOST by
+
+.IP \(bu 3
+\fBTAB_GEN|TAB\fR
+Generates table output format. The default format could be and is configured as a
+custom macro.
+Refer to common format of generic tables for additional information.
+
+.IP \(bu 3
+\fBTCP|T\fR
+The ip address of the VM in stored format.
+
+\fBATTENTION\fR:
+In case of multiple interfaces and/or addresses for each address of a
+so called "multi\-homed" machine a sepereate entry is generated, thus
+it is listed as a seperate host entry.
+
+.IP \(bu 3
+\fBTITLE\fR
+The title for any selected field within the output.
+
+.IP \(bu 3
+\fBTITLEIDX\fR
+The title with the related indexes as required and enumerated for
+input into the generic table.
+
+.IP \(bu 3
+\fBTITLEIDX\fR
+The title with the related indexes as required and enumerated for
+input into the generic table. In addition the ASC\-II values of
+column indexes for common spreadsheet forms are displayed.
+
+.IP \(bu 3
+\fBUSERSTRING|USTRG\fR
+A free editablecustomizable string from the user.
+
+.IP \(bu 3
+\fBUUID|U\fR
+Output of UUID.
+
+.IP \(bu 3
+\fBVCPU\fR
+The number of pre\-assigned VCPUs. 
+
+.IP \(bu 3
+\fBVERSION|VERNO|VER\fR
+Version of config.
+
+.IP \(bu 3
+\fBVMSTATE|VSTAT\fR
+The configured state of the VM.
+Current aupported values are: ACTIVE, BACKUP.
+
+.IP \(bu 3
+\fBVNCBASE\fR
+Base port for calculations of ports
+from display and vice versa. 
+The default is 5900.
+
+.IP \(bu 3
+\fBVNCDISPLAY|DISP\fR
+DISPLAY to be used by XClients, which in case of VNC is
+already calculated by usage of context\-specific PortOffset.
+.RE
+
+.RS
+.IP \(bu 3
+\fBVNCPORT|CPORT\fR
+Client access port for execution of a TCP/IP connect. This
+is the raw port to be used for vncviewer or proprietary
+clients with their own MuxDemux\-dispatcher.
+
+All configured VNC access ports for any VM could be listed as:
+.nf
+  ctys-vhost -o cport,l -M all '59\e[0-9\e]\e[0-9\e]'
+.fi
+
+Where a standard baseport of 5900 is assumed.
+.RE
+
+.RS
+.IP \(bu 3
+\fBVRAM\fR
+The amount of pre\-assigned VRAM. 
+.RE
+
+.RS
+.IP \(bu 3
+\fBXML_GEN|XML\fR
+Generates output format in XML format for ease of postprocessing.
+Refer to common format of generic tables for additional information.
+.RE
+
+.TP
+\fB\-p <db\-directory\-path\-list>\fR
+Comma seperated path list to directories containing the
+name\-resolution DBs, same for each <db\-directory\-path> as for
+ctys\-vdbgen. 
+
+ctys\-vhost could handle multiple mapping\-DBs for virtual
+concatenation. The advantage of this is the ability of
+substructuring VMs and PMs into access\-groups by ctys\-vdbgen 
+and using them in combinations as required during runtime. This
+offers particularly advantages when performing ctys\-vhost for
+loadbalancing by usage of cost\-option "\-C".      
+
+.TP
+\fB\-R <remote\-hosts>\fR
+List of remote hosts for execution.
+Either a list of valid hostnames, ipaddresses, or EMail\-Format hostnames.
+
+.TP
+\fB\-r\fR
+Activates the common usage of dynamic runtime data. Without this
+option only some distinct functions like load\-distribution
+utilize selective calls of runtime\-data\-evaluation for further
+restricting their intermediate results. This is e.g. obviously
+the count of actual executed instances on a PM for the case of
+cost evaluation on a potential distribution target.
+
+When runtime data evaluation is activated in general, the "\-R"
+option alplies to any result as a further constraint.
+
+The usage of runtime data evaluation cost performance of
+course. This could become dominant, when huge clusters are
+evaluated, thus should be considered whether really required,
+and applied to reasonable sets only. But anyhow, when some
+bigger sets are required by definition, caching of data with
+different strategies could be applied.
+
+.TP
+\fB\-R <runtime states>\fR
+Restricts a set of multiple results with additional 
+constrains for output.
+
+Only the possible targets which are actually operational are
+listed. This includes the actual running VM with it's hosting
+PM, and in addition all other operational machines, where the
+current VM is available too. This case is the most common for
+NFS based exec\-pools, where a single VM could be accessed
+remotely by a number of PMs. This particularly offers the
+advantage of copyless\-migration of online and offline VMs.
+
+Very handy, and in companion with others probably one 
+of the most important internal top\-level\-calls for 
+GuestOS\-Command\-Execution.
+.nf
+  <runtime states>
+    =[MARK|(REVERSE|R|-),]PING|SSH[,PM|VM]
+.fi
+
+.TP
+
+\fBMARK\fR
+A match for any of the following keywords is simply
+made with a prefix as running by "R;", instead of
+just showing the resulting set.
+
+The remaining are formatted with the prefix "\-;" 
+for alignment.
+
+.TP
+
+\fBREVERSE|R|\\-\fR
+This reverses the resulting set, thus the "not
+matching" states only will be shown.
+
+.TP
+
+\fBPING\fR
+A RUNNING session is simply "ping\-ed".
+
+Resulting statement of operational mode may result on 
+applied security policies, but not exclusively on the 
+state of the running OS's IP\-stack.
+
+.TP
+
+\fBSSH\fR
+A RUNNING session is additionally checked for 
+SSH\-connect by a dummy\-interconnect.
+This might be really senseful, once SSO is established.
+
+"ssh" is the only and one state, which is a viable 
+confirmation for the ability of establishing ctys 
+connections.
+
+.TP
+
+\fBPM\fR
+Checks only PM for accesibility, which is the
+default behaviour.
+PM accessibility is defined as the accessibility of
+the running OS on PM.
+
+.TP
+
+\fBVM\fR
+Checks VM for accesibility, this is
+particularly related to the SSH key.
+VM accessibility is defined as the accessibility of
+the running OS on VM.
+
+.TP
+\fB\-s\fR
+Set when ctys\-vhost is used as an internal subcall for another
+master\-tool. In this case some automatic triggered tasks such as
+the time\-driven rebuild of caches are suppressed. Instead a hint
+for required re\-sync is printed as warning.
+
+Urgent tasks will be worked out, even if they might take some
+minutes. This is the case when no cache is present, of the
+caches differ in their age.
+All tools using this as an internal system call should set this
+flag.
+
+.TP
+\fB\-S <BasicDataManagement>\fR
+The "\-W" option represents some basic management interfaces for
+the additional entity class GROUPS and the entity
+characteristics CONTAINMENT. Where the containment is applied to
+the whole set of stored entities.
+
+These interfaces allow some smart listing and display of current
+supported data, the handling of data as deletion and creation is
+handeled by the ctys\-vhost command as appropriate.
+
+.nf
+  <BasicManagementSupport>=
+     (
+       LISTALL
+      |LIST
+      |LISTDB
+      |MEMBERSDB
+      |LISTGROUP[:<groups-list>]
+      |MEMBERSGROUP([2345678])|([678]u)[:<groups-list>]
+     )
+  
+     <groups-list>:=<group>[,<groups-list>]
+.fi
+
+
+The following keywords may be applied.
+
+.TP
+
+\fBLISTALL\fR
+Displays a list of all current available data sources.
+
+.TP
+
+\fBLIST\fR
+Displays a list of all current data sources, the same as
+
+.nf
+  LIST = LISTDB + LISTGROUP
+.fi
+
+
+.TP
+
+\fBLISTDB\fR
+Displays a list of current file\-databases.
+
+.TP
+
+\fBMEMBERSDB\fR
+Displays a list of all current staticCacheDB members
+in ctys\-stacked\-address notation.
+
+.TP
+
+\fBLISTGROUP[:<group\\-list>]\fR
+List all current groups from the 
+CTYS_GROUPS_PATH.
+The output format is as follows:
+.nf
+  " <size> <#lrec>/<#incs> <#srec> <group>"
+.fi
+
+
+.RS
+.IP \(bu 3
+<size>
+Size n kBytes.
+
+.IP \(bu 3
+<#lrecs>
+The overall number of target entities
+without resolution of nesting, so just
+the current file is evaluated.
+
+.IP \(bu 3
+<#incs>
+The overall number of include\-statements
+contained within current file.
+
+.IP \(bu 3
+<#srecs>
+The overall number of target entities
+with  resolution of all nested includes.
+
+.IP \(bu 3
+<group>
+The name of current group, which is the
+filename too. When "\-X" option is set
+(LEFT of this option), than the basename
+is shown only, else the full filepathname.
+.RE
+
+.RS
+.IP \(bu 3
+\fBMEMBERSGROUP[:<group\-list>]\fR
+Lists members of scanned groups.
+When no <group\-list> is provided, the 
+variable 
+CTYS_GROUPS_PATH
+is decomposed and similar to the
+PATH variable, any resulting directory is scanned for all existing
+group files. The members of found groups are displayed.
+
+The nested containment hierarchy by "include" is expanded before output.
+In case of provided <group\-list> the listed groups are displayed only.
+The format of <group\-list> is:
+.nf
+  <group-list> =: <group-name>[%<group-list>]
+.fi
+
+
+Two types of storage are shown:
+.RS
+.IP \(bu 3
+Raw group files, which may contain target
+entities, include\-statements and comment lines.
+.IP \(bu 3
+Cache group files, which contain the whole
+resolved set of containment tree as flat target
+entity recorded from the statCacheDB.
+
+.RE
+.IP \(bu 3
+\fBMEMBERSGROUP[2\-8][:<group\-list>]\fR
+The values MEMBERSGROUP[2\-5] display the same as MEMBERSGROUP, 
+but with a slightly different output format, whereas MEMBERSGROUP[6\-8] 
+shows the contained accounts or hosts.
+
+.RS
+.IP \(bu 3
+MEMBERSGROUP2 \-
+List of resulting targets with specific context options, for screen display.
+.IP \(bu 3
+MEMBERSGROUP3 \-
+Similar to MEMBERSGROUP2, but additionally formatted with line\-breaks.
+.IP \(bu 3
+MEMBERSGROUP4 \-
+List of resulting targets with specific context options, prepared for inclusion by cut\-and\-paste.
+.IP \(bu 3
+MEMBERSGROUP5 \-
+List of resulting calls prepared for usage by cut\-and\-paste.
+.IP \(bu 3
+MEMBERSGROUP6 \-
+List of accounts in EMail format for screen display only.
+.IP \(bu 3
+MEMBERSGROUP6u \-
+Unique list of MEMBERSGROUP6.
+.IP \(bu 3
+MEMBERSGROUP7 \-
+List of accounts in EMail format for machine processing.
+.IP \(bu 3
+MEMBERSGROUP7u \-
+Unique list of MEMBERSGROUP7.
+.IP \(bu 3
+MEMBERSGROUP8 \-
+List of hosts for machine processing.
+.IP \(bu 3
+MEMBERSGROUP8u \-
+Unique list of MEMBERSGROUP8.
+
+.RE
+\fB\-T <type\-list>\fR.IP \(bu 3
+
+Types to be recognized when calculating target.
+For additional information refer to "\-T" option of ctys.
+.RE
+
+.TP
+\fB\-V\fR
+Shows version.
+
+.TP
+\fB\-X\fR
+See ctys, terse for machine output.
+
+\fBREMARK\fR: 
+Due to order dependency of options evaluation, set this
+as first/leftmost option.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.P
+Use 
+"\-I 2"
+option for some performance
+analysis of order dependency for multiple\-selection queries.
+
+.TP
+\fB<awk\-regexpr>[ <awk\-regexpr>[ <...>]]\fR
+A list of simple awk regular expression, for matching based on
+$0. This is called here "flat\-matching", though no structural
+information like in case of attribute\-value assertion, is recognized
+for the pattern match.
+
+The given lists are matched each on the resulting set of complete
+records from the previous pattern\-matching. The last filter applied
+will be accompanied by reduction of fields of final matching records
+as selected by "\-o" option.
+
+The main advantage of this approach is the simplicity of data
+structures and the utilization of common tools and data
+structures. Some performance gain is another advantage.
+
+The drawback is, that in some cases the regexpr has to be choosen
+thoroughly.
+
+Some Examples:
+
+.RS
+.IP \(bu 3
+\e.  (a single dot)
+
+All items within the database.
+
+.IP \(bu 3
+inst
+
+All items which contain any string "inst"
+
+.IP \(bu 3
+^inst
+
+All items, which start with "inst", where the first field in a record
+is the hostname.
+
+.IP \(bu 3
+*inst
+
+All items, which end with "inst".
+
+.IP \(bu 3
+xen|qemu
+
+All items containing 'xen' or 'qemu'.
+.RE
+
+.TP
+\fBAND\fR
+The AND operator is the the same as a simple space\-operator(" "),
+which causes the keyword to be applied as selective filter on the
+previous intermediate result.
+The result is matched based on the internal MACHINE format, which
+might lead to different results than the requested final output format only.
+
+.TP
+\fBE:<#field0>:<#field1>\fR
+Compares two fields given by their canonical numbers.
+The most important application might be the quer for a specific PM record,
+where the "netname" has to be matched by "PM", which is the 
+"uname \-n"
+Be aware, that only substrings and equal strings match, for local
+networks using DNS, the "netname" has an additional point "." at the
+end, thus order of numbers are significant for a match.
+
+The "$<field0>" is the canonical number as presented by 
+TITLEIDX.
+
+.TP
+\fBF:<#field0>:<content\-match>\fR
+Queries for a specific FIELD with provided number to be compared by
+awk\-function "match($<#field0>,<content\-match>)".
+Be aware, that only substrings and equal strings match.
+
+The "$<field0>" is the canonical number as presented by 
+TITLEIDX.
+
+.TP
+\fBNOT\fR
+The NOT operator replaces the current composite state for the next
+argument only, operators are skipped.
+It should be recognized, that the NOT operator replaces only the
+current state, thus no chained evaluation of previous operators is
+applied.
+Anyhow, different operators, which are independant, such as NOT and
+AND, are superposed.
+
+.TP
+\fBOR\fR
+The OR operator adds to the previous intermediate result a filtered
+subset of the last "AND\-result".
+This sounds maybe a little strange, but simply said, a number of
+grouped OR operators just imply a parentheses/brace around all OR\-ed
+elements.
+The overall operations is simple from\-left\-to\-right.
+
+The reason for omitting group\-operators is just simplicity of
+implementation and grant of a resonable overall performance.
+When more operators are required, a full set of syntax might be implemented.
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.TP
+ 7: NOK:
+Missing cacheDB directory.
+
+.TP
+ 8: NOK:
+Missing stat cache.
+
+.TP
+ 9: NOK:
+Missing groups cache.
+
+.TP
+ 10: NOK:
+Missing "macmap.fdb"
+
+.TP
+ 11: NOK:
+Unambiguity was requested by "\-M unique", but query result is ambiguous.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+ffs.
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(7)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-extractARPlst(1)\fR, \fIctys\-extractMAClst(1)\fR, \fIctys\-genmconf(1)\fR, \fIctys\-vping(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vhost(1)\fR
+
+.TP
+\fBsystem executables\fR
+\fIdig(1)\fR, \fIhost(1)\fR, \fIifconfig(8)\fR, \fIether\-tool(8)\fR, \fInc(1)<a.k.a. netcat>\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-vhost.t2t -o /tmpn/0/ctys/bld/01.11.008/doc-tmp/BASE/en/man/man1/ctys-vhost.1
+
