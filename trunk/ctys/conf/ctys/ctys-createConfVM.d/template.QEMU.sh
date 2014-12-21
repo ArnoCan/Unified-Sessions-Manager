@@ -644,8 +644,10 @@ fi
 #These settings are required for several reasons.
 #
 EXECALL="${EXECALL} ${QEMUBIOS:+ -L $QEMUBIOS} "
-EXECALL="${EXECALL} -net nic,macaddr=${MAC0},model=${NIC} "
-EXECALL="${EXECALL} -net vde,sock=${QEMUSOCK} "
+if [ -n "${NIC}" ];then
+    EXECALL="${EXECALL} -net nic,macaddr=${MAC0},model=${NIC} "
+    EXECALL="${EXECALL} -net vde,sock=${QEMUSOCK} "
+fi
 EXECALL="${EXECALL} -name \"${LABEL}\" "
 
 case "${VGADRIVER}" in
@@ -757,6 +759,7 @@ printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "PRE-BOOTMODE:CHECK-IMAGES"
 LASTPATH=;
 LASTPATH="${LASTPATH} ${KERNELIMAGE:+ -kernel $KERNELIMAGE } "
 LASTPATH="${LASTPATH} ${INITRDIMAGE:+ -initrd $INITRDIMAGE}"
+BOOTMODE=$(echo $BOOTMODE|tr 'a-z' 'A-Z')
 case ${BOOTMODE} in
     FDD)
         LASTPATH="${LASTPATH} -boot a"
@@ -1123,18 +1126,14 @@ if [ -n "${HDD}"  -a -f "${HDD}" ];then
     EXECALL="${EXECALL} -hdd ${HDD} "
 fi
 
-
 #
 #Optional CPU architecture
 #
-if [ -n "${ARCH}" ];then
-    case ${ARCH// /} in
-	x86_64|amd64) EXECALL="${EXECALL} -cpu qemu64 ";;
-	i386|i586|i686) EXECALL="${EXECALL} -cpu qemu32 ";;
-
-	#anyhow...for suprising pop-ups of x86-types
-	*) EXECALL="${EXECALL} -cpu qemu32 ";;
-    esac
+if [ -n "${CPU}" ];then
+    EXECALL="${EXECALL} -cpu ${CPU} ";
+else
+    #anyhow...for suprising pop-ups of x86-types
+    EXECALL="${EXECALL} -cpu qemu32 ";
 fi
 
 #

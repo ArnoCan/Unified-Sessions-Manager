@@ -1166,7 +1166,11 @@ function getValues () {
 	    ;;
     esac
     echo
-    ARCHinfo=$(getCurArch.sh)
+    if [ -z "$ARCH" ];then
+	ARCHinfo=$(getCurArch.sh)
+    else
+	ARCHinfo=$ARCH
+    fi
     getAttrVal ARCH "${ARCHinfo// /}" OPTIONAL "${_prefix1}"
     echo
 

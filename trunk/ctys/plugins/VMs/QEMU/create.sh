@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_010
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_QEMU_CREATE="${BASH_SOURCE}"
-_myPKGVERS_QEMU_CREATE="01.11.009"
+_myPKGVERS_QEMU_CREATE="01.11.010"
 hookInfoAdd $_myPKGNAME_QEMU_CREATE $_myPKGVERS_QEMU_CREATE
 _myPKGBASE_QEMU_CREATE="`dirname ${_myPKGNAME_QEMU_CREATE}`"
 
@@ -147,6 +147,7 @@ function createConnectQEMU () {
 			    DBRECORD|DBREC|DR)
 				local DBREC="${ARG}";
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				_idgiven=1;
 				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
@@ -580,6 +581,7 @@ function createConnectQEMU () {
 			DBRECORD|DBREC|DR)
 			    local DBREC="${ARG}";
 			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    _idgiven=1;
 			    ;;
 
 			BASEPATH|BASE|B)

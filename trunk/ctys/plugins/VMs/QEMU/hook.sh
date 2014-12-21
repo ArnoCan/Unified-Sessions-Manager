@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_009
+#VERSION:      01_10_010
 #
 ########################################################################
 #
@@ -36,7 +36,7 @@ QEMU_EXELIST_BASENAME=;
 
 
 _myPKGNAME_QEMU="${BASH_SOURCE}"
-_myPKGVERS_QEMU="01.11.009"
+_myPKGVERS_QEMU="01.11.010"
 hookInfoAdd $_myPKGNAME_QEMU $_myPKGVERS_QEMU
 
 QEMU_VERSTRING="${_myPKGVERS_QEMU}"
@@ -199,6 +199,7 @@ function setVersionQEMU () {
     hookPackage CLI
     hookPackage X11
     hookPackage VNC
+    hookInitPropagate4Package CLI X11 VNC
 
     printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:loaded pre-requisites:CLI, X11, VNC"
 
@@ -1232,18 +1233,19 @@ function initQEMU () {
 
   printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
+
   if [ "$_raise" == "1" ];then
       #for raise of INITSTATE do not touch the OS's decisions, just expand.
 
       case $_curInit in
 	  0);;#NOP - Done by shell
 	  1)  
-              #adjust version specifics  
-              setVersionQEMU $_initConsequences
-              ret=$?
-
               #add own help to searchlist for options
 	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_qemu"
+
+              #adjust version specifics  
+	      setVersionQEMU $_initConsequences
+	      ret=$?
 	      ;;
 	  2);;
 	  3);;

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_10_010
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_QEMU_LIST="${BASH_SOURCE}"
-_myPKGVERS_QEMU_LIST="01.10.008"
+_myPKGVERS_QEMU_LIST="01.10.010"
 hookInfoAdd $_myPKGNAME_QEMU_LIST $_myPKGVERS_QEMU_LIST
 _myPKGBASE_QEMU_LIST="`dirname ${_myPKGNAME_QEMU_LIST}`"
 
@@ -87,10 +87,14 @@ function listMySessionsQEMU () {
   	    ;;
         RELAY)#no own client support, see hosts plugins
             ;;
-	*)  #ooooops!!!!!!
-	    ABORT=2
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:QEMU_MAGIC=${QEMU_MAGIC}"
-	    gotoHell ${ABORT}
+	*)  
+	    if [ "QEMU_STATE" != DISABLED ];then
+                #ooooops!!!!!!
+		ABORT=2
+		printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:QEMU_MAGIC=${QEMU_MAGIC}"
+		return ${ABORT}
+#		gotoHell ${ABORT}
+	    fi
 	    ;;
     esac
 

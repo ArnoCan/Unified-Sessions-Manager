@@ -174,6 +174,7 @@ function cutCancelSessionXEN () {
 			DBRECORD|DBREC|DR)
 			    local DBREC="${ARG}";
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    _idgiven=1;
 			    ;;
 			BASEPATH|BASE|B)
 			    local _base="${ARG}";
@@ -294,7 +295,7 @@ function cutCancelSessionXEN () {
 		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
                     -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
 		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
-		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remaining address parameters are ignored"
 		fi
 	    fi
 	    ;;
@@ -397,6 +398,7 @@ function cutCancelSessionXEN () {
                #####################
 			DBRECORD|DBREC|DR)
 			    local DBREC="${ARG}";
+			    _idgiven=1;
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
 			    ;;
 			BASEPATH|BASE|B)

@@ -59,6 +59,29 @@ _waitsVNC=${VNC_INIT_WAITS:-2}
 
 
 
+#
+#Managed load of sub-packages gwhich are required in almost any case.
+#On-demand-loads will be performed within requesting action.
+#
+hookPackage "${_myPKGBASE_VNC}/session.sh"
+hookPackage "${_myPKGBASE_VNC}/list.sh"
+hookPackage "${_myPKGBASE_VNC}/info.sh"
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vnc" ];then
+    #Source pre-set environment from user
+    if [ -f "${HOME}/.ctys/vnc/vnc.conf-${MYOS}.sh" ];then
+	. "${HOME}/.ctys/vnc/vnc.conf-${MYOS}.sh"
+    fi
+
+    #Source pre-set environment from installation 
+    if [ -f "${MYCONFPATH}/vnc/vnc/vnc.conf" ];then
+	. "${MYCONFPATH}/conf/vnc/vnc.conf-${MYOS}.sh"
+    fi
+fi
+
+
+
+
 #FUNCBEG###############################################################
 #NAME:
 #  getFirstFreeVNCPort
@@ -414,7 +437,6 @@ function setVersionVNC () {
     printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNC"
     printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "  _verstrg=${_verstrg}"
 
-
     #currently somewhat restrictive to specific versions.
     case ${_verstrg} in
 	"TightVNC"*)
@@ -561,28 +583,6 @@ function enumerateMySessionsVNC () {
 }
 
 
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_VNC}/session.sh"
-hookPackage "${_myPKGBASE_VNC}/list.sh"
-hookPackage "${_myPKGBASE_VNC}/info.sh"
-
-if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vnc" ];then
-    #Source pre-set environment from user
-    if [ -f "${HOME}/.ctys/vnc/vnc.conf-${MYOS}.sh" ];then
-	. "${HOME}/.ctys/vnc/vnc.conf-${MYOS}.sh"
-    fi
-
-    #Source pre-set environment from installation 
-    if [ -f "${MYCONFPATH}/vnc/vnc/vnc.conf" ];then
-	. "${MYCONFPATH}/conf/vnc/vnc.conf-${MYOS}.sh"
-    fi
-fi
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handleVNC
@@ -699,8 +699,6 @@ function initVNC () {
   local _curInit=$1;shift
   local _initConsequences=$1
   local ret=0;
-
-
   local _raise=$((INITSTATE<_curInit));
 
   printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
@@ -711,10 +709,9 @@ function initVNC () {
       case $_curInit in
 	  0);;#NOP - Done by shell
 	  1)  #add own help to searchlist for options
+	      setVersionVNC $_initConsequences
+	      ret=$?
 	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_vnc"
-              setVersionVNC $_initConsequences
-
-              ret=$?
 	      ;;
 	  2);;
 	  3);;

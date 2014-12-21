@@ -1967,16 +1967,28 @@ function applyPreSelectionFilter () {
                 -v relay="$_relay" -v reloccap="$_reloccap" -v sshport="$_sshport" \
                 -v uid="$_uid" -v gid="$_gid"  -v exep=$_exep \
                 -v defhosts="$_defhosts" -v defcon="$_defcon" \
-                -v netname="$_netname" -v count=$_index \
+                -v netname="$_netname" -v count=$_index -v doCount=$_doCount  \
 		-f ${MYLIBEXECPATH}/${MYCALLNAME}.d/ctys-vhost-presel.awk \
 		|sed 's/; */;/g'
 	else
-	    awk -v s="${*}"  '$0~s{print $0;}'
+	    awk -F';' -v doCount="$_doCount" -v s="${*}"  'BEGIN{line=0;}{line++;}$0~s{
+               if(doCount==1){
+                  x=$1;
+                  for(i=2;i<32&&i<=NF;i++){x=x";"$i;}
+                  x=x";"line;
+                  for(j=33;j<=NF;j++){x=x";"$j;}
+                  print x;
+               }
+               else{
+                  print $0;
+               }
+            }'|tee /tmp/xyz.txt
 	fi
     }
 
     local _inargs=$*
     local _init=1;
+    local _doCount=1;
 
     if((_rttype!=0||C_INTERACTIVE>0));then
  	_rttypeX=3
@@ -2070,6 +2082,10 @@ function applyPreSelectionFilter () {
 	    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "RESULT=-->\"$RESULTLST\"<--"
 	fi
 	_complement=${complementOld};
+
+
+
+	_doCount=0;
     done
     printDBG $S_BIN ${D_DATA} $LINENO $BASH_SOURCE "RESULT-NO-RTSTATE=-->\"$RESULTLST\"<--"
 

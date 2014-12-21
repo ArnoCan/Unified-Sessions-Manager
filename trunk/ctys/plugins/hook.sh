@@ -631,7 +631,7 @@ function hookPackages () {
 #EXAMPLE:
 #
 #PARAMETERS:
-# $1: List of names
+# $1: InitState
 #
 #OUTPUT:
 #  RETURN:
@@ -648,6 +648,43 @@ function hookInitPropagate () {
       fi
   done
 }
+
+#FUNCBEG###############################################################
+#NAME:
+#  hookInitPropagate4Package
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Propagates the given init-state to all registered - a.k.a. managed - 
+#  plugins.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: List of names
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function hookInitPropagate4Package () {
+  local _pkglst="$*";
+  local _i=;
+
+  for _p in $_pkglst;do
+      for _i in 1 2 3 4 5 6;do
+	  eval init${_p} $_i
+	  if [ $? -ne 0 ];then
+	      PACKAGES_DISABLED="${PACKAGES_DISABLED} $_i"
+	  fi
+      done
+  done
+}
+
 
 #FUNCBEG###############################################################
 #NAME:
