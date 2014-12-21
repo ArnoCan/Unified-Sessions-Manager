@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_006
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_CONFIG="${BASH_SOURCE}"
-_myPKGVERS_CONFIG="01.02.002c01"
+_myPKGVERS_CONFIG="01.11.006"
 #hookInfoAdd "$_myPKGNAME_CONFIG" "$_myPKGVERS_CONFIG"
 
 
@@ -122,10 +122,12 @@ function getUUID () {
     else
         for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
 	    [ ! -f "$i" ]&&continue;
-	    _IP=`cat  "${i}"|getConfValueOf "#@#UUID"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#UUID"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -157,16 +159,19 @@ function getUUID () {
 #FUNCEND###############################################################
 function getDIST () {
     local X=$1
+    local _IP=""
     if [ -z "${X}" ];then
 	local _IP=`cat /etc/*-release`;
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from /etc/*-release"
     else
         for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
 	    [ ! -f "$i" ]&&continue;
-	    _IP=`cat  "${i}"|getConfValueOf "#@#DIST"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#DIST"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -196,16 +201,19 @@ function getDIST () {
 #FUNCEND###############################################################
 function getDISTREL () {
     local X=$1
+    local _IP=""
     if [ -z "${X}" ];then
 	local _IP=`cat /etc/*-release`;
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from /etc/*-release"
     else
         for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
 	    [ ! -f "$i" ]&&continue;
-	    _IP=`cat  "${i}"|getConfValueOf "#@#DISTREL"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#DISTREL"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -235,16 +243,19 @@ function getDISTREL () {
 #FUNCEND###############################################################
 function getOS () {
     local X=$1
+    local _IP=""
     if [ -z "${X}" ];then
 	local _IP=${MYOS};
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from MYOS"
     else
         for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
 	    [ ! -f "$i" ]&&continue;
-	    _IP=`cat  "${i}"|getConfValueOf "#@#OS"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#OS"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -274,16 +285,19 @@ function getOS () {
 #FUNCEND###############################################################
 function getOSREL () {
     local X=$1
+    local _IP=""
     if [ -z "${X}" ];then
 	local _IP=${MYOS};
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from MYOS"
     else
         for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
 	    [ ! -f "$i" ]&&continue;
-	    _IP=`cat  "${i}"|getConfValueOf "#@#OSREL"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#OSREL"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -316,16 +330,19 @@ function getOSREL () {
 #FUNCEND###############################################################
 function getVERNO () {
     local X=$1
+    local _IP=""
     if [ -z "${X}" ];then
 	local _IP=${MYOSREL};
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from MYOSREL"
     else
         for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
 	    [ ! -f "$i" ]&&continue;
-	    _IP=`cat  "${i}"|getConfValueOf "#@#VERSION"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#VERSION"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi

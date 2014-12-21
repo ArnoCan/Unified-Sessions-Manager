@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_006
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_CLI="${BASH_SOURCE}"
-_myPKGVERS_CLI="01.11.005"
+_myPKGVERS_CLI="01.11.006"
 hookInfoAdd "$_myPKGNAME_CLI" "$_myPKGVERS_CLI"
 
 
@@ -1091,9 +1091,7 @@ function fetchArguments () {
     if [ -z "${R_HOSTS}" ];then
 	R_HOSTS=localhost;
     fi
-
     R_HOSTS=`expandGroups ${R_HOSTS}`
-
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "R_OPTS=<${R_OPTS}>"
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "R_HOSTS=<${R_HOSTS}>"
 }
@@ -1128,8 +1126,7 @@ function fetchArguments () {
 #FUNCEND###############################################################
 function getSessionType () {
   printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "\$=<$*>"
-  local _type=`echo $*|sed -n 's/^.*-t[ "]\([^ "]*\)[ "].*$/\1/p'`
-
+  local _type=`echo $*|sed -n 's/^.*-t[ "]\([^ "]*\)[ "].*$/\1/p'|tr 'a-z' 'A-Z'`
   if [ -n "${_type}" \
        -a "${_type}" != "ALL" \
        -a "${1}"  != "listMySessions" \
@@ -1274,9 +1271,8 @@ function getActionResulting () {
     esac
 
     if [ -z "${_action}" ];then
-	if [ "${*//=/}" != "${*}" ];then
-	    local _action=`echo $*|sed -n 's/^.* -a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
-	else
+	local _action=`echo " $* "|sed -n 's/^.*[ ]*-a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
+	if [ "${_action//=/}" != "${_action}" ];then
 	    _action=SYNTAX-ERROR;
 	fi
     fi
@@ -1284,6 +1280,7 @@ function getActionResulting () {
 
     local _res=$_action;
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _action=\"$_action\""
+
     case $_action in
 	GETCLIENTPORT);;
 	ISACTIVE);;
@@ -1529,3 +1526,6 @@ function runningOnDisplayStation () {
     fi
     return 1
 }
+
+
+

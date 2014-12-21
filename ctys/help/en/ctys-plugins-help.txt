@@ -2,7 +2,7 @@
 NAME
 ====
 
-ctys-plugins - verifies of current install status
+ctys-plugins - verifies current install status of ctys
 
 SYNTAX
 ======

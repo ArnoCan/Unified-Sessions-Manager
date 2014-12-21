@@ -52,7 +52,7 @@ hookPackage "`dirname ${_myPKGNAME_CONFIG}`/config-${MYOS}.sh"
 #FUNCEND###############################################################
 function getConfFilesList () {
     local fx=;
-    for i in "${1}" "${1%.*}.vmx" "${1%.*}.conf" "${1%.*}.ctys" "${1%/*}.ctys" "${CTYSCONF}";do
+    for i in "${1%.vdi}.ctys" "${1%.*}.vmx" "${1%.*}.conf" "${1%.*}.ctys" "${1%/*}.ctys" "${CTYSCONF}";do
         [ ! -f "$i" ]&&continue;
 	fx="${fx} ${i}"
     done
@@ -85,10 +85,12 @@ function getConfFilesList () {
 function getVMSTATE () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#VMSTATE"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#VMSTATE"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -118,10 +120,12 @@ function getVMSTATE () {
 function getHYPERREL () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#INST_HYPERREL"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#INST_HYPERREL"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -152,10 +156,12 @@ function getHYPERREL () {
 function getSTACKCAP () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#STACKCAP"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#STACKCAP"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -186,10 +192,12 @@ function getSTACKCAP () {
 function getSTACKREQ () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#STACKREQ"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#STACKREQ"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -220,10 +228,12 @@ function getSTACKREQ () {
 function getGUESTARCH () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#ARCH"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#ARCH"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -254,10 +264,12 @@ function getGUESTARCH () {
 function getGUESTPLATFORM () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#PLATFORM"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#PLATFORM"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -288,10 +300,12 @@ function getGUESTPLATFORM () {
 function getGUESTVRAM () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#VRAM"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#VRAM"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -322,10 +336,12 @@ function getGUESTVRAM () {
 function getGUESTVCPU () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#VCPU"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#VCPU"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     if [ -z "${_IP// /}" ];then
@@ -360,10 +376,12 @@ function getGUESTVCPU () {
 function getCONTEXTSTRING () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#CSTRG"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#CSTRG"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -394,10 +412,12 @@ function getCONTEXTSTRING () {
 function getUSERSTRING () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#USTRG"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#USTRG"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -429,10 +449,12 @@ function getLABEL () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
         [ ! -f "$i" ]&&continue;
-	_IP=`cat  "${i}"|getConfValueOf "#@#LABEL"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#LABEL"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -463,10 +485,12 @@ function getLABEL () {
 function getSERNO () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#SERNO"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#SERNO"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -498,10 +522,12 @@ function getSERNO () {
 function getCATEGORY () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#CATEGORY"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#CATEGORY"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -532,10 +558,12 @@ function getCATEGORY () {
 function getMAGIC () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#MAGICID-${MYOS}"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#MAGICID-${MYOS}"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -593,10 +621,12 @@ function checkMAGIC () {
 function getUID () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#UID"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#UID"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -627,10 +657,12 @@ function getUID () {
 function getGID () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#GID"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#GID"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -663,10 +695,12 @@ function getGID () {
 function getVNCACCESSPORT () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#VNCACCESSPORT"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#VNCACCESSPORT"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -697,10 +731,12 @@ function getVNCACCESSPORT () {
 function getVNCBASEPORT () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#VNCBASEPORT"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#VNCBASEPORT"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -732,10 +768,12 @@ function getVNCBASEPORT () {
 function getVNCACCESSDISPLAY () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#VNCACCESSDISPLAY"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#VNCACCESSDISPLAY"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -766,10 +804,12 @@ function getVNCACCESSDISPLAY () {
 function getSPORT () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#SPORT"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#SPORT"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -805,10 +845,12 @@ function getMAC () {
 	_IP=`netGetMAC`
     else
 	for i in `getConfFilesList "${1}"`;do
-	    _IP=`cat  "${i}"|getConfValueOf "#@#MAC[0]*"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#MAC[0]*"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -845,8 +887,10 @@ function getMAClst () {
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}";
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|tr "'" '"'|sed -n 's/^ *#@#MAC\([0-9]*\) *= *"*\([^"]*\)"*/\1=\2/p'`;
-        [ "$_IP" != "" ]&&break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|tr "'" '"'|sed -n 's/^ *#@#MAC\([0-9]*\) *= *"*\([^"]*\)"*/\1=\2/p'`;
+            [ "$_IP" != "" ]&&break;
+	fi
     done
     if [ "${_IP// /}" != "" ];then
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
@@ -883,10 +927,12 @@ function getIP () {
 	_IP=`netGetIP`
     else
 	for i in `getConfFilesList "${1}"`;do
-	    _IP=`cat  "${i}"|getConfValueOf "#@#IP[0]*"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#IP[0]*"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -923,10 +969,12 @@ function getSSHPORT () {
 	fi
     else
 	for i in `getConfFilesList "${1}"`;do
-	    _IP=`cat  "${i}"|getConfValueOf "#@#SSHPORT"`
-            if [ "$_IP" != "" ];then
-		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-		break;
+	    if [ -r "${i}" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#SSHPORT"`
+		if [ "$_IP" != "" ];then
+		    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		    break;
+		fi
 	    fi
 	done
     fi
@@ -959,8 +1007,10 @@ function getSSHPORT () {
 function getIPlst () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|tr "'" '"'|sed -n 's/^ *#@#IP\([0-9]*\) *= *"*\([^"]*\)"*/\1=\2/p'`;
-        [ "$_IP" != "" ]&&break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|tr "'" '"'|sed -n 's/^ *#@#IP\([0-9]*\) *= *"*\([^"]*\)"*/\1=\2/p'`;
+            [ "$_IP" != "" ]&&break;
+	fi
     done
     echo -n -e "${_IP##* }"
 }
@@ -1176,6 +1226,7 @@ function getIFlst () {
     for _mx in ${!_myMAClst[@]};do
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_myMAClst[${_mx}]=${_myMAClst[${_mx}]}";
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_myIPlst[${_mx}] =${_myIPlst[${_mx}]}";
+
 	assembleIP ${_mx};
     done
 
@@ -1187,7 +1238,7 @@ function getIFlst () {
 #	[ -n "${_myMAClst[${_mx}]// }" ]&&continue;
 	[ -n "${_myMAClst[${_mx}]// }" -o \( -z "${_myMAClst[${_mx}]// }" -a -z "${_myIPlst[${_mx}]// }" \) ]&&continue;
 
- 	printINFO 2 $LINENO $BASH_SOURCE 0 "4TEST:MATCH IP without MAC:${!_myIPlst[@]}=<${!_myIPlst[@]}>";
+ 	printINFO 2 $LINENO $BASH_SOURCE 0 "MATCH IP without MAC:${!_myIPlst[@]}=<${!_myIPlst[@]}>";
 
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH IP without MAC:_myMAClst[${_mx}]=<${_myMAClst[${_mx}]}";
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH IP without MAC:_myIPlst[${_mx}]=${_myIPlst[${_mx}]}";
@@ -1225,10 +1276,12 @@ function getIFlst () {
 function getHWCAP () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#HWCAP"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#HWCAP"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1260,10 +1313,12 @@ function getHWCAP () {
 function getHWREQ () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#HWREQ"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#HWREQ"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1295,10 +1350,12 @@ function getHWREQ () {
 function getEXECLOCATION () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#EXECLOCATION"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#EXECLOCATION"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1330,10 +1387,12 @@ function getEXECLOCATION () {
 function getRELOCCAP () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#RELOCCAP"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#RELOCCAP"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1367,10 +1426,12 @@ function getRELOCCAP () {
 function getCTYSRELEASE () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#CTYSRELEASE"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#CTYSRELEASE"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1403,10 +1464,12 @@ function getCTYSRELEASE () {
 function getGATEWAY () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#GUESTGATEWAY"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#GUESTGATEWAY"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1441,10 +1504,12 @@ function getGATEWAY () {
 function getACCELERATOR () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#INST_ACCELERATOR"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#INST_ACCELERATOR"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"
@@ -1475,10 +1540,12 @@ function getACCELERATOR () {
 function getSTARTERCALL () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "#@#STARTERCALL"`
-        if [ "$_IP" != "" ];then
-            printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
+	if [ -r "${i}" ];then
+	    _IP=`cat  "${i}"|getConfValueOf "#@#STARTERCALL"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
 	fi
     done
     echo -n -e "${_IP##* }"

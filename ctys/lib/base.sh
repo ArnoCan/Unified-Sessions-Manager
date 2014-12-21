@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -217,6 +217,8 @@ export     S_VMW=$((2#1000000000))
 export     S_XEN=$((2#10000000000))
 export      S_PM=$((2#100000000000))
 export     S_KVM=$((2#1000000000000))
+export     S_RDP=$((2#10000000000000))
+export    S_VBOX=$((2#100000000000000))
 
 #
 #ALL4all

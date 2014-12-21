@@ -29,7 +29,7 @@ ctys-beamer
    [--x11]
    [-X]
    [<bypassed-ctys-options>]
-   [--]
+   [--|--beam-this]
    <remote-command>
 
 

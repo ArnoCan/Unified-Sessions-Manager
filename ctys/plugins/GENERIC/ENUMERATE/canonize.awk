@@ -6,14 +6,13 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_1_006
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
-
 
 function ptrace(inp){
       if(!d){
@@ -330,7 +329,7 @@ title==1{
     exit;        
 }
 
-$0~/^$/||!($19~mstat){
+$0~/^$/||$19!~mstat{
     ptrace("DROPPED="$19" "$4);
     exit;
 }

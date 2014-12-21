@@ -319,7 +319,6 @@ function setVersionQEMU () {
 	QEMU_PRODVERS_QEMUKVM=$(getVersionStrgQEMUALL ${QEMUKVM})
     fi
 
-
     #####
     #1.+2.) decide which one to use
     if [ -n "${QEMU_PRODVERS_QEMUKVM}" ];then
@@ -335,7 +334,6 @@ function setVersionQEMU () {
     fi
     printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_PRODVERS_QEMUKVM  = ${QEMU_PRODVERS_QEMUKVM}"
     printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_PRODVERS_QEMUBASE = ${QEMU_PRODVERS_QEMUBASE}"
-
 
     #####
     #Prepare

@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -31,7 +31,7 @@
 
 function set-Fedora () {
     DEFAULTINSTMODE=KS;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	8)
 	    case ${C_SESSIONTYPE} in
 		XEN) set-Fedora-8-XEN;;
@@ -40,6 +40,7 @@ function set-Fedora () {
 	10)
 	    case ${C_SESSIONTYPE} in
 		XEN) set-Fedora-10-XEN;;
+		QEMU) set-Fedora-10-QEMU;;
 	    esac
 	    ;;
 	12)
@@ -56,7 +57,7 @@ function set-Fedora () {
 #DIST: Fedora-8
 #
 function set-Fedora-8-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/fedora/$R/x86_64/Fedora-$R-x86_64-DVD
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/fedora/$R/raw/isos/x86_64/Fedora-$R-x86_64-DVD.iso
     case ${ACCELERATOR} in
@@ -94,7 +95,7 @@ function set-Fedora-8-XEN () {
 #DIST: Fedora-10
 #
 function set-Fedora-10-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/fedora/$R/Fedora/x86_64/iso/Fedora-$R-x86_64-DVD
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/fedora/$R/Fedora/x86_64/iso/Fedora-$R-x86_64-DVD.iso
     case ${ACCELERATOR} in
@@ -125,6 +126,38 @@ function set-Fedora-10-XEN () {
 
 }
 
+function set-Fedora-10-QEMU () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/fedora/$R/Fedora/x86_64/iso/Fedora-$R-x86_64-DVD
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/fedora/$R/Fedora/x86_64/iso/Fedora-$R-x86_64-DVD.iso
+    case ${ACCELERATOR} in
+	QEMU)
+	    _MATCHED=1;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_KERNEL=;
+	    DEFAULT_DOMU_MODULESDIR=;
+	    DEFAULT_DOMU_INITRD=;
+
+	    DEFAULT_INST_KERNEL;
+	    DEFAULT_INST_INITRD=;
+
+	    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-Fedora-$R.ks"}
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+	    #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+
+ 	    DEFAULT_BOOTLOADER=;
+	    ;;
+	KVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=;
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER};
+	    ;;
+    esac
+
+}
+
 
 
 #*******************************************************************
@@ -132,7 +165,7 @@ function set-Fedora-10-XEN () {
 #DIST: Fedora-12
 #
 function set-Fedora-12-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/fedora/$R/x86_64/Fedora-$R-x86_64-DVD
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/fedora/$R/Fedora/x86_64/iso/Fedora-$R-x86_64-DVD.iso
     case ${ACCELERATOR} in

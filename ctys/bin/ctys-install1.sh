@@ -784,6 +784,7 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-setupVDE.sh"
 
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vmw2utils.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vboxutils.sh"
 
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-createConfVM.sh"
 

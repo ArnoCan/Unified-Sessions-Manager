@@ -747,23 +747,24 @@ else
 	echo "REPLACE mode on            : ON(1)"
     else
 	unset _replacemode;
-	echo "REPLACE mode off           : OFF(0)"
-	NEWARGS=${NEWARGS1//--stdio/}
-	if [ "${NEWARGS}" != "${NEWARGS1}" ];then
-	    _stdiomode=1;
-	    echo "STDIO mode on              : ON(1)"
-	else
-	    unset _stdiomode;
-	    echo "STDIO mode off             : OFF(0)"
-	    echo "IMPLICIT REPLACE mode on   : ON(0)"
-	    if [ -e "${_dbfilepath}" ];then
-		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "\"IMPLICIT REPLACE\" is only allowed when \"enum.fdb\" is absent,"
-		printERR $LINENO $BASH_SOURCE ${ABORT} "if you actually want to replace, choose \"--replace\""
-		gotoHell ${ABORT}
-	    fi
+	echo "IMPLICIT REPLACE mode on   : ON(0)"
+	if [ -e "${_dbfilepath}" ];then
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "\"IMPLICIT REPLACE\" is only allowed when \"enum.fdb\" is absent,"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "if you actually want to replace, choose \"--replace\""
+	    gotoHell ${ABORT}
 	fi
     fi
+fi
+
+NEWARGS1=${NEWARGS//--stdio/}
+if [ "${NEWARGS}" != "${NEWARGS1}" ];then
+    _stdiomode=1;
+    echo "STDIO mode on              : ON(1)"
+    NEWARGS=${NEWARGS1}
+else
+    unset _stdiomode;
+    echo "STDIO mode off             : OFF(0)"
 fi
 
 if [ "${_cliorg//--filecontext/}" != "${_cliorg}"  ];then
@@ -840,7 +841,7 @@ if [ -z "${_t}" ];then
     _srcpath="`echo ${_srcpath}|sed -n 's/^ *\([^ ].*[^ ]\) *$/\1/;s/  */%/g;p'`";
 
     if [ -z "${filecontext}" ];then
-	NEWARGS="-a enumerate=matchvstat:active%empty,machine${_srcpath:+,b:$_srcpath} ${NEWARGS}"
+	NEWARGS="-a enumerate=matchvstat:active%disabled%empty,machine${_srcpath:+,b:$_srcpath} ${NEWARGS}"
     else
 	NEWARGS=" ${NEWARGS}"
     fi
@@ -880,7 +881,7 @@ echo
 	${MYLIBEXECPATH}/ctys.sh ${NEWARGS}
     else
 	if [ -n "${_appendmode}" ];then
-	    ${MYLIBEXECPATH}/ctys.sh ${NEWARGS}>>${_dbfilepath}.tmp
+	    ${MYLIBEXECPATH}/ctys.sh ${NEWARGS}>${_dbfilepath}.tmp
 	    fetchedRecsRaw=$(cat ${_dbfilepath}.tmp|wc -l)
 	    fetchedRecsUnique=$(cat ${_dbfilepath}.tmp|sort -u|wc -l)
 	    sort -u ${_dbfilepath}.tmp >>${_dbfilepath}
@@ -890,6 +891,7 @@ echo
 	    sort -u ${_dbfilepath}.tmp >${_dbfilepath}
 	    fetchedRecsUnique=$(cat ${_dbfilepath}|wc -l)
 	fi
+	rm -f ${_dbfilepath}.tmp
     fi
 } 2>&1|\
 if [ -z "$_stdiomode" ];then

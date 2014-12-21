@@ -31,7 +31,7 @@
 
 function set-Solaris () {
     DEFAULTINSTMODE=KS;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	10*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-Solaris-10.606-XEN;;
@@ -47,7 +47,7 @@ function set-Solaris () {
 #DIST: Solaris-10
 #
 function set-Solaris-10.606-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/solaris/Solaris-10.606/SOL_10_606_X86
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/solaris/2sort/SOL_10_606_X86.iso
     case ${ACCELERATOR} in
@@ -69,7 +69,7 @@ function set-Solaris-10.606-XEN () {
 }
 
 function set-Solaris-10-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_BOOTLOADER=;
 
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/solaris/Solaris-10.606/SOL_10_606_X86

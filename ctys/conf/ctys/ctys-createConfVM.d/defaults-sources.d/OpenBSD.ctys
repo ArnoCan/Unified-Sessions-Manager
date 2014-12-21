@@ -31,7 +31,7 @@
 
 function set-OpenBSD () {
     DEFAULTINSTMODE=PXE;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	4.6)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-OpenBSD-4x-XEN;;
@@ -49,7 +49,7 @@ function set-OpenBSD () {
 #DIST: OpenBSD-4.6
 #
 function set-OpenBSD-4x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/OpenBSD/4.6/raw/amd64/install46/4.6/amd64/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/OpenBSD/4.6/raw/amd64/install46.iso
     ACCELERATOR=${ACCELERATOR:-HVM}
@@ -72,7 +72,7 @@ function set-OpenBSD-4x-XEN () {
 }
 
 function set-OpenBSD-4x-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_BOOTLOADER=;
     ACCELERATOR=${ACCELERATOR:-KVM}
 

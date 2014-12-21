@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
@@ -16,6 +16,89 @@
 #
 ########################################################################
 
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVBOXVMVal
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: UUID|vm-name
+#  $2: value
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVBOXVMVal () {
+    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:FName=${FName}"
+    if [ -n "${1}" -a -n "${2}" ];then
+	local _v=$(${VBOXMGR} showvminfo "$1" -machinereadable 2>/dev/null|sed -n 's/^'"${2}"'=\([^ ]\+\)/\1/p');
+	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_v=$_v"
+	echo "$_v"
+	return 0
+    fi
+    return 1
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkVBOXVMSTATE
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkVBOXVMSTATE () {
+
+    FName="${1##*/}"
+    FName="${FName%.vdi}"
+
+    DName="${1%/*}"
+    DName="${DName##*/}"
+
+    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:DName=${DName}"
+    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:FName=${FName}"
+
+    #
+    #check convention: system-hdd-prefix == contains-directory-name
+    if [ "${FName}" != "${DName}" ];then
+	return 1
+    fi
+    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME"
+
+    #
+    #check imagefile by VBoxManage
+    if [ -n "${FName}" ];then
+	local _ret=$?
+	${VBOXMGR} showvminfo $FName>/dev/null 2>/dev/null
+	_ret=$?
+	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:X=$X($_ret)"
+	return $_ret
+    fi
+    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME"
+    return 1
+}
 
 
 
@@ -41,12 +124,30 @@
 #FUNCEND###############################################################
 function getVBOXMAClst () {
     local _IP=;
-    for i in `getConfFilesList "${1}"`;do
-#	    _IP=`sed -n 's/\t//g;/^#/d;s/ethernet\([0-9]*\).address *= *"\([^"]*\)"/\1=\2/p' "${i}"`;
-	_IP=`sed -n 's/\t//g;/^#/d;s/ethernet\([0-9]*\).address *= *"\([^"]*\)"/\1=\2/p;s/ethernet\([0-9]*\).generatedAddress *= *"\([^"]*\)"/\1=\2/p' "${i}"`;
-        [ "$_IP" != "" ]&&break;
-    done
-    echo $_IP
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	local _v=$(${VBOXMGR} showvminfo -machinereadable  "$_f" 2>/dev/null|awk -F'=' '
+                 /^macaddress[0-9]*/{
+                      gsub(" ","",$2);gsub("\"","",$2);
+                      z=gsub(":",":",colsA[5]);
+                      if(z==0){
+                          new=substr($2,1,2);
+                          new=new":"substr($2,3,2);
+                          new=new":"substr($2,5,2);
+                          new=new":"substr($2,7,2);
+                          new=new":"substr($2,9,2);
+                          new=new":"substr($2,11,2);
+                      }
+                      gsub("^[^0-9]*","",$1);
+                      x=x" "$1"="new
+                 }
+                 END{print x;}
+             ');
+	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_v=$_v"
+	echo "$_v"
+	return 0
+    fi
+    return 1
 }
 
 
@@ -72,18 +173,13 @@ function getVBOXMAClst () {
 #FUNCEND###############################################################
 function getVBOXUUID () {
     local _IP=;
-    if [ -z "${1}" ];then
-	gwhich dmidecode 2>/dev/null >/dev/null
-	if [ $? == 0 ];then
-	    _IP=`dmidecode |awk '/UUID/{if(NF==2)print $2}'|sed 's/-//g'`
-	fi
-    else
-	for i in `getConfFilesList "${1}"`;do
-	    _IP=`sed -n '/uuid.bios/!d;s/[ -]//g;p' "${i}"|getConfValueOf "uuid.bios"`
-  	    [ "$_IP" != "" ]&&break;
-	done
+
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" UUID`
+	_IP=${_IP//\"/}
+	echo ${_IP##* }
     fi
-    echo ${_IP##* }
 }
 
 
@@ -109,11 +205,16 @@ function getVBOXUUID () {
 function getVBOXLABEL () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "displayName"`
-  	[ "$_IP" != "" ]&&break;
 	_IP=`cat  "${i}"|getConfValueOf "#@#LABEL"`
         [ "$_IP" != "" ]&&break;
     done
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" Name`
+        [ "$_IP" == "" ]&&_IP=`getVBOXVMVal "${_f}" name`;
+	[ "$_IP" == "" ]&&_IP="${_f}";
+    fi
+    _IP=${_IP//\"/}
     echo ${_IP##* }
 }
 
@@ -139,15 +240,46 @@ function getVBOXLABEL () {
 #FUNCEND###############################################################
 function getVBOXGUESTVCPU () {
     local _IP=;
-    for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "numvcpus"`
-  	[ "$_IP" != "" ]&&break;
-	_IP=`cat  "${i}"|getConfValueOf "#@#VCPU"`
-        [ "$_IP" != "" ]&&break;
-    done
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" cpus`
+    fi
     echo ${_IP##* }
 }
 
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVBOXGUESTARCH
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVBOXGUESTARCH () {
+    local _IP=;
+    [ -f "$1" ]&&_IP=$(getGUESTARCH $1)
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" ostype`
+	case "${_IP//\"/}" in
+	    '')_IP=;;
+	    *_64)_IP=x86_64;;
+	    *)_IP=i386;;
+	esac
+    fi
+    echo ${_IP##* }
+}
 
 
 #FUNCBEG###############################################################
@@ -170,11 +302,43 @@ function getVBOXGUESTVCPU () {
 #FUNCEND###############################################################
 function getVBOXOS () {
     local _IP=;
-    for i in `getConfFilesList "${1}"`;do
-	_IP=`sed -n 's/^[^#]*guestOS *= *"\([^"]*\)"/\1/p' "${i}"|\
-                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-  	[ "$_IP" != "" ]&&break;
-    done
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" ostype`
+	_IP=${_IP//\"/}
+	_IP=${_IP%_64}
+	_IP=${_IP%_i386}
+    fi
+    echo ${_IP##* }
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVBOXACCEL
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVBOXACCEL () {
+    local _IP=;
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" hwvirtex`
+	_IP=${_IP//\"/}
+	_IP=${_IP//on/HVM}
+	_IP=${_IP//off/}
+    fi
     echo ${_IP##* }
 }
 
@@ -200,19 +364,11 @@ function getVBOXOS () {
 #FUNCEND###############################################################
 function getVBOXVNCACCESSPORT () {
     local _IP=;
-    for i in `getConfFilesList "${1}"`;do
- 	_IP=`cat "${i}"|getConfValueOf "RemoteDisplay.vnc.port"`
-        if [ "$_IP" != "" ];then
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
-	fi
-    done
-    if [ -n "${_IP// /}" ];then
-	printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
-	echo ${_IP##* }
-        return
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" vrdpport`
     fi
-    getVNCACCESSPORT "${1}"
+    echo ${_IP##* }
 }
 
 
@@ -238,17 +394,9 @@ function getVBOXVNCACCESSPORT () {
 #FUNCEND###############################################################
 function getVBOXGUESTVRAM () {
     local _IP=;
-    for i in `getConfFilesList "${1}"`;do
-	_IP=`cat  "${i}"|getConfValueOf "memsize"`
-        if [ "$_IP" != "" ];then
-	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
-	    break;
-	fi
-    done
-    if [ -n "${_IP// /}" ];then
-	printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
-	echo ${_IP##* }
-        return
+    if [ "$_IP" == "" ];then
+	local _f=${1##*/};_f=${_f%.*}
+	_IP=`getVBOXVMVal "${_f}" memory`
     fi
-    getGUESTVRAM "${1}"
+    echo ${_IP##* }
 }

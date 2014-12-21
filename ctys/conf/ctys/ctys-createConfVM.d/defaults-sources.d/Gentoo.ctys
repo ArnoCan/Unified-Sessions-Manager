@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -31,8 +31,9 @@
 
 function set-Gentoo () {
     DEFAULTINSTMODE=CD;
-    case ${RELEASE} in
-	2008.0-r1)
+    case ${DISTREL} in
+#	2008.0-r1)
+	2008.0*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-gentoo-2008x-XEN;;
 		QEMU) set-gentoo-2008x-QEMU;;
@@ -49,7 +50,7 @@ function set-Gentoo () {
 #
 #
 function set-gentoo-2008x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/gentoo/install-amd64-minimal-2008.0-r1/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/gentoo/install-amd64-minimal-2008.0-r1.iso
     case ${ACCELERATOR} in
@@ -82,12 +83,12 @@ function set-gentoo-2008x-QEMU () {
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
-	HVM)
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.

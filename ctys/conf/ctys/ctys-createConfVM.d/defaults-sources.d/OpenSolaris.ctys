@@ -31,7 +31,7 @@
 
 function set-OpenSolaris () {
     DEFAULTINSTMODE=KS;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	2009.6)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-OpenSolaris-2009.6-XEN;;
@@ -47,7 +47,7 @@ function set-OpenSolaris () {
 #DIST: OpenSolaris-2009.6
 #
 function set-OpenSolaris-2009.6-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/opensolaris/2009.6/isos/osol-0906-ai-x86/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/opensolaris/2009.6/isos/osol-0906-ai-x86.iso
     case ${ACCELERATOR} in
@@ -69,7 +69,7 @@ function set-OpenSolaris-2009.6-XEN () {
 }
 
 function set-OpenSolaris-2009.6-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_BOOTLOADER=;
 
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64}

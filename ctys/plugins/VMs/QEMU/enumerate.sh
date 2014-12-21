@@ -64,6 +64,7 @@ function enumerateMySessionsQEMU () {
  	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing base for search: Check your path/file call-parameters.";
 	gotoHell ${ABORT}
     fi
+
     function getGUESTVRAM_QEMU () {
 	local _IP=;
 	for i in `getConfFilesList "${1}"`;do
@@ -286,7 +287,7 @@ function enumerateMySessionsQEMU () {
 			A[4]=${i3%%\%*};i3=${i3#*\%};
 			A[5]=${i3%%\%*};
 
-			local _macCheck=$(${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} "${A[0]};")
+			local _macCheck=$(${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} "${A[0]}\\;")
 			local _ipCheck=${_macCheck##*;}
 			_macCheck=${_macCheck#*;};_macCheck=${_macCheck%;*};_macCheck=$(echo $_macCheck|tr 'a-z' 'A-Z');
 

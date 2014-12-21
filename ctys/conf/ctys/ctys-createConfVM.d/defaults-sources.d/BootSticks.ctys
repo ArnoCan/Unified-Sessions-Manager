@@ -43,7 +43,7 @@ function set-BootSticks () {
 
     ARCH=i386
 
-    case ${RELEASE} in
+    case ${DISTREL} in
 	Balder4BIOS)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-Balder4BIOS-XEN;;
@@ -60,7 +60,7 @@ function set-BootSticks () {
 #DIST: Balder4BIOS
 #
 function set-Balder4BIOS-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${DEFAULT_REPOSITORY_URL_MISCOS_BASE}/Balder/1.0/raw/balder10.img
 
@@ -83,7 +83,7 @@ function set-Balder4BIOS-XEN () {
 }
 
 function set-Balder4BIOS-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_BOOTLOADER=;
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${DEFAULT_REPOSITORY_URL_MISCOS_BASE}/Balder/1.0/raw/balder10.img

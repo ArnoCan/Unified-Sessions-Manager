@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -32,7 +32,7 @@
 
 function set-Mandriva () {
     DEFAULTINSTMODE=CD;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	2009*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-mandriva-2009x-XEN;;
@@ -56,7 +56,7 @@ function set-Mandriva () {
 #
 #
 function set-mandriva-2009x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/mandriva/2009/mandriva-linux-free-2009-dual-arch
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/mandriva/2009/raw/isos/mandriva-linux-free-2009-dual-arch.iso
     case ${ACCELERATOR} in
@@ -105,7 +105,7 @@ function set-mandriva-2009x-QEMU () {
 #
 #
 function set-mandriva-2010x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/mandriva/2010/mandriva-linux-free-2010-dual-arch
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/mandriva/2010/raw/isos/mandriva-linux-free-2010-dual-arch.iso
     case ${ACCELERATOR} in
@@ -134,12 +134,12 @@ function set-mandriva-2010x-QEMU () {
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
-	HVM)
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.

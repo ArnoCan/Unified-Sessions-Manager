@@ -80,8 +80,8 @@ fi
 #For products with combined start the server-wait+client-wait is performed.
 #
 #Timeout after execution of client/server.
-VBOX_INIT_WAITC=${VBOX_INIT_WAITC:-0}
-VBOX_INIT_WAITS=${VBOX_INIT_WAITS:-0}
+VBOX_INIT_WAITC=${VBOX_INIT_WAITC:-3}
+VBOX_INIT_WAITS=${VBOX_INIT_WAITS:-3}
 
 
 #
@@ -107,44 +107,3 @@ _stackChkHWCapVBOX=1;
 _stackChkStacCapVBOX=1:
 
 
-
-
-################################################################
-################################################################
-#
-#Version-2x-pre-settings
-#
-################################################################
-################################################################
-#
-#Only local connections are supported, anything else than SSH should be rejected...
-#
-case ${MYDIST} in
-    debian)
-	case ${MYREL} in
-	    5.0)
-                #
-		#KEEP4REMINDER:
-		#
-                #Due to some firefox restrictions in default install somewhat inconsequent,
-                #but for local conns only!
-                #
-                #May help the initial intro into the market - a little.
-                #
-		#CTYS_VBOX_S2_ACCESS_HOST=${CTYS_VBOX_S2_ACCESS_HOST:-http://127.0.0.1:8222/sdk}
-		#CTYS_VBOX_VMRC_ACCESS_HOST=${CTYS_VBOX_VMRC_ACCESS_HOST:-127.0.0.1:8222}
-
-		#
-                #solution is simply to delete the file '/etc/pam.d/vmware-authd'
-		#seems to work now!
-                #
-		CTYS_VBOX_S2_ACCESS_HOST=${CTYS_VBOX_S2_ACCESS_HOST:-http://localhost:8333/sdk}
-		CTYS_VBOX_VMRC_ACCESS_HOST=${CTYS_VBOX_VMRC_ACCESS_HOST:-localhost:8333}
-		;;
-	esac
-	;;
-    *)
-	CTYS_VBOX_S2_ACCESS_HOST=${CTYS_VBOX_S2_ACCESS_HOST:-https://localhost:8333/sdk}
-	CTYS_VBOX_VMRC_ACCESS_HOST=${CTYS_VBOX_VMRC_ACCESS_HOST:-localhost:8333}
-	;;
-esac

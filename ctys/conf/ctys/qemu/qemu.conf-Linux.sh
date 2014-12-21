@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -170,7 +170,6 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/bin`
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/libexec`
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /opt/qemu/bin`
-
 
 
             #
@@ -583,9 +582,11 @@ _stackChkStacCapQEMU=1:
 
 
 #
-#Basic version 
+#Basic version - compatibility has default priority.
+#QEMU=${QEMUBASE};
 #
-QEMU=${QEMUBASE};
+#For performance as default priority.
+QEMU=${QEMUKVM:-$QEMUBASE};
 
 #
 #For additional versions

@@ -32,7 +32,7 @@
 
 function set-Ubuntu () {
     DEFAULTINSTMODE=CD;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	8.04)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-ubuntu-804-XEN;;
@@ -56,7 +56,7 @@ function set-Ubuntu () {
 #
 #
 function set-ubuntu-804-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/ubuntu/8.04/amd64/ubuntu-8.04.4-desktop-amd64/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/ubuntu/8.04/raw/isos/amd64/ubuntu-8.04.4-desktop-amd64.iso
     case ${ACCELERATOR} in
@@ -115,7 +115,7 @@ function set-ubuntu-804-QEMU () {
 #
 #
 function set-ubuntu-910-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/ubuntu/$R/amd64/ubuntu-$R-desktop-amd64
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/ubuntu/$R/raw/isos/amd64/ubuntu-$R-desktop-amd64.iso
     case ${ACCELERATOR} in
@@ -149,7 +149,7 @@ function set-ubuntu-910-XEN () {
 }
 
 function set-ubuntu-910-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/ubuntu/$R/amd64/ubuntu-$R-desktop-amd64
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/ubuntu/$R/raw/isos/amd64/ubuntu-$R-desktop-amd64.iso
     DEFAULT_BOOTLOADER=;

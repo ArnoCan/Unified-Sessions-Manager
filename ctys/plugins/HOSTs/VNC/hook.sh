@@ -88,7 +88,7 @@ function getFirstFreeVNCPort () {
     local MAX=$2;
     [ -z "$MAX" ]&&let MAX=MIN+1000;
     local _seed=$((RANDOM%VNCPORTSEED));
-    doDebug $S_XEN  ${D_MAINT} $LINENO $BASH_SOURCE
+    doDebug $S_VNC  ${D_MAINT} $LINENO $BASH_SOURCE
     local D=$?
 
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MIN=${MIN} MAX=${MAX} seed=${_seed}"

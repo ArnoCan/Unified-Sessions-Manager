@@ -487,6 +487,9 @@ function setVersionVMW () {
 		VMW_STATE=DISABLED
 		printWNG 2 $LINENO $BASH_SOURCE 0 "'Remote Console' plugin is present without Server installation."
 		printWNG 2 $LINENO $BASH_SOURCE 0 "For now console is supported in DISPLAYFORWARDING only."
+
+		#temporary - replace with client-only!
+		VMW_MAGIC=VMW_GENERIC;
 	    fi
 	    ;;
 

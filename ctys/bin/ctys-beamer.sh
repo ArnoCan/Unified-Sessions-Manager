@@ -499,7 +499,7 @@ function beamMeUp () {
 function resolveTunnels () {
     function strucPrint () {
 	if [ xA == A ];then
-	    printf "%-"$((_loopcnt*4))"s%s\n" " " "$*" >&2
+	    printf "SSH-TUNNEL:%-"$((_loopcnt*4))"s%s\n" " " "$*" >&2
 	fi
     }
     local _resolved=$1;shift
@@ -512,8 +512,8 @@ function resolveTunnels () {
     if((_loopcnt++>10));then exit 1;fi
 
     strucPrint ""
-    strucPrint "4TEST:$_loopcnt:>>>>>>>>>>>>>>>><"
-    strucPrint "4TEST:\$*=$*"
+    strucPrint "$_loopcnt:>>>>>>>>>>>>>>>><"
+    strucPrint "\$*=$*"
 
     if [ -n "${_nextpath}" -a "${_nextpath#*@}" != localhost ];then
 	_hx=${_nextpath};

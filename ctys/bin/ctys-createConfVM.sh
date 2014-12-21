@@ -842,8 +842,13 @@ function getValues () {
     printOut
     printOut
     printOut "${_prefix1}""Current version supports the interactive creation of"
-    printOut "${_prefix1}"$(setSeverityColor TRY "Single-Interface-Configurations only.")" Thus the first"
-    printOut "${_prefix1}""interface from the vmx-file is recognized only."
+    printOut "${_prefix1}"$(setSeverityColor TRY "Single-Interface-Configurations only.")
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printOut "${_prefix1}"" Thus the first"
+	    printOut "${_prefix1}""interface from the vmx-file is recognized only."
+	    ;;
+    esac
     printOut "${_prefix1}""Multiple interfaces require manual modification"
     printOut "${_prefix1}""of created configuration files."
     printOut
@@ -959,7 +964,7 @@ function getValues () {
     printOut "${_prefix1}""E.g. 172.20.6.205"
     echo 
     if [ -z "${IP}" ];then
-	local IPx=$([ -n "${MAC}" ]&&ctys-macmap -i ${MAC})
+	local IPx=$([ -n "${MAC}" ]&&ctys-macmap -u -i $(echo ${MAC}|tr 'a-z' 'A-Z'))
 	local _ix=;
 	local _nx=0;
 	for _ix in $IPx;do let _nx++;done
@@ -1100,7 +1105,7 @@ function getValues () {
     printOut "${_prefix1}""The distributions release of GuestOS."
     printOut "${_prefix1}""E.g. 5.4"
     echo
-    getAttrVal RELEASE "${RELEASE:-$MYREL}" OPTIONAL "${_prefix1}"
+    getAttrVal DISTREL "${DISTREL:-$MYREL}" OPTIONAL "${_prefix1}"
     echo
 
     echo -e -n "${_prefix0}"
@@ -1113,12 +1118,12 @@ function getValues () {
     echo
 
     echo -e -n "${_prefix0}"
-    setFontAttrib BOLD "OSVERSION";
+    setFontAttrib BOLD "OSREL";
     echo "($((_idx++))/${_sum})";
     printOut "${_prefix1}""Version of GuestOS"
     printOut "${_prefix1}""E.g. 2.6.18-128.el5"
     echo
-    getAttrVal OSVERSION "${OSVERSION:-$MYOSREL}" OPTIONAL "${_prefix1}"
+    getAttrVal OSREL "${OSREL:-$MYOSREL}" OPTIONAL "${_prefix1}"
     echo
 
     case ${C_SESSIONTYPE} in
@@ -1128,7 +1133,7 @@ function getValues () {
 	    echo -e -n "${_prefix0}"
 	    setFontAttrib BOLD "STARTERCALL";
 	    echo "($((_idx++))/${_sum})";
-	    printOut "${_prefix1}""The default call-variant for xen"
+	    printOut "${_prefix1}""The default call-variant"
 	    STARTERCALL=${STARTERCALL:-$DEFAULTSTARTERCALL};
 	    echo
 	    getAttrVal STARTERCALL "${STARTERCALL// /}" OPTIONAL "${_prefix1}"
@@ -1137,7 +1142,7 @@ function getValues () {
 	    echo -e -n "${_prefix0}"
 	    setFontAttrib BOLD "WRAPPERCALL";
 	    echo "($((_idx++))/${_sum})";
-	    printOut "${_prefix1}""The default wrapper-call for all xen calls."
+	    printOut "${_prefix1}""The default wrapper-call for all calls."
 	    printOut "${_prefix1}""This value should be kept if unsure."
 	    printOut "${_prefix1}""For current versions the 'future obsolation message'"
 	    printOut "${_prefix1}""could be ignored safely."
@@ -1208,12 +1213,13 @@ function getValues () {
 	    setFontAttrib BOLD "ACCELERATOR";
 	    echo "($((_idx++))/${_sum})";
 	    printOut "${_prefix1}""Set preference for accellerator support, default is"
-	    printOut "${_prefix1}""paravirtualization."
+	    printOut "${_prefix1}""\"fastest\"."
 	    echo
 	    printOut "${_prefix1}""Values: 'QEMU', 'KQEMU', or 'KVM'"
 	    echo
+
 	    if [ -z "${ACCELERATOR}" ];then
-		ACCELERATORinfo=$(getACCELLERATOR_QEMU)
+		ACCELERATORinfo=$(getACCELLERATOR_QEMU $QEMU)
 	    else
 		ACCELERATORinfo=${ACCELERATOR}
 
@@ -1587,7 +1593,7 @@ function getValues () {
 			    echo
 			    ;;
 		    esac
-
+		    echo
 		    case ${C_SESSIONTYPE} in
 			XEN)
 			    case ${ACCELERATOR} in
@@ -1780,11 +1786,7 @@ function displaySystemValues () {
 	    echo "${_prefix1}""MAGICID                        = ${QEMUBASE_MAGICID}"
 	    QEMUBASE_HYPERREL=$(getVersionStrgQEMUALL ${QEMUBASE})
 	    echo "${_prefix1}""HYPERREL-QEMU                  = ${QEMUBASE_HYPERREL}"
-	    if [ -z "${ACCELERATOR}" ];then
-		QEMUBASE_ACCELERATOR=$(getACCELLERATOR_QEMU ${QEMUBASE})
-	    else
-		QEMUBASE_ACCELERATORinfo=${ACCELERATOR}           
-	    fi
+	    QEMUBASE_ACCELERATOR=$(getACCELLERATOR_QEMU ${QEMUBASE})
 	    echo "${_prefix1}""HYPERREL-QEMU-ACCLERATOR       = ${QEMUBASE_ACCELERATOR}"
 
 	    echo
@@ -1793,11 +1795,7 @@ function displaySystemValues () {
 	    echo "${_prefix1}""MAGICID                        = ${QEMUKVM_MAGICID}"
 	    QEMUKVM_HYPERREL=$(getVersionStrgQEMUALL ${QEMUKVM})
 	    echo "${_prefix1}""HYPERREL-KVM                   = ${QEMUKVM_HYPERREL}"
-	    if [ -z "${ACCELERATOR}" ];then
-		QEMUKVM_ACCELERATOR=$(getACCELLERATOR_QEMU ${QEMUKVM})
-	    else
-		QEMUKVM_ACCELERATORinfo=${ACCELERATOR}           
-	    fi
+	    QEMUKVM_ACCELERATOR=$(getACCELLERATOR_QEMU ${QEMUKVM})
 	    echo "${_prefix1}""HYPERREL-KVM-ACCLERATOR        = ${QEMUKVM_ACCELERATOR}"
 	    ;;
     esac
@@ -1822,9 +1820,9 @@ function displaySystemValues () {
     echo "${_prefix1}""FS                             = ${FSinfo//\%/ }"
     echo 
     echo "${_prefix1}""DISTRIBUTION                   = ${DIST:-$MYDIST}"
-    echo "${_prefix1}""RELEASE                        = ${RELEASE:-$MYREL}"
+    echo "${_prefix1}""RELEASE                        = ${DISTREL:-$MYREL}"
     echo "${_prefix1}""OS                             = ${OS:-$MYOS}"
-    echo "${_prefix1}""OS-RELEASE                     = ${OSVERSION:-$MYOSREL}"
+    echo "${_prefix1}""OS-RELEASE                     = ${OSREL:-$MYOSREL}"
     echo 
     case ${C_SESSIONTYPE} in
 	XEN)
@@ -1868,9 +1866,9 @@ function displayValues () {
     echo "${_prefix1}""MYOSREL                        = $MYOSREL"
     echo
     echo "${_prefix1}""DIST                           = $DIST"
-    echo "${_prefix1}""RELEASE                        = $RELEASE"
+    echo "${_prefix1}""DISTREL                        = $DISTREL"
     echo "${_prefix1}""OS                             = $OS"
-    echo "${_prefix1}""OSVERSION                      = $OSVERSION"
+    echo "${_prefix1}""OSREL                          = $OSREL"
     echo
     echo "${_prefix1}""CONF-FILE                      = ${IDDIR}/${LABEL}.ctys"
     case ${C_SESSIONTYPE} in
@@ -1992,12 +1990,12 @@ function displayValues () {
 	    echo "${_prefix1}""QEMUBASE                       = ${QEMUBASE}"
 	    echo "${_prefix1}""MAGICID                        = ${QEMUBASE_MAGICID}"
 	    echo "${_prefix1}""HYPERREL-QEMU                  = ${QEMUBASE_HYPERREL}"
-	    echo "${_prefix1}""HYPERREL-QEMU-ACCLERATOR       = ${QEMUBASE_ACCELERATOR}"
+	    echo "${_prefix1}""HYPERREL-QEMU-ACCELERATOR      = ${QEMUBASE_ACCELERATOR}"
 	    echo
 	    echo "${_prefix1}""QEMUKVM                        = ${QEMUKVM}"
 	    echo "${_prefix1}""MAGICID                        = ${QEMUKVM_MAGICID}"
 	    echo "${_prefix1}""HYPERREL-KVM                   = ${QEMUKVM_HYPERREL}"
-	    echo "${_prefix1}""HYPERREL-KVM-ACCLERATOR        = ${QEMUKVM_ACCELERATOR}"
+	    echo "${_prefix1}""HYPERREL-KVM-ACCELERATOR       = ${QEMUKVM_ACCELERATOR}"
 	    ;;
     esac
     case ${C_SESSIONTYPE} in
@@ -2287,8 +2285,8 @@ function exchangeMARKER () {
 	       gsub("MARKER_GATEWAY",                      "'"${GATEWAY}"'"                      );
 	       gsub("MARKER_BRIDGE",                       "'"${BRIDGE}"'"                       );
 	       gsub("MARKER_DIST",                         "'"${DIST}"'"                         );
-	       gsub("MARKER_RELEASE",                      "'"${RELEASE}"'"                      );
-	       gsub("MARKER_OSREL",                        "'"${OSVERSION}"'"                    );
+	       gsub("MARKER_RELEASE",                      "'"${DISTREL}"'"                      );
+	       gsub("MARKER_OSREL",                        "'"${OSREL}"'"                    );
 	       gsub("MARKER_OS_",                          "'"${OS}"'"                           );
 	       gsub("MARKER_ARCH",                         "'"${ARCH}"'"                         );
 	       gsub("MARKER_MEMSIZE",                      "'"${MEMSIZE}"'"                      );
@@ -3188,9 +3186,9 @@ function fListEnvVarOptions () {
 
     echo
     printIt FGREEN DIST "${DIST:-$MYDIST (h)}"
-    printIt FGREEN RELEASE "${RELEASE:-$MYREL (h)}"
+    printIt FGREEN DISTREL "${DISTREL:-$MYREL (h)}"
     printIt FGREEN OS "${OS:-$MYOS (h)}"
-    printIt FGREEN OSVERSION "${OSVERSION:-$MYOSREL (h)}"
+    printIt FGREEN OSREL "${OSREL:-$MYOSREL (h)}"
     echo
     printIt FGREEN ARCH "${ARCH:-$(getCurArch.sh) (h)}"
 

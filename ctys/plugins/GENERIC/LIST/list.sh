@@ -94,7 +94,7 @@ function listProcesses () {
             ;;
 	*)
 	    ABORT=2
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unknown SCOPE={tmpScope}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unknown SCOPE=${tmpScope}"
 	    gotoHell ${ABORT}
 	    ;;
     esac
