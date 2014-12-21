@@ -1,5 +1,14 @@
-TARGET_OS        = Linux: CentOS/RHEL, Fedora, SuSE/openSUSE, debian, Ubuntu 
-                   BSD:   OpenBSD
-TARGET_VM        = VMware, Xen, QEMU
-TARGET_WM        = X11, Gnome, fvwm
+TARGET_OS        = Linux:   CentOS/RHEL, Fedora, ScientificLinux,
+                            debian, Ubuntu,
+                            (gentoo,) mandriva,
+                            (knoppix,) (dsl,)
+                            SuSE/openSUSE
+                   BSD:     OpenBSD, FreeBSD
+                   Solaris: Solaris-10, OpenSolaris
+                   Windows: (WNT/Cygwin), (W2K/Cygwin), (WXP/Cygwin), 
+                            (W2Kx/Cygwin)
+
+TARGET_VM        = KVM, (OpenVZ), QEMU, (VirtualBox,) VMware, Xen
+TARGET_WM        = fvwm, Gnome, (KDE,) X11
+
 GUEST_OS         = ANY(some with limited native-acces support)

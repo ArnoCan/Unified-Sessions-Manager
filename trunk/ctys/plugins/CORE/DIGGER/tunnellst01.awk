@@ -72,6 +72,27 @@ BEGIN{
         #jobid
         gsub("-",":",$12)
         reslst=reslst";"$12;
+        gsub(" ","",reslst)
+        #ifname
+        reslst=reslst";";
+
+        #reserved
+        reslst=reslst";";
+
+        #contextstrg
+        reslst=reslst";";
+
+        #exepath
+        reslst=reslst";";
+
+        #hyperrelrun
+        reslst=reslst";";
+
+        #accellerator
+        reslst=reslst";";
+
+        #arch
+        reslst=reslst";";
 
         printf("%s ",reslst);
         ptrace("output=<"reslst">");

@@ -7,11 +7,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a13
+#VERSION:      01_10_013
 #
 ########################################################################
 #
-# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@
 #VNCbasePort(10);
 #
 F_PM        = 1_PM_15
-F_STYPE     = 2_stype_10
+F_STYPE     = 2_stype_8
 F_LABEL     = 3_label_10
 F_ID        = 4_ID_25_L
 F_UUID      = 5_UUID_32
@@ -71,7 +71,13 @@ F_GID       = 13_gid_8
 F_CST       = 14_cst_1
 F_JOBID     = 15_jobid_30
 
-
+F_RESERVED0 = 16_res0_4
+F_RESERVED1 = 17_res1_4
+F_CONTEXTSTRG = 18_context_20
+F_EXECPATH    = 19_exepath_20
+F_HYPERRELRUN = 20_hyprel_10
+F_ACCELLERATOR = 21_accel_5
+F_ARCH        = 22_arch_5
 ##########################################################
 #
 #Specific additional MACROS for ENUMERATE
@@ -128,9 +134,9 @@ F_EXECLOC   = 25_execloc_15
 F_RELOCCAP  = 26_reloccap_8
 F_SSHPORT   = 27_SSH_5
 F_NETNAME   = 28_netname_16
-F_RSRV7     = 29_r_1
-F_RSRV8     = 30_r_1
-F_RSRV9     = 31_r_1
+F_HYRREL    = 29_rhyper_5
+F_ACCEL     = 30_accel_5
+F_EXEP      = 31_exepath_20
 F_RSRV10    = 32_r_1
 F_IFNAME    = 33_if_7
 F_CTYSREL   = 34_CTYSrel_10
@@ -150,11 +156,11 @@ F_STACKREQ1  = 22_StackReq_30_B
 
 ##########################################################
 #
-#DEFAULT for ctys-vhost, when no "-o" option is selected.
-#Change this carefully, otherwise ctys-vhost might come 
+#DEFAULT for ctys-vhost.sh, when no "-o" option is selected.
+#Change this carefully, otherwise ctys-vhost.sh might come 
 #into trouble.
 #
-TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_IFNAME%%macro:F_TCP
+TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_ACCEL%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_IFNAME%%macro:F_TCP
 
 listdefault=-a list=macro:TAB_CTYS_VHOST_DEFAULT
 ldefault=-a list=macro:TAB_CTYS_VHOST_DEFAULT
@@ -288,7 +294,7 @@ vid=-o macro:TAB_ENUMLIST_ID
 #
 # LABEL STYPE  JOBID PID UID GID
 #
-TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_CST%%macro:F_JOBID%%macro:F_PID%%macro:F_UID%%macro:F_GID
+TAB_LST_JOBS=tab_gen:3_label_20%%macro:F_PM%%macro:F_STYPE%%macro:F_ACCELLERATOR%%macro:F_CST%%macro:F_JOBID%%macro:F_PID%%macro:F_UID%%macro:F_GID
 
 jobs=macro:TAB_LST_JOBS
 listjobs=-a list=macro:TAB_LST_JOBS

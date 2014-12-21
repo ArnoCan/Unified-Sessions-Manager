@@ -32,6 +32,8 @@ BEGIN{
 }
 
 {
+    ptrace("input=\"" $0 "\"");
+
     curEntry="";
     #
     #reminder:4tst

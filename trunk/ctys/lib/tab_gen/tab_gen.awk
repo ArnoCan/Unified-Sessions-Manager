@@ -6,11 +6,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a09
+#VERSION:      01_10_013
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -38,8 +38,11 @@ BEGIN{
         if(colsA[i]!~/^$/){
             recnum=split(colsA[i],record,"_");
             fieldsA[i]=record[1];
-            titlesA[i]=record[2];
-            widthsA[i]=record[3];
+            if(record[2]!="")titlesA[i]=record[2];
+            else titlesA[i]=record[1];
+
+            if(record[3]!=0)widthsA[i]=record[3];
+            else widthsA[i]=10;
             cutPolicyA[i]=record[4];
         }
     }
@@ -60,10 +63,10 @@ titleidx!=0{
     for(i=1;i<=colnum;i++){
         formstrg="%-"widthsA[i]"s";
         if(i<colnum)formstrg=formstrg"|";
-        titlestrg=titlestrg""sprintf(formstrg,substr(titlesA[i],0,widthsA[i]));
-        idxstrg=idxstrg""sprintf(formstrg,substr(i"("fieldsA[i]")",0,widthsA[i]));
+        titlestrg=titlestrg""sprintf(formstrg,substr(titlesA[i],1,widthsA[i]));
+        idxstrg=idxstrg""sprintf(formstrg,substr(i"("fieldsA[i]")",1,widthsA[i]));
 
-        tabline=tabline""substr(x,0,widthsA[i]);
+        tabline=tabline""substr(x,1,widthsA[i]);
         if(i<colnum)tabline=tabline"+";
     }
     print titlestrg;
@@ -79,9 +82,9 @@ title==1{
     for(i=1;i<=colnum;i++){
         formstrg="%-"widthsA[i]"s";
         if(i<colnum)formstrg=formstrg"|";
-        titlestrg=titlestrg""sprintf(formstrg,substr(titlesA[i],0,widthsA[i]));
+        titlestrg=titlestrg""sprintf(formstrg,substr(titlesA[i],1,widthsA[i]));
 
-        tabline=tabline""substr(x,0,widthsA[i]);
+        tabline=tabline""substr(x,1,widthsA[i]);
         if(i<colnum)tabline=tabline"+";
     }
     print titlestrg;

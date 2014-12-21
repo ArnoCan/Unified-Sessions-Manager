@@ -146,8 +146,8 @@ F_USTRG     = 43_UserStrg_20
 
 ##########################################################
 #
-#DEFAULT for ctys-vhost, when no "-o" option is selected.
-#Change this carefully, otherwise ctys-vhost might come 
+#DEFAULT for ctys-vhost.sh, when no "-o" option is selected.
+#Change this carefully, otherwise ctys-vhost.sh might come 
 #into trouble.
 #
 TAB_CTYS_VHOST_DEFAULT=tab_gen:macro:F_LABEL%%macro:F_STYPE%%macro:F_DIST%%macro:F_DISTREL%%macro:F_OS%%macro:F_OSREL%%macro:F_PM%%macro:F_TCP

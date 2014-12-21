@@ -1,0 +1,319 @@
+.TH "ctys-install" 1 "Feb, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-install - base interface for installation and update\fR
+
+.SH SYNTAX
+.P
+\fBctys-install\fR 
+
+
+   [libdir=<default=\$HOME/lib>]
+   [bindir=<default=\$HOME/bin>]
+   [templatedir=<default=\$HOME/ctys>]
+   [remove<default=unset>]
+   [noconf<default=unset>]
+   [force<default=unset>]
+   [forceall<default=unset>]
+   [forceclean<default=unset>]
+   [linkonly<default=unset>]
+   [version|--version|-V]
+
+   [-h]
+   [-H <help-options>]
+   [-X]
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-install\fR is the base interface for installation and
+update. For the common tasks \fBctys\-distribute\fR should be preferred,
+which has a more straight forward interface.
+
+.P
+"ctys\-install" is used internally by "ctys\-distribute" with some
+detailed options. Therefore several call options are provided on a
+level of higher granularity.
+"ctys\-install" itself makes sub\-calls of "ctys\-install1", which is
+only foreseen to be called by the user via wrapper scripts.
+
+.TP
+\fBinitial install \- common paths\fR
+The "initial install" has no specific options, just the generic
+options for redefinition of install paths are available.
+
+.TP
+\fBupdate\fR
+The options force, foceall, and forceclean are particularly available
+for protection or deletion of present user specific configuration
+files.
+
+.TP
+\fBcommon sources \- symbolic links\fR
+The "linkonly" option forces the installation of symbolic links
+pointing to the actual location of the called "ctys\-install"
+directories and executables instead of performing a full scale install
+by copy.
+
+The usage of symbolic links for each executable has particularly
+advantages for "quick\-installs" and test purposes when used in
+combination with a commmon directory structure on all machines by NFS.
+Thus multiple user accounts on multiple virtual and physical machines
+could be used for access to modified versions without requiring an
+update.
+
+The required configuration and template directories are still copied
+to the user's home for further modification.
+Several configuration files are initially present only as defaults
+within the resulting install directory and has to be copied by the
+user when required to be altered.
+
+.P
+The following combinations of call options for install cover the
+common install procedures.
+
+.TP
+\fBIndividual Install\fR
+Installs by copy of configurations and local lib\-subdirectory
+containing the copy of installed version.
+
+.TP
+
+\fBctys\\-install\fR
+The basic and initial call, when a complete local copy is required.
+
+.TP
+
+\fBctys\\-install force\fR
+Suppresses the version check, which by default allows for updates
+with "higher" version numbers only.
+Thus the current version will be installed independetly of the previous.
+
+.TP
+
+\fBctys\\-install forceall\fR
+When previous configuration or templates are present, by default the
+installation is canceled with a notification.
+When FORCEALL is set, the present directories are moved to a backup directoy
+by appending the current date to the directory name.
+
+The caution in handling this directories is due to the fact, that
+the configuration directories contain the individually edited
+configuratiob, GROUP and MACRO files, and the generated cacheDB
+files.
+
+.TP
+
+\fBctys\\-install forceclean\fR
+The option FORCECLEAN forces the previous deletion of installed
+componnents, no backups are created.
+
+.TP
+\fBCentralized Install by Local Symbolic Links\fR
+Installs a copy of configurations and creates symbolic 
+links to the install sources.
+
+.TP
+
+\fBctys\\-install linkonly\fR
+The basic and initial call, where locall symbolic links and a
+minimal copy of configuration and template files is created.
+The actual runtime system is just called by symbolic links, where
+for each executable an individual link is created by default in 
+"$HOME/bin".
+
+.RS
+.IP \(bu 3
+\fBctys\-install linkonly force\fR
+See "ctys\-install force"
+
+.IP \(bu 3
+\fBctys\-install linkonly forceall\fR
+See "ctys\-install forceall"
+
+.IP \(bu 3
+\fBctys\-install linkonly forceclean\fR
+See "ctys\-install forceclean"
+.RE
+
+.RS
+.IP \(bu 3
+Centralized Install by Search PATH
+Just install to any target, either by copy or by linkonly, and set the
+PATH as required.
+.RE
+
+.TP
+\fBctys\-install1\fR
+Internal call for ctys\-install.
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-install\fR 
+
+.TP
+\fBlibdir\fR
+The root path for the physical install target. The actual physical
+install is handled by a name including the current version in a
+similar manner as shared libraries naming convention.
+.nf
+  DEFAULT=$HOME/lib
+.fi
+
+
+.TP
+\fB[bindir=<default=$HOME/bin>]\fR
+The path to the starter directory, which is contained in the PATH variable.
+
+.TP
+
+Symbolic link:
+.nf
+  $bindir/ctys -> $libdir/ctys.<version>/bin/ctys
+.fi
+
+.TP
+
+Bootstrap file:
+.nf
+  $bindir/bootstrap/bootstrap.<version>
+.fi
+
+
+.TP
+\fB[templatedir=<default=$HOME/ctys>]\fR
+Directory to templates and test\-data matching current version. When an
+emtpy string is set, the install is suppressed, and the templates are
+contained within the libdir only. 
+
+.TP
+\fB[remove<default=unset>]\fR
+Removes previous configuration and templates.
+
+.TP
+\fB[noconf<default=unset>]\fR
+Suppresses the install of initial configuration files. Could be
+somewhat dangerous, because some essential parameters are stored
+within the configuration and should match the executed version.
+
+.TP
+\fB[force<default=unset>]\fR
+Checks "ctys \-V \-X" alphabetically/literally, normally only updates
+are allowed, but force installs in any case.
+Current users configuration director $HOME/.ctys will be left
+unchanged.
+
+.TP
+\fB[forceall<default=unset>]\fR
+Checks "ctys \-V \-X" alphebetically/literally, normally only updates
+are allowed, but forceall installs in any case. Anything, else than
+users configuration directory $HOME/.ctys, will be removed and
+installed again. The users current configuration will be moved to
+$HOME/.ctys.bak.${DATETIME}.
+
+.TP
+\fB[forceclean<default=unset>]\fR
+Checks "ctys \-V \-X" alphebetically/literally, normally only updates
+are allowed, but force installs in any case. Anything, including
+current users configuration directory $HOME/.ctys, will be removed and
+installed again.
+
+.TP
+\fB[linkonly<default=unset>]\fR
+Suppress the local copy to  $HOME/lib directory, just appropriate
+symbolic links are set to the given source directory determined by
+this call. Anyhow, the configuration is copied and/or preserved as
+usual.
+
+.TP
+\fB[version|\-\-version|\-V]\fR
+
+.TP
+\fB[\-X]\fR
+
+.TP
+\fB[help|\-\-help|\-help|\-h]\fR
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+ffs.
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(7)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-distribute(1)\fR, \fIctys\-genmconf(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vhost(1)\fR
+
+.TP
+\fBsystem executables\fR
+ffs.
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL for license conditions,
+.RE
+
+.P
+This document is created with: latex and text2tags
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-install.t2t -o /tmpn/0/ctys/bld/01.11.001/doc-tmp/BASE/en/man/man1/ctys-install.1
+

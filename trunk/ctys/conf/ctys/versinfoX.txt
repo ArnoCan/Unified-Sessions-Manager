@@ -1,7 +1,7 @@
 NOW
-  TARGET_OS      = Linux: CentOS/RHEL(5+), SuSE-Professional 9.3
-  TARGET_VM      = VMware(WS6<Native+VNC>+Server+Player), Xen
-  TARGET_WM      = Gnome
+  TARGET_OS      = Linux: CentOS/RHEL(5+), SuSE-Professional 9.3, Ubuntu, OpenSuSE, FreeBSD, Solaris
+  TARGET_VM      = KVM, QEMU, VMware(WS6<Native+VNC>+Server+Player), Xen
+  TARGET_WM      = fvwm, fxce, Gnome
 
   NAMESERVICE    = Integrated Multi-Stack-Addressing by CONF-File, PATH, TCP/IP, MAC, UUID, LABEL
                    NFS-Based load distribution by extendable COST calculations
@@ -23,11 +23,11 @@ NOW
                    geometryExt-Logical Screens, Windows and Workspace/Desktop Addressing
 
 NEXT/SOON
-  TARGET_OS      = Ubuntu, OpenSuSE, FreeBSD, NetBSD, Solaris
+  TARGET_OS      = NetBSD, UnbreakableLinux
                    (CPU-QEMU:ARM+PPC)
                    (uCLinux(QEMU:ARM+PPC), eCOS(QEMU:ARM+PPC))
-  TARGET_VM      = QEMU, (OpenVX)
-  TARGET_WM      = fvwm, xfce, KDE
+  TARGET_VM      = (OpenVZ), VirtualBox
+  TARGET_WM      = KDE
 
   NAMESERVICE    = LDAP-DB/Access+Distribution, Nested-VM-Stack-Addressing
 

@@ -1,0 +1,526 @@
+.TH "ctys-setupVDE" 1 "Feb, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-setupVDE - manages on-the-fly network configuration\fR
+
+.SH SYNTAX
+.P
+\fBctys-setupVDE\fR 
+
+
+   [-b <virtual-bridge>]
+   [-d <level>]
+   [-f]
+   [-g <sbit-group>*]
+   [-h]
+   [-H <help-options>]
+   [-i <interface>]
+   [-L <remote-user>]
+   [-l <remote-user>]
+   [-R <remote-hosts>]
+   [-r <remote-hosts>]
+   [-s <ALTERNATE-QEMUSOCK>]
+   [-S <ALTERNATE-QEMUMGMT>]
+   [-u <non-privileged-user>[.<group>]]
+   [-n]
+   [-V]
+   [-X]
+   [-Z <set-sudo-ksu>]
+   (cancel|check|create|info|ports|list|listall)
+
+
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-setupVDE\fR encapsulates and combines a subset of functionality for
+required tools supporting the TAPTUNbyVDE by QEMU.
+
+.P
+The utility could be performed locally or remotely by full support of
+remote ctys\-addressing, including context specific target\-options,
+MACROS and GROUPS. E.g. the required system permissions could be preconfigured for
+specific users by "ksu" and/or "sudo", for additional information
+refer to VDERemoteConfiguration.
+
+.RS
+.IP \(bu 3
+\fBATTENTION\fR:
+The remote\-execution includes some inherent pit\-falls to be considered
+thoroughly!
+This is the case, when this utility has to be executed on a remote
+site, where not yet a bridge (the only supported networking device for
+now) exists.
+During the creation of the required bridge \- the so called "main
+virtual\-bridge" (see figure:NestedProtocolStacks), the network will be
+disconnected for a short time, so any access to NFS or any other
+networked file system will be interrupted temporarily, which leads to
+eventual missing of additional tools to be called,   e.g. for reconnecting.
+The same is true for authentication, when kerberos based "ksu" or
+"sudo", or any other network centric authentication is used in a
+non\-cached environment, so for non\-root users the access to system
+resources is frequently rejected.
+Particularly the reconnection of the network device.
+Thus remote execution is not approved for users with a mounted
+remote\-home, even though it might work under specific conditions.
+Local\-only users with "sudo" control by complete locally configured
+environments are verified to work stable.
+
+A specific behaviour of the current version is applied to the
+created main\-bridges.
+These will get the same IP and MAC addresses as the logical
+interface, anyhow it works perfectly, as long as you can cope
+with multiple interfaces with same address information within
+applied tools.
+For the functionality of the UnifiedSessionsManager this is handled
+by a "sort \-u" on resulting enumeration IF\-lists.
+One reason for "doing" the bridge allocation this way is the
+minimized risk of detaching the remotely handeled VMs for too long
+from the network services, which might make them unusable from than on. 
+This concept will be probably modified in future versions.
+.RE
+
+.P
+Anyhow, the remote usage of "ctys\-setupVDE", once the authentication
+is configured properly and security facilities are setup thoroughly,
+offers a simple interface for centralized setup of VM stacks.
+This is particuarly true in combination of remote usage of 
+GENMCONF and PLUGINS.
+
+.P
+The usage of ctys\-setupVDE assures the appropriate environment for the
+used of the wrappers "vdeq" and "vdeqemu" of the package
+VDE\-SOURCEFORGE, which is the recommended tool when TAPTUNbyVDE  has
+to be created.
+This utility could be used in any comparable case too, but
+fit particularly for QEMU setup.
+
+.P
+The same configuration as for starting QEMU is used.
+Therefore neatless communications by usage of QEMUSOCK is guaranteed.
+The variable QEMUSOCK is based on the variable CTYS_SOCKBASE, which
+is the default base directory, where UNIX domain sockets are created.
+This should be used for eventual additional UNIX domain sockets, such
+as tcp based serial ports or monitoring devices, too.
+For additional applicability refer to the user manual of QEMU and to
+the templates provided by UnifiedSessionsManager.
+
+.P
+The following tools are combined within this script:
+
+.RS
+.IP \(bu 3
+vde_tunctl
+.IP \(bu 3
+vde_switch
+.IP \(bu 3
+unixterm
+.IP \(bu 3
+nc
+.IP \(bu 3
+brctl
+.IP \(bu 3
+ifconfig
+.IP \(bu 3
+/etc/init.d/network
+.RE
+
+.P
+Two types of virtual bridges/switches(see figure:NestedProtocolStacks)
+are managed by ctys\-setupVDE.
+
+.RS
+.IP \(bu 3
+"main virtual\-bridge"
+
+The switch to be used for interconnecting the "external" interface,
+which is in case of the hosting machine itself a physical NIC.
+
+This switch is created if not yet present, but has to be deleted
+manually by the user.
+
+.IP \(bu 3
+"vde_switch"
+
+The switch to be used for attachment of VMs. This switch is completely managed by ctys\-setupVDE.
+.RE
+
+.P
+TAPTUNbyVDE prepares a TAP device with a attached new bridge, therefore
+it requires the VirtualDistributedEthernet \- sourceforgeVde package.
+Additional information within a WiKi containing some very helpful
+tutorials for virtualsquare\-basicnetworking could be found at
+the website of VirtualSquare. 
+
+.P
+In current implementation some assumptions are made in order to ease
+design and implementation. 
+Anyhow, for practical application these constraints might not be an
+important matter.
+
+.RS
+.IP \(bu 3
+one TAP for each vde_switch
+.IP \(bu 3
+each user has one switch which communicates by default via "/var/tmp/vde_switch0.$USER".
+.IP \(bu 3
+the management interface for each switch is by default
+"/var/tmp/vde_mgmt0.$USER".
+.IP \(bu 3
+appropriate access permissions are provided by sudo or ksu, for automatic detection the ctys framework is used
+.RE
+
+.P
+The following steps are performed by ctys\-setupVDE:
+
+.RS
+.IP \(bu 3
+Creation of a TAP device.
+.nf
+  "vde_tunctl -u <user-without-root-permission>"
+.fi
+
+e.g.
+.nf
+  vde_tunctl -u acue
+.fi
+
+Returns a line like:
+
+Set 'tap3' persistent and owned by uid 4711
+
+.IP \(bu 3
+Use the returned 'tapX' for networking.
+.nf
+  ifconfig $1 0.0.0.0 up
+  brctl addif $2 $1
+.fi
+
+Does the same as:
+.nf
+  /etc/xen/qemu-ifup tap3 xenbr0
+.fi
+
+
+Which brings up the newly created interface 'tap3' and
+adds an interface to the virtual Xen bridge connecting it
+to the world outside.
+
+The results could be verified with:
+.IP \(bu 3
+ifconfig tap3
+
+should list an interface 'tap3'
+
+.IP \(bu 3
+brctl show
+
+should contain an interface 'tap3'
+
+.IP \(bu 3
+Connect the device.
+
+Now this interface will be connected to another virtual
+switch, the vde_switch in order to provide an internal
+multiplexer for multiple QEMU instances to be connected to
+the external interfaces e.g. via a present Xen\-bridge.
+
+.nf
+  QEMUSOCK=/var/tmp/vde_switch0.$USER
+  QEMUMGMT=/var/tmp/vde_mgmt0.$USER
+  
+  vde_switch -d \e
+             -tap tap3 \e
+             -s ${QEMUSOCK} \e
+             -M ${QEMUMGMT}
+  
+  
+  chown -R <userX.groupX> ${QEMUSOCK}
+  chown -R <userX.groupX> ${QEMUMGMT}
+  
+.fi
+
+
+The state could be veriefied with:
+.nf
+  QEMUMGMT=/var/tmp/vde_mgmt0.$USER
+  
+  unixterm ${QEMUMGMT}
+.fi
+
+
+For additional information refer to examples of the manual.
+.RE
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-setupVDE\fR 
+
+.TP
+\fB\-b <virtual\-bridge>\fR
+The virtual bridge connected to the external network to be attached by TAP device.
+Default is to use the first bridge detected by brctl.
+If none is present, tha by default a new one is created with the
+name "ctysbr0", and the first found interface is added to the
+bridge.
+
+When an interface is provided by "\-i" option and a new bridge has to
+be created, this will be used instead of the first valid.
+
+.TP
+\fB\-d <level>\fR
+Sets debug.
+
+.TP
+\fB\-f\fR
+Forces execution even when processing seems to be critical.
+
+.TP
+
+Forces call of "kill <PID>", when here\\-script with 
+.nf
+  "unixterm ... shutdown"
+.fi
+
+fails.
+For current version this seems to be frequently the case on i386
+architecture, whereas x86_64 works.
+
+.TP
+
+Creates a new bridge, even when connected via a network session.
+This could interrupt the current calling session permanently, even
+lead to it's hang\-up due to a required short\-time disconnect.
+So this should preferrably proceeded from within a local session.
+
+.TP
+\fB\-g <sbit\-group>\fR
+Sets the s\-bit for the group, this has to be the same as the
+resulting owner's group.
+
+If not set, the resulting permissions for QEMUSOCK are
+.nf
+  "rwx------"
+.fi
+
+else 
+.nf
+  "rwx--S---"
+.fi
+
+
+.TP
+\fB\-h\fR
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-i <interface>\fR
+The interface to be added to a newly created bridge, see "\-b" option.
+
+.TP
+\fB\-l <remote\-user>\fR
+Refer to "ctys" generic options for additional information.
+
+.TP
+\fB\-L <remote login>\fR
+The remote user for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+The semantics is somewhat different from the ordinary remote operations, which is 
+application specific, whereas this 'beam\-up' is a generic pre\-execution forwarding.
+
+.TP
+\fB\-r <remote\-hosts>\fR
+List of remote hosts for execution.
+Either a list of valid hostnames, ipaddresses, or EMail\-Format hostnames.
+
+.TP
+\fB\-R <remote\-host>\fR
+The remote host for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+
+.TP
+\fB\-s <ALTERNATE\-QEMUSOCK>\fR
+A file\-socket to be used for communications peer via virtual switch.
+Default is set by common QEMUSOCK configuration.
+
+.TP
+\fB\-S <ALTERNATE\-QEMUMGMT>\fR
+A file\-socket to be used for management console of virtual switch.
+Default is set by common QEMUMGMT configuration.
+
+Could be used with "unixterm $QEMUMGMT" of
+VDE.
+
+.TP
+\fB\-u <non\-privileged\-user>[.<group>]\fR
+Owner of the created TAP device. Default is current user.
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+See ctys, terse for machine output.
+
+.TP
+\fB\-Z\fR
+See ctys.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.RS
+.IP \(bu 3
+\fB<command>\fR
+.RS
+.IP \(bu 3
+\fBcancel\fR
+removes the switch and it's attached TAP device.
+In case of partial present resources these will be cleared as present,
+thus remaining parts of partly execution could be reset.
+
+.IP \(bu 3
+\fBcheck\fR
+performs basic check for the accesibility of the virtual switch
+etup for selected USER.
+Therefore a simple "ctys\-setupVDE PORTS" call is analysed for the
+occurance of at least one "tap" device and one UNIX\-Domain socket,
+which are verified by their existence.
+In case of erroneous state basic information for further analysis is displayed.
+Anyhow, still malfunction could occur, but if check fails, it will definetly.
+
+.IP \(bu 3
+\fBcreate\fR
+a new virtual switch, this comprises a new TAP device and an
+attached virtual switch.
+When no bridge is present a virtual bridge is created too, and the
+tap\-device is attached.
+
+The CREATE call just checks whether a functional switch is already
+present, if not it just creates a new one.
+Therefore the current defined socket for the management interface is
+utilized.
+Thus a new call on a present, but erroneous switch leads to reuse of
+the sockets, but creates a new tap\-device and starts a new instance of
+a vde\-switch\-process.
+Present tap\-devices are not reused, and just kept untouched.
+
+.IP \(bu 3
+\fBinfo\fR
+shows vde_switch information.
+This is the default behaviour.
+
+.IP \(bu 3
+\fBports\fR
+lists ports of vde_switch.
+
+.IP \(bu 3
+\fBlist\fR
+lists present vde_switch\-es.
+The base\-switch entries are displayed only.
+
+.IP \(bu 3
+\fBlistall\fR
+lists present vde_switch\-es.
+Any entry is displayed, this includes the dynamic created port
+specific sockets.
+
+Due to some minor difficulties for now these are not removed, when the
+client disappears, thus "listall" could be used to check the dengling
+entries from time to time.
+.RE
+.RE
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+\fIctys\-QEMU(7)\fR
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(1)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-QEMU(1)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(1)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-distribute(1)\fR, \fIctys\-extractARPlst(1)\fR, \fIctys\-extractMAClst(1)\fR, \fIctys\-genmconf(1)\fR, \fIctys\-vping(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vhost(1)\fR, \fIctys\-wakeup(1)\fR
+
+.TP
+\fBsystem executables\fR
+\fIvde_tunctl\fR, \fIvde_switch\fR, \fIunixterm\fR, \fIifcfonfig(8)\fR, \fIbrctl(8)\fR, \fIether\-tool(8)\fR, \fInc(1)<a.k.a. netcat>\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL for license conditions,
+.RE
+
+.P
+This document is created with: latex and text2tags
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-setupVDE.t2t -o /tmpn/0/ctys/bld/01.11.001/doc-tmp/BASE/en/man/man1/ctys-setupVDE.1
+

@@ -74,7 +74,7 @@ function fetchMacMap(td,mx){
         return;
     }
 
-    call=callp"ctys-vhost -C macmaponly -s ";
+    call=callp"ctys-vhost.sh -C macmaponly -s ";
     if(dargs!=""){
         call=call" "dargs" ";
     }
@@ -110,58 +110,65 @@ function fetchMacMap(td,mx){
 # host:sessionType:label:id:uuid:mac:tcp:disp:cport:sport:baseport:dist:distrel:os:osrel:verno:serno:category
 # 1    2           3     4  5    6   7   8    9     10    11       12   13      14 15    16    17    18
 BEGIN{mx=0;
+#    d=0;
+    
     ptrace("ENUMERATE:canon:Start record with AWK");
-    ptrace("mstat    ="mstat);
-    ptrace("enumnf   ="enumnf);
+    ptrace("title      ="title);
+    ptrace("titleidx   ="titleidx);
 
-    ptrace("h        ="h);
-    ptrace("vb       ="vb);
-    ptrace("ip       ="ip);
-    ptrace("dist     ="dist);
-    ptrace("distrel  ="distrel);
-    ptrace("os       ="os);
-    ptrace("osrel    ="osrel);
-    ptrace("ver      ="ver);
-    ptrace("ser      ="ser);
-    ptrace("cat      ="cat);
-    ptrace("mapdb    ="mapdb);
-    ptrace("l        ="l);
-    ptrace("i        ="i);
-    ptrace("tcp      ="tcp);
-    ptrace("dns      ="dns);
-    ptrace("t        ="t);
-    ptrace("uu       ="uu);
-    ptrace("mac      ="mac);
-    ptrace("dsp      ="dsp);
-    ptrace("cp       ="cp);
-    ptrace("sp       ="cp);
-    ptrace("d        ="d);
-    ptrace("callp    ="callp);
-    ptrace("cols     ="cols);
-    ptrace("title    ="title);
-    ptrace("titleidx ="titleidx);
-    ptrace("vmstate  ="vmstate);
-    ptrace("hyperrel ="hyperrel);
-    ptrace("stackcap ="stackcap);
-    ptrace("stackreq ="stackreq);
-    ptrace("arch     ="arch);
-    ptrace("platform ="platform);
-    ptrace("vram     ="vram);
-    ptrace("vcpu     ="vcpu);
+    ptrace("mstat      ="mstat);
+    ptrace("enumnf     ="enumnf);
+
+    ptrace("h          ="h);
+    ptrace("vb         ="vb);
+    ptrace("ip         ="ip);
+    ptrace("dist       ="dist);
+    ptrace("distrel    ="distrel);
+    ptrace("os         ="os);
+    ptrace("osrel      ="osrel);
+    ptrace("ver        ="ver);
+    ptrace("ser        ="ser);
+    ptrace("cat        ="cat);
+    ptrace("mapdb      ="mapdb);
+    ptrace("l          ="l);
+    ptrace("i          ="i);
+    ptrace("tcp        ="tcp);
+    ptrace("dns        ="dns);
+    ptrace("t          ="t);
+    ptrace("uu         ="uu);
+    ptrace("mac        ="mac);
+    ptrace("dsp        ="dsp);
+    ptrace("cp         ="cp);
+    ptrace("sp         ="cp);
+    ptrace("d          ="d);
+    ptrace("callp      ="callp);
+    ptrace("cols       ="cols);
+    ptrace("vmstate    ="vmstate);
+    ptrace("hyperrel   ="hyperrel);
+    ptrace("stackcap   ="stackcap);
+    ptrace("stackreq   ="stackreq);
+    ptrace("arch       ="arch);
+    ptrace("platform   ="platform);
+    ptrace("vram       ="vram);
+    ptrace("vcpu       ="vcpu);
     ptrace("contextstrg="contextstrg);
-    ptrace("userstr  ="userstr);
-    ptrace("sshport  ="sshport);    
-    ptrace("netname  ="netname);    
-    ptrace("hwcap    ="hwcap);
-    ptrace("hwreq    ="hwreq);
-    ptrace("execloc  ="execloc);
-    ptrace("reloccap ="reloccap);
-    ptrace("sshport  ="sshport);
-    ptrace("ifname   ="ifname);
-    ptrace("ctysrel  ="ctysrel);
-    ptrace("netmask  ="netmask);
-    ptrace("gateway  ="gateway);
-    ptrace("relay    ="relay);
+    ptrace("userstr    ="userstr);
+    ptrace("sshport    ="sshport);    
+    ptrace("netname    ="netname);    
+    ptrace("hwcap      ="hwcap);
+    ptrace("hwreq      ="hwreq);
+    ptrace("execloc    ="execloc);
+    ptrace("reloccap   ="reloccap);
+    ptrace("sshport    ="sshport);
+    ptrace("ifname     ="ifname);
+    ptrace("ctysrel    ="ctysrel);
+    ptrace("netmask    ="netmask);
+    ptrace("gateway    ="gateway);
+    ptrace("relay      ="relay);
+
+    ptrace("exep       ="exep);
+    ptrace("acc        ="acc);
+    ptrace("hrx        ="hrx);
 
     line=0;
 }
@@ -200,9 +207,9 @@ titleidx==1{
     if(reloccap>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RelocationCapacity(26)";   }
     if(sshport>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"SSHport(27)";   }
     if(netname>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Netname(28)";   }
-    if(reserv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(29)";   }
-    if(reserv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(30)";   }
-    if(reserv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(31)";   }
+    if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Hyperrelrun(29)";   }
+    if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accellerator(30)";   }
+    if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Exepath(31)";   }
     if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(32)";   }
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname(33)";   }
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease(34)";   }
@@ -251,9 +258,9 @@ titleidx==2{
     if(reloccap>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RelocationCapacity(Z-26)";   }
     if(sshport>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"SSHport(AA-27)";   }
     if(netname>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Netname(AB-28)";   }
-    if(reserv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AC-29)";   }
-    if(reserv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AD-30)";   }
-    if(reserv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AE-31)";   }
+    if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Hyperrelrun(AC-29)";   }
+    if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accellerator(AD-30)";   }
+    if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Exepath(AE-31)";   }
     if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AF-32)";   }
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname(AG-33)";   }
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease(AH-34)";   }
@@ -270,6 +277,7 @@ titleidx==2{
     printf("%s\n",outbuf);
     exit;        
 }
+
 
 title==1{
     outbuf="";
@@ -302,9 +310,9 @@ title==1{
     if(reloccap>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RelocationCapacity";   }
     if(sshport>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"SSHport";   }
     if(netname>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netname";   }
-    if(reserv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
-    if(reserv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
-    if(reserv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
+    if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"hyperrelrun";   }
+    if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"accellerator";   }
+    if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"exepath";   }
     if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname";   }
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease";   }
@@ -393,40 +401,40 @@ $0~/^$/||!($19~mstat){
         if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf tcpaddr;
     }
 
-    if(dsp>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $6; }
-    if(cp>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $7; }
-    if(sport>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $8; }
-    if(vb>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $9; }
+    if(dsp>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $6; }
+    if(cp>0)         { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $7; }
+    if(sport>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $8; }
+    if(vb>0)         { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $9; }
 
 
-    if(dist>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $12;}
-    if(distrel>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $13;}
-    if(os>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $14;}
-    if(osrel>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $15;}
-    if(ver>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $16;}
-    if(ser>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $17;}
-    if(cat>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $18;}
+    if(dist>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $12;}
+    if(distrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $13;}
+    if(os>0)         { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $14;}
+    if(osrel>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $15;}
+    if(ver>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $16;}
+    if(ser>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $17;}
+    if(cat>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $18;}
 
     if(vmstate>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $19;}
     if(hyperrel>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $20;}
     if(stackcap>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $21;}
     if(stackreq>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $22;}
 
-    if(hwcap>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $23;}
-    if(hwreq>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $24;}
+    if(hwcap>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $23;}
+    if(hwreq>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $24;}
     if(execloc>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $25;}
-    if(reloccap>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $26;}
+    if(reloccap>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $26;}
     if(sshport>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $27;}
     if(netname>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $28;}
-    if(reserv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $29;}
-    if(reserv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $30;}
-    if(reserv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $31;}
+    if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $29;}
+    if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $30;}
+    if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $31;}
     if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $32;}
-    if(ifname>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $33;}
-    if(ctysrel>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $34;}
-    if(netmask>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $35;}
-    if(gateway>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $36;}
-    if(relay>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $37;}
+    if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $33;}
+    if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $34;}
+    if(netmask>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $35;}
+    if(gateway>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $36;}
+    if(relay>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $37;}
     if(arch>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $38;}
     if(platform>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $39;}
     if(vram>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $40;}
