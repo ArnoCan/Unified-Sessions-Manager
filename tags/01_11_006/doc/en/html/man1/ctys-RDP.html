@@ -1,0 +1,228 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#efefef ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-RDP</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-RDP</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-RDP - Remote Desktop Protocol Interface</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>ctys-RDP</B> 
+</P>
+<P>
+<PRE>
+
+   ctys -t RDP -a action[=&lt;suboptions&gt;] ...
+   ctys -T RDP -a action[=&lt;suboptions&gt;] ...
+   ctys -T ALL -a action[=&lt;suboptions&gt;] ...
+
+</PRE>
+</P>
+<H1>DESCRIPTION</H1>
+<P>
+<B>ATTENTION:</B>
+This plugin is actually in <B>alpha-release</B>, thus might have some drawbacks.
+The interface and integration of tools is going to be extended, currently
+<B><A HREF="http://www.rdesktop.org"> rdesktop</A></B> is the only supported client.
+</P>
+<P>
+This plugin manages within the UnifiedSessionManger RDP sessions particularly to VirtualBox(TM)
+and Microsof-Windows(TM) based machines.
+Due to the intention of the RDP protocol this plugin has only a client component and
+utilizes any server providing access for RDP based client attachement.
+The RDP plugin encapsulates and handles the complete interaction with the local and remote
+components provided by means of the client <B><A HREF="http://www.rdesktop.org"> rdesktop</A></B>.
+</P>
+<P>
+SSH based connections are the only one supported, thus the only actual connections allowed
+are to 'localhost'.
+In case of servers not offering the local-only attachement the user should setup additional
+security measures e.g. by activating packetfilter rules.
+The 'unmentioned-exception' within the UnifiedSessionsManager is the attachement of consoles
+to NON-Unix boxes.
+In that case a network connection is required for the current version(might change soon) and 
+should be used in secure segments only,
+e.g. by usage of the <B>ctys-beamer</B> to inteconnect to a secure gateway by an SSH tunnel
+and bridging the last hop by native RDP.
+</P>
+<P>
+The sessions are generally categorized into two basic configurations, the coallocation of the 
+client with the targeted server - 
+<a href="../../images/dispforwarding.png" >
+DISPLAYFORWARDING
+</a> -
+and the distributed client and server
+location on different hosts - 
+<a href="../../images/connforwarding.png" >
+CONNECTIONFORWARDING
+</a>
+.
+In the latter case an intermediary SSH tunnel is created, which handles the port-forwarding and an has
+to do a remapping due to ambiguity within the network scope.
+Thus the local port number and the remote portnumber on the server may frequently differ.
+The required option to control the forwarding is <B>'-L'</B>.
+</P>
+<H1>OPTIONS</H1>
+<DL>
+<DT><B>-a action[=&lt;suboptions&gt;]</B></DT><DD>
+<P></P>
+<DT><B>CANCEL</B></DT><DD>
+<PRE>
+  
+  CANCEL=(&lt;machine-address&gt;)\{1,n\}
+    |ALL|CLIENT|SERVER|BOTH
+  
+</PRE>
+<P></P>
+<DT></DT><DD>
+<B>&lt;machine-address&gt;</B>
+For RDP the following parts of a &lt;machine-address&gt; are applicable:
+ID|I, LABEL|L
+<P></P>
+When the RDP client is used in shared-mode,
+the address applies to all sharing clients are handled
+as one logical unit and CANCEL is applied to all at once.
+<P></P>
+The address could be supported with multiple instances.
+<P></P>
+<DT></DT><DD>
+<B>ALL|BOTH|CLIENT|SERVER</B>
+<P></P>
+All enumerates are handled identical due to a client only
+applicability.
+</DL>
+
+<DL>
+<DT><B>CREATE</B></DT><DD>
+<PRE>
+  CREATE=[&lt;machine-address&gt;]
+     [RDPPORT:&lt;portnumber&gt;]
+     [(INSECURE):&lt;ext-host&gt;]
+     [CONNECT|RECONNECT]
+     [CONSOLE:&lt;rdesktop&gt;]
+     [(CALLOPTS|C):&lt;callopts&gt;]
+     [(XOPTS|X):&lt;xopts&gt;]
+</PRE>
+</DL>
+
+<UL>
+<LI><B>&lt;machine-address&gt;</B>
+For RDP the following parts of a &lt;machine-address&gt; are applicable:
+LABEL|L and port, here RDPPORT
+<P></P>
+When the RDP server is used in shared-mode, the
+address applies to all sharing clients.
+The LABEL suboption is here mandatory.
+<P></P>
+<LI><B>CONNECT</B>
+Almost the same as REUSE, but no new server will be
+started if missing.
+<P></P>
+<LI><B>CONSOLE</B>
+    Current version supports <B>rdesktop</B>.
+<P></P>
+<LI><B>INSECURE &lt;ext-host&gt;</B>
+    The external(!=localhost) host to be accessed by remotely attached RDP
+    client.
+    This is foreseen for blackboxes and access to MS-Windows(TM) based 
+    hosts.
+    It should not be forced for UNIX/Linux based boxes.
+<P></P>
+<LI><B>RECONNECT</B>
+    Similiar to REUSE, with the difference, that any
+    previous active client will be killed before attaching
+    ONE new client. Therefore in shared mode, when multiple
+    clients could simultaneously share one server, all
+    sharing clients are handled as one logical unit and will
+    be thus killed together.
+    Specific exchange of a single client is not supported.
+<P></P>
+A special may be recognized, when a local client of a CONNECTIONFORWARDING
+is going to be reconnected, the replacement has to be of the same forwarding type.
+This applies in general, though one machine is accessed for the new client only.
+</UL>
+
+<DL>
+<DT><B>ENUMERATE</B></DT><DD>
+Not applicable.
+<P></P>
+<DT><B>LIST</B></DT><DD>
+The same output as common standard.
+</DL>
+
+<H1>SEE ALSO</H1>
+<P>
+<I>ctys-uc-RDP(7)</I>, <I>ctys(1)</I>, <I>ctys-plugins(1)</I>
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<img src="../../images/60px-Official-gnu.png" />  
+<br />
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-RDP.t2t -o /tmpn/0/ctys/bld/01.11.006/doc-tmp/BASE/en/html/man1/ctys-RDP.html -->
+</BODY></HTML>
