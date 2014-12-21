@@ -1,0 +1,233 @@
+.TH "ctys-X11" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-X11 - X11 Interface\fR
+
+.SH SYNTAX
+.P
+\fBctys-X11\fR 
+
+
+   ctys -t X11 -a action[=<suboptions>] ...
+   ctys -T X11 -a action[=<suboptions>] ...
+   ctys -T ALL -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+The X11\-plugin starts a remote shell within a terminal
+emulation by default.
+Alternatively any X11 command with an arbitrary shell could be
+executed.
+When executing a command, the functionality is almost equivalent to
+the CLI plugin.
+
+.P
+The primary application of X11 is to utilize the default behaviour of
+starting an Xsession within it's own terminal emulation on the desktop.
+Therefore the pre\-configured choices are: XTERM, GTERM,
+and EMACS, which is started in "shell\-mode".
+
+.SH OPTIONS
+.TP
+\fB\-a action[=<suboptions>]\fR
+
+.TP
+\fBCANCEL\fR
+Not applicable.
+
+.TP
+\fBCREATE\fR
+.nf
+  
+  CREATE=<machine-address>[,]
+    [(REUSE|CONNECT|RECONNECT|RESUME)][,]
+    [
+     (CONSOLE:XTERM|GTERM|EMACS|EMACSA)
+     |
+     (CMD:<cmd>)
+    ][,]
+    [(CALLOPTS|C):<callopts>][,]
+    [CD:<working-directory>][,]
+    [(XOPTS|X):<xopts>][,]
+    [(SHELL|S):<shell>][,]
+    [(DH|SH)][,]
+    [(TITLEKEY:<key-name-label>|NOTITLE)]
+  
+.fi
+
+
+.RS
+.IP \(bu 3
+\fB<machine\-address>\fR
+The LABEL suboption is here the only supported and
+mandatory part.
+
+.RS
+.IP \(bu 3
+\fB<callopts>\fR
+Refer to common options parts description.
+.RE
+.RE
+
+.RS
+.IP \(bu 3
+\fBCD:<working\-directory>\fR
+Change current working directory for the started command.
+This provides for example the preconfiguration of specific work\-sets,
+where each terminal could be opened for a specific directory.
+
+.IP \(bu 3
+\fBCMD:<cmd>\fR
+Refer to common options parts description.
+The CMD could be provided alternatively to a fixed CONSOLE.
+
+.IP \(bu 3
+\fBCONSOLE:XTERM|GTERM|EMACS|EMACSA\fR
+A fixed type of a CONSOLE, folowing types are supported.
+
+.IP \(bu 3
+\fBCONSOLE:GTERM\fR
+Starts the "gnome\-terminal".
+.IP \(bu 3
+\fBCONSOLE:XTERM\fR
+Starts the Xterm.
+.IP \(bu 3
+\fBCONSOLE:EMACS\fR
+Starts an emacs and opens a "shell" buffer.
+.IP \(bu 3
+\fBCONSOLE:EMACSA\fR
+Starts an emacs and opens an "ansi\-term" buffer.
+
+.IP \(bu 3
+\fB(DH|SH)\fR
+Sets a double\-hyphen or a single\-hyphen for call
+arguments. Where the single hyphen e.g. is required for
+old style X11 utility options, the double\-hyphen for
+new options style of Gnome.
+
+.IP \(bu 3
+\fBNOTITLE\fR
+Suppresses the generation of title either from LABEL, or from default.
+
+Be aware, that dynamic sessions like X11 without an LABEL visible by
+ps, are not \- or just limited \- recognized by LIST action. 
+Thus the only reliable support for sessions started with this flag is the
+start itself.
+
+.IP \(bu 3
+\fBUSE|CONNECT|RECONNECT|RESUME\fR
+Not applicable.
+
+.IP \(bu 3
+\fBSHELL|S:<shell>\fR
+Refer to common options parts description.
+
+.IP \(bu 3
+\fBTITLEKEY:<title\-name\-key>\fR
+Alters the options keyword to be used to set the title of an Xwindow, which is
+set by default to "title".
+Some older applications, like Xclock support different, e.g. "name" as
+options keyword only.
+Due to the crucial role of the window title, which is the LABEL, this
+approach should be prefered when "title" is not supported.
+Do use NOTITLE only if definetly unavoidable.
+
+.IP \(bu 3
+\fB<xopts>\fR
+Refer to common options parts description.
+.RE
+
+.TP
+_
+
+A specific exeception to the sysnchronous character of an
+CLI shell occurs, when multiple execution instaces are
+addressed by the arguments of current call. When the "\-b
+off" option for background a.k.a asynchronous operations
+is selected, the standard synchronous foreground operation
+works quite well. The list of arguments is just executed
+sequentially as expected.
+
+In current implementation the user is responsible for
+handling the appropriate values, which are assigned by
+default. The enforcement of resetting user defined values
+could be somewhat tricky due to permutation of bulk
+arguments, thus is shifted because of priorities.
+Resulting of this, the actual environment is a superposition of all
+previous executed target options with the global options.
+
+.TP
+\fBENUMERATE\fR
+Not applicable to CLI.
+
+.TP
+\fBLIST\fR
+Almost the same output as common standard, with following
+changes in semantics.
+
+[id]
+The PID of the first local call below of SSH
+termination point, which is the locally executed
+relay\-instance of ctys and is the parent shell of
+actual running batch/interactive shell.
+Thus the topmost ctys\-call.
+
+[pid]
+PID of current ctys sessions top.
+The following values are not applicable:
+uuid, mac, dsp, cp, sp
+
+.TP
+\fB\-L <location>\fR
+Even though a DISPLAY will actually not be used, this parameter
+also adopts the behavior of the execution to a providing
+environment, which is frequently for ctys true.
+So these are the only location parameters to be applied.
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR, \fIctys\-uc\-X11(7)\fR, \fIctys\-plugins(1)\fR, \fIbash(1)\fR, \fIxterm(1)\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+.RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-X11.t2t -o /tmpn/0/ctys/bld/01.11.004/doc-tmp/BASE/en/man/man1/ctys-X11.1
+

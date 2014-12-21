@@ -1,0 +1,313 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#efefef ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-plugins</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-plugins</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-plugins - verifies of current install status</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>ctys-plugins</B> 
+</P>
+<P>
+<PRE>
+
+   [-d &lt;common-debug-option&gt;]
+   [-E ]
+   [-h]
+   [-H &lt;help-options&gt;]
+   [-l &lt;remote-user&gt;]
+   [-t &lt;plugin-type&gt;]
+   [-T &lt;plugin-preload-typelist&gt;]
+   [-V]
+   [-X]
+   [-Z &lt;set-sudo-ksu&gt;]
+   &lt;list-of-target-acounts&gt;
+
+
+
+
+</PRE>
+</P>
+<H1>DESCRIPTION</H1>
+<P>
+<B>ctys-plugins</B> is a test-tool for verification and analysis of the 
+current status of the installation of ctys and present plugins.
+</P>
+<P>
+<center><img src="../../images/sw-layers.png" width="50%"  /> </center> 
+</P>
+<TABLE ALIGN="center" CELLPADDING="4">
+<TR>
+<TH>ctys SW-Layers and Plugins</TH>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+Due to some restrictions it operates partly on a basic level, involving some specific
+pre-defined trace levels for output control. 
+The required options are documented in the following sections. 
+Extended trace-levels neccessarily require some deeper
+familiarity with internal design, which is normally not
+required for top-level handling.
+</P>
+<P>
+The utility could be performed locall or remotel by full support of
+ctys-addressing but without context options on the command line. If
+for whatever reasons remote context options are reuqired, than could
+be applied to macro definitions only.
+For now the following main tasks are performed by ctys-plugin:
+</P>
+<UL>
+<LI>Display of operational states and capabilities of plugins
+<LI>Distinguish the check-scope of verified features by "-E" for client-site call-RELAY and server-site final-EXECUTION
+<LI>Display of called system tools with the actual resolved path-prefix
+<LI>Display of the actual access permissions as configured by one of:
+<PRE>
+  /etc/sudoers
+  $HOME/.k5users
+  $HOME/.k5login
+</PRE>
+<LI>display of any level of system initialization traces during call bootstrap, refer to common ctys-standard "-d" option
+</UL>
+
+<P>
+The output is splitted into <B>3 sections</B>:
+</P>
+<UL>
+<LI>The <B>first section</B> is the <B>bootstrap of the tool itself</B>, this includes the basic intialization of the framework, where only framework specific options are evaluated. Typical for this is the "-d" option, which is prefetched by the library itself.
+</UL>
+
+<UL>
+<LI>The <B>second section</B> contains the trace output during <B>initialisation of the plugins</B>. The content dependes on the choosen debug level. Error messages are displayed in any case.
+<P></P>
+<PRE>
+  Checking PLUGINS-STATEs now...
+  ------------------------------
+  &lt;trace-output&gt;
+  ------------------------------
+  ...results to:
+</PRE>
+<P></P>
+<LI>The <B>third section</B> contains the <B>processed results</B> of the evaluated raw component states. Therefore an basic overview of the hosting system is given, followed by a sum-up of the variuos sets of plugings related to the different operational states. The final list contains the operational details for each inidividual plugin.
+</UL>
+
+<P>
+.
+</P>
+<H1>OPTIONS</H1>
+<P>
+<B>ctys-plugins</B> 
+</P>
+<DL>
+<DT><B>-d  &lt;debug-options&gt;</B></DT><DD>
+This option is the common analysis and debugging facility of the
+UnifiedSessionsManager. Due to the wide scope it is maybe somewhat
+"like a developer interface".
+<P></P>
+Anyhow, the <B>most important application</B> is for installation
+and first time systems configuration by  
+<B>analysis of the called system utilities</B>. 
+The difficulties with the bunch of utilized systems calls frequently
+leads to some trouble, which becomes immediately obvious, once the
+output of the following call is displayed:  
+<P></P>
+  <B>"ctys-plugins -d 64,P -T all -E"</B>
+<P></P>
+This call checks all system calls for the 
+<B>current node as a final execution location</B>. 
+The availability as well as (some) access
+permissions are evaluated. When things don't work, this call is the
+first instance to "ask".
+The "-d" option activates a bit-pattern style debug-level by "P"
+suboption. Than the bit "64" is set, which is the predefined variable
+"D_SYS", tracing the internal call-wrapper, almost exclusively used
+for system calls. When not appropriate, the workaround is implemented
+in a neatless style.
+The "-T" option sets simply "all" plugings to be loaded and initialized.
+The "-E" option executes a final destination call, instead of an
+initial or intermediary RELAY-call.
+<P></P>
+The following call performs almost the same, but as 
+<B>the current node as a client or RELAY</B>.
+<P></P>
+<PRE>
+  "ctys-plugins -d 64,P -T all"
+</PRE>
+</DL>
+
+<DL>
+<DT><B>-E</B></DT><DD>
+Check for <B>local host as final execution target</B>, this forces full verification.
+If "-E" is not set, only required functionality for a client role is
+validated, which could be for some packages almost the same and though
+treated as. 
+<P></P>
+<DT></DT><DD>
+This is e.g. the case for PM.
+<DT></DT><DD>
+This is e.g. not the case for XEN, which obviously requires a completly different runtime environment for it's clients than within the server as Dom0/DomU
+<DT></DT><DD>
+This e.g. could be or not the case for VMW, depends on type of product + version + requested type of client.
+</DL>
+
+<DL>
+<DT><B>-h</B></DT><DD>
+Print help, refer to "-H" for additional information.
+</DL>
+
+<DL>
+<DT><B>-H &lt;help-option&gt;</B></DT><DD>
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+<P></P>
+For additional help refer to the documents or type <B>ctys -H help</B>.
+</DL>
+
+<DL>
+<DT><B>-l &lt;remote-user&gt;</B></DT><DD>
+Refer to "ctys" generic options for additional information.
+</DL>
+
+<DL>
+<DT><B>-t &lt;plugin-type&gt;</B></DT><DD>
+The type of plugin to be set to BUSY(4), this is any SINGLE plugin as
+applicable by "ctys -t ..." call.
+</DL>
+
+<DL>
+<DT><B>-T &lt;plugin-preload-typelist&gt;</B></DT><DD>
+The prefetch list of plugins to be set to IDLE(2), before performing,
+this is any comma seperated LIST of plugins as  applicable by "ctys -T ..." call.
+</DL>
+
+<DL>
+<DT><B>-V</B></DT><DD>
+Version.
+<P></P>
+<DT><B>-X</B></DT><DD>
+Terse output format, effects "-V" when set left-of.
+</DL>
+
+<DL>
+<DT><B>-Z &lt;set-sudo-ksu&gt;</B></DT><DD>
+Sets appropriate <B>access permissions by sudoers and/or kerberos/ksu</B>. For
+additonal information refer to Z-OPTION.
+</DL>
+
+<P>
+.
+</P>
+<H1>ARGUMENTS</H1>
+<P>
+An optional list of &lt;execution-target&gt;. When the "-P" option is
+choosen, the remote files will be updated, when suffitient permissions
+are available, else the output is collected locally. The call is
+simply mapped to a call of the CLI plugin with the option CMD, thus
+works syncronuous and sequential.
+</P>
+<P>
+.
+</P>
+<H1>EXIT-VALUES</H1>
+<DL>
+<DT> 0: OK:</DT><DD>
+Result is valid.
+<P></P>
+<DT> 1: NOK:</DT><DD>
+Erroneous parameters.
+<P></P>
+<DT> 2: NOK:</DT><DD>
+Missing an environment element like files or databases.
+</DL>
+
+<H1>SEE ALSO</H1>
+<DL>
+<DT><B>ctys plugins</B></DT><DD>
+<DT>  <B>PMs</B></DT><DD>
+<I>ctys-PM(7)</I>
+<DT>  <B>VMs</B></DT><DD>
+<I>ctys-KVM(7)</I>, <I>ctys-QEMU(7)</I>, <I>ctys-VMV(7)</I>, <I>ctys-XEN(7)</I>, <I>ctys-VBOX(7)</I>
+<DT>  <B>HOSTS</B></DT><DD>
+<I>ctys-CLI(7)</I>, <I>ctys-PM(7)</I>, <I>ctys-VNC(7)</I>, <I>ctys-X11(7)</I>
+<P></P>
+<DT><B>ctys executables</B></DT><DD>
+<I>ctys-genmconf(1)</I>
+<P></P>
+<DT><B>system executables</B></DT><DD>
+<I>dmidecode(8)</I>
+</DL>
+
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<img src="../../images/60px-Official-gnu.png" />  
+<br />
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.004/doc-tmp/BASE/en/html/man1/ctys-plugins.html -->
+</BODY></HTML>
