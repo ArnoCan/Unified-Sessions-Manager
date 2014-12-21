@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -27,7 +27,7 @@ VMW_PRODVERS=;
 VMW_SERVER=;
 
 _myPKGNAME_VMW="${BASH_SOURCE}"
-_myPKGVERS_VMW="01.11.008"
+_myPKGVERS_VMW="01.11.009"
 hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
 
 _myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
@@ -381,6 +381,8 @@ function setVersionVMW () {
 
     if [ -z "${_verstrg}" ];then
 	ABORT=2
+	VMW_STATE=DISABLED;
+	VMW_MAGIC=NOLOC;
 	VMW_PREREQ="<`setStatusColor ${VMW_STATE} VERSION`:CANNOT-EVALUATE>"
 	if [ "${C_SESSIONTYPE}" == "VMW" -a -z "${_checkonly}" ];then
 	    if [ -z "${VMWEXE}" ];then

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_008
+VERSION=01_11_009
 #DESCRIPTION:
 #  See manual.
 #
@@ -106,7 +106,7 @@ fi
 #identify the actual location of the callee
 #
 if [ -n "${MYLIBEXECPATHNAME##/*}" ];then
-	MYLIBEXECPATHNAME=${PWD}/${MYLIBEXECPATHNAME}
+    MYLIBEXECPATHNAME=${PWD}/${MYLIBEXECPATHNAME}
 fi
 MYLIBEXECPATH=`dirname $MYLIBEXECPATHNAME`
 
@@ -137,8 +137,8 @@ fi
 
 MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.003.sh
 if [ ! -f "${MYBOOTSTRAP}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
-cat <<EOF  
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
 
 DESCRIPTION:
   This file contains the common mandatory bootstrap functions required
@@ -167,7 +167,7 @@ SOLUTION-PROPOSAL:
   Please send a bug-report.
 
 EOF
-  exit 1
+    exit 1
 fi
 
 ###################################################
@@ -213,8 +213,8 @@ bootstrapCheckInitialPath
 
 MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+    exit 1
 fi
 
 if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
@@ -223,20 +223,20 @@ fi
 
 MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+    exit 1
 fi
 
 MYSCRIPTPATH=${MYSCRIPTPATH:-$MYCONFPATH/scripts}
 if [ ! -d "${MYSCRIPTPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYSCRIPTPATH=${MYSCRIPTPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYSCRIPTPATH=${MYSCRIPTPATH}"
+    exit 1
 fi
 
 MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+    exit 1
 fi
 
 MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
@@ -339,12 +339,12 @@ fi
 
 #Source pre-set environment from user
 if [ -f "${HOME}/.ctys/ctys.conf.sh" ];then
-  . "${HOME}/.ctys/ctys.conf.sh"
+    . "${HOME}/.ctys/ctys.conf.sh"
 fi
 
 #Source pre-set environment from installation 
 if [ -f "${MYCONFPATH}/ctys.conf.sh" ];then
-  . "${MYCONFPATH}/ctys.conf.sh"
+    . "${MYCONFPATH}/ctys.conf.sh"
 fi
 
 
@@ -380,57 +380,177 @@ if [ -z "$CTYS_ZENITY" ];then
 fi
 
 
+echo "4TEST:$*">&2
+_action=${1:-CREATE};shift
+_target=${1:-CONSOLE};shift
+_scope=${1:-ALL};shift
 
-function guiGetVM () {
-    zenity --list \
-	--title="ctys - Available VMs" \
-	--column="Index" --column="Label" --column="stype" --column="Host" --column="User" --column="Group" \
-	--print-column=ALL --separator=';' \
+
+function guiCheckCacheDB () {
+    n=$(ctys-vhost -o index |wc -l)
+    if [ "$n" == 0 ];then
+	txt="Missing cacheDB, requires the default DB.\n" 
+	txt="${txt}Use 'ctys-vdbgen' for creation.\n" 
+	txt="${txt}\n" 
+	txt="${txt}Refer to manuals for additonal information by typing one of:\n" 
+	txt="${txt}\n" 
+	txt="${txt}'ctys-vdbgen -H'\n" 
+	txt="${txt}'ctys-vdbgen -H html'\n" 
+	txt="${txt}'ctys-vdbgen -H man'\n" 
+	txt="${txt}'ctys-vdbgen -H pdf'\n" 
+	zenity --error \
+	    --text="$txt" 
+	exit 1
+    else
+	return 0;
+    fi
+}
+
+function guiGetConfirm () {
+    if zenity --entry \
 	--width=600 \
-	--height=500 \
-	$(
-           ctys-vhost -o pm,label,uid,gid,stype,sort:3 NOT F:2:PM|\
-           awk -F';' '
-              BEGIN{idx=0;}
-              {x="";for(i=1;i<=NF;i++){if($i!~/^$/){x=x";"$i;}else{x=x";\"\"";}}printf("%04d %s\n", idx,x);idx++;}
-              '|\
-           awk -F';' '{print $1" "$4" "$3" "$2" "$5" "$6;}'
-         )
+	--title="ctys - Selection " \
+	--text="Execute or modify:" \
+	--entry-text "$1"
+    then echo
+    fi
 }
 
-function guiGetPM () {
+function fetchRecord () {
+    awk -F';' '
+         BEGIN{idx=0;}
+         {x="";for(i=1;i<=NF;i++){if($i!~/^$/){x=x";"$i;}else{x=x";\"\"";}}printf("%04d %s\n", idx,x);idx++;}
+     '|\
+     awk -F';' '{printf("%s %05s %s %s %s %s %s %s\n", $1,$5,$4,$3,$2,$8,$6,$7);}'
+}
+
+function fetchLoginRecord () {
+    awk -F';' '
+         BEGIN{idx=0;}
+         {x="";for(i=1;i<=NF;i++){if($i!~/^$/){x=x";"$i;}else{x=x";\"\"";}}printf("%04d %s\n", idx,x);idx++;}
+     '|\
+     awk -F';' '{printf("%s %05s %s %s %s %s %s %s %s %s %s\n", $1,$8,$4,$3,$2,$7,$5,$6,$11,$9,$10);}'
+}
+
+function guiGetLIST () {
+    local _sel=$1
     zenity --list \
-	--width=500 \
+	--width=750 \
 	--height=500 \
-	--title="ctys - Available PMs" \
-	--column="Index" --column="Label" --column="Host" --column="User" --column="Group" \
-	--print-column=ALL --separator=';' \
-	$(
-           ctys-vhost -o pm,label,uid,gid,sort:3 F:18:PM|\
-           awk -F';' '
-               BEGIN{idx=0;}
-               {x="";for(i=1;i<=NF;i++){if($i!~/^$/){x=x";"$i;}else{x=x";\"\"";}}printf("%04d %s\n", idx,x);idx++;}
-               '|\
-           awk -F';' '{print $1" "$3" "$2" "$4" "$5;}'|\
-           sort -u -k 2
+	--title="ctys - CREATE - $_sel" \
+	--column="Count" --column="Index" --column="Label" --column="stype" --column="Host" \
+        --column="Console" --column="User" --column="Group" \
+	--print-column=ALL  --separator=';' \
+	$(#honour parser of zenity!!!
+	    [ "$_sel" == PM  ]&&ctys-vhost -o pm,label,uid,gid,index,stype,defcon,sort:3 F:18:PM |fetchRecord;
+	    [ "$_sel" == VM  ]&&ctys-vhost -o pm,label,uid,gid,index,stype,defcon,sort:3 F:18:VM |fetchRecord;
+ 	    [ "$_sel" == ALL ]&&ctys-vhost -o pm,label,uid,gid,index,stype,defcon,sort:3         |fetchRecord ;
          )
 }
 
-case $1 in
-    PM)
-	x=$(guiGetPM)
-	echo $x|awk -F';' '{print "-a create=l:"$2",reuse "$4"@"$3;}'|xargs ctys
-	exit 
-	;;
-    VM)
-	x=$(guiGetVM)
-	echo $x|awk -F';' '{print "-t "$3" -a create=l:"$2",reuse "$5"@"$4;}'|xargs ctys
-	exit 
-	;;
-    *|LIST)
-	x=$(guiGetVM)
-	exit 
-	;;
-esac
+function guiGetLoginLIST () {
+    local _sel=$1
+echo "_sel=$_sel">&2
+    zenity --list \
+	--width=1030 \
+	--height=500 \
+	--title="ctys - LOGIN - $_sel" \
+	--column="Count" --column="Index" --column="Label" --column="stype" --column="Host" \
+        --column="Guest" --column="Distribution" --column="Release" --column="Console" --column="User" --column="Group" \
+	--print-column=ALL  --separator=';' \
+	$(#honour parser of zenity!!!
+	    [ "$_sel" == PM  ]&&ctys-vhost -o pm,label,uid,gid,index,stype,defhosts,netname,dist,distrel,sort:3 F:18:PM |fetchLoginRecord;
+	    [ "$_sel" == VM  ]&&ctys-vhost -o pm,label,uid,gid,index,stype,defhosts,netname,dist,distrel,sort:3 F:18:VM |fetchLoginRecord;
+ 	    [ "$_sel" == ALL ]&&ctys-vhost -o pm,label,uid,gid,index,stype,defhosts,netname,dist,distrel,sort:3         |fetchLoginRecord ;
+         )
+}
+
+function guiListAction () {
+    case "$_action" in
+	CREATE)
+	    guiCheckCacheDB
+	    case "$_target" in
+		CONSOLE)
+		    case "$_scope" in
+			ALL)x=$(guiGetLIST ALL);;
+			PM)x=$(guiGetLIST PM);;
+			VM)x=$(guiGetLIST VM);;
+		    esac
+		    if [ $? -eq 0 ];then
+			x=$(echo $x|awk -F';' '
+                      {
+                        gsub("^0*","",$2);
+                        c="-t "$4" -a create=dbrec:"$2",reuse";
+                        if($6!~/^$/&&$6!~/""/){
+                           c=c",CONSOLE:"$6;
+                        }
+                        c=c" -Y ";
+                        c=c" -c local ";
+                        c=c" "$7"@"$5;
+                        print c;
+                      }')
+			x="ctys $x"
+			x=$(guiGetConfirm "$x")
+			if [ $? -eq 0 ];then
+			    $x
+			fi
+		    fi
+		    exit 
+		    ;;
+	    esac
+	    ;;
+	LOGIN)
+	    guiCheckCacheDB
+	    case "$_target" in
+		CONSOLE)
+		    case "$_scope" in
+			ALL)x=$(guiGetLoginLIST ALL);;
+			PM)x=$(guiGetLoginLIST PM);;
+			VM)x=$(guiGetLoginLIST VM);;
+		    esac
+		    if [ $? -eq 0 ];then
+			x=$(echo $x|awk -F';' '
+                      {
+                        gsub("^0*","",$2);
+                        c=" -a create=l:"$3",reuse";
+                        if($9!~/^$/&&$9!~/""/){
+                           c=c" -t "$9" ";
+                        }
+                        c=c" -Y ";
+                        c=c" -c local ";
+                        if($6!~/^$/&&$6!~/""/){
+                           c=c" "$10"@"$6;
+                        }else{
+                           c=c" "$10"@"$3;
+                        }
+                        print c;
+                      }')
+			x="ctys $x"
+			x=$(guiGetConfirm "$x")
+			if [ $? -eq 0 ];then
+			    $x
+			fi
+		    fi
+		    exit 
+		    ;;
+	    esac
+	    ;;
+	LIST)
+	    guiCheckCacheDB
+	    x=$(guiGetALL)
+	    if [ $? -eq 0 ];then
+		echo $x
+	    fi
+	    exit 
+	    ;;
+	*)
+	    zenity --error \
+		--text="Unknown choice:$1"
+	    ;;
+    esac
+}
+
+
+guiListAction
 
 

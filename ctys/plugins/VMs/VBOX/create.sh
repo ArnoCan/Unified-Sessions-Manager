@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_009alpha
 #
 ########################################################################
 #
@@ -17,10 +17,12 @@
 ########################################################################
 
 _myPKGNAME_VBOX_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VBOX_CREATE="01.11.006alpha"
+_myPKGVERS_VBOX_CREATE="01.11.009alpha"
 hookInfoAdd $_myPKGNAME_VBOX_CREATE $_myPKGVERS_VBOX_CREATE
 _myPKGBASE_VBOX_CREATE="`dirname ${_myPKGNAME_VBOX_CREATE}`"
 
+#specifies a record index
+export DBREC=;
 
 #FUNCBEG###############################################################
 #NAME:
@@ -139,6 +141,10 @@ function createConnectVBOX () {
                      #####################
                      # <machine-address> #
                      #####################
+			    DBRECORD|DBREC|DR)
+				local DBREC="${ARG}";
+				printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
 				printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "BASE=${_base}"
@@ -437,6 +443,14 @@ function createConnectVBOX () {
 		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RDPviewer set: -T RDP,VBOX"
 		    ;;
 	    esac
+
+	    if [ -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -487,6 +501,10 @@ function createConnectVBOX () {
                      #####################
                      # <machine-address> #
                      #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
                             #can be checked now
                             local _base="${ARG}";
@@ -793,6 +811,20 @@ function createConnectVBOX () {
 
 
             #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -z "${_pname// /}" -a -n "${DBREC// /}" ];then
+		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o PNAME -p ${DBPATHLST} -s "
+		_pname=`${_VHOST} R:${DBREC}`
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
+
+            #
             #1. Try cache
             #
             if [ -z "${_pname// /}" ];then
@@ -910,23 +942,35 @@ function createConnectVBOX () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
-#4TEST:01_11_008
-		local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
-
 		case ${C_NSCACHELOCATE} in
 		    0)#off
 			;;
 		    1)#both
-			local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			if [ -n "$DBREC" ];then
+			    local _tcp=`${_VHOST}  R:${DBREC}`
+			else
+			    local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
+			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			fi
 			;;
 		    2)#local
 			if [ "${C_EXECLOCAL}" != 1 ];then
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    if [ -n "$DBREC" ];then
+				local _tcp=`${_VHOST}  R:${DBREC}`
+			    else
+				local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
+				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    fi
 			fi
 			;;
 		    3)#remote
 			if [ "${C_EXECLOCAL}" == 1 ];then
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    if [ -n "$DBREC" ];then
+				local _tcp=`${_VHOST}  R:${DBREC}`
+			    else
+				local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
+				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    fi
 			fi
 			;;
 		esac

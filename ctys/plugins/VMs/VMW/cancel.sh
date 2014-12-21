@@ -7,18 +7,21 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b01
+#VERSION:      01_11_009
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VMW_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_VMW_CANCEL="01.07.001b01"
+_myPKGVERS_VMW_CANCEL="01.11.009"
 hookInfoAdd $_myPKGNAME_VMW_CANCEL $_myPKGVERS_VMW_CANCEL
 
+
+#specifies a record index
+export DBREC=;
 
 #FUNCBEG###############################################################
 #NAME:
@@ -176,6 +179,11 @@ function cutCancelSessionVMW () {
               #####################
               # <machine-address> #
               #####################
+			DBRECORD|DBREC|DR)
+			    DBREC="${ARG}";
+			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+                            local _idgiven=1;
+			    ;;
 			BASEPATH|BASE|B)
                             local _base="${ARG}";
 			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -243,6 +251,9 @@ function cutCancelSessionVMW () {
   			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "SCOPE:BOTH=CLIENT+SERVER"
 			    ;;
 
+			USER)
+			    ;;
+
 			*)
 			    ABORT=1;
 			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown sub-opts for VMW:${KEY}"
@@ -298,6 +309,14 @@ function cutCancelSessionVMW () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing address parameter."
  		gotoHell ${ABORT}
             fi
+
+ 	    if [ -z "$CALLERJOB"  -a -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index(${DBREC}) has priority for addressresolution,"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remaining address parameters are ignored."
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -403,6 +422,11 @@ function cutCancelSessionVMW () {
              #####################
              # <machine-address> #
              #####################
+			DBRECORD|DBREC|DR)
+			    DBREC="${ARG}";
+			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+                            local _idgiven=1;
+			    ;;
 			BASEPATH|BASE|B)
                             local _base="${ARG}";
 			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -453,6 +477,26 @@ function cutCancelSessionVMW () {
 			    ;;
 
              #####################
+			USER)
+			    if [ -z "${ARG}" ];then
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing arguments:$KEY"
+ 				gotoHell ${ABORT}
+			    fi
+			    _actionuserVMW="${ARG}";
+			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "ACTION-USER=${_actionuserVMW}"
+			    VMW_SESSION_USER=${_actionuserVMW%% *}
+			    VMWMGR="${VMWMGR} -u ${VMW_SESSION_USER} "
+			    VMW_SESSION_CRED=${_actionuserVMW#* }
+			    if [ "${VMW_SESSION_CRED}" != "${_actionuserVMW}" ];then
+				VMWMGR="${VMWMGR} -p ${VMW_SESSION_CRED} "
+			    else
+				VMW_SESSION_CRED=;
+			    fi
+			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "VMWMGR=${VMWMGR}"
+			    ;;
+
+
 			ALL)
 			    local _all=1;
  			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "RANGE:all within scope"
@@ -492,11 +536,25 @@ function cutCancelSessionVMW () {
 
 	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "CombineParamaters"
 
+
             ################################
             #
             #Lists extended pname(1-awk-increment):LABEL,ID,PID,SITE
             #                                      3     4  11  14
             ################################
+            #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -z "${_pname// /}" -a -n "${DBREC// /}" ];then
+		printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o PNAME -p ${DBPATHLST} -s "
+		_pname=`${_VHOST} R:${DBREC}`
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
 
             #
             #expand given only.
@@ -780,12 +838,10 @@ function cutCancelSessionVMW () {
 
 		    POWEROFF|S5)
   			printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "ACTION-MODE=POWEROFF"
-
 			if [ -z "$_force" ];then
 			    stackerCancelPropagate STACK "POWEROFF:0" "${_self:-$_target}";
  			    sleep ${_powoffdelay:-$DEFAULT_KILL_DELAY_POWEROFF}
 			fi
-
 			for _i in ${_pname};do
 			    [ "${_i##*;}" == CLIENT ]&&continue;
 			    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "stop:${_i}"
@@ -811,7 +867,6 @@ function cutCancelSessionVMW () {
 				_ret=1;
 				printWNG 1 $LINENO $BASH_SOURCE ${_ret} "PID=${_pid}:REASON=Erroneous _pname"
 			    fi
-
 			    vmMgrVMW POWEROFF "$_label" "$_id" "${_powoffdelay:-$DEFAULT_KILL_DELAY_POWEROFF}" "$_pid"
 			done
 
@@ -820,7 +875,7 @@ function cutCancelSessionVMW () {
 			    killClients ${_pname}
 			fi
 			if [ -n "${_self}" ];then
-  			    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "SELF"
+			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "halt -p"
 			    halt -p
 			fi
 			;;

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_008
+VERSION=01_11_009
 #DESCRIPTION:
 #  See manual.
 #
@@ -496,16 +496,14 @@ if [ ! -f "${_myFilePath}" ];then
 fi
 
 if [ -n "$_edit" ];then
-    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
-    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`gwhich emacs`
-    if [  -z "$X11EMACXEXE" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE $ABORT "Cannot evaluate Emacs for edit."
-	exit $?
+    _editX=;
+    for i in ${_edit//%/ };do
+	if [ -e $i ];then
+	    _editX="$_editX $i"
+	fi
+    done
 
-    fi
-    [ -z "${_edit}" ]&&_edit=" ."
-    $X11EMACXEXE ${_edit}&
+    $CTYS_MACROSEDIT ${_editX//%/ }&
     exit $?
 fi
 

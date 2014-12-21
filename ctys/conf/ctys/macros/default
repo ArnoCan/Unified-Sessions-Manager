@@ -100,11 +100,11 @@ F_L_ARCH          = 22_arch_5
 #reloccap(26)
 #SSH(27)
 #netname(28)
-#rsrv(29)
-#rsrv(30)
-#rsrv(31)
-#rsrv(32)
-#rsrv(33)
+#Hyperrel(29)
+#Accelerator(30)
+#ExePath(31)
+#Index(32)
+#ifname(33)
 #CTYSrel(34)
 #netmask(35)
 #Gateway(36)
@@ -115,6 +115,8 @@ F_L_ARCH          = 22_arch_5
 #VCPU(41)
 #ContextStg(42)
 #UserStrg(43)
+#UID(44)
+#GID(45)
 #
 F_VNCBASE   = 11_vncbase_7
 F_DIST      = 12_distro_12
@@ -137,7 +139,7 @@ F_NETNAME   = 28_netname_16
 F_HYRREL    = 29_rhyper_5
 F_ACCEL     = 30_accel_5
 F_EXEP      = 31_exepath_20
-F_RSRV10    = 32_r_1
+F_INDEX     = 32_index_5
 F_IFNAME    = 33_if_7
 F_CTYSREL   = 34_CTYSrel_10
 F_NETMASK   = 35_netmask_15
@@ -149,6 +151,8 @@ F_VRAM      = 40_VRAM_13
 F_VCPU      = 41_VCPU_5
 F_CSTRG     = 42_ContextStg_20_B
 F_USTRG     = 43_UserStrg_20_B
+F_UID       = 44_UserID_10
+F_GID       = 45_GroupID_10
 
 
 F_STACKCAP1  = 21_StackCap_30_B
@@ -183,6 +187,7 @@ ehyper=-a enumerate={macro:TAB_HYPER}
 
 vhosthyper=-o {macro:TAB_HYPER}
 vhyper=-o {macro:TAB_HYPER}
+
 
 
 ##########################################################

@@ -121,6 +121,8 @@ BEGIN{mx=0;
     ptrace("h          ="h);
     ptrace("vb         ="vb);
     ptrace("ip         ="ip);
+    ptrace("defcon     ="defcon);
+    ptrace("defhosts   ="defhosts);
     ptrace("dist       ="dist);
     ptrace("distrel    ="distrel);
     ptrace("os         ="os);
@@ -212,7 +214,7 @@ titleidx==1{
     if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Hyperrelrun(29)";   }
     if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accellerator(30)";   }
     if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Exepath(31)";   }
-    if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(32)";   }
+    if(reserv>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(32)";   }
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname(33)";   }
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease(34)";   }
     if(netmask>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask(35)";   }
@@ -226,6 +228,8 @@ titleidx==1{
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(43)";      }
     if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(44)";        }
     if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(45)";        }
+    if(defhost>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs(46)";        }
+    if(defcon>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE(47)";        }
 
     printf("%s\n",outbuf);
     exit;        
@@ -265,7 +269,7 @@ titleidx==2{
     if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Hyperrelrun(AC-29)";   }
     if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accellerator(AD-30)";   }
     if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Exepath(AE-31)";   }
-    if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AF-32)";   }
+    if(reserv>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AF-32)";   }
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname(AG-33)";   }
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease(AH-34)";   }
     if(netmask>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask(AI-35)";   }
@@ -279,6 +283,8 @@ titleidx==2{
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(AQ-43)";      }
     if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(AR-44)";        }
     if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(AS-45)";       }
+    if(defhost>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs(AT-46)";        }
+    if(defcon>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE(AU-47)";        }
 
     printf("%s\n",outbuf);
     exit;        
@@ -319,7 +325,7 @@ title==1{
     if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"hyperrelrun";   }
     if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"accellerator";   }
     if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"exepath";   }
-    if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
+    if(reserv>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname";   }
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease";   }
     if(netmask>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask";   }
@@ -333,6 +339,8 @@ title==1{
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg";      }
     if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID";        }
     if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID";       }
+    if(defhost>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs";        }
+    if(defcon>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE";        }
 
     printf("%s\n",outbuf);
     exit;        
@@ -437,7 +445,7 @@ $0~/^$/||$19!~mstat{
     if(hrx>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $29;}
     if(acc>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $30;}
     if(exep>0)       { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $31;}
-    if(reserv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $32;}
+    if(reserv>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $32;}
     if(ifname>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $33;}
     if(ctysrel>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $34;}
     if(netmask>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $35;}
@@ -451,6 +459,8 @@ $0~/^$/||$19!~mstat{
     if(userstr>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $43;}
     if(uid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $44;}
     if(gid>0)        { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $45;}
+    if(defhosts>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $46;}
+    if(defcon>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf $47;}
 
     ptrace("output="outbuf);
     printf("%s\n",outbuf);

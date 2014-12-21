@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008alpha
+#VERSION:      01_11_009alpha
 #
 ########################################################################
 #
@@ -16,8 +16,11 @@
 ########################################################################
 
 _myPKGNAME_VBOX_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_VBOX_CANCEL="01.11.008alpha"
+_myPKGVERS_VBOX_CANCEL="01.11.009alpha"
 hookInfoAdd $_myPKGNAME_VBOX_CANCEL $_myPKGVERS_VBOX_CANCEL
+
+#specifies a record index
+export DBREC=;
 
 
 #FUNCBEG###############################################################
@@ -176,6 +179,10 @@ function cutCancelSessionVBOX () {
               #####################
               # <machine-address> #
               #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
                             local _base="${ARG}";
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -298,6 +305,14 @@ function cutCancelSessionVBOX () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing address parameter."
  		gotoHell ${ABORT}
             fi
+
+	    if [ -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -403,6 +418,10 @@ function cutCancelSessionVBOX () {
              #####################
              # <machine-address> #
              #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
                             local _base="${ARG}";
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -497,6 +516,21 @@ function cutCancelSessionVBOX () {
             #Lists extended pname(1-awk-increment):LABEL,ID,PID,SITE
             #                                      3     4  11  14
             ################################
+
+            #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -z "${_pname// /}" -a -n "${DBREC// /}" ];then
+		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o PNAME -p ${DBPATHLST} -s "
+		_pname=`${_VHOST} R:${DBREC}`
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
+
 
             #
             #expand given only.

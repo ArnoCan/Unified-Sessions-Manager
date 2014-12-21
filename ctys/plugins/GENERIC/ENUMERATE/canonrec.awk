@@ -122,6 +122,8 @@ BEGIN{mx=0;
     ptrace("h          ="h);
     ptrace("vb         ="vb);
     ptrace("ip         ="ip);
+    ptrace("defcon     ="defcon);
+    ptrace("defhosts   ="defhosts);
     ptrace("dist       ="dist);
     ptrace("distrel    ="distrel);
     ptrace("os         ="os);
@@ -279,7 +281,7 @@ $0~/^$/||!($19~mstat){
     if(hrx>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Hyperrelrun,29,"$29; }
     if(acc>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accellerator,30,"$30; }
     if(exep>0)       {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Execpath,31,";$31; }
-    if(reserv10>0)   {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv,32,"$32; }
+    if(reserv>0)     {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv,32,"$32; }
     if(ifname>0)     {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFname,33,"$33; }
     if(ctysrel>0)    {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSRelease,34,"$34; }
     if(netmask>0)    {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask,35,"$35; }
@@ -290,9 +292,11 @@ $0~/^$/||!($19~mstat){
     if(vram>0)       {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VRAM,40,"$40; }
     if(vcpu>0)       {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"VCPU,41,"$41; }
     if(contextstrg>0){    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ContextStg,42,"$42; }
-    if(userstr>0)    {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43"$43; }
-    if(uid>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43"$44; }
-    if(gid>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43"$45; }
+    if(userstr>0)    {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg,43,"$43; }
+    if(uid>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserID,44,"$44; }
+    if(gid>0)        {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GroupID,45,"$45; }
+    if(defhosts>0)   {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs,46,"$46; }
+    if(defcon>0)     {    if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE,47,"$47; }
 
     ptrace("output="outbuf);
     printf("%s\n",outbuf);

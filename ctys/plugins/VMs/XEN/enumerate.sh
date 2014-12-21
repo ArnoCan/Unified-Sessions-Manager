@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_XEN_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_XEN_ENUMERATE="01.11.008"
+_myPKGVERS_XEN_ENUMERATE="01.11.009"
 hookInfoAdd $_myPKGNAME_XEN_ENUMERATE $_myPKGVERS_XEN_ENUMERATE
 _myPKGBASE_XEN_ENUMERATE="`dirname ${_myPKGNAME_XEN_ENUMERATE}`"
 
@@ -183,6 +183,8 @@ function enumerateMySessionsXEN () {
 		_out="${_out};";  
 		_out="${_out};";  
 		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
 		_out="${_out};"; 
 		_out="${_out};";  
 		_out="${_out};";  
@@ -250,6 +252,13 @@ function enumerateMySessionsXEN () {
 		_out7="${_out7};`getCONTEXTSTRING ${X}`";
 		_out7="${_out7};`getUSERSTRING ${X}`";
 
+		_out8=;
+		_out8="${_out8};${MYUID}";
+		_out8="${_out8};${MYGID}";
+		_out8="${_out8};${XEN_DEFAULT_HOSTS}";
+		_out8="${_out8};${XEN_DEFAULT_CONSOLE}";
+
+
 		local i=0;
 		_myMAC=`getMAClst_XEN ${X}`;
 		printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myMAC=${_myMAC}";
@@ -289,12 +298,12 @@ function enumerateMySessionsXEN () {
 
 			local _myNetName=$(netGetNetName "${A[0]}")
 
-			 _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7};${MYUID};${MYGID}"
+			 _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}${_out8}"
 			 printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 			 echo -e "${_out}"
 		    done
 		else
-		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7};${MYUID};${MYGID}"
+		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}${_out8}"
 		    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		    echo  -e "${_out}"
 		fi

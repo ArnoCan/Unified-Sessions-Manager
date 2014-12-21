@@ -688,7 +688,7 @@ CLISHELL=bash
 #This is due to performance enhancement a reduced set, because not all 
 #support a CANCAL action at all.
 #
-CTYS_STACKERKILL_DEFAULT="XEN,QEMU,VMW"
+CTYS_STACKERKILL_DEFAULT="XEN,QEMU,VMW,VBOX"
 
 
 [ -z "$CTYS_BROWSER" ]&&CTYS_BROWSER=`getPathName $LINENO $BASH_SOURCE WARNINGEXT firefox /usr/bin`

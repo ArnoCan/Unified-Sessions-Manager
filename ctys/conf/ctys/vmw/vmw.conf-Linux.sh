@@ -213,3 +213,15 @@ case ${MYDIST} in
 	CTYS_VMW_VMRC_ACCESS_HOST=${CTYS_VMW_VMRC_ACCESS_HOST:-localhost:8333}
 	;;
 esac
+
+
+
+#
+#default HOSTs for login
+#
+VMW_DEFAULT_HOSTS=VNC
+
+#
+#default for CONSOLE
+#
+VMW_DEFAULT_CONSOLE=VMWRC

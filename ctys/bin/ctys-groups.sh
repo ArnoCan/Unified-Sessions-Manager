@@ -625,18 +625,13 @@ fi
 
 
 if [ -n "$_edit" ];then
-    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
-    [ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`gwhich emacs`
-    if [  -z "$X11EMACXEXE" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE $ABORT "Cannot evaluate Emacs for edit."
-	exit $?
+    _editX=;
+    for i in ${_edit//%/ };do
+	if [ -e $i ];then
+	    _editX="$_editX $i"
+	fi
+    done
 
-    fi
-    [ -z "${_edit}" ]&&_edit=" ."
-    $X11EMACXEXE ${_edit}&
+    $CTYS_GROUPSEDIT ${_editX//%/ }&
+    exit $?
 fi
-
-
-
-

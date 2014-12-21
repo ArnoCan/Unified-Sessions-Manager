@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b05
+#VERSION:      01_11_009
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_QEMU_CREATE="${BASH_SOURCE}"
-_myPKGVERS_QEMU_CREATE="01.07.001b05"
+_myPKGVERS_QEMU_CREATE="01.11.009"
 hookInfoAdd $_myPKGNAME_QEMU_CREATE $_myPKGVERS_QEMU_CREATE
 _myPKGBASE_QEMU_CREATE="`dirname ${_myPKGNAME_QEMU_CREATE}`"
 
@@ -31,6 +31,9 @@ else
 fi
 export CTYS_LIBPATH
 
+
+#specifies a record index
+export DBREC=;
 
 #FUNCBEG###############################################################
 #NAME:
@@ -141,6 +144,10 @@ function createConnectQEMU () {
                      #####################
                      # <machine-address> #
                      #####################
+			    DBRECORD|DBREC|DR)
+				local DBREC="${ARG}";
+				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "BASE=${_base}"
@@ -517,6 +524,15 @@ function createConnectQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing parameter for target entity of action"
  		gotoHell ${ABORT}
             fi
+
+
+	    if [ -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -561,6 +577,11 @@ function createConnectQEMU () {
                      #####################
                      # <machine-address> #
                      #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
+
 			BASEPATH|BASE|B)
                             #can be checked now
                             local _base="${ARG}";
@@ -878,6 +899,23 @@ function createConnectQEMU () {
  		gotoHell ${ABORT}
 	    fi
 
+
+
+
+            #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -z "${_pname// /}" -a -n "${DBREC// /}" ];then
+		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o PNAME -p ${DBPATHLST} -s "
+		_pname=`${_VHOST} R:${DBREC}`
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
+
             #
             #1. Try cache
             #
@@ -893,7 +931,7 @@ function createConnectQEMU () {
 
             #
             #2. Use filesystem
-            #   This does an requires a UNIQUE match only.
+            #   This requires a UNIQUE match.
             #
             if [ -z "${_pname// /}" ];then
 		if [ "${C_NSCACHEONLY}" == 0 ];then
@@ -1058,23 +1096,36 @@ function createConnectQEMU () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
-#4TEST:01_11_008
-		local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
 
 		case ${C_NSCACHELOCATE} in
 		    0)#off
 			;;
 		    1)#both
-			local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			if [ -n "$DBREC" ];then
+			    local _tcp=`${_VHOST}  R:${DBREC}`
+			else
+			    local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
+			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			fi
 			;;
 		    2)#local
 			if [ "${C_EXECLOCAL}" != 1 ];then
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    if [ -n "$DBREC" ];then
+				local _tcp=`${_VHOST}  R:${DBREC}`
+			    else
+				local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
+				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    fi
 			fi
 			;;
 		    3)#remote
 			if [ "${C_EXECLOCAL}" == 1 ];then
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    if [ -n "$DBREC" ];then
+				local _tcp=`${_VHOST}  R:${DBREC}`
+			    else
+				local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
+				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    fi
 			fi
 			;;
 		esac

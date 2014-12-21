@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_007
+VERSION=01_11_009
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -434,6 +434,7 @@ _complement=0;
 _arch=0;
 _cstr=0;
 _hyrel=0;
+_hyrelrun=0;
 _pform=0;
 _scap=0;
 _sreq=0;
@@ -441,24 +442,11 @@ _vstat=0;
 _vram=0;
 _vcpu=0;
 _ustr=0;
-_rsrv1=0;
-_rsrv2=0;
-_rsrv3=0;
-_rsrv4=0;
-_rsrv5=0;
-_rsrv6=0;
-_rsrv7=0;
-_rsrv8=0;
-_rsrv9=0;
-_rsrv10=0;
-_rsrv11=0;
-_rsrv12=0;
-_rsrv13=0;
-_rsrv14=0;
-_rsrv15=0;
+_rsrv=0;
 
 
 _execloc=0;
+_exep=0;
 _gateway=0;
 _sshport=0;
 _netname=0;
@@ -469,6 +457,8 @@ _netmask=0;
 _relay=0;
 _reloccap=0;
 _ctysrel=0;
+
+_index=0; 
 
 #storage of concatenated STATCACHEDB and volatile RT data of LIST
 #will be reset before usage when RTCACHE:<key> is set.
@@ -893,20 +883,26 @@ function myFetchOptions () {
                     case ${KEY} in
 			CTYSADDRESS|CTYS)                 _ctysaddr=1;_machine=1;_outputset=1;;
 
+			ACCELERATOR|ACCEL)                _acc=1;_outputset=1;;
 			ARCH)                             _arch=1;_outputset=1;;
 			CATEGORY|CAT)                     _cat=1;_outputset=1;;
 			CONTEXTSTRING|CSTRG)              _cstr=1;_outputset=1;;
 			CPORT|VNCPORT)                    _cport=1;_outputset=1;;
 			CTYSRELEASE)                      _ctysrel=1;_outputset=1;;
+			DEFAULTCONSOLE|DEFCON|DEFC)       _defcon=1;_outputset=1;;
+			DEFAULTHOSTS|DEFHOSTS|DEFH)       _defhosts=1;_outputset=1;;
 			DIST)                             _dist=1;_outputset=1;;
 			DISTREL)                          _distrel=1;_outputset=1;;
 			DNS|D)                            _dns=1;_outputset=1;;
 			EXECLOCATION)                     _execloc=1;_outputset=1;;
-			GATEWAY)                          _gateway=1;_outputset=1;;
+			EXEPATH|EXEP)                     _exep=1;_outputset=1;;
+			GATEWAY|GW)                       _gateway=1;_outputset=1;;
 			GROUPID|GID)                      _gid=1;_outputset=1;;
 			HWCAP)                            _hwcap=1;_outputset=1;;
 			HWREQ)                            _hwreq=1;_outputset=1;;
 			HYPERREL|HYREL)                   _hyrel=1;_outputset=1;;
+			HYPERRELRUN|HYRELRUN)              _hyrelrun=1;_outputset=1;;
+			INDEX)                            _index=1;_outputset=1;;
 			IDS|ID|I)                         _ids=1;_outputset=1;;
 			IFNAME)                           _ifname=1;_outputset=1;;
 			IP)                               _ip=1;_tcp=1;_outputset=1;;
@@ -932,7 +928,7 @@ function myFetchOptions () {
 			TITLE)                            _title=1;;
 			TITLEIDXASC)                      _titleidx=2;;
 			TITLEIDX)                         _titleidx=1;;
-			STYPE|ST)                         _st=1;_outputset=1;;
+			STYPE|ST|TYPE)                    _st=1;_outputset=1;;
 			USERSTRING|USTRG)                 _ustr=1;_outputset=1;;
 			USERID|UID)                       _uid=1;_outputset=1;;
 			UUID|U)                           _uuid=1;_outputset=1;;
@@ -1030,7 +1026,7 @@ function myFetchOptions () {
                         #
                         #DB
                         #
-			[[lL][iI][sS][tT][aA][lL][lL])
+			[lL][iI][sS][tT][aA][lL][lL])
                             local _allStat1="${DBPATHLST//:/ }"
                             local _allStat=;
                             local _dl=;
@@ -1062,7 +1058,7 @@ function myFetchOptions () {
                             gotoHell 0;
 			    ;;
 
-			[[lL][iI][sS][tT])
+			[lL][iI][sS][tT])
 			    if [ -z "$C_TERSE" ];then
 				local _allStat="${DBPATHLST//:/ }"
 				echo
@@ -1092,7 +1088,7 @@ function myFetchOptions () {
                         #
                         #DB
                         #
-			[[lL][iI][sS][tT][dD][bB])
+			[lL][iI][sS][tT][dD][bB])
                             local _allStat1="${DBPATHLST//:/ }"
                             local _allStat=;
                             local _dl=;
@@ -1366,7 +1362,7 @@ function myFetchOptions () {
     shift $(( OPTIND - 1))
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_arglst=$*"
     _arglst=$*
-    if [ -z "$_arglst" ];then
+    if [ -z "${_arglst// /}" ];then
 	_arglst='.';
 # 	ABORT=1;
 # 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:arguments"
@@ -1416,20 +1412,19 @@ function myFetchOptions () {
     if((_machine!=0));then
 	_pm=1;
 	_st=1;
+	_acc=1;
 	_label=1;_ids=1;
 	_mac=1;_tcp=1;_uuid=1;
 	_distrel=1;_osrel=1;
 	_disp=1;_cport=1;_sport=1;_vb=1;
 	_dist=1;_os=1;_ver=1;_ser=1;_cat=1;
-	_arch=1;_cstr=1;_hyrel=1;_pform=1;_scap=1;
+	_arch=1;_cstr=1;_hyrel=1;_hyrelrun=1;_pform=1;_scap=1;
 	_sreq=1;_vstat=1;_vram=1;_vcpu=1;_ustr=1;
-	_rsrv1=1;_rsrv2=1;_rsrv3=1;_rsrv4=1;_rsrv5=1;
-	_rsrv6=1;_rsrv7=1;_rsrv8=1;_rsrv9=1;_rsrv10=1;
-	_rsrv11=1;_rsrv12=1;_rsrv13=1;_rsrv14=1;_rsrv15=1;
-        _execloc=1;_gateway=1;_hwcap=1;_hwreq=1;_ifname=1;
+	_index=1;
+        _execloc=1;_exep=1;_gateway=1;_hwcap=1;_hwreq=1;_ifname=1;
         _sshport=1;_netname=1;
         _netmask=1;_relay=1;_reloccap=1;_ctysrel=1;
-        _uid=1;_gid=1;
+        _uid=1;_gid=1;_defhosts=1;_defcon=1;
     fi
 }
 
@@ -1923,21 +1918,18 @@ function applyPreSelectionFilter () {
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v osrel=$_osrel -v distrel=$_distrel "
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v user=${_user} -v mmap=$_macmap -v callp=${MYLIBEXECPATH}" 
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v interact=${C_INTERACTIVE}"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v rsrv1=$_rsrv1 -v rsrv2=$_rsrv2 -v rsrv3=$_rsrv3"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v rsrv4=$_rsrv4 -v rsrv5=$_rsrv5 -v rsrv6=$_rsrv6"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v rsrv7=$_rsrv7 -v rsrv8=$_rsrv8 -v rsrv9=$_rsrv9"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v rsrv10=$_rsrv10 -v rsrv11=$_rsrv11 -v rsrv12=$_rsrv12"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v rsrv13=$_rsrv13 -v rsrv14=$_rsrv14 -v rsrv15=$_rsrv15"
+    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v rsrv=$_rsrv -v hyrelrun=$_hyrelrun "
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v vstat=$_vstat -v hyrel=$_hyrel -v scap=$_scap"
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v sreq=$_sreq -v arch=$_arch -v pform=$_pform"
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v vram=$_vram -v vcpu=$_vcpu -v cstr=$_cstr"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v ustr=$_ustr"
+    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v ustr=$_ustr -v acc=$_acc -v exep=$_exep "
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v execloc=$_execloc -v gateway=$_gateway -v hwcap=$_hwcap"
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v hwreq=$_hwreq -v ifname=$_ifname -v netmask=$_netmask"
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v relay=$_relay -v reloccap=$_reloccap -v sshport=$_sshport"
-    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v netname=$_netname "
+    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v netname=$_netname -v count=$_index "
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v ctysrel=$_ctysrel -v complement=$_complement"
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v uid=$_uid -v gid=$_gid"
+    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v defhosts=$_defhosts -v defcon=$_defcon"
 
 
     local IFS="
@@ -1957,13 +1949,10 @@ function applyPreSelectionFilter () {
         export C_DARGS;
         if [ "$_final" == "1" ];then
 	    awk -F';' -v s="${*}" -v t=$_tcp -v dns=$_dns -v m=$_mac -v ids=$_ids -v u=$_uuid \
-		-v rsrv1="$_rsrv1" -v rsrv2="$_rsrv2"   -v rsrv3="$_rsrv3" -v rsrv4="$_rsrv4" \
-		-v rsrv5="$_rsrv5" -v rsrv6="$_rsrv6"   -v rsrv7="$_rsrv7" -v rsrv8="$_rsrv8" \
-		-v rsrv9="$_rsrv9" -v rsrv10="$_rsrv10" -v rsrv11="$_rsrv11" -v rsrv12="$_rsrv12" \
-		-v rsrv13="$_rsrv13" -v rsrv14="$_rsrv14" -v rsrv15="$_rsrv15" \
+		-v rsrv="$_rsrv13"  -v hyrelrun="$_hyrelrun" \
 		-v vstat="$_vstat" -v hyrel="$_hyrel" -v scap="$_scap" -v sreq="$_sreq" \
 		-v arch="$_arch" -v pform="$_pform" -v vram="$_vram" -v vcpu="$_vcpu"  \
-		-v cstr="$_cstr" -v ustr="$_ustr" \
+		-v cstr="$_cstr" -v ustr="$_ustr" -v acc="$_acc" \
 		-v p=$_pm -v st=$_st -v o=$_os -v first=$_first -v last=$_last -v all=$_all \
                 -v vb="$_vb" -v usort=$_usort -v unique=$_unique -v rsort=$_rsort \
 		-v l=$_label -v rt=$_rttypeX -v rs=$_rtscopeX -v mach=$_outmach -v dist=$_dist  \
@@ -1975,9 +1964,10 @@ function applyPreSelectionFilter () {
                 -v interact=${C_INTERACTIVE} -v ctysrel="$_ctysrel" \
                 -v execloc="$_execloc" -v gateway="$_gateway" -v hwcap="$_hwcap" \
                 -v hwreq="$_hwreq" -v ifname="$_ifname" -v netmask="$_netmask" \
-                -v relay="$_relay" -v reloccap="$_reloccap" -v sshport=$"_sshport" \
-                -v uid="$_uid" -v gid="$_gid" \
-                -v netname="$_netname" \
+                -v relay="$_relay" -v reloccap="$_reloccap" -v sshport="$_sshport" \
+                -v uid="$_uid" -v gid="$_gid"  -v exep=$_exep \
+                -v defhosts="$_defhosts" -v defcon="$_defcon" \
+                -v netname="$_netname" -v count=$_index \
 		-f ${MYLIBEXECPATH}/${MYCALLNAME}.d/ctys-vhost-presel.awk \
 		|sed 's/; */;/g'
 	else
@@ -2010,6 +2000,7 @@ function applyPreSelectionFilter () {
 	    [nN][oO][tT])_complement=1;continue;;
 	    [eE]:*)a=1;;
 	    [fF]:*)a=1;;
+	    [rR]:*)a=1;;
 	esac
  	printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "a=<$a>"
         if [ -n "${*}" ];then
@@ -2280,8 +2271,7 @@ _args="${_args//\%\%/%}";
 printDBG $S_BIN ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_args=<${_args}>"
 
 
-myFetchOptionsPre ${_args:-*}
-
+myFetchOptionsPre ${_args:-.}
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";
     exit 0;
@@ -2307,7 +2297,7 @@ fi
 
 
 DBPATHLST=${DBPATHLST:-$DEFAULT_DBPATHLST}
-myFetchOptions ${_args:-*}
+myFetchOptions ${_args:-.}
 
 #basic check for setup db
 if [ -z "$DBPATHLST" ];then
@@ -2430,23 +2420,21 @@ function applyFilter () {
     fi
 
     awk -F';' -v vb="$_vb" -v ip="$_ip" -v dist="$_dist" -v os="$_os" -v ver="$_ver" -v ser="$_ser" \
-	-v rsrv1="$_rsrv1" -v rsrv2="$_rsrv2"   -v rsrv3="$_rsrv3" -v rsrv4="$_rsrv4" \
-	-v rsrv5="$_rsrv5" -v rsrv6="$_rsrv6"   -v rsrv7="$_rsrv7" -v rsrv8="$_rsrv8" \
-	-v rsrv9="$_rsrv9" -v rsrv10="$_rsrv10" -v rsrv11="$_rsrv11" -v rsrv12="$_rsrv12" \
-	-v rsrv13="$_rsrv13" -v rsrv14="$_rsrv14" -v rsrv15="$_rsrv15" \
 	-v vstat="$_vstat" -v hyrel="$_hyrel" -v scap="$_scap" -v sreq="$_sreq" \
 	-v arch="$_arch" -v pform="$_pform" -v vram="$_vram" -v vcpu="$_vcpu"  \
 	-v cstr="$_cstr" -v ustr="$_ustr" -v complement="$_complement" \
         -v cat="$_cat" -v l="$_label" -v i="$_ids" -v t="$_st" -v uu="$_uuid"  \
 	-v mac="$_mac"  -v dsp="$_disp" -v cp="$_cport" -v sp="$_sport"  \
-	-v h="$_pm" -v tcp="$_tcp" -v dns="$_dns" \
+	-v h="$_pm" -v tcp="$_tcp" -v dns="$_dns"  -v exep=$_exep \
 	-v d=$D  -v dargs="${C_DARGS}" -v callp="${MYLIBEXECPATH}/" \
         -v execloc="$_execloc" -v gateway="$_gateway" -v hwcap="$_hwcap" \
         -v hwreq="$_hwreq" -v ifname="$_ifname" -v netmask="$_netmask" \
-        -v relay="$_relay" -v reloccap="$_reloccap" -v sshport=$"_sshport" \
-        -v netname="$_netname" \
+        -v relay="$_relay" -v reloccap="$_reloccap" -v sshport="$_sshport" \
+        -v netname="$_netname" -v acc="$_acc" \
         -v distrel=$_distrel -v osrel=$_osrel  -v ctysrel="$_ctysrel" \
-        -v uid=$_uid -v gid=$_gid \
+        -v uid=$_uid -v gid=$_gid -v hyrelrun="$_hyrelrun" \
+        -v defcon=$_defcon -v defhosts=$_defhosts \
+	-v count=$_index \
 	-v cols="$_TABARGS" \
         \
  	-f ${2} \

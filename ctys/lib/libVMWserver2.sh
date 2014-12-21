@@ -487,12 +487,12 @@ function ctysVMWS2ListRemoteClientsEx () {
               {
                 x=$1;
 #performance issue:asks ALL!!!
-                t("hL="hL);
+#                t("hL="hL);
                 hn=split(hL,HL);
                 for(i=1;i<=hn;i++){
-                  t("HL["i"]="i);
+#                  t("HL["i"]="i);
                   x=x""$2"@"HL[i];
-                  t("x="x);
+#                  t("x="x);
                   print x;
                 }
               }'
@@ -504,16 +504,17 @@ function ctysVMWS2ListRemoteClientsEx () {
               {
                 x=$1;
 #performance issue:asks ALL!!!
-                t("hL="hL);
+#                t("hL="hL);
                 hn=split(hL,HL);
                 for(i=1;i<=hn;i++){
-                  t("HL["i"]="i);
+#                  t("HL["i"]="i);
                   call="ctysVMWS2FetchRemoteVMWPath4ObjID "$2" "HL[i];
                   call|getline x1;
                   if(x1!~/^ *$/){
                     x=x""x1;
                     print x;
-                    t("x="x);
+
+#                    t("x="x);
                   }
                 }
               }'

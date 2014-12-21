@@ -2,7 +2,7 @@
 #PROJECT:Unified Sessions Manager
 #AUTHOR: Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
 #LICENCE:GPL3
-#VERSION:01_11_008
+#VERSION:01_11_009
 #
 
 ########################################################################
@@ -179,6 +179,7 @@ BEGIN{
         perror("s  =>      ="s);
     }
     perror("complement ="complement);
+    perror("acc        ="acc);
     perror("all        ="all);
     perror("arch       ="arch);
     perror("callp      ="callp);
@@ -189,12 +190,15 @@ BEGIN{
     perror("cstr       ="cstr);
     perror("ctysrel    ="ctysrel);
     perror("d          ="d);
+    perror("defcon     ="defcon);
+    perror("defhosts   ="defhosts);
     perror("disp       ="disp);
     perror("dist       ="dist);
     perror("distrel    ="distrel);
     perror("dns        ="dns);
     perror("dsp        ="dsp);
     perror("execloc    ="execloc);
+    perror("exep       ="exep);
     perror("first      ="first);
     perror("gateway    ="gateway);
     perror("gid        ="gid);
@@ -202,8 +206,10 @@ BEGIN{
     perror("hwcap      ="hwcap);
     perror("hwreq      ="hwreq);
     perror("hyrel      ="hyrel);
+    perror("hyrelrun   ="hyrelrun);
     perror("i          ="i);
     perror("ifname     ="ifname);
+    perror("index      ="count);
     perror("l          ="l);
     perror("ids        ="ids);
     perror("interact   ="interact);
@@ -278,32 +284,60 @@ BEGIN{
                 errout("Missing a comparison parameter:<"s">");
                 exit;
             }
+        }else{
+            if(match(s,"^[rR]:")){
+                gsub("^[rR]:","",s);
+                r0=s;
+                gsub(":.*$","",r0);
+                r1=s;
+                gsub("^.*:","",r1);
+                if(r0==r1){
+                    r1="";
+                }
+                if(r0~/^$/){
+                    errout("Missing record index:<"s">");
+                    exit;
+                }
+            }
         }
     }
     perror("f0=<"f0">");
     perror("f1=<"f1">");
     perror("e0=<"e0">");
     perror("e1=<"e1">");
+    perror("e1=<"r0">");
+    perror("e1=<"r1">");
     perror("complement=<"complement">");   
 }
 {
     mx=0;td=0;cache="";cacheX="";line++;perror("record="line"$0="$0);
-    if(f0!=""){
-        if(complement==1){if(match($f0,f1)){perrorProgress();next;}}
-        else{if(!match($f0,f1)){perrorProgress();next;}}
-    }else{
-        if(e0!~/^$/||e1!~/^$/){
-            if(complement==1){if($e0~$e1){perrorProgress();next;}}
-            else{if($e0!~$e1){perrorProgress();next;}}
+
+    if(r0!=""){
+        if(r1==""){
+            if(complement==1){if(line==r0){perrorProgress();next;}}
+            else{if(line!=r0){perrorProgress();next;}}
         }else{
-            if(complement==1){if(match($0,s)){perrorProgress();next;}}
-            else{if(!match($0,s)){perrorProgress();next;}}
+            if(complement==1){if(line>=r0&&line<=r1){perrorProgress();next;}}
+            else{if(line<r0||line>r1){perrorProgress();next;}}
         }
-    }
+    }else{
+        if(f0!=""){
+            if(complement==1){if(match($f0,f1)){perrorProgress();next;}}
+            else{if(!match($f0,f1)){perrorProgress();next;}}
+        }else{
+            if(e0!~/^$/||e1!~/^$/){
+                if(complement==1){if($e0~$e1){perrorProgress();next;}}
+                else{if($e0!~$e1){perrorProgress();next;}}
+            }else{
+                if(complement==1){if(match($0,s)){perrorProgress();next;}}
+                else{if(!match($0,s)){perrorProgress();next;}}
+            }
+        }
+    }    
     perrorProgress(1);
 }
-mach==1{cache=$0;mx=1;perror("cache[0]="cache);}
-mach!=1{
+mach==1&&count!=1{cache=$0;mx=1;perror("cache[0]="cache);}
+mach!=1||(count==1&&mach==1){
     if(p==1){cache=cache $1;mx=1;}
     if(st==1){if(mx==1)cache=cache";";cache=cache $2;mx=1;}
     if(l==1){if(mx==1)cache=cache";";cache=cache $3;mx=1;}
@@ -367,10 +401,10 @@ mach!=1{
     if(reloccap==1){if(mx==1)cache=cache";";cache=cache $26;mx=1;}
     if(sshport==1){if(mx==1)cache=cache";";cache=cache $27;mx=1;}
     if(netname==1){if(mx==1)cache=cache";";cache=cache $28;mx=1;}
-    if(rsrv7==1){if(mx==1)cache=cache";";cache=cache $29;mx=1;}
-    if(rsrv8==1){if(mx==1)cache=cache";";cache=cache $30;mx=1;}
-    if(rsrv9==1){if(mx==1)cache=cache";";cache=cache $31;mx=1;}
-    if(rsrv10==1){if(mx==1)cache=cache";";cache=cache $32;mx=1;}
+    if(hyrelrun==1){if(mx==1)cache=cache";";cache=cache $29;mx=1;}
+    if(acc==1){if(mx==1)cache=cache";";cache=cache $30;mx=1;}
+    if(exep==1){if(mx==1)cache=cache";";cache=cache $31;mx=1;}
+    if(count==1){if(mx==1)cache=cache";";cache=cache line;mx=1;}
     if(ifname==1){if(mx==1)cache=cache";";cache=cache $33;mx=1;}
     if(ctysrel==1){if(mx==1)cache=cache";";cache=cache $34;mx=1;}
     if(netmask==1){if(mx==1)cache=cache";";cache=cache $35;mx=1;}
@@ -384,6 +418,8 @@ mach!=1{
     if(ustr==1){if(mx==1)cache=cache";";cache=cache $43;mx=1;}
     if(uid==1){if(mx==1)cache=cache";";cache=cache $44;mx=1;}
     if(gid==1){if(mx==1)cache=cache";";cache=cache $45;mx=1;}
+    if(defhosts==1){if(mx==1)cache=cache";";cache=cache $46;mx=1;}
+    if(defcon==1){if(mx==1)cache=cache";";cache=cache $47;mx=1;}
 }
 first==1&&mx==1{accessCheck();exit;}
 all==1&&mx==1  {accessCheck();}

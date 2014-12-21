@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -17,9 +17,12 @@
 ########################################################################
 
 _myPKGNAME_VMW_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_CREATE="01.11.007"
+_myPKGVERS_VMW_CREATE="01.11.009"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VMW_CREATE
 _myPKGBASE_VMW_CREATE="`dirname ${_myPKGNAME_VMW_CREATE}`"
+
+#specifies a record index
+export DBREC=;
 
 
 #FUNCBEG###############################################################
@@ -148,6 +151,11 @@ function createConnectVMW () {
                      #####################
                      # <machine-address> #
                      #####################
+			    DBRECORD|DBREC|DR)
+				local DBREC="${ARG}";
+				printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				local _idgiven=1;
+				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
 				printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "BASE=${_base}"
@@ -214,7 +222,7 @@ function createConnectVMW () {
 				    VMW)
 					;;
 
-				    VMWRC)
+				    VMWRC|VMRC)
 					if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" ];then
 					    printWNG 1 $LINENO $BASH_SOURCE 0 "CONNECTIONFORWARDING for VMRC is currently ALPHA."
 					    printWNG 1 $LINENO $BASH_SOURCE 0 "Due to VMRC the final login may fail for CONNECTIONFORWARDING."
@@ -458,6 +466,14 @@ function createConnectVMW () {
 		printERR $LINENO $BASH_SOURCE ${_ret} "  (label|l|dname|d) EXOR (fname|f) EXOR (pname|p)EXOR (uuid|u)"
  		gotoHell ${_ret}               
             fi
+
+ 	    if [ -z "$CALLERJOB"  -a -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -532,6 +548,10 @@ function createConnectVMW () {
                      #####################
                      # <machine-address> #
                      #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
                             #can be checked now
                             local _base="${ARG}";
@@ -620,7 +640,7 @@ function createConnectVMW () {
 				VMW)
 				    ;;
 
-				VMWRC)
+				VMWRC|VMRC)
 				    case $VMW_MAGIC in
 					VMW_S20*)
 					    ;;
@@ -870,6 +890,22 @@ function createConnectVMW () {
 
 
             #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -z "${_pname// /}" -a -n "${DBREC// /}" ];then
+		printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -p ${DBPATHLST} -s "
+		_pname=`${_VHOST} -o PNAME R:${DBREC}`
+		if [ -z "${_label}" ];then
+		    _label=`${_VHOST} -o LABEL R:${DBREC}`
+		fi
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
+            #
             #1. Try cache
             #
             if [ -z "${_pname// /}" ];then
@@ -1005,23 +1041,35 @@ function createConnectVMW () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
-#4TEST:01_11_008
-		_VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
-
 		case ${C_NSCACHELOCATE} in
 		    0)#off
 			;;
 		    1)#both
-			local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			if [ -n "$DBREC" ];then
+			    local _tcp=`${_VHOST} R:${DBREC}`
+			else
+			    _VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
+			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			fi
 			;;
 		    2)#local
 			if [ "${C_EXECLOCAL}" != 1 ];then
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    if [ -n "$DBREC" ];then
+				local _tcp=`${_VHOST} R:${DBREC}`
+			    else
+				_VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
+				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    fi
 			fi
 			;;
 		    3)#remote
 			if [ "${C_EXECLOCAL}" == 1 ];then
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    if [ -n "$DBREC" ];then
+				local _tcp=`${_VHOST} R:${DBREC}`
+			    else
+				_VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
+				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    fi
 			fi
 			;;
 		esac

@@ -353,7 +353,9 @@ function checkedSetSUaccess () {
 		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "try SUDO"
 		local _check="${SUDO} ${_suCalleeContent} ${_suCalleeArgs}"
 		printWNG 2 $LINENO $BASH_SOURCE 0  "**HINT**:if call hangs check native call:${_check} "
-		eval callErrOutWrapper $LINENO $BASH_SOURCE ${_check} ${disp1}
+#		callErrOutWrapper $LINENO $BASH_SOURCE ${_check} ${disp1}
+#		callErrOutWrapper $LINENO $BASH_SOURCE eval ${_check} ${disp1}
+		eval ${_check} ${disp1}
 		if [ $? -eq 0 ];then
 		    eval ${_suPrefix}="\"${_suPrefixContent:-$SUDO }\""
 		    _ret=0;
@@ -369,8 +371,8 @@ function checkedSetSUaccess () {
 	    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "CHECK:${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}"
 
 	    if [ -n "${_suCalleeContent}" ];then
-#		eval "${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}"
-		eval callErrOutWrapper $LINENO $BASH_SOURCE ${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}
+		eval "${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}"
+#		eval callErrOutWrapper $LINENO $BASH_SOURCE ${_suCalleeContent} ${_suCalleeArgs} ${disp2} ${disp1}
 		_ret=$?
 		if [ $_ret -eq 0 ];then
 		    local _useNATIVE=1;

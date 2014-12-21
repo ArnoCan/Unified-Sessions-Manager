@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -27,7 +27,7 @@ XEN_ACCELERATOR=;
 XEN_SERVER=;
 
 _myPKGNAME_XEN="${BASH_SOURCE}"
-_myPKGVERS_XEN="01.11.008"
+_myPKGVERS_XEN="01.11.009"
 hookInfoAdd $_myPKGNAME_XEN $_myPKGVERS_XEN
 
 _myPKGBASE_XEN="`dirname ${_myPKGNAME_XEN}`"
@@ -403,12 +403,12 @@ function setVersionXEN () {
 	printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:XEN_VERSTRING   = ${XEN_VERSTRING}"
 	printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:XEN_PREREQ      = ${XEN_PREREQ}"
 	printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:XEN_DEFAULTOPTS = ${XEN_DEFAULTOPTS}"
-	return
+	return 0
     fi
 
     local _myLoc=`getLocation ${C_CLIENTLOCATION}`
     if [ -z "${XM}" ];then
-	XEN_MAGIC=DISABLED;
+	XEN_MAGIC=NOLOC;
 	XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} MISSING`:xm>"
 	if [ "${C_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" -a "${_myLoc}" != CONNECTIONFORWARDING -a "${_myLoc}" != CLIENTONLY  ];then
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot execute \"xm\""
@@ -418,6 +418,7 @@ function setVersionXEN () {
 	fi
     fi
     if [ -z "${VIRSH}" ];then
+	XEN_MAGIC=NOLOC;
 	XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} MISSING`:virsh>"
 	if [ "${C_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" -a "${_myLoc}" != CONNECTIONFORWARDING -a "${_myLoc}" != CLIENTONLY  ];then
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot execute \"virsh\""
@@ -441,6 +442,7 @@ function setVersionXEN () {
     #give it up, but as a client almost any machine might work
     #
     if [ -z "${_verstrg}" ];then
+	XEN_MAGIC=NOLOC;
 	ABORT=2
 	XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} MISSING`:EVAL-VERSION>"
 	if [ "${C_SESSIONTYPE}" == "XEN" -a -z "${_checkonly}" ];then
@@ -460,6 +462,7 @@ function setVersionXEN () {
 
     #basic tool is xm
     if [ -z "$XM" ];then
+	XEN_MAGIC=NOLOC;
 	XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} MISSING`:xm>"
 	ABORT=2
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for xm check your Xen installation."
@@ -492,6 +495,7 @@ function setVersionXEN () {
 	done
     else
 	XEN_STATE=DISABLED
+	XEN_MAGIC=DISABLED;
 	XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} MISSING`:kernel_not_active:${_cap// /_}>"
 
 	printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "Missing capabilities: XEN_STATE = ${XEN_STATE}"
@@ -505,6 +509,7 @@ function setVersionXEN () {
 	    if [ "${USER}" == "root" ];then
 		XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} ACCESS-FAILED`:xm_info>"
 	    else
+		XEN_MAGIC=NO_PERMISSION;
 		XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} ACCESS-FAILED-CHECK-PERMISSION`:xm>"
 	    fi
 	    if [ "$C_SESSIONTYPE" == XEN ];then
@@ -523,6 +528,7 @@ function setVersionXEN () {
 		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} " => ksu/sudo  \"...-Z KSU,SUDO \""
 		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} " => setting XEN_STATE=DISABLED"
 	    fi
+	    XEN_MAGIC=NO_PERMISSION;
 	    XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} FAILED`:${XENCALL// /_}_${XM}_info-USER=${USER}-NO-ACCESS>"
 	else
 	    XEN_PREREQ="${XEN_PREREQ} ${XENCALL// /_}_${XM}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
@@ -534,6 +540,7 @@ function setVersionXEN () {
 	callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} dominfo 0 >/dev/null
 	if [ $? -ne 0 -a "${XEN_STATE}" == ENABLED ];then
 	    XEN_STATE=DISABLED
+	    XEN_MAGIC=NO_PERMISSION;
 	    XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} ACCESS-PERMISSION-MISSING-OR-FAILURE`:virsh>"
 	    if [ "$C_SESSIONTYPE" == XEN ];then
 		ABORT=1
@@ -551,6 +558,7 @@ function setVersionXEN () {
 		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} " => setting XEN_STATE=DISABLED"
 	    fi
 	    XEN_STATE=DISABLED
+	    XEN_MAGIC=NO_PERMISSION;
 	    XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} FAILED`:${VIRSHCALL// /_}_${VIRSH}_dominfo-USER=${USER}-NO-ACCESS-PERMISSION>"
 	else
 	    XEN_PREREQ="${XEN_PREREQ} ${VIRSHCALL// /_}_${VIRSH}_dominfo-USER=${USER}-ACCESS-PERMISSION-GRANTED"
@@ -570,6 +578,7 @@ function setVersionXEN () {
 		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MYHOST  =${MYHOST}"
 		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MYOS    =${MYOS}"
 		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MYOSREL =${MYOSREL}"
+		XEN_MAGIC=DISABLED;
 		XEN_PREREQ="${XEN_PREREQ} <`setStatusColor ${XEN_STATE} FAILED`:${VIRSHCALL// /_}_${VIRSH}_info-HYPERVISOR-STATE=DISABLED"
 		printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "${VIRSH}_info-HYPERVISOR: XEN_STATE = ${XEN_STATE}"
 	    else

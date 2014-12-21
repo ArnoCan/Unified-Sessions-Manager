@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_CONFIG="${BASH_SOURCE}"
-_myPKGVERS_CONFIG="01.06.001a14"
+_myPKGVERS_CONFIG="01.11.009"
 hookInfoAdd "$_myPKGNAME_CONFIG" "$_myPKGVERS_CONFIG"
 
 
@@ -1428,7 +1428,10 @@ function getCTYSRELEASE () {
     local _IP=;
     for i in `getConfFilesList "${1}"`;do
 	if [ -r "${i}" ];then
-	    _IP=`cat  "${i}"|getConfValueOf "#@#CTYSRELEASE"`
+	    _IP=`cat  "${i}"|getConfValueOf "#@#CTYSREL"`
+            if [ "$_IP" != "" ];then
+		_IP=`cat  "${i}"|getConfValueOf "#@#CTYSRELEASE"`
+	    fi
             if [ "$_IP" != "" ];then
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
 		break;

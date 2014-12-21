@@ -94,3 +94,16 @@ PM_RETRYVNCCLIENTTIMEOUT=3;  #numerical, integer - seconds
 _stackChkContextPM=0;
 _stackChkHWCapPM=0;
 _stackChkStacCapPM=0:
+
+
+
+#
+#default HOSTs for login
+#
+PM_DEFAULT_HOSTS=VNC
+
+#
+#default HOSTs for CONSOLE
+#
+PM_DEFAULT_CONSOLE=VNC
+

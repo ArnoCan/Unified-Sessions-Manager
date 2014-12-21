@@ -6,7 +6,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -108,6 +108,7 @@ function fetchMacMap(td,mx){
 }
 BEGIN{mx=0;
  perror("Start record with AWK:vhost-canonize.awk");
+ perror("acc      ="acc);
  perror("arch     ="arch);
  perror("callp    ="callp);
  perror("cat      ="cat);
@@ -127,8 +128,10 @@ BEGIN{mx=0;
  perror("hwcap    ="hwcap);
  perror("hwreq    ="hwreq);
  perror("hyrel    ="hyrel);
+ perror("hyrelrun ="hyrelrun);
  perror("i        ="i);
  perror("ifname   ="ifname);
+ perror("index    ="count);
  perror("ip       ="ip);
  perror("l        ="l);
  perror("mac      ="mac);
@@ -157,21 +160,6 @@ BEGIN{mx=0;
  perror("ver      ="ver);
  perror("vram     ="vram);
  perror("vstat    ="vstat);
- perror("rsrv1    ="rsrv1);
- perror("rsrv2    ="rsrv2);    
- perror("rsrv3    ="_rsrv3);
- perror("rsrv4    ="rsrv4);
- perror("rsrv5    ="rsrv5);
- perror("rsrv6    ="rsrv6);
- perror("rsrv7    ="rsrv7);
- perror("rsrv8    ="rsrv8);
- perror("rsrv9    ="rsrv9);
- perror("rsrv10   ="rsrv10);
- perror("rsrv11   ="rsrv11);
- perror("rsrv12   ="rsrv12);
- perror("rsrv13   ="rsrv13);
- perror("rsrv14   ="rsrv14);
- perror("rsrv15   ="rsrv15);
  line=0;
 }
 {line++;perror("RECORD="$0);}
@@ -237,10 +225,10 @@ $0~/^$/{exit;}
  if(reloccap>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"RelocationCapability,26,"$26;}
  if(sshport>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"SSHport,27,"$27;}
  if(netname>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"netname,28,"$28;}
- if(rsrv7>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"rsrv,29,"$29;}
- if(rsrv8>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"rsrv,30,"$30;}
- if(rsrv9>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"rsrv,31,"$31;}
- if(rsrv10>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"rsrv,32,"$32;}
+ if(hyrelrun>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"HyperrelRun,29,"$29;}
+ if(acc>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"Accelerator,30,"$30;}
+ if(exep>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"ExePath,31,"$31;}
+ if(count>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"Index,32,"$32;}
  if(ifname>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"ifname,33,"$33;}
  if(ctysrel>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"CTYSrelease,34,"$34;}
  if(netmask>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"netmask,35,"$35;}
@@ -255,6 +243,8 @@ $0~/^$/{exit;}
  if(ustr>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"UserStrg,43,"$43;}
  if(uid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"UID,44,"$44;}
  if(gid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"GID,45,"$45;}
+ if(defhosts>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"DefHOSTs,46,"$46;}
+ if(defcon>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf"DefCONSOLE,47,"$47;}
 
  perror("output="outbuf);
  printf("%s\n",outbuf);
