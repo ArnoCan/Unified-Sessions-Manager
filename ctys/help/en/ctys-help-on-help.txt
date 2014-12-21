@@ -13,15 +13,11 @@ ctys-help-on
 -H <help-option>
 
    <help-option>:=
-       (man|html|pdf)][=((1-9)|<help-on-item>[,<help-on-item-list>])
-       |
-       (path|list|listall)
-       |
-       funcList=<any-function>][@<module-name>[@...]][,<any-function>...]
-       |
-       funcListMod=<any-function>][@<module-name>[@...]][,<any-function>...]
-       |
-       funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
+         (man|html|pdf)][=((1-9)|<help-on-item>[,<help-on-item-list>])
+       | (path|list|listall)
+       | funcList=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | funcListMod=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
      )
 
 
