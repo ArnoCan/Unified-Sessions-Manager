@@ -435,14 +435,15 @@ function initCLI () {
 
   printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
+
   if [ "$_raise" == "1" ];then
       #for raise of INITSTATE do not touch the OS's decisions, just expand.
       case $_curInit in
 	  0);;#NOP - Done by shell
 	  1)  #add own help to searchlist for options
 	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_cli"
-              setVersionCLI ${_initConsequences}
-              ret=$?
+	      setVersionCLI ${_initConsequences}
+	      ret=$?
 	      ;;
 	  2);;
 	  3);;

@@ -551,6 +551,7 @@ function initX11 () {
 
   printDBG $S_X11 ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
+
   if [ "$_raise" == "1" ];then
       #for raise of INITSTATE do not touch the OS's decisions, just expand.
 
@@ -558,8 +559,9 @@ function initX11 () {
 	  0);;#NOP - Done by shell
 	  1)  #add own help to searchlist for options
 	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_x11"
-              setVersionX11 $_initConsequences
-              ret=$?
+
+	      setVersionX11 $_initConsequences
+	      ret=$?
 	      ;;
 	  2);;
 	  3);;

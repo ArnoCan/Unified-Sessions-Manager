@@ -2,7 +2,7 @@
 #PROJECT:Unified Sessions Manager
 #AUTHOR: Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
 #LICENCE:GPL3
-#VERSION:01_11_009
+#VERSION:01_11_010
 #
 
 ########################################################################
@@ -23,6 +23,9 @@
 #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ########################################################################
+
+#4TEST:d=0;
+
 
 function perror(inp){
     if(!d){
@@ -210,6 +213,7 @@ BEGIN{
     perror("i          ="i);
     perror("ifname     ="ifname);
     perror("index      ="count);
+    perror("index      ="doCount);
     perror("l          ="l);
     perror("ids        ="ids);
     perror("interact   ="interact);
@@ -310,15 +314,26 @@ BEGIN{
     perror("complement=<"complement">");   
 }
 {
-    mx=0;td=0;cache="";cacheX="";line++;perror("record="line"$0="$0);
-
+    line++;
+    mx=0;td=0;cache="";cacheX="";perror("record="line"$0="$0);
+    if(doCount==1){
+        curline=line;
+    }else{
+        if($32!~/^$/){
+            curline=$32;
+        }else{
+            #the first, thus not yet initialized
+            $32=line;
+            curline=line;
+        }
+    }
     if(r0!=""){
         if(r1==""){
-            if(complement==1){if(line==r0){perrorProgress();next;}}
-            else{if(line!=r0){perrorProgress();next;}}
+            if(complement==1){if(curline==r0){perrorProgress();next;}}
+            else{if(curline!=r0){perrorProgress();next;}}
         }else{
-            if(complement==1){if(line>=r0&&line<=r1){perrorProgress();next;}}
-            else{if(line<r0||line>r1){perrorProgress();next;}}
+            if(complement==1){if(curline>=r0&&curline<=r1){perrorProgress();next;}}
+            else{if(curline<r0||curline>r1){perrorProgress();next;}}
         }
     }else{
         if(f0!=""){
@@ -334,6 +349,7 @@ BEGIN{
             }
         }
     }    
+   
     perrorProgress(1);
 }
 mach==1&&count!=1{cache=$0;mx=1;perror("cache[0]="cache);}
@@ -404,7 +420,10 @@ mach!=1||(count==1&&mach==1){
     if(hyrelrun==1){if(mx==1)cache=cache";";cache=cache $29;mx=1;}
     if(acc==1){if(mx==1)cache=cache";";cache=cache $30;mx=1;}
     if(exep==1){if(mx==1)cache=cache";";cache=cache $31;mx=1;}
-    if(count==1){if(mx==1)cache=cache";";cache=cache line;mx=1;}
+
+    if(count==1&&doCount!=1){if(mx==1)cache=cache";";cache=cache $32;mx=1;}
+    if(count==1&&doCount==1){if(mx==1)cache=cache";";cache=cache line;mx=1;}
+
     if(ifname==1){if(mx==1)cache=cache";";cache=cache $33;mx=1;}
     if(ctysrel==1){if(mx==1)cache=cache";";cache=cache $34;mx=1;}
     if(netmask==1){if(mx==1)cache=cache";";cache=cache $35;mx=1;}

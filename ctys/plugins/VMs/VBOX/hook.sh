@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008alpha
+#VERSION:      01_11_010alpha
 #
 ########################################################################
 #
@@ -28,7 +28,7 @@ VBOX_PRODVERS=;
 VBOX_SERVER=;
 
 _myPKGNAME_VBOX="${BASH_SOURCE}"
-_myPKGVERS_VBOX="01.11.008alpha"
+_myPKGVERS_VBOX="01.11.010alpha"
 hookInfoAdd $_myPKGNAME_VBOX $_myPKGVERS_VBOX
 
 _myPKGBASE_VBOX="`dirname ${_myPKGNAME_VBOX}`"
@@ -426,6 +426,8 @@ function setVersionVBOX () {
 
     #VNC - let us say required!!!
     hookPackage RDP
+    hookInitPropagate4Package RDP
+
     local _rdpOK=`hookInfoCheckPKG RDP`
     if [ -z "${_rdpOK}" ];then
 	ABORT=1;

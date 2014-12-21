@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009alpha
+#VERSION:      01_11_010alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VBOX_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VBOX_CREATE="01.11.009alpha"
+_myPKGVERS_VBOX_CREATE="01.11.010alpha"
 hookInfoAdd $_myPKGNAME_VBOX_CREATE $_myPKGVERS_VBOX_CREATE
 _myPKGBASE_VBOX_CREATE="`dirname ${_myPKGNAME_VBOX_CREATE}`"
 
@@ -144,6 +144,7 @@ function createConnectVBOX () {
 			    DBRECORD|DBREC|DR)
 				local DBREC="${ARG}";
 				printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				_idgiven=1
 				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
@@ -504,6 +505,7 @@ function createConnectVBOX () {
 			DBRECORD|DBREC|DR)
 			    local DBREC="${ARG}";
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    _idgiven=1
 			    ;;
 			BASEPATH|BASE|B)
                             #can be checked now

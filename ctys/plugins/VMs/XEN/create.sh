@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b05
+#VERSION:      01_11_010
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_XEN_CREATE="${BASH_SOURCE}"
-_myPKGVERS_XEN_CREATE="01.07.001b05"
+_myPKGVERS_XEN_CREATE="01.11.010"
 hookInfoAdd $_myPKGNAME_XEN_CREATE $_myPKGVERS_XEN_CREATE
 _myPKGBASE_XEN_CREATE="`dirname ${_myPKGNAME_XEN_CREATE}`"
 
@@ -129,6 +129,7 @@ function createConnectXEN () {
 			    DBRECORD|DBREC|DR)
 				local DBREC="${ARG}";
 				printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				local _idgiven=1;
 				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
@@ -495,6 +496,7 @@ function createConnectXEN () {
 			DBRECORD|DBREC|DR)
 			    local DBREC="${ARG}";
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    local _idgiven=1;
 			    ;;
 			BASEPATH|BASE|B)
                             #can be checked now
@@ -905,51 +907,119 @@ function createConnectXEN () {
 		_pname=${HOME}/${_pname}
 	    fi
 
-            local _labelX=`getLABEL_XEN "${_pname}"`
-            #LABEL=DOMAIN-NAME
-            if [ -z "${_label}" -a -z "${_labelX}" ];then
-		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing LABEL, gwhich is the mandatory DomainName for Xen."
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Defined as user defined pre-requisite for Xen."
- 		gotoHell ${ABORT}
-            fi 
+	    if [ -z "$DBREC" ];then
+		local _labelX=`getLABEL_XEN "${_pname}"`
+                #LABEL=DOMAIN-NAME
+		if [ -z "${_label}" -a -z "${_labelX}" ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing LABEL, gwhich is the mandatory DomainName for Xen."
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Defined as user defined pre-requisite for Xen."
+ 		    gotoHell ${ABORT}
+		fi 
 
-            #consistency of CLI and config
-            if [ -n "${_label}" -a "${_label}" != "${_labelX}"  ];then
-		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Different LABELs detected:\"${_label}\" == \"${_labelX}\""
- 		gotoHell ${ABORT}
-            fi 
-            _label="${_labelX}"
+                #consistency of CLI and config
+		if [ -n "${_label}" -a "${_label}" != "${_labelX}"  ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Different LABELs detected:\"${_label}\" == \"${_labelX}\""
+ 		    gotoHell ${ABORT}
+		fi 
+		_label="${_labelX}"
 
 
-            #consistency of CLI and config
-            local _tcpX=`getIP "${_pname}"`
-            if [ -n "${_tcp}" -a "${_tcp}" != "${_tcpX}"  ];then
-		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Different TCPs detected:\"${_tcp}\" == \"${_tcpX}\""
- 		gotoHell ${ABORT}
-            fi 
-            _tcp="${_tcpX}"
+                #consistency of CLI and config
+		local _tcpX=`getIP "${_pname}"`
+		if [ -n "${_tcp}" -a "${_tcp}" != "${_tcpX}"  ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Different TCPs detected:\"${_tcp}\" == \"${_tcpX}\""
+ 		    gotoHell ${ABORT}
+		fi 
+		_tcp="${_tcpX}"
 
-            #consistency of CLI and config
-            local _macX=`getMAC_XEN "${_pname}"`
-            if [ -n "${_mac}" -a "${_mac}" != "${_macX}"  ];then
-		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Different MACs detected:\"${_mac}\" == \"${_macX}\""
- 		gotoHell ${ABORT}
-            fi 
-            _mac="${_macX}"
+                #consistency of CLI and config
+		local _macX=`getMAC_XEN "${_pname}"`
+		if [ -n "${_mac}" -a "${_mac}" != "${_macX}"  ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Different MACs detected:\"${_mac}\" == \"${_macX}\""
+ 		    gotoHell ${ABORT}
+		fi 
+		_mac="${_macX}"
 
-            #consistency of CLI and config
-            local _uuidX=`getUUID_XEN "${_pname}"`
-            if [ -n "${_uuid}" -a "${_uuid}" != "${_uuidX}"  ];then
-		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Different UUIDs detected:\"${_uuid}\" == \"${_uuidX}\""
- 		gotoHell ${ABORT}
-            fi 
-            _uuid="${_uuidX}"
+                #consistency of CLI and config
+		local _uuidX=`getUUID_XEN "${_pname}"`
+		if [ -n "${_uuid}" -a "${_uuid}" != "${_uuidX}"  ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Different UUIDs detected:\"${_uuid}\" == \"${_uuidX}\""
+ 		    gotoHell ${ABORT}
+		fi 
+		_uuid="${_uuidX}"
+	    else
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -p ${DBPATHLST} -s -M unique "
+		_VHOST="${_VHOST} ${_actionuserXEN:+ F:44:$_actionuserXEN}"
 
+
+		case ${C_NSCACHELOCATE} in
+		    0)#off
+			;;
+		    1)#both
+			local _macX=`${_VHOST} -o MAC R:$DBREC `
+			if [ -n "${_mac}" -a "${_mac}" != "${_macX}"  ];then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Different MACs detected:\"${_mac}\" == \"${_macX}\""
+ 			    gotoHell ${ABORT}
+			fi 
+			_mac="${_macX}"
+
+                        #consistency of CLI and config
+			local _uuidX=`${_VHOST} -o UUID R:$DBREC `
+			if [ -n "${_uuid}" -a "${_uuid}" != "${_uuidX}"  ];then
+			    ABORT=1;
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Different UUIDs detected:\"${_uuid}\" == \"${_uuidX}\""
+ 			    gotoHell ${ABORT}
+			fi 
+			_uuid="${_uuidX}"
+			;;
+		    2)#local
+			if [ "${C_EXECLOCAL}" != 1 ];then
+			    local _macX=`${_VHOST} -o MAC R:$DBREC `
+			    if [ -n "${_mac}" -a "${_mac}" != "${_macX}"  ];then
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Different MACs detected:\"${_mac}\" == \"${_macX}\""
+ 				gotoHell ${ABORT}
+			    fi 
+			    _mac="${_macX}"
+
+                            #consistency of CLI and config
+			    local _uuidX=`${_VHOST} -o UUID R:$DBREC `
+			    if [ -n "${_uuid}" -a "${_uuid}" != "${_uuidX}"  ];then
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Different UUIDs detected:\"${_uuid}\" == \"${_uuidX}\""
+ 				gotoHell ${ABORT}
+			    fi 
+			    _uuid="${_uuidX}"
+			fi
+			;;
+		    3)#remote
+			if [ "${C_EXECLOCAL}" == 1 ];then
+			    local _macX=`${_VHOST} -o MAC R:$DBREC `
+			    if [ -n "${_mac}" -a "${_mac}" != "${_macX}"  ];then
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Different MACs detected:\"${_mac}\" == \"${_macX}\""
+ 				gotoHell ${ABORT}
+			    fi 
+			    _mac="${_macX}"
+
+                            #consistency of CLI and config
+			    local _uuidX=`${_VHOST} -o UUID R:$DBREC `
+			    if [ -n "${_uuid}" -a "${_uuid}" != "${_uuidX}"  ];then
+				ABORT=1;
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Different UUIDs detected:\"${_uuid}\" == \"${_uuidX}\""
+ 				gotoHell ${ABORT}
+			    fi 
+			    _uuid="${_uuidX}"
+			fi
+			;;
+		esac
+	    fi
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "

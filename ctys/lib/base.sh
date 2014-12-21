@@ -86,7 +86,7 @@ if [ ! -d "${MYDOCBASE}" ];then
     exit 1
 fi
 
-if [ -z "${MYMANPATH}" ];then
+if [ -z "${MYMANPATH//:/}" ];then
     MYDOCPATH=${MYDOCPATH:-$MYDOCBASE/$MYLANG}
     case ${MYLANG} in
 	de)

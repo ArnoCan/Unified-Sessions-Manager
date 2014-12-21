@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_010
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_LIST="${BASH_SOURCE}"
-_myPKGVERS_VMW_LIST="01.10.013"
+_myPKGVERS_VMW_LIST="01.11.010"
 hookInfoAdd $_myPKGNAME_VMW_LIST $_myPKGVERS_VMW_LIST
 _myPKGBASE_VMW_LIST="`dirname ${_myPKGNAME_VMW_LIST}`"
 
@@ -198,6 +198,15 @@ function listMySessionsVMW () {
 	    fi
             SUBTYPE=W7;
  	    ;;
+	*)
+	    if [ "$VMW_STATE" != DISABLED ];then
+                #ooooops!!!!!!
+		ABORT=2
+		printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:VMW_MAGIC=${VMW_MAGIC}"
+		return ${ABORT}
+#		gotoHell ${ABORT}
+	    fi
+	    ;;
     esac
 
     printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=<${SERVERLST}>"

@@ -106,6 +106,15 @@ function listMySessionsVBOX () {
 	    fi
             SUBTYPE=;
   	    ;;
+	*)
+	    if [ "$VBOX_STATE" != DISABLED ];then
+                #ooooops!!!!!!
+		ABORT=2
+		printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:VBOX_MAGIC=${VBOX_MAGIC}"
+		return ${ABORT}
+#		gotoHell ${ABORT}
+	    fi
+	    ;;
     esac
 
     printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=<${SERVERLST}>"

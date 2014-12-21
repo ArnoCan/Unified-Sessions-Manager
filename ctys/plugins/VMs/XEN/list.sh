@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_10_010
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_XEN_LIST="${BASH_SOURCE}"
-_myPKGVERS_XEN_LIST="01.10.008"
+_myPKGVERS_XEN_LIST="01.10.010"
 hookInfoAdd $_myPKGNAME_XEN_LIST $_myPKGVERS_XEN_LIST
 _myPKGBASE_XEN_LIST="`dirname ${_myPKGNAME_XEN_LIST}`"
 
@@ -108,10 +108,14 @@ function listMySessionsXEN () {
             ;;
         DISABLED)#nothing to do
             ;;
-	*)  #ooooops!!!!!!
-	    ABORT=2
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:XEN_MAGIC=${XEN_MAGIC}"
-	    gotoHell ${ABORT}
+	*)  
+	    if [ "$XEN_STATE" != DISABLED ];then
+                #ooooops!!!!!!
+		ABORT=2
+		printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:XEN_MAGIC=${XEN_MAGIC}"
+		return ${ABORT}
+#		gotoHell ${ABORT}
+	    fi
 	    ;;
     esac
 

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_010
 #
 ########################################################################
 #
@@ -27,7 +27,7 @@ XEN_ACCELERATOR=;
 XEN_SERVER=;
 
 _myPKGNAME_XEN="${BASH_SOURCE}"
-_myPKGVERS_XEN="01.11.009"
+_myPKGVERS_XEN="01.11.010"
 hookInfoAdd $_myPKGNAME_XEN $_myPKGVERS_XEN
 
 _myPKGBASE_XEN="`dirname ${_myPKGNAME_XEN}`"
@@ -317,6 +317,7 @@ function setVersionXEN () {
     hookPackage CLI
     hookPackage X11
     hookPackage VNC
+    hookInitPropagate4Package CLI X11 VNC
 
     printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:loaded pre-requisites:CLI, X11, VNC"
 

@@ -649,6 +649,7 @@ function initRDP () {
 
   printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
+
   if [ "$_raise" == "1" ];then
       #for raise of INITSTATE do not touch the OS's decisions, just expand.
 
@@ -656,9 +657,9 @@ function initRDP () {
 	  0);;#NOP - Done by shell
 	  1)  #add own help to searchlist for options
 	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_rdp"
-              setVersionRDP $_initConsequences
 
-              ret=$?
+	      setVersionRDP $_initConsequences
+	      ret=$?
 	      ;;
 	  2);;
 	  3);;

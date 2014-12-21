@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_010
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_CREATE="01.11.009"
+_myPKGVERS_VMW_CREATE="01.11.010"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VMW_CREATE
 _myPKGBASE_VMW_CREATE="`dirname ${_myPKGNAME_VMW_CREATE}`"
 

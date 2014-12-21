@@ -259,6 +259,18 @@ esac
 #The architecture.
 #
 ARCH=${ARCH:-MARKER_ARCH}
+#
+#Optional CPU architecture
+#
+if [ -n "${ARCH}" ];then
+    case ${ARCH// /} in
+	x86_64|amd64) CPU="qemu64";;
+	i386|i586|i686) CPU="qemu32";;
+
+	#anyhow...for suprising pop-ups of x86-types
+	*) CPU="qemu32";;
+    esac
+fi
 
 #
 #The number of emulated CPUs.

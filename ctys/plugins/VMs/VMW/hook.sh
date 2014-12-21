@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_010
 #
 ########################################################################
 #
@@ -27,7 +27,7 @@ VMW_PRODVERS=;
 VMW_SERVER=;
 
 _myPKGNAME_VMW="${BASH_SOURCE}"
-_myPKGVERS_VMW="01.11.009"
+_myPKGVERS_VMW="01.11.010"
 hookInfoAdd $_myPKGNAME_VMW $_myPKGVERS_VMW
 
 _myPKGBASE_VMW="`dirname ${_myPKGNAME_VMW}`"
