@@ -18,11 +18,11 @@ ctys-distribute
    [-M <access-mask>]
    [--menu-create=(PRIVATE|SHARED)]
    [-P (
-       UserHomeCopy
-      |UserHomeLinkonly
-      |SharedAnyDirectory,<subopts>
-      |SharedAnyLinkonly,<subopts>
-      |AnyDirectory,<subopts>
+       (UserHomeCopy|UHC)
+      |(UserHomeLinkonly|UHL)
+      |(SharedAnyDirectory|SAD),<subopts>
+      |(SharedAnyLinkonly|SAL),<subopts>
+      |(AnyDirectory|AD),<subopts>
       )]
    [-V]
    [-X]

@@ -1177,6 +1177,25 @@ function myFetchOptions () {
 			    fi
                             gotoHell 0;
 			    ;;
+			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]5[xX]*)
+                            setGroupsFeature
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
+                            if [ "${iS//:/}" == "${iS}" ];then
+				listGroupMembers DEEP5XCALL
+			    else
+				listGroupMembers DEEP5XCALL "${iS#*:}"
+                            fi
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
+                            gotoHell 0;
+			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]5*)
                             setGroupsFeature
 			    if [ -z "$C_TERSE" ];then

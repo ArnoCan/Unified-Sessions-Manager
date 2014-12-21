@@ -401,7 +401,7 @@ while [ -n "$1" ];do
 
 	'-m')
 	    case "$2" in
-		[1-8]|7u|8u)
+		[1-8]|7u|8u|5x)
 		    shift;_listmembers=${1};
 		    ;;
 		'')
@@ -592,6 +592,9 @@ if [ -n "$_listmembers" ];then
 	    ;;
 	5)
 	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup5${argLst}
+	    ;;
+	5x)
+	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup5x${argLst}
 	    ;;
 	6)
 	    ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} ${C_TERSE:+-X} -S membersgroup6${argLst}

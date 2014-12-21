@@ -20,7 +20,10 @@ _myPKGNAME_GROUPS="${BASH_SOURCE}"
 _myPKGVERS_GROUPS="01.11.016"
 libManInfoAdd "$_myPKGNAME_GROUPS" "$_myPKGVERS_GROUPS"
 
-export _idxHosts=-1;
+
+echo "4TEST:$LINENO:--------------------------------------------------">&2
+#4TEST
+export _idxHosts11=-1;
 export _idxGroups=-1;
 
 #FUNCBEG###############################################################
@@ -575,17 +578,14 @@ function listGroupMembers () {
 	_sb=${_groupsel}
     fi
 
-
     for i7 in ${_sb//:/ };do
         [ -z "$C_TERSE" ]&&echo
-#4TEST:        [ -z "$C_TERSE" ]&&echo "${i7}"
-        [ -z "$C_TERSE" ]&&echo $(setFontAttrib BOLD "${i7}");echo
-
+        [ -z "$C_TERSE" ]&&echo "${i7}"
         cd "${i7}"
 	local i8=;
 	local _gl=;
+	{
 
-        local _groups=$(
 	    local _gx=;
 	    if [ -z "${_groupsel}" ];then
 		find .  -type f -name '*[!~]' -printf '%h:%f\n'
@@ -612,10 +612,9 @@ function listGroupMembers () {
 			eval ${ex}
 		    fi
 		done
-	    fi|sed 's@\./@@g'|sort)
-
-
-        for i8 in $_groups;do
+	    fi
+	}|sed 's@\./@@g'|sort|\
+        while read i8;do
 	    local _relpath=${i8%:*};
 	    local _cur=${i8#*:};
 
@@ -657,7 +656,7 @@ function listGroupMembers () {
 		DEEP4CALL)
 		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
   		    _curglst=${_curglst//\(/\'(};
-			_curglst=${_curglst//\)/)\'};
+		    _curglst=${_curglst//\)/)\'};
 
 		    if [ -z "$C_TERSE" ];then 
  			echo "       ${i8}:GROUP(${i8})${_curglst}"
@@ -666,56 +665,6 @@ function listGroupMembers () {
 		    fi
 		    ;;
 
-		DEEP5XCALL)
-		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
-  		    _curglst=${_curglst//\(/\'(};
-			_curglst=${_curglst//\)/)\'};
-		    _curglst=${_curglst#\{}
-		    _curglst=${_curglst%\}}
-
-		    let _idxGroups++;
-		    [ -z "$C_TERSE" ]&&printf "%05d      %s:\n" ${_idxGroups} ${i8}
-                    local _curGroups=$(echo "${_curglst}"|sed "
-                         s/ \+,/||/g
-                         s/, \+/||/g
-                         s/)' \+,/)'||/g
-                         s/)' \+/)'||/g
-                         s/.*/,&,/;
-                         s/,\([^(),]\+([^)]\+)'\),/||\1||/g
-                         s/^,//;s/,$//;
-                         s/.*/||&||/;
-                         s/||\([^(),]\+\),/||\1||/g;
-                         s/||\([^(),]\+\),/||\1||/g;
-                         s/||||/||/g;
-                         s/\(||[^(),]*\),/\1||/g
-                         s/\(||[^(),]*\),/\1||/g
-                         s/^||//;s/||$//;
-                         s/||/\n/g
-                       ");
-                    OIFS=$IFS
-                    IFS="
-"
-                    for icG in $_curGroups;do
-			local _hLst=$(echo $icG|awk '$0!~/[()-]/{for(i=1;i<=NF;i++){print $i};next}{print;}')
-			for ihLst in $_hLst;do
-			    let _idxHosts++;
-                            echo $ihLst|   awk -v h="$_idxHosts"  -v X="${C_TERSE:+1}" '
-                         BEGIN{idx=0}
-                         {
-                           if(X!=1){
-                              printf("  %05d      ctys %s\n",h, $0);
-                           }else{
-                              printf("ctys %s\n",$0);
-                           }
-                         }
-                         '
-			done
-		    done
-		    IFS=$OIFS
-		    [ -z "$C_TERSE" ]&&echo
-		    ;;
-
-
 		DEEP5CALL)
 		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
   		    _curglst=${_curglst//\(/\'(};
@@ -723,7 +672,9 @@ function listGroupMembers () {
 		    _curglst=${_curglst#\{}
 		    _curglst=${_curglst%\}}
 
-		    [ -z "$C_TERSE" ]&&echo "       ${i8}:"
+let _idxGroups++;
+#		    [ -z "$C_TERSE" ]&&echo "       ${i8}:"
+		    [ -z "$C_TERSE" ]&&printf " %5d  %s:\n" ${_idxGroups} ${i8}
                     echo "${_curglst}"|sed "
                          s/ \+,/||/g
                          s/, \+/||/g
@@ -755,6 +706,46 @@ function listGroupMembers () {
 		    [ -z "$C_TERSE" ]&&echo
 		    ;;
 
+
+# 		DEEP5CALL)
+# 		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
+#   		    _curglst=${_curglst//\(/\'(};
+# 		    _curglst=${_curglst//\)/)\'};
+# 		    _curglst=${_curglst#\{}
+# 		    _curglst=${_curglst%\}}
+
+# 		    [ -z "$C_TERSE" ]&&echo "       ${i8}:"
+#                     echo "${_curglst}"|sed "
+#                          s/ \+,/||/g
+#                          s/, \+/||/g
+#                          s/)' \+,/)'||/g
+#                          s/)' \+/)'||/g
+#                          s/.*/,&,/;
+#                          s/,\([^(),]\+([^)]\+)'\),/||\1||/g
+#                          s/^,//;s/,$//;
+#                          s/.*/||&||/;
+#                          s/||\([^(),]\+\),/||\1||/g;
+#                          s/||\([^(),]\+\),/||\1||/g;
+#                          s/||||/||/g;
+#                          s/\(||[^(),]*\),/\1||/g
+#                          s/\(||[^(),]*\),/\1||/g
+#                          s/^||//;s/||$//;
+#                          s/||/\n/g
+#                        "|\
+#                        awk '$0!~/[()-]/{for(i=1;i<=NF;i++){print $i};next}{print;}'|\
+#                        awk -v X="${C_TERSE:+1}" '
+#                          BEGIN{idx=0}
+#                          {
+#                            if(X!=1){
+#                               printf("          %d:  ctys %s\n",idx, $0);idx++;
+#                            }else{
+#                               printf("ctys %s\n",$0);idx++;
+#                            }
+#                          }
+#                          '
+# 		    [ -z "$C_TERSE" ]&&echo
+# 		    ;;
+
 		*)
 		    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
 		    if [ -z "$C_TERSE" ];then 
@@ -764,7 +755,7 @@ function listGroupMembers () {
 		    fi
 		    ;;
 	    esac
-	done
+       done
     done
 }
 
@@ -829,8 +820,7 @@ function listGroups () {
 
 	local _sb=${CTYS_GROUPS_PATH}
 	local _gl=;
-
-        local _groups=$(
+	{
 	    local _gx=;
 	    if [ -z "${_groupsel}" ];then
 		find .  -type f -name '*[!~]' -printf '%k:%h:%f\n'
@@ -856,10 +846,9 @@ function listGroups () {
 			eval ${ex}
 		    fi
 		done
-	    fi|sed 's@\./@@g'|sort)
-
-
-        for _cur in $_groups;do
+	    fi
+	}|sed 's@:\./@:@g'|sort|\
+        while read _cur;do
 	    local _size=${_cur%%:*}
 	    local _relpath=${_cur#*:};_relpath=${_relpath%:*}
 
@@ -882,19 +871,21 @@ function listGroups () {
 	        _deepsum=`fetchGroupMembers $_cur|sed 's/{//g;s/}//g;s/,/ /g;s/([^)]*)//g;/CONTEXT.*/d;'|sed "s/'//g"|wc -w`;
 	    fi
 	    if [ -z "$C_TERSE" ];then
+#4TEST
 		if [ -z "$_tit" ];then
 		    printf "\n"
 		    local _tit=1;
 		    printf "  %5s  %6s  #%5s/#%-8s  #%5s  %s\n"  gIDX size hosts includes total cur
 		    printf "  ----------------------------------------------------------------------\n"
 		fi
-		let _idxGroups++;
+let _idxHosts11++;
+
 		printf "  %5d  %5dk  %6d/%-9d  %6s  %s\n"  ${_idxGroups} ${_size} ${_hstcnt// } ${_inccnt// } ${_deepsum// } "$_cur"
 	    else
 		printf "%s\n"  "$_cur"
 	    fi
-	done
-	return
+	    done
+       return
     }
 
     function getContent () {
@@ -1024,7 +1015,10 @@ function listGroups () {
 
 
     for i7 in ${_sb//:/ };do
+#4TEST
+let _idxGroups++;
 	[ -z "$C_TERSE" ]&&echo
+#        [ -z "$C_TERSE" ]&&echo "${i7}"
         [ -z "$C_TERSE" ]&&echo $(setFontAttrib BOLD "${i7}")
         case $_range in
 	    SHORT)
