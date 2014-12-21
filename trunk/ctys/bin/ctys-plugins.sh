@@ -363,7 +363,7 @@ fi
 
 ###################
 #generic
-DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
+DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-CLI}
 DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
 DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,BOTH}
@@ -660,7 +660,7 @@ function 1_pluginsEnumerate () {
     if [ -z "$C_EXECLOCAL" ];then
 	printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Check-Client/Server' '`setSeverityColor TRY CLIENT features`'"
     else
-	printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Check-Client/Server' '`setSeverityColor TRY SERVER features`'"
+	printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Check-Client/Server' '`setSeverityColor TRY SERVER+CLIENT features`'"
     fi
     echoX
 
@@ -671,7 +671,8 @@ function 1_pluginsEnumerate () {
     printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Release'      ' ${MYREL}'"
     echoX
 
-    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'PLUGINS States as Maximum-Possible' 'Forced states as requested by \"-t\", \"-T\", CORE and GENERIC are not handled here, \"-E\" is considered'"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'PLUGINS States as Maximum-Possible' 'Forced states as requested by \"-t\", \"-T\", CORE and GENERIC are not handled here, \"-E\" is considered.'"
+    printfX "'%$((1*_allign))s%-${_label}s:%-$((2*_allign))s\n' ' ' 'Check \"ctys.conf.sh\" for deactivated plugins.'"
 
     printfX "'%$((1*_allign))s%-${_label}s %-$((2*_allign))s\n' ' ' '' '\"${MYCALLNAME} ${CALLARGS}\"'"
     echoX
@@ -927,7 +928,7 @@ else
 	    _execStrg="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}%${_RARGS} ${RUSER:+-l $RUSER}"
 	    _execStrg="$_execStrg -b 0,3 "
 	    _execStrg="$_execStrg ${_ARGS}"
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
+	    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
 	    ${_execStrg}
 	    ;;
 	*)  
@@ -938,7 +939,7 @@ else
 		_execStrg="$_execStrg -b 1,3 "
 	    fi
 	    _execStrg="$_execStrg ${_ARGS}"
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
+	    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
 	    ${_execStrg}
 	    ;;
     esac

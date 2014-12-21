@@ -29,7 +29,6 @@ ctys-vping
    [-X]
    <group/machine-address>
 
-
 DESCRIPTION
 ===========
 

@@ -389,16 +389,16 @@ _RUSER0=;
 
 for i in $*;do
     case $1 in
-	'-d')shift;;
-	'-i')shift;_if=${1};;
-	'-n')_noexe=0;;
-	'-t')shift;_tcp=$1;;
-	'-p')shift;_port=${1};;
+	'-d')shift;shift;;
+	'-i')shift;_if=${1};shift;;
+	'-n')_noexe=0;shift;;
+	'-t')shift;_tcp=$1;shift;;
+	'-p')shift;_port=${1};shift;;
 
-	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
-	'-h'|'--help'|'-help')_showToolHelp=1;;
-	'-V')_printVersion=1;;
-	'-X')C_TERSE=1;;
+	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";shift;;
+	'-h'|'--help'|'-help')_showToolHelp=1;shift;;
+	'-V')_printVersion=1;shift;;
+	'-X')C_TERSE=1;shift;;
 
         -*)
 	    ABORT=1;
@@ -406,7 +406,7 @@ for i in $*;do
 	    gotoHell ${ABORT}
 	    ;;
     esac
-    shift;
+    
 done
 
 
@@ -422,7 +422,6 @@ if [ -n "$_printVersion" ];then
     printVersion;
     exit 0;
 fi
-
 
 
 if [ -z "$1" ];then

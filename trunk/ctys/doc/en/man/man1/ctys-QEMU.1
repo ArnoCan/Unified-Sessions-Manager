@@ -1,4 +1,4 @@
-.TH "ctys-QEMU" 1 "June, 2010" ""
+.TH "ctys-QEMU" 1 "November, 2010" ""
 
 
 .P
@@ -6,12 +6,9 @@
 
 .SH NAME
 .P
-\fBctys-QEMU - QEMU Interface\fR
+\fBctys-QEMU - QEMU(TM) Interface - QEMU+KVM\fR
 
 .SH SYNTAX
-.P
-\fBctys-QEMU\fR 
-
 
    ctys -t QEMU -a action[=<suboptions>] ...
    ctys -T QEMU -a action[=<suboptions>] ...
@@ -58,7 +55,9 @@ dynamically fro setting the appropriate values.
 
 .P
 For the complete Syntax refer to the depicted generic superset 
-within the call\-framework \fBctys(1)\fR.
+within the call\-framework 
+ctys(1)
+\&.
 
 .SS -a CANCEL
 .P
@@ -96,19 +95,27 @@ multiple configuration variants are supported.
 In any case only one of them is supported to be the active \fBmaster\fR at any
 time.
 This is controlled by
+\fBMAGICID\-QEMU\fR
 and
+\fBMAGICID\-IGNORE\fR
 , which
-incfluences the configuration\-detection process of ENUMERATE, and
+incfluences the inventory scanning process of \fBENUMERATE\fR, and
 therefore the caching behaviour too.
 The following combinations of configuration file and Wrapper\-Script are recognized by the 
 QEMU plugin:
 
-.P
+.TP
+
+\fBctys\fR
+
 Contains ctys specific settings by prefix "#@#" and assembly of 
 QEMU call, which is finally executed.
-\fBREMARK:\fR This variant is going to be canceled.
+\fBREMARK:\fR This variant is obsolete and going to be canceled soon.
 
-.P
+.TP
+
+\fBsh+ctys\fR
+
 This is the standard case, where a wrapper\-script with the suffix 'ctys' and a configuration
 file with the suffix 'conf' exists.
 The configuration file is the 'almost' only place to configure the settings specific for the 
@@ -118,9 +125,8 @@ and additional \fBctys\-keys\fR to be handled by the \fBENUMERATE\fR scan.
 The configuration keys are "sourced" into from an external conf\-file, which
 is required to be coallocated within the same directory.
 
-.P
 The following configuration files with the given evaluation order are recognized by the
-QEMU plugin, The executable "*.ctys" requires the x\-bit to be set.
+QEMU plugin, The executable "*.sh"("*.ctys") requires the x\-bit to be set.
 
 .RS
 .IP \(bu 3
@@ -134,52 +140,64 @@ and assembly of QEMU call, which is finally executed.
 
 The same as ctys, but the configuration keys are \fBsourced\fR
 from an external conf\-file, which is required to be coallocated 
-within the same directory. 
-Templates are available.
+within the same directory.
+These are created by the 
+\fBctys\-cresteConfVM\fR
+utility.
 .RE
 
-.TP
+.RS
+.IP \(bu 3
 \fB<PATH>\fR
 The optional <PATH> parameter provides the temporary alteration of preconfigured
 boot source media.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:CD\fR
-sub%TEX% \eaddtotoc{subsubsection}{BOOTMODE:CD}
+
 This boots an ISO image of a CDROM by setting the boot flag '\-boot d'.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:DVD\fR
+
 This boots an ISO image of a DVD by setting the boot flag '\-boot d'.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:FDD\fR
+
 This boots an file image.
 The file could be either a virtual HDD or a the tull path to a physical device.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:HDD\fR
+
 This boots an image of a HDD by setting the boot flag '\-boot c'.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:PXE\fR
+
 This boots an image into PXE, currently only for x86 platforms supported.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:USB\fR
+
 This boots an image of a USB\-Stick which is actually the same as an HDD image
 by setting the boot flag '\-boot c'.
 
-.TP
+.IP \(bu 3
 \fBBOOTMODE:VHDD\fR
+
 This boots an image of a HDD by setting the boot flag '\-boot c'.
+.RE
 
 .TP
 \fBCONSOLE\fR
 The \fBCONSOLE\fR suboption defines the console to be used for the VM.
 
 .TP
+
 \fBCONSOLE:CLI\fR
+
 The CLI mode is the backed by the plugin CLI, which is utilized in the
 same manner as the other X11\-based plugins, thus attached by usage
 of the UNIX\-Domain socket QEMUMONSOCK  for a serial port.
@@ -187,7 +205,9 @@ The CLI console is detachable and could be re\-attached later.
 The VNC console access port is implicitly prepared additionally for later attachement.
 
 .TP
+
 \fBCONSOLE:CLI0\fR
+
 This mode deviates from the common CLI mode, and is tightly
 coupled to the VM, thus could not be detached.
 When the console is detached, the VM will be terminated.
@@ -253,7 +273,12 @@ The VNC console access port is implicitly prepared additionally for the followin
 CONSOLE types for later attachement: CLI, XTERM, GTERM, EMACSM, EMACS, EMACSAM, and EMACSA.
 
 .TP
-\fBINSMODE[:<MODE\-SRC>%<SRC\-PATH>%<MODE\-TARGET>%<TARGET\-PATH>]\fR
+\fBINSTMODE[:<params>)]\fR
+
+\fB<params>:= <MODE\-SRC>%<SRC\-PATH>%<MODE\-TARGET>%\fR
+
+\fB<TARGET\-PATH>%(INIT|<custom>)\fR
+
 This boots an image as set by \fBINSTSRC\fR into a specific intstallation mode.
 The installation mode prepares the \fBINSTTARGET\fR device by pre\-configured 
 actions for usage as installation media for the GuestOS installer.
@@ -275,6 +300,12 @@ The <MODE\-TARGET> parameter provides the same modes as BOOTMODE.
 \fB<TARGET\-PATH>\fR
 The optional <TARGET\-PATH> parameter provides the temporary alteration of preconfigured
 install target media.
+
+.TP
+\fB(INIT|<custom>)\fR
+This sets the wrapper either to initial install mode for destructive first time
+actions \- like replacement of filesystems, or to post\-install mode, where e.g.
+just some post processing of basic system configuration is performed.
 
 .TP
 \fBKERNEL:[<KERNEL\-IMG>[,<INITRD>[,<APPEND>]]]\fR
@@ -373,12 +404,21 @@ KVM should be installed by standard distribution.
 
 .SH SEE ALSO
 .P
-\fIctys\-createConfQEMU(1)\fR, \fIctys\-uc\-QEMU(7)\fR, \fIctys\-QEMU\-configuration(7)\fR
+\fIctys(1)\fR
+,
+\fIctys\-createConfVM(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-QEMU(1)\fR
+,
+\fIctys\-configuration\-QEMU(7)\fR
+,
+\fIctys\-uc\-QEMU(7)\fR
+,
+\fIctys\-vhost(1)\fR
 
 .SH AUTHOR
-.P
-Written and maintained by Arno\-Can Uestuensoez:
-
 .TS
 tab(^); ll.
  Maintenance:^<acue_sf1@sourceforge.net>
@@ -411,5 +451,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-QEMU.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/man/man1/ctys-QEMU.1
+.\" cmdline: txt2tags -t man -i ctys-QEMU.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man1/ctys-QEMU.1
 

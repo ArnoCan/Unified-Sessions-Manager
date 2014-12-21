@@ -271,8 +271,11 @@ function enumerateMySessionsVMW () {
 		_out8=;
 		_out8="${_out8};${MYUID}";
 		_out8="${_out8};${MYGID}";
-		_out8="${_out8};${VMW_DEFAULT_HOSTS}";
-		_out8="${_out8};${VMW_DEFAULT_CONSOLE}";
+
+		local _myHosts=$(getDEFAULTHOSTS ${X})
+		_out8="${_out8};${_myHosts:-$VMW_DEFAULT_HOSTS}";
+		local _myCon=$(getDEFAULTCONSOLE ${X})
+		_out8="${_out8};${_myCon:-$VMW_DEFAULT_CONSOLE}";
 
 		local i=0;
 		_myMAC=`getMAClst_VMW ${X}`;

@@ -2,12 +2,12 @@
 NAME
 ====
 
-ctys-genmconf -  generates the configuration entry
+ctys-getNetInfo -  gets various network parameters
 
 SYNTAX
 ======
 
-ctys-genmconf
+ctys-getNetInfo
 
 
    [--(brdglist|--bl)=<contained-if-prefix>]
@@ -22,8 +22,6 @@ ctys-genmconf
    [--iflistmacip|--ilmi]
    [-V]
    [-X]
-
-
 
 
 DESCRIPTION

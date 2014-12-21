@@ -121,8 +121,8 @@ BEGIN{
 
     #exepath
     if(colsA[8]!~/^$/){
-        curEntry=curEntry""colsA[8]";";
-        ptrace("exepath="colsA[8]);
+        curEntry=curEntry""colsA[9]";";
+        ptrace("exepath="colsA[9]);
         ptrace("curEntry="curEntry);
     }else{
         curEntry=curEntry";";               
@@ -134,6 +134,14 @@ BEGIN{
         ptrace("exepath="colsA[7]);
     }else{
         curEntry=curEntry";";               
+    }
+
+    #ifnumber
+    if(colsA[9]!~/^$/){
+        curEntry=curEntry""colsA[8];
+        ptrace("ifnumber="colsA[8]);
+#     }else{
+#         curEntry=curEntry";";               
     }
 
     ptrace("output=<"curEntry">")

@@ -241,15 +241,17 @@ $0~/^$/{
     if(dsp>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DISPLAY,8,"$6; }
     if(cp>0){  if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ClientAccessPort,9,"$7; }
     if(sp>0){  if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ServerAccessPort,10,"$8; }
-    if(p>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"PID,11,"$11; }
-    if(u>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID,12,"$12; }
-    if(g>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GUID,13,"$13; }
-    if(cs>0){  if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"C/S-Type,14,"$14; }
+    if(p>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"PID,11,"$9; }
+    if(u>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID,12,"$10; }
+    if(g>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GUID,13,"$11; }
+    if(cs>0){  if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"C/S-Type,14,"$13; }
     if(jid>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"JobID,15,"$15;   }
+
     if(ifn>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"IFNAME,16,"$16;  }
     if(res1>0){if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RESERVED1,17,"$17;  }
     if(cstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CONTEXTSTRG,18,"$18; }
     if(exep>0){  if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"EXECPATH,19,"$19; }
+
     if(hrx>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HYPERRELRUN,20,"$20; }
     if(acc>0){   if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELERATOR,21,"$21; }
     if(arch>0){  if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ARCH,22,"$22; }

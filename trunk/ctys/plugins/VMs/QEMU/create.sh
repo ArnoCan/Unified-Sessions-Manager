@@ -179,7 +179,8 @@ function createConnectQEMU () {
 				let _unambig++;
 				;;
 			    ID|I|PATHNAME|PNAME|P)
-				if [ -n "${ARG##/*}" ]; then
+				local _ta="${ARG//\\}"
+				if [ -n "${_ta##/*}" ]; then
  				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				    printERR $LINENO $BASH_SOURCE ${ABORT} " PNAME=${ARG}"
@@ -531,12 +532,17 @@ function createConnectQEMU () {
 		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
                     -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
 		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
-		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remaining address parameters are ignored"
 		fi
 	    fi
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -629,13 +635,14 @@ function createConnectQEMU () {
 			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "FILENAME=${_fname}"
 			    ;;
 			ID|PATHNAME|PNAME|P)
-                            if [ ! -f "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given file or access permission for ID/PNAME"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID/PNAME=${ARG}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${ARG}";
+                            local _pname="${_ta}";
 			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PATHNAME=${_pname}"
 			    ;;
 			ARGSADD)

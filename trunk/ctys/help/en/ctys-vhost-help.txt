@@ -2,7 +2,7 @@
 NAME
 ====
 
-ctys-vhost -  core address resolution interface
+ctys-vhost -  core address resolution interface and database front-end
 
 SYNTAX
 ======
@@ -11,10 +11,12 @@ ctys-vhost
 
 
    [-c <spent cost on execution environment>
-      =MINCNT|MAXCNT|CNT
-      ]
+      =:(
+        MINCNT|MAXCNT|CNT
+      )
+   ]
    [-C <DB sources>
-      =(
+      =:(
         OFF
         |CLEARTMP
         |CLEARALL
@@ -29,6 +31,7 @@ ctys-vhost
         |MACMAP
         |REBUILDCACHE
       )
+   ]
    [-d <debug-level>]
    [-h]
    [-H <help-options>]
@@ -36,10 +39,12 @@ ctys-vhost
    [-I <0-9>]
    [-l <USER>]
    [-M <result-set-output-reduction>
-      =(FIRST|LAST|ALL|COMPLEMENT|SORT|USORT|UNIQUE)
-      ]
+      =:(
+        FIRST|LAST|ALL|COMPLEMENT|SORT|USORT|UNIQUE
+      )
+   ]
    [-o <output-list>
-      =(
+      =:(
          (
            ( 
              [ARCH][,]
@@ -93,37 +98,47 @@ ctys-vhost
            [TITLE|TITLEIDX|TITLEIDXASC][,]
            [MACHINE|MAXKEY][,]
          )
-         | TAB_GEN|TAB[:<tab-args>]
-         | REC_GEN|REC[:<tab-args>]
-         | SPEC_GEN|SPEC[:<tab-args>]
-         | XML_GEN|XML[:<tab-args>]
-       )
+         | (TAB_GEN|TAB)[:<tab-args>]
+         | (REC_GEN|REC)[:<tab-args>]
+         | (SPEC_GEN|SPEC)[:<tab-args>]
+         | (XML_GEN|XML)[:<tab-args>]
+       )[,]
       [IP|DNS|D][,]
-      [,SORT[:ALL|A|UNIQUE|U|REVERSE|R|EACH|([0-9][0-9][0-9]|[0-9][0-9]|[0-9])]
+      [SORT[:ALL|A|UNIQUE|U|REVERSE|R|EACH|[([0-9][0-9][0-9]|[0-9][0-9]|[0-9])]
+         [%]][,]
    ]
    [-p <db-directory-path-list>]
    [-r]
-   [-R <runtime states>
-      =[MARK|(REVERSE|R|-),]PING|SSH[,PM|VM]
-      ]
    [-s]
    [-S <BasicDataManagementSupport>
-     =(
-        CONTENTGROUP
-        |LISTALL
-        |LIST
-        |LISTDB
-        |MEMBERSDB
-        |LISTGROUP
-        |MEMBERSGROUP([2345678])|([678]u)[:<groups-list>]
+      =:(
+         CONTENTGROUP
+         |LISTALL
+         |LIST
+         |LISTDB
+         |MEMBERSDB
+         |LISTGROUP
+         |MEMBERSGROUP([2345678])|([678]u)[:<groups-list>]
       )
-      [-T <type-list>]
-      [-V]
-      [-X]
-      <awk-regexpr>[ <awk-regexpr>[ <...>]]
-
-
-
+   ]
+   [-T <type-list>]
+   [-V]
+   [-R <runtime states>
+      =:(
+        [MARK|(REVERSE|R|-),](PING|SSH)[,(PM|VM)]
+      )
+   ]
+   [-X]
+   <awk-regexpr>[ 
+     (
+       AND
+       |E:<#field0>:<#field1>
+       |F:<#field>:<string-literal>
+       |NOT
+       |OR
+       |<awk-regexpr>
+     )
+   ]
 
 DESCRIPTION
 ===========

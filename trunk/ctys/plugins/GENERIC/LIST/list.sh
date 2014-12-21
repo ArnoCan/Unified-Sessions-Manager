@@ -244,18 +244,18 @@ function listMySessions () {
 	  if [ "${C_SESSIONTYPE}" == $y -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == DEFAULT -o -n "${_pkgargs}" ];then
 	      if [ "${_pkg}" == "1" ];then
 		  local _blacklist=1;
-		  local _ip=;
-		  for _ip in ${_pkgargs//\%/ };do
-		      if [ "${y}" == "${_ip}" ];then
+		  local _ipx=;
+		  for _ipx in ${_pkgargs//\%/ };do
+		      if [ "${y}" == "${_ipx}" ];then
 			  _blacklist=0;
 			  break;
 		      fi
 		  done
 		  if [ "${_blacklist}" == "1" ];then
-		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "IGNORED:\"${y}\"!=\"${_ip}\""
+		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "IGNORED:\"${y}\"!=\"${_ipx}\""
 		      continue;
 		  else
-		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "USE:\"${y}\"==\"${_ip}\""
+		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "USE:\"${y}\"==\"${_ipx}\""
 		  fi
 	      fi
 	      _matched=1; 
@@ -320,6 +320,58 @@ function listMySessions () {
       KEY=`cliGetKey ${i}`
       ARG=`cliGetArg ${i}`
       case $KEY in
+          ACCELERATOR|ACCEL) _acc=1;;
+	  ARCH)       _arch=1;;
+          CONTEXTSTRG|CSTRG) _cstrg=1;;
+	  CPORT)      _CP=1;;
+	  DISPLAY)    _DSP=1;;
+	  EXEPATH|EXEP)_exep=1;;
+	  GROUP|GID) _G=1;;
+          HYPERRELRUN|HRELRUN|HRELX|HRX) _hrx=1;;
+	  ID|PATHNAME|PNAME|P) _I=1;;
+	  IFNAME|IF)  _ifn=1;;
+	  JOBID|JID)  _jid=1;;
+	  LABEL)      _L=1;;
+ 	  MAC)        _MAC=1;;
+	  PID)        _P=1;;
+	  PM|HOST)    _H=1;;
+	  SITE)       _S=1;;
+	  SPORT)      _SP=1;;
+ 	  TCP)        _tcp=1;;
+	  TYPE|ST|STYPE) _T=1;;
+	  USER|UID)    _U=1;;
+	  UUID)       _UU=1;;
+
+          ###
+           #####
+          ###
+
+	  TITLE)      _title=1;;
+	  TITLEIDXASC)_titleidx=2;;
+	  TITLEIDX)   _titleidx=1;;
+
+	  MACHINE)    _machine=1;;
+	  MAXKEY)     _maxkey=1;;
+
+          ###
+           #####
+          ###
+
+	  TERSE)      _terse=1;;
+
+          ###
+           #####
+          ###
+
+ 	  DNS)        _dns=2;;
+ 	  IP)         _ip=1;;
+
+          ###
+           #####
+          ###
+
+	  ALL)        _all=1;;
+
 	  PROLOGUE)     
               _prologue=1;
 	      ;;
@@ -367,49 +419,7 @@ function listMySessions () {
 	      _MAC=0;
 	      _tcp=0;
 	      ;;
-	  ALL)        _all=1;;
 
-	  MACHINE)    _machine=1;;
-	  MAXKEY)     _maxkey=1;;
-
-	  TITLE)      _title=1;;
-	  TITLEIDXASC)_titleidx=2;;
-	  TITLEIDX)   _titleidx=1;;
-
-	  HOST|PM)    _H=1;;
-	  TYPE|ST|STYPE) _T=1;;
-	  LABEL)      _L=1;;
-	  ID|PATHNAME|PNAME|P)         
-                       _I=1;;
-	  UUID)       _UU=1;;
-
- 	  MAC)        _MAC=1;;
- 	  TCP)        _tcp=1;;
- 	  DNS)        _dns=2;;
-	  IFNAME|IF)  _ifn=1;;
-
-	  PID)        _P=1;;
-	  JOBID|JID)  _jid=1;;
-	  USER)       _U=1;;
-	  GROUP)      _G=1;;
-	  SITE)       _S=1;;
-	  CPORT)      _CP=1;;
-	  SPORT)      _SP=1;;
-	  DISPLAY)    _DSP=1;;
-
-
-	  EXEPATH|EXEP)
-                      _exep=1;;
-	  ARCH)       _arch=1;;
-          HYPERRELRUN|HRELRUN|HRELX|HRX)
-                      _hrx=1;;
-          ACCELERATOR|ACCEL)         
-                       _acc=1;;
-
-          CONTEXTSTRG|CSTRG)         
-                       _cstrg=1;;
-
-	  TERSE)      _terse=1;;
 
 	  PKG)        _pkg=1;
 		      if [ -z "${ARG}" ];then
@@ -477,6 +487,18 @@ function listMySessions () {
       gotoHell ${ABORT}
   fi
 
+  #set content default
+  if [ $_L == 0 -a $_H == 0 -a $_I == 0 -a $_P == 0 -a $_U == 0 -a $_G == 0 -a $_T == 0 -a $_UU == 0 -a $_S == 0 \
+       -a $_MAC == 0 -a $_tcp == 0 -a $_CP == 0 -a $_SP == 0 -a $_DSP == 0 -a $_jid == 0 \
+       -a $_arch == 0 -a $_hrx == 0 -a $_acc == 0 -a $_cstrg == 0 -a $_exep == 0 -a $_ifn == 0 \
+       -a $_all == 0 -a $_maxkey == 0 -a $_machine == 0 \
+      ];then
+      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "Force of ID"
+      _I=1;
+      _tab=TAB_TCP;_title=1;_machine=1;
+ #_terse=1;
+  fi
+
   if((_all==1));then
       _L=1;_P=1;_U=1;_G=1;_T=1;_H=1;_S=1;_I=1;_UU=0;_CP=0;_SP=0;_DSP=0;_jid=1;
       _MAC=0;
@@ -505,20 +527,17 @@ function listMySessions () {
       _terse=1;
   fi
 
+  if((_ip==1&&_tcp>0));then
+      let  _tcp++;
+  fi
+
   #default lists sessions only, gwhich are defined to be the server(-sessions),
   #due to the roaming feature of almost all clients, and partly broadcast support.
   if [ -z "${_site}" ];then
       _site=B;
   fi
 
-  #set content default
-  if [ $_L == 0 -a $_H == 0 -a $_I == 0 -a $_P == 0 -a $_U == 0 -a $_G == 0 -a $_T == 0 -a $_UU == 0 -a $_S == 0 \
-       -a $_MAC == 0 -a $_tcp == 0 -a $_dns == 0 -a $_CP == 0 -a $_SP == 0 -a $_DSP == 0 -a $_jid == 0 \
-       -a $_jid == 0 -a $_arch == 0 -a $_hrx == 0 -a $_acc == 0 -a $_cstrg == 0 -a $_exep == 0 -a $_ifn == 0 \
-      ];then
-      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "Force of ID"
-      _I=1;
-  fi
+
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "_L=$_L _H=$_H _I=$_I _P=$_P _U=$_U  _G=$_G _T=$_T _UU=$_UU "
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "_S=$_S _tcp=$_tcp _MAC=$_MAC _CP=$_CP _SP=$_SP _DSP=$_DSP"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "_jid=$_jid _ifn=$_ifn"
@@ -764,7 +783,7 @@ function listCheckParam () {
                 PKG)_argsX1="${_argsX1},${KEY}${ARG:+:$ARG}";;
                 TERSE|MACHINE|MAXKEY)_argsX1="${_argsX1},${KEY}";;
                 NONE|BOTH|ALL)_argsX1="${_argsX1},${KEY}";;
-                TCP|DNS|MAC)_argsX1="${_argsX1},${KEY}";;
+                TCP|IP|DNS|MAC)_argsX1="${_argsX1},${KEY}";;
                 JOBID|JID)_argsX1="${_argsX1},${KEY}";;
 		ARCH)_argsX1="${_argsX1},${KEY}";;
 		EXEP|EXEPATH)_argsX1="${_argsX1},${KEY}";;

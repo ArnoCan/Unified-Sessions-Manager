@@ -69,7 +69,11 @@ function getVersionStrgQEMU () {
     if [ -z "${1}" ];then
 	return
     fi
-    _verstrg1=$(callErrOutWrapper $LINENO $BASH_SOURCE ${QEMUCALL} ${1} -h|awk '$0~/version/&&$0~/Copyright/{printf("qemu-%s",$5);}')
+
+#4TEST:Keep temp for reminder
+#    _verstrg1=$(callErrOutWrapper $LINENO $BASH_SOURCE ${QEMUCALL} ${1} -h|awk '$0~/version/&&$0~/Copyright/{printf("qemu-%s",$5);}')
+    _verstrg1=$(callErrOutWrapper $LINENO $BASH_SOURCE ${QEMUCALL} ${1} -h|sed -n '/Copyright/s/^.*\([0-9]\+\.[0-9]\+\.[0-9]\+\).*$/\1/p')
+    _verstrg1="qemu-${_verstrg1}"
     echo ${_verstrg1//,/};
 }
 

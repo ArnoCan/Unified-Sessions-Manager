@@ -463,7 +463,6 @@ function setVersionVBOX () {
 	VBOX_MAGIC=RELAY;
 	return
     fi
-
     local _verstrg=;
     if [ -n "$VBOXEXE" ];then
 	_verstrg=$(getVersionStrgVBOX $VBOXEXE)
@@ -518,7 +517,7 @@ function setVersionVBOX () {
 
     #currently somewhat restrictive to specific versions.
     case ${VBOX_MAGIC} in
-	VBOX_030102)
+	VBOX_03*)
 	    VBOX_PRODVERS=${_verstrg};
 	    VBOX_DEFAULTOPTS="";
 	    VBOX_STATE=ENABLED

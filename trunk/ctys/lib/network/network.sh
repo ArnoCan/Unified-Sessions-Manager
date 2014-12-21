@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myLIBNAME_network="${BASH_SOURCE}"
-_myLIBVERS_network="01.11.001"
+_myLIBVERS_network="01.11.011"
 libManInfoAdd "${_myLIBNAME_network}" "${_myLIBVERS_network}"
 
 _myLIBNAME_BASE_network="`dirname ${_myLIBNAME_network}`"
@@ -870,13 +870,24 @@ function netCheckBridgeIsXen () {
 	    return 1;
 	    ;;
     esac
-    local _blst=$*
-    local _xlst=$(netListBridges peth)
-
     local _ret=0;
     local _x=;
     local i=;
     local j=;
+    if [ -n "${FORCE_THIS_IS_XEN_BRIDGE}" ];then
+	_x=1;
+	for i in $*;do
+	    if [ "${FORCE_THIS_IS_XEN_BRIDGE}" == "$i" ];then
+		_x=0;
+		echo -n "$i "
+	    fi
+	done
+	return $_x;
+    fi
+
+    local _blst=$*
+    local _xlst=$(netListBridges peth)
+
     for i in $_xlst;do
 	_x=1;
 	for j in $_blst;do
@@ -887,6 +898,10 @@ function netCheckBridgeIsXen () {
 	done
 	let _ret+=_x;
     done
+    if((_ret==0));then 
+	printWNG 2 $LINENO $BASH_SOURCE 2  "$FUNCNAME:NO XenBridges found.";
+	printWNG 2 $LINENO $BASH_SOURCE 2  "$FUNCNAME:Assume XenBridge has a 'peth'.";
+    fi
     return $_ret;
 }
 
@@ -1580,6 +1595,7 @@ function netWaitForPing () {
 #  $2: [<#trials>]
 #  $3: [<timeout-before-next-trial>]
 #  $4: [<ssh-user>]
+#  $5: [<ssh-opt>]
 #
 #OUTPUT:
 #  RETURN:
@@ -1593,6 +1609,7 @@ function netWaitForSSH () {
     local _trials=$1;shift
     local _timeout=$1;shift
     local _sshuser=$1;shift
+    local _sshopts=$1;shift
     
     _trials=${_trials:-$CTYS_SSHPING_ONE_MAXTRIAL};
     _timeout=${_timeout:-$CTYS_SSHPING_ONE_WAIT};
@@ -1601,6 +1618,7 @@ function netWaitForSSH () {
     printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_trials  =$_trials"
     printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_timeout =$_timeout"
     printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_sshuser =$_sshuser"
+    printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_sshopts =$_sshopts"
     if [ -z "$_target" ];then
 	sleep ${_timeout};
 	printERR $LINENO $BASH_SOURCE 1  "$FUNCNAME:Missing target for sshping."
@@ -1614,7 +1632,7 @@ function netWaitForSSH () {
     while ((_trials>i1)) ;do
 	printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:trial-ssh:$i1"
 #	callErrOutWrapper $LINENO $BASH_SOURCE "ssh ${_sshuser:+ -l $_sshuser} ${_target} echo " >/dev/null
-	ssh ${_sshuser:+ -l $_sshuser} ${_target} echo  2>/dev/null >/dev/null
+	ssh ${_sshopts} ${_sshuser:+ -l $_sshuser} ${_target} echo  2>/dev/null >/dev/null
 	[ $? -eq 0 ]&&break;
 	sleep ${_timeout:-1};
 	((i1++));

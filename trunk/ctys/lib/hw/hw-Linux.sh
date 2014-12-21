@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a09
+#VERSION:      01_11_011
 #
 ########################################################################
 #
-# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -424,14 +424,33 @@ function getPLATFORMinfo () {
 function getVMinfo () {
     local _hw=;
    
-    if [ -n "${CTYS_LSPCI}" ];then
-	_hw=`${CTYS_LSPCI} -v |awk '
-               BEGIN{machine="PM";}
-               $0~/VGA.*compatible.*VMware .*SVGA.*Adapter/{machine="VM";}
-               $0~/VMware .*Abstract.*Adapter/{machine="VM";}
-               END{printf("%s",machine);}
-              '`
+    if [ -z "${CTYS_LSPCI}" ];then
+	printWNG 1 $LINENO $BASH_SOURCE 0 "Missing package pciutils - CTYS_LSPCI"
+	return
     fi
+
+    #check VMW
+    _hw=`${CTYS_LSPCI} -v |awk '
+            BEGIN{machine="";}
+            $0~/VGA.*compatible.*VMware .*SVGA.*Adapter/{machine="VM";}
+            $0~/VMware .*Abstract.*Adapter/{machine="VM";}
+            END{if(machine!~/^$/)printf("%s",machine);}
+            '`
+
+    #check KVM
+    if [ -z "${_hw// /}" ];then
+       _hw=`${CTYS_LSPCI} -m |awk '
+            BEGIN{machine="";}
+            $0~/Intel/&&$0~/Qumranet/&&$0~/Qemu/{machine="VM";}
+            END{printf("%s",machine);}
+            '`
+	
+    fi
+
+    #check QEMU
+    #check XEN
+    #check VBOX
+
     case ${_hw} in
         PM|VM);;
 	*)_hw="PM";;
@@ -441,3 +460,4 @@ function getVMinfo () {
     echo -n "${_hw}"
     return
 }
+

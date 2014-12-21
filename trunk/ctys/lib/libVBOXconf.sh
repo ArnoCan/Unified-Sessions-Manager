@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008alpha
+#VERSION:      01_11_011alpha
 #
 ########################################################################
 #
@@ -40,8 +40,13 @@
 #FUNCEND###############################################################
 function getVBOXVMVal () {
     printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:FName=${FName}"
+    if [ -z "${VBOXMGR}" ];then
+	ABORT=2;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing VBOXMGR"
+	gotoHell ${ABORT}  
+    fi
     if [ -n "${1}" -a -n "${2}" ];then
-	local _v=$(${VBOXMGR} showvminfo "$1" -machinereadable 2>/dev/null|sed -n 's/^'"${2}"'=\([^ ]\+\)/\1/p');
+	local _v=$(${VBOXMGR} showvminfo "$1" -machinereadable 2>/dev/null|sed -n 's/^'"${2}"'="*\([^" ]\+\)"*/\1/p');
 	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_v=$_v"
 	echo "$_v"
 	return 0
@@ -175,14 +180,10 @@ function getVBOXMAClst () {
 #
 #FUNCEND###############################################################
 function getVBOXUUID () {
-    local _IP=;
-
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	_IP=`getVBOXVMVal "${_f}" UUID`
-	_IP=${_IP//\"/}
-	echo ${_IP##* }
-    fi
+    local _f=${1##*/};_f=${_f%.*}
+    _IP=`getVBOXVMVal "${_f}" UUID`
+    _IP=${_IP//\"/}
+    echo ${_IP##* }
 }
 
 
@@ -242,11 +243,8 @@ function getVBOXLABEL () {
 #
 #FUNCEND###############################################################
 function getVBOXGUESTVCPU () {
-    local _IP=;
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	_IP=`getVBOXVMVal "${_f}" cpus`
-    fi
+    local _f=${1##*/};_f=${_f%.*}
+    _IP=`getVBOXVMVal "${_f}" cpus`
     echo ${_IP##* }
 }
 
@@ -305,13 +303,11 @@ function getVBOXGUESTARCH () {
 #FUNCEND###############################################################
 function getVBOXOS () {
     local _IP=;
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	_IP=`getVBOXVMVal "${_f}" ostype`
-	_IP=${_IP//\"/}
-	_IP=${_IP%_64}
-	_IP=${_IP%_i386}
-    fi
+    local _f=${1##*/};_f=${_f%.*}
+    _IP=`getVBOXVMVal "${_f}" ostype`
+    _IP=${_IP//\"/}
+    _IP=${_IP%_64}
+    _IP=${_IP%_i386}
     echo ${_IP##* }
 }
 
@@ -334,15 +330,12 @@ function getVBOXOS () {
 #
 #FUNCEND###############################################################
 function getVBOXACCEL () {
-    local _IP=;
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	_IP=`getVBOXVMVal "${_f}" hwvirtex`
-	_IP=${_IP//\"/}
-	_IP=${_IP//on/HVM}
-	_IP=${_IP//off/}
-    fi
-    echo ${_IP##* }
+    local _f=${1##*/};_f=${_f%.*}
+    _IP=`getVBOXVMVal "${_f}" hwvirtex`
+    _IP=${_IP//\"/}
+    _IP=${_IP//on/VT}
+    _IP=${_IP//off/}
+    echo -n ${_IP##* }
 }
 
 
@@ -366,11 +359,8 @@ function getVBOXACCEL () {
 #
 #FUNCEND###############################################################
 function getVBOXVNCACCESSPORT () {
-    local _IP=;
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	_IP=`getVBOXVMVal "${_f}" vrdpport`
-    fi
+    local _f=${1##*/};_f=${_f%.*}
+    _IP=`getVBOXVMVal "${_f}" vrdpport`
     echo ${_IP##* }
 }
 
@@ -396,10 +386,37 @@ function getVBOXVNCACCESSPORT () {
 #
 #FUNCEND###############################################################
 function getVBOXGUESTVRAM () {
-    local _IP=;
-    if [ "$_IP" == "" ];then
-	local _f=${1##*/};_f=${_f%.*}
-	_IP=`getVBOXVMVal "${_f}" memory`
+    local _f=${1##*/};_f=${_f%.*}
+    _IP=`getVBOXVMVal "${_f}" memory`
+    echo ${_IP##* }
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVBOXBOOTHDDSIZE
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVBOXBOOTHDDSIZE () {
+    if [ -e "$1" ];then
+	_IP=$(${VBOXMGR} -q showhdinfo "$1" 2>/dev/null|awk '/^Logical size:/{printf("%s",$3);}
+           $4~/MBytes/{printf("M");}
+           $4~/GBytes/{printf("G");}
+           $4~/TBytes/{printf("T");}
+           ');
     fi
     echo ${_IP##* }
 }

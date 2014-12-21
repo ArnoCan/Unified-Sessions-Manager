@@ -59,6 +59,7 @@ printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 #ffs
 [ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
 [ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+[ -z "$X11KDECONFEXE" ]&&X11KDECONFEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kde-config /usr/bin`
 
 
 if [ -n "$X11EMACXEXE" ];then

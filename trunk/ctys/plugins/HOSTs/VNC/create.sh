@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_001
+#VERSION:      01_11_011
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2009,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VNC_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VNC_CREATE="01.10.001"
+_myPKGVERS_VNC_CREATE="01.11.011"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VNC_CREATE
 _myPKGBASE_VNC_CREATE="`dirname ${_myPKGNAME_VNC_CREATE}`"
 
@@ -193,7 +193,7 @@ function createConnectVNC () {
                     I|ID)
 			if [ -z "$_connect" ];then
 			    ABORT=1
-			    printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEYXS} NOT supported"
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEYXS} requires CONNECT"
 			    gotoHell ${ABORT}
 			fi
 			_ID="${_ID} ${ARG}";
@@ -298,9 +298,9 @@ function createConnectVNC () {
 		fi
 	    fi
 
-	    if [ -z "${_LABEL}" ];then
+	    if [ -z "${_LABEL}" -a -z "${_VNATIVE}" -a -z "${_ID}" ];then
 		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory suboption: LABEL"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory suboption: LABEL, ID or VNCPORT"
 		gotoHell ${ABORT}
 	    fi
 
@@ -317,6 +317,11 @@ function createConnectVNC () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -362,7 +367,8 @@ function createConnectVNC () {
 			;;
 
 		    VNCVM|WM)
-                        VNCWM="${ARG}";
+                        VNCWM="$(echo "${ARG}"|tr '[:lower:]' '[:upper:]')";
+
  			printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "VNCVM=$_vm"
 			;;
 

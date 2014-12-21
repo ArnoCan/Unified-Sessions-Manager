@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_010
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -36,7 +36,7 @@ QEMU_EXELIST_BASENAME=;
 
 
 _myPKGNAME_QEMU="${BASH_SOURCE}"
-_myPKGVERS_QEMU="01.11.010"
+_myPKGVERS_QEMU="01.11.011"
 hookInfoAdd $_myPKGNAME_QEMU $_myPKGVERS_QEMU
 
 QEMU_VERSTRING="${_myPKGVERS_QEMU}"
@@ -382,7 +382,7 @@ function setVersionQEMU () {
 	if [ -f "${_x}" ];then
 	    _BUF=${_BUF}:${_x}
 	else
-	    _buf=$(PATH=${QEMU_PATHLIST}:${PATH}&&gwhich ${_x} 2>/dev/null);
+	    _buf=$(PATH=${QEMU_PATHLIST}:${PATH} gwhich ${_x} 2>/dev/null);
 	    if [ -n "$_buf" ];then
 		_BUF=${_BUF}:${_buf}
 	    fi
@@ -403,7 +403,12 @@ function setVersionQEMU () {
 
 	_tx=$(bootstrapGetRealPathname ${i});
 	_BUF=${_BUF}:${_tx};
-	QEMU_EXELIST_BASENAME=${QEMU_EXELIST_BASENAME}:${_tx##*/}
+	i=${i##*/}
+	_tx=${_tx##*/}
+	QEMU_EXELIST_BASENAME=${QEMU_EXELIST_BASENAME}:${_tx}
+	if [ "${i}" != "${_tx}" ];then
+	    QEMU_EXELIST_BASENAME=${QEMU_EXELIST_BASENAME}:${i}
+	fi
     done
     QEMU_EXELIST=${_BUF}
     printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_EXELIST_BASENAME   = ${QEMU_EXELIST_BASENAME}"

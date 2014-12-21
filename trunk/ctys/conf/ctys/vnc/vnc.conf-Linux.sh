@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -54,6 +54,48 @@ VNCPORTSEED=10;
 #keep "hextile" for being generic for VMware-WS6 too(see pg. 183).
 #
 case ${MYDIST} in
+    ESX)
+	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
+	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
+	[ -z "$VNCPEXE" ]&&VNCPEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncpasswd /usr/bin`
+
+        #vncviewer - passed through by wrapper
+	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
+
+        #vncserver - passed through by wrapper
+	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	;;
+    XenServer)
+	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
+	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
+	[ -z "$VNCPEXE" ]&&VNCPEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncpasswd /usr/bin`
+
+        #vncviewer - passed through by wrapper
+	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
+
+        #vncserver - passed through by wrapper
+	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	;;
     CentOS)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
 	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
@@ -61,17 +103,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     EnterpriseLinux)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -80,17 +124,40 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	;;
+    RHEL)
+	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
+	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
+	[ -z "$VNCPEXE" ]&&VNCPEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncpasswd /usr/bin`
+
+        #vncviewer - passed through by wrapper
+	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
+
+        #vncserver - passed through by wrapper
+	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     Scientific)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -99,17 +166,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     Fedora)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -118,17 +187,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     SuSE)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/X11R6/bin`
@@ -137,17 +208,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     openSUSE)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -156,17 +229,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="  -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="  -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="  -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     debian)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -175,25 +250,27 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile  -fullcolour  -shared "
-	VNCVIEWER_OPT_TightVNC="  -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile  -fullcolour  -shared "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="  -PreferredEncoding hextile  -fullcolour  -shared "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="  -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC="   -depth 24 -geometry 1268x994 -localhost  "
-	VNCSERVER_OPT_RealVNC4="  -depth 24 -geometry 1268x994 -localhost  "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="   -depth 24 -geometry 1268x994 -localhost  "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="  -depth 24 -geometry 1268x994 -localhost  "
 
         #work-around for broken path
 	case $MYREL in
 	    5.0)
-		VNCSERVER_OPT_RealVNC4="${VNCSERVER_OPT_RealVNC4} -fp /usr/share/font/X11/misc"
+		[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="${VNCSERVER_OPT_RealVNC4} -fp /usr/share/font/X11/misc"
 		;;
 	esac
 
-	VNCSERVER_OPT_TightVNC="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="  -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     Ubuntu)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -202,17 +279,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC="    -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile   -fullcolour  -shared "
-	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile   -fullcolour  -shared "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="  -PreferredEncoding hextile   -fullcolour  -shared "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost  "
-	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost  "
-	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost "
-	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost  "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost  "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost  "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost  "
 # 	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 # 	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
@@ -223,17 +302,40 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="     -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="    -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="     -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="    -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	;;
+    MeeGo)
+	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
+	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
+	[ -z "$VNCPEXE" ]&&VNCPEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncpasswd /usr/bin`
+
+        #vncviewer - passed through by wrapper
+	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
+
+        #vncserver - passed through by wrapper
+	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
     *)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
@@ -242,17 +344,19 @@ case ${MYDIST} in
 
         #vncviewer - passed through by wrapper
 	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
-	VNCVIEWER_OPT_RealVNC4="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_RealVNC="     -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-	VNCVIEWER_OPT_TightVNC="    -encodings         hextile  -truecolour  -shared "
-	VNCVIEWER_OPT_GENERIC=""
+	[ -z "${VNCVIEWER_OPT_RealVNC4}" ]&&VNCVIEWER_OPT_RealVNC4="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_RealVNC}" ]&&VNCVIEWER_OPT_RealVNC="     -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TigerVNC}" ]&&VNCVIEWER_OPT_TigerVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	[ -z "${VNCVIEWER_OPT_TightVNC}" ]&&VNCVIEWER_OPT_TightVNC="    -encodings         hextile  -truecolour  -shared "
+	[ -z "${VNCVIEWER_OPT_GENERIC}" ]&&VNCVIEWER_OPT_GENERIC=""
 
         #vncserver - passed through by wrapper
 	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
-	VNCSERVER_OPT_RealVNC4="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_RealVNC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-	VNCSERVER_OPT_TightVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-	VNCSERVER_OPT_GENERIC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_RealVNC4}" ]&&VNCSERVER_OPT_RealVNC4="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_RealVNC}" ]&&VNCSERVER_OPT_RealVNC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	[ -z "${VNCSERVER_OPT_TigerVNC}" ]&&VNCSERVER_OPT_TigerVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_TightVNC}" ]&&VNCSERVER_OPT_TightVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	[ -z "${VNCSERVER_OPT_GENERIC}" ]&&VNCSERVER_OPT_GENERIC="     -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 	;;
 esac
 

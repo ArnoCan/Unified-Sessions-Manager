@@ -24,9 +24,6 @@ ctys-plugins
    [-Z <set-sudo-ksu>]
    <list-of-target-acounts>
 
-
-
-
 DESCRIPTION
 ===========
 

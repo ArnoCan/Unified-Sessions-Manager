@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_011
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_CLI_SESSION="${BASH_SOURCE}"
-_myPKGVERS_CLI_SESSION="01.01.001a01"
+_myPKGVERS_CLI_SESSION="01.11.011"
 hookInfoAdd $_myPKGNAME_CLI_SESSION $_myPKGVERS_CLI_SESSION
 _myPKGBASE_CLI_SESSION="`dirname ${_myPKGNAME_CLI_SESSION}`"
 
@@ -67,32 +67,47 @@ function startSessionCLI () {
 	fi
     fi
 
-    _label2="${USER}@${MYHOST}:${_label}"
-    case "${1%% *}" in 
-        bash*)
-	    if [ "$CTYS_XTERM" == 0 ];then
-		echo -ne "\033]2;${_label2}\007\033]1;\007"
-	    fi
-	    ;;
-        *sh)
-	    if [ "$CTYS_XTERM" == 0 ];then
-		echo -ne "\033]2;${_label2}\007\033]1;\007"
-	    fi
-	    ;;
+    #can do this for stub call later.
+    if [ -z "${C_STUBCALL}" ];then
+	_label2="${USER}@${MYHOST}:${_label}"
+	case "${1%% *}" in 
+            bash*)
+		if [ "$CTYS_XTERM" == 0 ];then
+		    echo -ne "\033]2;${_label2}\007\033]1;\007"
+		fi
+		;;
+            *sh)
+		if [ "$CTYS_XTERM" == 0 ];then
+		    echo -ne "\033]2;${_label2}\007\033]1;\007"
+		fi
+		;;
 # 	*)
 # 	    local _title=" --title ${_label2} "
 # 	    ;;
-    esac 
+	esac 
 
+	local _execStrg="$1 $2  ${_title}"
+    else
+	local _execStrg="$1 $2"
+    fi
 
-    local _execStrg="$1 $2  ${_title}"
-    _execStrg="${3:+cd $3&&}${_execStrg}"
+    if [ -n "${C_STUBCALL}" ];then
+	_execStrg="exec ${_execStrg}"
+	_execStrg="${3:+cd $3\&\&}${_execStrg}"
+    else
+	_execStrg="${3:+cd $3&&}${_execStrg}"
+    fi
 
     printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:C_SSH_PSEUDOTTY=${C_SSH_PSEUDOTTY}"
     printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:TERM=${TERM}"
     printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_execStrg=${_execStrg}"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
-    [ -z "${C_NOEXEC}" ]&&eval ${_execStrg}
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-CLI-CONSOLE:STARTER(${_label})" "${_execStrg}"
+
+    if [ -n "${C_STUBCALL}" ];then
+	echo -n "${_execStrg}"
+    else
+	[ -z "${C_NOEXEC}" ]&&eval ${_execStrg}
+    fi
 }
 
 

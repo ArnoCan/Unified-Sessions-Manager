@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -30,7 +30,7 @@
 ########################################################################
 
 _myLIBNAME_base="${BASH_SOURCE}"
-_myLIBVERS_base="01.11.007"
+_myLIBVERS_base="01.11.011"
 
 shopt -s nullglob
 shopt -s extglob
@@ -45,9 +45,17 @@ if [ -z "${CTYS_INI}" -a -z "${CTYS_INSTALLER}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Check your installation, see '.bashrc' or '.bashprofile' or '.profile'">&2
   echo "${MYCALLNAME}:$LINENO:ERROR:At least one is required to be loaded.">&2
   echo >&2
+  echo "${MYCALLNAME}:$LINENO:ERROR:If already set a PTY may be required, try '-z pty' or '-z 2'.">&2
+  echo >&2
   exit 1
 fi
 
+#
+#Assure X11-start with fork
+#
+MYSTARTDISPLAY=${DISPLAY}
+export MYSTARTDISPLAY
+export DISPLAY
 #
 #Set some common basic definitions.
 #
@@ -58,7 +66,7 @@ if [ -z "${MYLIBPATH}" ];then
 fi
 
 #moment of truth, where it is required to be set
-if [ ! -d "${MYLIBPATH}" ];then
+if [ ! -d "${MYLIBPATH}" -o ! -e "${MYLIBPATH}/lib/base.sh" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYLIBPATH=${MYLIBPATH}"
   echo "${MYCALLNAME}:$LINENO:ERROR:Required to point to the root of the"
   echo "${MYCALLNAME}:$LINENO:ERROR:library to be used."
@@ -172,6 +180,8 @@ MYLIBEXECPATH=${MYLIBEXECPATH:-`dirname $0`}
 
 MYHOST=`uname -n`
 
+#set for known WMs -> used in GUI functions
+MYWM=$(${MYLIBEXECPATH}/getCurWM.sh)
 
 #Basic OS info for variant decisions.
 MYOS=${MYOS:-`$MYLIBEXECPATH/getCurOS.sh`}
@@ -258,8 +268,9 @@ FLST=;
 I=1;
 
 #print final interface-pre-exec data
-#1: prints
+#<level>: prints
 C_PFEXE=;
+
 
 ###############################################################
 #                    Base definitions                          #
@@ -297,7 +308,7 @@ function fetchDBGArgs () {
 	    case $KEY in
 		FILELIST|F)
 		    if [ -z "${ARG}" ];then
-			echo "requires numeric value:$KEY">&2
+ 			echo "requires numeric value:$KEY">&2
 			exit 1;
 		    fi
 		    FLST=${ARG//[eE][xX][cC][lL][uU][dD][eE]/};
@@ -344,7 +355,11 @@ function fetchDBGArgs () {
 		    ;;
 		ALL)DBG=$D_ALL;;
 		PRINTFINAL|PFIN|PF)
-		    C_PFEXE=1;
+		    export C_PFEXE=${ARG:-0};
+		    if [ -n "${WNG//[0-9]/}" ];then
+			echo "requires numeric value:$KEY">&2
+			exit 1;
+		    fi
 		    ;;
 		*)
 		    echo "DBG:unknown value:$KEY">&2
@@ -618,7 +633,7 @@ function printINFO () {
 #
 #DESCRIPTION:
 #  Prints final call strings
-#   -> printFINALCALL <line> <fname> <title> <exec-or-call-string>
+#   -> printFINALCALL <level> <line> <fname> <title> <exec-or-call-string>
 #
 #EXAMPLE:
 #
@@ -632,7 +647,8 @@ function printINFO () {
 #FUNCEND###############################################################
 function printFINALCALL () {
     local r=$?;
-    [ -z "${C_PFEXE}" ]&&return;
+    local l=$1;shift;
+    [ -n "$C_PFEXE" ]&&((C_PFEXE>=l))||return;
     local L=$1;shift;
     local f=${1%/*/*};f=${1#$f\/};shift;
     local t=${1};shift;
@@ -1244,4 +1260,13 @@ function setFontAttrib () {
 MYINSTALLPATH=`getRealPathname ${MYLIBEXECPATHNAME}`
 MYINSTALLPATH=${MYINSTALLPATH%/*/*}
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "MYINSTALLPATH=${MYINSTALLPATH}"
+
+
+###############################################################
+#                    Append                                   #
+###############################################################
+if [ -z "$__GUIBASE__" ];then
+__GUIBASE__=1;
+. ${MYLIBPATH}/lib/libguibase.sh
+fi
 

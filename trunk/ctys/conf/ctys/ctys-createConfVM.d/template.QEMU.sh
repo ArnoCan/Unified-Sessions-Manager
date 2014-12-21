@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 VERSION=MARKER_VERNO
 #
 #
@@ -374,7 +374,7 @@ callOptionsQEMUcacheOpts $STARTERCALL
 
 _check=0;
 _print=0;
-ARGSADD=;
+#ARGSADD=;
 #BOOTMODE=VHDD;
 
 
@@ -874,7 +874,7 @@ function prepInstTarget () {
 #Check this, for now it's OK.
 #Missing BALLON - seek
 #
-		printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${QEMUIMG} create -f raw ${_it} ${HDDBOOTIMAGE_INST_SIZE}\""
+		printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${QEMUIMG} create -f raw ${_it} ${HDDBOOTIMAGE_INST_SIZE}\""
 		if [ "$_check" == "0" ];then
                     #create raw image
 		    ${QEMUIMG} create  -f raw ${_it} ${HDDBOOTIMAGE_INST_SIZE} 
@@ -886,7 +886,7 @@ function prepInstTarget () {
 		    fi
 		fi
 
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${CTYS_DD} if=/dev/zero of=${_it} bs=${HDDBOOTIMAGE_INST_BLOCKSIZE} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}\""
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${CTYS_DD} if=/dev/zero of=${_it} bs=${HDDBOOTIMAGE_INST_BLOCKSIZE} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}\""
 		if [ "$_check" == "0" ];then
 		    ${CTYS_DD}  if=/dev/zero of=${_it} bs=${HDDBOOTIMAGE_INST_BLOCKSIZE} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}
 		    if [ $? != 0 ];then
@@ -898,7 +898,7 @@ function prepInstTarget () {
 		fi
 		;;
 	    HDD)
-		printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${QEMUIMG} create -f ${QEMU_IMG:-raw} ${_it} ${HDDBOOTIMAGE_INST_SIZE}\""
+		printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${QEMUIMG} create -f ${QEMU_IMG:-raw} ${_it} ${HDDBOOTIMAGE_INST_SIZE}\""
 		if [ "$_check" == "0" ];then
                     #create raw image
 		    ${QEMUIMG} create  -f ${QEMU_IMG:-raw} ${_it} ${HDDBOOTIMAGE_INST_SIZE} 
@@ -910,7 +910,7 @@ function prepInstTarget () {
 		    fi
 		fi
 
-# 		printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL"  "${CTYS_DD} if=/dev/zero of=${_it} bs=${HDDBOOTIMAGE_INST_BLOCKSIZE} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}\""
+# 		printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-EXECCALL"  "${CTYS_DD} if=/dev/zero of=${_it} bs=${HDDBOOTIMAGE_INST_BLOCKSIZE} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}\""
 # 		if [ "$_check" == "0" ];then
 # 		    ${CTYS_DD}  if=/dev/zero of=${_it} bs=${HDDBOOTIMAGE_INST_BLOCKSIZE} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}
 # 		    if [ $? != 0 ];then
@@ -948,7 +948,7 @@ function prepInstTarget () {
 		    INIT)
 			if [ "$_print" == "1" ];then
 			    echo "#Create a file-image :\"${_it}\""
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "\"${CTYS_DD} if=/dev/zero of=${_it} bs=512 count=2880\""
+			    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "\"${CTYS_DD} if=/dev/zero of=${_it} bs=512 count=2880\""
 			fi
 			if [ "$_check" == "0" ];then
 			    ${CTYS_DD} if=/dev/zero of=${_it} bs=512 count=2880
@@ -1227,7 +1227,7 @@ if [ "$_print" == "1" ];then
     splitArgs "     " EXECALL ${EXECALL}
 fi
 
-printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${EXECALL}"
+printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${EXECALL}"
 if [ "$_check" == "0" ];then
     eval "${EXECALL}"
     _ret=$?

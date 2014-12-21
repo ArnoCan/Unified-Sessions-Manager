@@ -361,7 +361,7 @@ fi
 
 ###################
 #generic
-DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
+DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-CLI}
 DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
 DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,BOTH}
@@ -1131,7 +1131,7 @@ echo
 
 		    _call=" ${MYLIBEXECPATH}/ctys.sh -t $_tOpt ${NEWARGS} ${rtarget} >${_dbfilepath}.${rf}.tmp  "
 
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
+		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
 		    eval ${_call} &
 		    let tcnt++;
 		fi

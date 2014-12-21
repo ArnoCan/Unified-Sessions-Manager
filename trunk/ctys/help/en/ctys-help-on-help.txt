@@ -20,7 +20,6 @@ ctys-help-on
        | funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
      )
 
-
 DESCRIPTION
 ===========
 

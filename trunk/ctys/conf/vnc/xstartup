@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -92,6 +92,13 @@ done
 #
 function defaultWM () {
     case "$CURDIST" in
+	XenServer)
+	    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	    xsetroot -solid grey
+	    vncconfig -iconic &
+	    twm &
+	    ;;
 	OpenBSD|FreeBSD)
 	    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
 	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
@@ -231,6 +238,13 @@ case "${VNCWM}" in
 	vncconfig -iconic &
 	twm &
 	;;
+    MWM)
+	[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	xsetroot -solid grey
+	vncconfig -iconic &
+	mwm &
+	;;
     XFCE)
 	[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
 	[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
@@ -242,6 +256,13 @@ case "${VNCWM}" in
 
     GNOME)
 	case "$CURDIST" in
+	    XenServer)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		vncconfig -iconic &
+		gnome-session &
+		;;
 	    OpenBSD|FreeBSD)
 		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
 		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
@@ -249,7 +270,6 @@ case "${VNCWM}" in
 		vncconfig -iconic &
 		gnome-session &
 		;;
-
 	    debian)
 		unset SESSION_MANAGER
 		exec sh /etc/X11/xinit/xinitrc

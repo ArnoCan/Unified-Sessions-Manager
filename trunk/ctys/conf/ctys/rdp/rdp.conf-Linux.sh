@@ -50,6 +50,34 @@ RDPPORTSEED=10;
 
 #
 case ${MYDIST} in
+    ESX)
+	#rdesktop
+	[ -z "$RDPRDESK" ]&&RDPRDESK=`getPathName $LINENO $BASH_SOURCE WARNINGEXT rdesktop /usr/bin`
+	RDPRDESK_NATIVE=${RDPRDESK_NATIVE:-$RDPRDESK}
+	RDPRDESK_OPT=""
+	RDPRDESK_OPT_GENERIC=""
+
+	#tsclient
+# 	[ -z "$RDPTSC" ]&&RDPTSC=`getPathName $LINENO $BASH_SOURCE WARNINGEXT tsclient /usr/bin`
+# 	RDPTSC_NATIVE=${RDPTSC_NATIVE:-$RDPTSC}
+# 	RDPTSC_OPT=""
+# 	RDPTSC_OPT_GENERIC=""
+	;;
+
+    XenServer)
+	#rdesktop
+	[ -z "$RDPRDESK" ]&&RDPRDESK=`getPathName $LINENO $BASH_SOURCE WARNINGEXT rdesktop /usr/bin`
+	RDPRDESK_NATIVE=${RDPRDESK_NATIVE:-$RDPRDESK}
+	RDPRDESK_OPT=""
+	RDPRDESK_OPT_GENERIC=""
+
+	#tsclient
+# 	[ -z "$RDPTSC" ]&&RDPTSC=`getPathName $LINENO $BASH_SOURCE WARNINGEXT tsclient /usr/bin`
+# 	RDPTSC_NATIVE=${RDPTSC_NATIVE:-$RDPTSC}
+# 	RDPTSC_OPT=""
+# 	RDPTSC_OPT_GENERIC=""
+	;;
+
     CentOS)
 	#rdesktop
 	[ -z "$RDPRDESK" ]&&RDPRDESK=`getPathName $LINENO $BASH_SOURCE WARNINGEXT rdesktop /usr/bin`
@@ -63,6 +91,22 @@ case ${MYDIST} in
 # 	RDPTSC_OPT=""
 # 	RDPTSC_OPT_GENERIC=""
 	;;
+
+
+    MeeGo)
+	#rdesktop
+	[ -z "$RDPRDESK" ]&&RDPRDESK=`getPathName $LINENO $BASH_SOURCE WARNINGEXT rdesktop /usr/bin`
+	RDPRDESK_NATIVE=${RDPRDESK_NATIVE:-$RDPRDESK}
+	RDPRDESK_OPT=""
+	RDPRDESK_OPT_GENERIC=""
+
+	#tsclient
+# 	[ -z "$RDPTSC" ]&&RDPTSC=`getPathName $LINENO $BASH_SOURCE WARNINGEXT tsclient /usr/bin`
+# 	RDPTSC_NATIVE=${RDPTSC_NATIVE:-$RDPTSC}
+# 	RDPTSC_OPT=""
+# 	RDPTSC_OPT_GENERIC=""
+	;;
+
 
 #     EnterpriseLinux)
 # 	;;

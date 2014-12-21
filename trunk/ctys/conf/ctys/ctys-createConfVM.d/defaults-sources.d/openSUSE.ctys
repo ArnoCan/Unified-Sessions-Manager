@@ -31,12 +31,23 @@
 
 function set-openSUSE () {
     DEFAULTINSTMODE=KS;
+
     case ${DISTREL} in
 	11.*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-openSUSE-11x-XEN;;
 		QEMU) set-openSUSE-11x-QEMU;;
 	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
 	    ;;
     esac
 }
@@ -79,17 +90,21 @@ function set-openSUSE-11x-XEN () {
 }
 
 function set-openSUSE-11x-QEMU () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64}
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64.iso
     DEFAULT_BOOTLOADER=;
+    DEFAULTINSTMODE=CD;
     case ${ACCELERATOR} in
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
-	HVM)
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.

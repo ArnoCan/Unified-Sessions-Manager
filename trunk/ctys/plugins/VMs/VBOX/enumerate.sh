@@ -276,8 +276,10 @@ function enumerateMySessionsVBOX () {
 	    _out8=;
 	    _out8="${_out8};${MYUID}";
 	    _out8="${_out8};${MYGID}";
-	    _out8="${_out8};${VBOX_DEFAULT_HOSTS}";
-	    _out8="${_out8};${VBOX_DEFAULT_CONSOLE}";
+	    local _myHosts=$(getDEFAULTHOSTS ${X})
+	    _out8="${_out8};${_myHosts:-$VBOX_DEFAULT_HOSTS}";
+	    local _myCon=$(getDEFAULTCONSOLE ${X})
+	    _out8="${_out8};${_myCon:-$VBOX_DEFAULT_CONSOLE}";
 
 	    local i=0;
 	    _myMAC=`getMAClst_VBOX ${X}`;

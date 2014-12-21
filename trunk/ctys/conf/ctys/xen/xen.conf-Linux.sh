@@ -76,6 +76,11 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    ;;
+	RHEL)
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    ;;
 	Scientific)
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
@@ -166,6 +171,13 @@ fi
 #
 #XEN_BRIDGE_SCRIPT=${XEN_BRIDGE_SCRIPT:-/etc/xen/scripts/network-bridge}
 XEN_BRIDGE_SCRIPT=${XEN_BRIDGE_SCRIPT:-$MYLIBEXECPATH/ctys-xen-network-bridge.sh}
+
+#
+#When this is set, no further checks are proceeded, the value is 
+#just accepted.
+#So be careful with that axe, Eugene...
+#
+#FORCE_THIS_IS_XEN_BRIDGE=${FORCE_THIS_IS_XEN_BRIDGE:-xenbr0}
 
 #
 #

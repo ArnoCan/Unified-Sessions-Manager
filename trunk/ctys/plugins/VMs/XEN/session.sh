@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_XEN_SESSION="${BASH_SOURCE}"
-_myPKGVERS_XEN_SESSION="01.10.013"
+_myPKGVERS_XEN_SESSION="01.11.011"
 hookInfoAdd $_myPKGNAME_XEN_SESSION $_myPKGVERS_XEN_SESSION
 _myPKGBASE_XEN_SESSION="`dirname ${_myPKGNAME_XEN_SESSION}`"
 
@@ -356,7 +356,11 @@ function startSessionXEN () {
     if [ -z "$_instmode" ];then
 	CALLER="${CALLER} ${_bootmode:+--bootmode=$_bootmode} "
     else
-	CALLER="${CALLER} ${_instmode:+--instmode=$_instmode} "
+	case ${_instmode} in
+	    '')	    ;;
+	    CONFIG) CALLER="${CALLER} --instmode --initmode  ";;
+	    *)      CALLER="${CALLER} ${_instmode:+--instmode=$_instmode} ";;
+	esac
     fi
     CALLER="${CALLER} ${_kernelmode:+--kernelmode=$_kernelmode} "
     CALLER="${CALLER} ${_appargs:+--appargs=$_appargs} "
@@ -385,7 +389,7 @@ function startSessionXEN () {
 
 
     if [ -z "${C_NOEXEC}" ];then
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER} --check"
+	printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER} --check"
 	export PATH=${XEN_PATHLIST}:${PATH}&&eval ${CALLER} --check
 	if [ $? -ne 0 ];then
 	    ABORT=1
@@ -395,7 +399,7 @@ function startSessionXEN () {
 
 	    gotoHell ${ABORT}
 	fi
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
+	printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLER}"
 	export PATH=${XEN_PATHLIST}:${PATH}&&eval ${CALLER} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
 	sleep ${XEN_INIT_WAITS}
 
@@ -458,7 +462,6 @@ function startSessionXEN () {
 	return
     fi
 
-
     printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
     case $_console in
 	VNC)
@@ -489,212 +492,10 @@ function startSessionXEN () {
 	    ;;
     esac
 
-
     if [ "${C_ASYNC}" == 0 ];then
 	wait
     fi
-
-
-
-
     return
-
-###########
-###########
-###########
-#old-temp-4del
-###########
-###########
-###########
-
-    #set appropriate DomU call
-    if [ "${C_ASYNC}" == 1 ];then
-	CALLER="${XENCALL} ${XM} create \"${_pname}\""
-    else
-	case $_console in
-	    CLI)
-		CALLER="${XENCALL} ${XM} create -c \"${_pname}\""
-		;;
-	    *)
-		CALLER="${XENCALL} ${XM} create \"${_pname}\""
-		;;
-	esac
-
-    fi
-
-    #check for backgound execution when locally called, without ssh.
-    if [ "${C_STACK}" == 0 ];then
-	if [ "${C_ASYNC}" == 1 ];then
-	    if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" \
-		-o "${C_CLIENTLOCATION}" ==  "-L LOCALONLY" \
- 		];then
-		CALLER="${CALLER} &"
-	    fi
-	fi
-    else
-	CALLER="${CALLER} &"
-    fi
-
-    #bring up the DomU now
-    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "ENABLE DomU:${CALLER}"
-    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "TERM=${TERM}"
-
-    if [ "${C_STACK}" == 1 ];then
-	_pingXEN=1;
-	_sshpingXEN=1;
-    fi
-
-    if [ -z "${C_NOEXEC}" ];then
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-XEN:SERVER(${_label})" "${CALLER}"
-	eval ${CALLER} 
-	printINFO 2 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Give DomU some time to start:${XEN_INIT_WAITS}seconds"
-	printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},XEN_INIT_WAITS)" "sleep ${_waitsXEN}"
-	sleep ${_waitsXEN}
-
-	local _pingok=0;
-	local _sshpingok=0;
-
-
-	if [ "$_pingXEN" == 1 ];then
-   	    printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_XEN,CTYS_PING_ONE_WAIT_XEN)" "netWaitForPing \"${_myVM}\" \"${_pingcntXEN}\" \"${_pingsleepXEN}\""
-	    netWaitForPing "${_myVM}" "${_pingcntXEN}" "${_pingsleepXEN}"
-	    _pingok=$?;
-	fi
-
-	if [ "$_pingok" == 0 -a "$_sshpingXEN" == 1 ];then
-   	    printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_SSHPING_ONE_MAXTRIAL_XEN,CTYS_SSHPING_ONE_WAIT_XEN)" "netWaitForSSH \"${_myVM}\" \"${_sshpingcntXEN}\" \"${_sshpingsleepXEN}\" \"${_actionuserXEN}\""
-	    netWaitForSSH "${_myVM}" "${_sshpingcntXEN}" "${_sshpingsleepXEN}" "${_actionuserXEN}"
-	    _sshpingok=$?;
-	fi
-
-	if [ "${C_STACK}" == 1 ];then
-	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "C_STACK=${C_STACK}"
-	    if [ $_pingok != 0 ];then
-		ABORT=1
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForPing"
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
-
-		printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
-		printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myVM}> <${_pingcntXEN}> <${_pingsleepXEN}>"
-		gotoHell ${ABORT}
-	    else
- 		printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessable by ping:${_myVM}"
-	    fi
-
-	    netWaitForSSH "${_myVM}" "${_sshpingcntXEN}" "${_sshpingsleepXEN}" "${_actionuserXEN}"
-	    if [ $? != 0 ];then
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
-
-		printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
-		printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myVM}> <${_sshpingcntXEN}> <${_sshpingsleepXEN}>"
-		gotoHell 0
-	    else
- 		printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessable by ssh:${_myVM}"
-	    fi
-	fi
-	cacheStoreWorkerPIDData SERVER XEN "${_pname}" "${_label}" 0 "${XENJOBPOSTFIX}"
-    fi
-
-
-
-    if [ "$_console" == "CLI" -o "$_console" == "NONE"  ];then
-	return
-    fi
-    if [ "${C_CLIENTLOCATION}" ==  "-L SERVERONLY"  ];then
-	return
-    fi
-
-    #now check for console
-    #assuming that combination check for options has been validated!
-    local _args1=;
-    _args1="${_args1} ${C_DARGS} "
-    _args1="${_args1} ${C_GEOMETRY:+ -g $C_GEOMETRY} "
-    _args1="${_args1} ${C_XTOOLKITOPTS} "
-
-
-    local _args=" -j ${CALLERJOBID} -E -F ${VERSION} ";
-    local _myCon=`fetchXenDomID4Label ${_label}`;
-    case $_console in
-	GTERM)
-	    _args="${_args} -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
-	    _args="${_args},c:\"${XENCALL// /%}%${XM}%console%${_myCon}\" ${_args1}"
-	    CALLER="${_args}"
-	    ;;
-	XTERM)
-	    _args="${_args}  -t X11 -a create=l:${_label},cmd:xterm,sh"
-	    _args="${_args},c:${XENCALL// /%}%${XM}%console%${_myCon} ${_args1}"
-	    CALLER="${_args}"
-	    ;;
-	EMACS|EMACSA|EMACSM|EMACSAM)
-	    _args="${_args}  -t X11 -a create=l:${_label},console:$_console"
-	    _args="${_args},c:${XENCALL// /%}%${XM}%console%${_myCon} ${_args1}"
-	    CALLER="${_args}"
-	    ;;
-	VNC)
-	    MYVNCPORT=`${MYLIBEXECPATH}/ctys.sh -t xen -a list=label,cport,terse|awk -F';' -v l=${_label} '$1==l{print $2;}'`
-	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "MYVNCPORT=${MYVNCPORT}"
-	    _args="${_args}  -t VNC -a create=l:${_label},vncport:${MYVNCPORT},connect  ${_args1}"
-	    ;;
-	NONE)
-	    _args=;
-	    ;;
-	*)
-	    ABORT=1
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unexpected CONSOLE:${_console}"
-	    gotoHell ${ABORT}
-	    ;;
-    esac
-
-
-    ##
-     #following STACK-Aware is reminder for next changes
-    ##
-
-    if [ -n "$_args" ];then
-        #force CONSOLE for VMSTACK to background
-	if [ "${C_STACK}" == 1 ];then
-	    _args1="$(cliOptionsUpdate "-b async,par" -- "${_args1}")"
-	fi
-	CALLER="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} "
-	printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
-	if [ -z "${C_NOEXEC}" ];then
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-XEN-CONSOLE:STARTER(${_label})" "${CALLER}"
-	    eval ${CALLER} 
-	    sleep ${_waitcXEN}
-	fi
-    fi
-
-
-    #
-    #assure for a VMSTACK the environment of next peer to be prepared
-    if [ "${C_STACK}" != 0 ];then
-	local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
-	local _myVM=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
-
-        #
-        #
-	netWaitForPing "${_myVM}" "${CTYS_PING_ONE_MAXTRIAL_XEN}" "${CTYS_PING_ONE_WAIT_XEN}"
-	if [ $? != 0 ];then
-            ABORT=1
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForPing"
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
-	    gotoHell ${ABORT}
-	else
- 	    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ping:${_myVM}"
-	fi
-
-        #
-        #
-	netWaitForSSH "${_myVM}" "${CTYS_SSHPING_ONE_MAXTRIAL_XEN}" "${CTYS_SSHPING_ONE_WAIT_XEN}"
-	if [ $? != 0 ];then
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
-	    gotoHell 0
-	else
- 	    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ssh:${_myVM}"
-	fi
-    fi
 }
 
 
@@ -818,7 +619,7 @@ function connectSessionXEN () {
 
     printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "TERM=${TERM}"
     printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-XEN-CONSOLE:STARTER(${_label})" "${CALLER}"
+    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-XEN-CONSOLE:STARTER(${_label})" "${CALLER}"
     [ -z "${C_NOEXEC}" ]&&eval ${CALLER} 
 }
 
@@ -982,6 +783,6 @@ function connectSessionXENVNC () {
     local CALLER="${VNCVIEWER} ${C_DARGS} ${_vieweropt} :${_id}"
     printDBG $S_XEN ${D_FRAME} $LINENO $BASH_SOURCE "${CALLER}"
     export C_ASYNC;
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-XEN-CONSOLE:STARTER(${_label})" "${CALLER}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-XEN-CONSOLE:STARTER(${_label})" "${CALLER}"
     [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
 }

@@ -126,6 +126,8 @@ OSREL="MARKER_OSREL"
 #VNCACCESSDISPLAY=
 
 
+#@#DEFAULTHOSTS             = "MARKER_DEFAULTHOSTS"
+#@#DEFAULTCONSOLE           = "MARKER_DEFAULTCONSOLE"
 
 
 
@@ -293,17 +295,23 @@ NIC=${NIC:-rtl8139}
 #bridges on one or more pyhsical interfaces and want one which is not the first,
 #manual adaption is required here.
 #
-if [ "MARKER_DIST" == openSUSE ];then
-    XENBRDG=pan0;
-else
-    if [ "MARKER_DIST" == debian ];then
-	XENBRDG=eth0;
-    else
-	XENBRDG=xenbr0;
-    fi
-fi
+case $MYDIST in
+    openSUSE)
+	case $MYREL in
+	    11.3)XENBRDG=br0;;
+	    *)XENBRDG=pan0;;
+	esac
+	;;
+    debian)XENBRDG=eth0;;
+    *)XENBRDG=xenbr0;;
+esac
 
-
+#
+#Set this in order to force a specific bridge.
+#for this VM only. For globals setting use 
+#xen.conf-Linux.sh.
+#
+#FORCE_THIS_IS_XEN_BRIDGE=br0 
 
 
 #

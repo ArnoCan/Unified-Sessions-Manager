@@ -50,12 +50,12 @@ BEGIN{
     ptrace("cport=<"cport">");
     
     if(lbl!~/^$/){
-        res=lbl;        
-        found=1;  
+        res=lbl;
+        found=1;
     }
 
     #id
-    res=res";";
+    res=res";"cport;
                      
     if(found!=0){
         if(id=="")

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_009
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_009
+VERSION=01_11_011
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -1932,6 +1932,12 @@ function applyPreSelectionFilter () {
     printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "-v defhosts=$_defhosts -v defcon=$_defcon"
 
 
+    local _OUT=;
+    local _VM=;
+    local _PM=;
+    local _pos=;
+    local _RESULTLST=;
+
     local IFS="
 "
     local DBIN=$1;shift
@@ -1982,7 +1988,7 @@ function applyPreSelectionFilter () {
                else{
                   print $0;
                }
-            }'|tee /tmp/xyz.txt
+            }'#|tee /tmp/xyz.txt
 	fi
     }
 
@@ -2003,6 +2009,8 @@ function applyPreSelectionFilter () {
     local complementOld=${_complement};
     [ "${*//[oO][rR]}" != "${*}" ]&&local l=1; #save some perfomance
 
+    local _machine0=$_machine
+    _machine=1
     while [ -n "${*}" ];do
         local _curArg=$1;shift
  	printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "Apply ergexpr=\"${_curArg}\""
@@ -2032,31 +2040,32 @@ function applyPreSelectionFilter () {
 		    esac
 		fi
 		unset _init;
+		_doCount=0;
 	    else
- 		printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "l=<$l>"
+  		printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "l=<$l>"
                 local i1=;
 		if [ -z "$l" ];then
 		    case "$C_INTERACTIVE" in
-			2)RESULTLST=`for i1 in ${RESULTLST};do echo ${i1};done|inputFilter 1 1 "${_curArg}"`;;
-			*)RESULTLST=`for i1 in ${RESULTLST};do echo ${i1};done|inputFilter $a 1 "${_curArg}"`;;
+			2)RESULTLST=`for i1 in ${RESULTLST};do echo "${i1}";done|inputFilter 1 1 "${_curArg}"`;;
+			*)RESULTLST=`for i1 in ${RESULTLST};do echo "${i1}";done|inputFilter $a 1 "${_curArg}"`;;
 		    esac
 		else
 		    case "$C_INTERACTIVE" in
 			2)  
 			    if [ -z "$o" ];then 
 				LRES="${RESULTLST}";
-				RESULTLST=`for i1 in ${RESULTLST};do echo ${i1};done|inputFilter 1 1 "${_curArg}"`;
+				RESULTLST=`for i1 in ${RESULTLST};do echo "${i1}";done|inputFilter 1 1 "${_curArg}"`;
 			    else  
-				RESULTLST=" ${RESULTLST} "$([ -n "${RESULTLST}" ]&&echo;for i1 in ${LRES};do echo ${i1};done|inputFilter 1 1 "${_curArg}")
+				RESULTLST=" ${RESULTLST} "$([ -n "${RESULTLST}" ]&&echo;for i1 in ${LRES};do echo "${i1}";done|inputFilter 1 1 "${_curArg}")
 				o=;
 			    fi
 			    ;;
 			*)
 			    if [ -z "$o" ];then 
 				LRES="${RESULTLST}";
-				RESULTLST=`for i1 in ${RESULTLST};do echo ${i1};done|inputFilter $a 1 "${_curArg}"`;
+				RESULTLST=`for i1 in ${RESULTLST};do echo "${i1}";done|inputFilter $a 1 "${_curArg}"`;
 			    else  
-				RESULTLST=" ${RESULTLST} "$([ -n "${RESULTLST}" ]&&echo;for i1 in ${LRES};do echo ${i1};done|inputFilter 1 1 "${_curArg}")
+				RESULTLST=" ${RESULTLST} "$([ -n "${RESULTLST}" ]&&echo;for i1 in ${LRES};do echo "${i1}";done|inputFilter 1 1 "${_curArg}")
 				o=;
 			    fi
 			    ;;
@@ -2069,24 +2078,27 @@ function applyPreSelectionFilter () {
             if [ -n "$_init" ];then
 		RESULTLST=`cat ${DBIN}|inputFilter 1 0 "${_curArg}"`
 		unset _init;
+		_doCount=0;
 	    else
                 local i1=;
 		if [ -z "$o" ];then 
-		    RESULTLST=`for i1 in ${RESULTLST};do echo ${i1#*#@#};done|inputFilter 1 0 "${_curArg}"`
+		    RESULTLST=`for i1 in ${RESULTLST};do echo "${i1#*#@#}";done|inputFilter 1 0 "${_curArg}"`
 		else  
-		    RESULTLST=$(for i1 in ${RESULTLST};do echo ${i1#*#@#};done|inputFilter 1 0 "")
-		    RESULTLST=" ${RESULTLST} "$([ -n "${RESULTLST}" ]&&echo;for i1 in ${LRES};do echo ${i1#*#@#};done|inputFilter 1 0 "${_curArg}")
+		    RESULTLST=$(for i1 in ${RESULTLST};do echo "${i1#*#@#}";done|inputFilter 1 0 "")
+		    [ -z "${*}" ]&&_machine=$_machine0
+		    RESULTLST=" ${RESULTLST} "$([ -n "${RESULTLST}" ]&&echo;for i1 in ${LRES};do echo "${i1#*#@#}";done|inputFilter 1 0 "${_curArg}")
 		    o=;
 		fi
 	    fi
 	    printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "RESULT=-->\"$RESULTLST\"<--"
 	fi
 	_complement=${complementOld};
-
-
-
 	_doCount=0;
     done
+
+    _machine=$_machine0
+    RESULTLST=`for i1 in ${RESULTLST};do echo "${i1#*#@#}";done|inputFilter 1 0 ""`
+
     printDBG $S_BIN ${D_DATA} $LINENO $BASH_SOURCE "RESULT-NO-RTSTATE=-->\"$RESULTLST\"<--"
 
     #to do this for chained filter args
@@ -2098,12 +2110,6 @@ function applyPreSelectionFilter () {
 }
 
     printDBG $S_BIN ${D_DATA} $LINENO $BASH_SOURCE "RESULT-NO-RTSTATE=-->\"$RESULTLST\"<--"
-
-    local _OUT=;
-    local _VM=;
-    local _PM=;
-    local _pos=;
-    local _RESULTLST=;
 
 
     function accessCheck () {

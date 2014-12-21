@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -47,6 +47,33 @@ function getVMWMAClst () {
         [ "$_IP" != "" ]&&break;
     done
     echo $_IP
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVMWMAC0
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVMWMAC0 () {
+    local _ml=$(getVMWMAClst ${1});
+
+    _ml=${_ml#*=};
+    _ml=${_ml%% *};
+    echo $_ml
 }
 
 
@@ -260,3 +287,54 @@ function getVMWGUESTVRAM () {
     fi
     getGUESTVRAM "${1}"
 }
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVBOXACCEL
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVMWACCEL () {
+    local _IP=;
+    local _m=;
+    for i in `getConfFilesList "${1}"`;do
+	if [ -r "${i}" ];then
+#For now accept without type-validation
+	    _m=1;
+	    _IP=`cat  "${i}"|getConfValueOf "disable_acceleration"`
+            if [ "$_IP" != "" ];then
+#		_m=1;
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	fi
+    done
+    if [ -n "${_IP// /}" ];then
+	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
+	case ${_IP} in
+	    TRUE)
+		_IP=VMW;
+		;;
+	    *)
+		_IP=AUTO;
+		;;
+	esac
+	echo -n ${_IP##* }
+        return
+    fi
+    [ -n "$_m" ]&& echo -n AUTO
+    return
+}
+

@@ -353,12 +353,14 @@ function setVersionRDP () {
 	ABORT=2
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing supported executables for RDP client"
 	printERR $LINENO $BASH_SOURCE ${ABORT} "cannot find:"
-	printERR $LINENO $BASH_SOURCE ${ABORT} " -> $(setFontAttrib FRED "rdesktop")"
+	printERR $LINENO $BASH_SOURCE ${ABORT} " -> $(setFontAttrib FRED \"rdesktop\")"
 # 	printERR $LINENO $BASH_SOURCE ${ABORT} " -> tsclient"
 	printERR $LINENO $BASH_SOURCE ${ABORT} ""
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
 	printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
 	printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "If this is your intention, deactivate the plugin"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "by setting \"$(setFontAttrib FBLUE export RDP_IGNORE=1)\" in \"$(setFontAttrib FBLUE ctys.conf.sh)\"."
 	if [ "${C_SESSIONTYPE}" == "RDP" -a -z "${_checkonly}" ];then
 	    gotoHell ${ABORT}
 	else

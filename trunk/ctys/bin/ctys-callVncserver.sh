@@ -443,12 +443,18 @@ printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
 LBL=`echo " $X "|sed -n 's/.*-name *\([^ ]*\) *.*/\1/p'`
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "LBL=${LBL}"
 
+if [ -z "${VNCSERVER_NATIVE}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing vncserver!"
+    gotoHell ${ABORT}
+fi
+
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "PATH=${PATH}"
 OUTPUT="${VNCSERVER_NATIVE} ${X}"
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "CALL=${OUTPUT}"
 
 #generic: Linux+OBSD+Solaris+..
-printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncserver" "${OUTPUT} ${X}"
+printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncserver" "${OUTPUT} ${X}"
 if [ -z "${C_CHECK}" ];then
     RESULT=`${OUTPUT} ${X} 2>&1|awk -F':' -v d=${LBL} '/d/&&!/Log file/&&/^New/{id=$2;gsub(" .*$","",id);printf("%s\n",id);}'`
     RESULT="${RESULT%% *}"

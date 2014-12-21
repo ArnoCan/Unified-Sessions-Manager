@@ -119,7 +119,7 @@ function cacheGetUniquePname () {
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:Nameservice is in cached mode"
     local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -C MACMAP -o IDS -p ${DBPATHLST} -s -M unique"
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=$_VHOST"
-    if [ -n "$base" ];then
+    if [ -n "${base// /}" ];then
         #has basename list
 	local _i9=;
 	local _idx=0;
@@ -464,6 +464,7 @@ function cacheGetMachineAddressFromCall () {
     #
     local _new=;
     A=`cliSplitSubOpts ${_exeasubargs}`
+
     for i in $A;do
 	KEY=`cliGetKey ${i}`
 	ARG=`cliGetArg ${i}`
@@ -692,11 +693,21 @@ function cacheGetMachineAddressFromCall () {
 	else
 	    if [ -n "${_dbrec}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -p ${DBPATHLST} -s "
-		_label=`${_VHOST} -o PNAME R:${_dbrec}`
+		_pname=`${_VHOST} -o PNAME R:${_dbrec}`
 		return $?;
 	    else
-		let _ret++;
-		return 1
+
+		_VHOST="${_VHOST} ${C_DARGS} -o PNAME  -p ${DBPATHLST} -s ${_klist}"
+		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
+ 		_pname=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
+		_lret=$?;
+		return $?;
+
+
+
+# 		let _ret++;
+# 		return 1
 	    fi
 	fi
     }

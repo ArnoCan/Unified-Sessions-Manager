@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -31,13 +31,14 @@ export VNCWM=;
 
 
 _myPKGNAME_VNC="${BASH_SOURCE}"
-_myPKGVERS_VNC="01.10.013"
+_myPKGVERS_VNC="01.11.011"
 hookInfoAdd $_myPKGNAME_VNC $_myPKGVERS_VNC
 _myPKGBASE_VNC="${_myPKGNAME_VNC%/hook.sh}"
 
 
 VNC_VERSTRING=${_myPKGVERS_VNC};
-VNC_PREREQ="HOST-CAPABILITY:VNC-${VNC_VERSTRING}-${MYARCH}";
+VNC_PREREQ=;
+VNC_PREREQ0="HOST-CAPABILITY:VNC-${VNC_VERSTRING}-${MYARCH}";
 
 
 if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vnc" ];then
@@ -325,22 +326,32 @@ function setVersionVNC () {
 	local _checkonly=1;        
     fi
 
+    #
+    #set for checks, e.g. CONNECTIONFORWAARDING
+    local _rdisp=1
+    runningOnDisplayStation
+    _rdisp=$?
+
     local _verstrg=;
     if [ -z "${VNCSEXE}"  ];then
-	ABORT=2;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VNCserver"
-	printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
-	printERR $LINENO $BASH_SOURCE ${ABORT} " -> vncserv"
-	printERR $LINENO $BASH_SOURCE ${ABORT} ""
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
-	printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
-	printERR $LINENO $BASH_SOURCE ${ABORT} ""
-	if [ "${C_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
+
+#4TEST-01.11.011
+ 	if [ "${C_EXECLOCAL}" == 1 -a $_rdisp -ne 0 ];then
+	    ABORT=2;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VNCserver"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} " -> vncserv"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	    if [ "${C_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
+		gotoHell ${ABORT}
+	    else
+		return ${ABORT}
+	    fi
+	    _ret=${ABORT};
 	fi
-	_ret=${ABORT};
     else
 	local _vsexe=`${VNCSEXE} --help 2>&1|egrep '(Usage:|usage:)'`
 	ABORT=2;
@@ -353,31 +364,34 @@ function setVersionVNC () {
 	fi
     fi
 
-    if [ -z "${VNCVEXE}" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VNCviewer"
-	printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
-	printERR $LINENO $BASH_SOURCE ${ABORT} " -> vncviewer"
-	printERR $LINENO $BASH_SOURCE ${ABORT} ""
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
-	printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
-	printERR $LINENO $BASH_SOURCE ${ABORT} ""
-	if [ "${C_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-	_ret=${ABORT};
+#4TEST-01.11.011
+#    if [ -z "${VNCVEXE}"  ];then
+# 	if [ "${C_EXECLOCAL}" == 1 ];then
+    if [ -z "${VNCVEXE}" -a $_rdisp -eq 0 ];then
+	    ABORT=2
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VNCviewer"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} " -> vncviewer"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	    if [ "${C_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
+		gotoHell ${ABORT}
+	    else
+		return ${ABORT}
+	    fi
+	    _ret=${ABORT};
+#4TEST-01.11.011
+#	fi
     fi
 
 
-
-
-    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(RealVNC)'`" ];then
-	_verstrg=`${VNCVEXE} --help 2>&1|sed -n 's/VNC [Vv]iewer[^0-9]*\([0-9]*.[0-9]*.[0-9]*\).*/\1/p'`
+    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(TigerVNC)'`" ];then
+	_verstrg=`${VNCVEXE} --help 2>&1|awk -v a=${_allign} '/TigerVNC/&&/[vV]ersion/{printf("%s\n",$5);}'`
 	ABORT=2;
 	if [ -n "$_verstrg" ];then
-            _verstrg="RealVNC-${_verstrg}"
+	    _verstrg="TigerVNC-${_verstrg}"
 	    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
 	    _ret=0;
 	else
@@ -385,11 +399,11 @@ function setVersionVNC () {
 	    _ret=${ABORT};
 	fi
     else
-	if [ -n "`${VNCVEXE} --help 2>&1|egrep '(TightVNC)'`" ];then
-	    _verstrg=`${VNCVEXE} --help 2>&1|awk -v a=${_allign} '/[vV]iewer [vV]ersion/{printf("%s\n",$4);}'`
+	if [ -n "`${VNCVEXE} --help 2>&1|egrep '(RealVNC)'`" ];then
+	    _verstrg=`${VNCVEXE} --help 2>&1|sed -n 's/VNC [Vv]iewer[^0-9]*\([0-9]*.[0-9]*.[0-9]*\).*/\1/p'`
 	    ABORT=2;
 	    if [ -n "$_verstrg" ];then
-		_verstrg="TightVNC-${_verstrg}"
+		_verstrg="RealVNC-${_verstrg}"
 		printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
 		_ret=0;
 	    else
@@ -397,11 +411,11 @@ function setVersionVNC () {
 		_ret=${ABORT};
 	    fi
 	else
-	    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(Viewer Free Edition)'`" ];then
-		_verstrg=`${VNCVEXE} --help 2>&1|awk -v a=${_allign} '/[vV]iewer [fF]ree [eE]dition/{printf("%s\n",$5);}'`
+	    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(TightVNC)'`" ];then
+		_verstrg=`${VNCVEXE} --help 2>&1|awk -v a=${_allign} '/[vV]iewer [vV]ersion/{printf("%s\n",$4);}'`
 		ABORT=2;
 		if [ -n "$_verstrg" ];then
-		    _verstrg="RealVNC-${_verstrg}"
+		    _verstrg="TightVNC-${_verstrg}"
 		    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
 		    _ret=0;
 		else
@@ -409,26 +423,41 @@ function setVersionVNC () {
 		    _ret=${ABORT};
 		fi
 	    else
-		if [ -n "`${VNCVEXE} --help 2>&1|egrep '(open display:)'`" ];then
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "DISPLAY is not available"
-		    printWNG 1 $LINENO $BASH_SOURCE 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "    option. Even for the utilized check by \"vncviewer --help\" "
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "    option a display is required."
+		if [ -n "`${VNCVEXE} --help 2>&1|egrep '(Viewer Free Edition)'`" ];then
+		    _verstrg=`${VNCVEXE} --help 2>&1|awk -v a=${_allign} '/[vV]iewer [fF]ree [eE]dition/{printf("%s\n",$5);}'`
+		    ABORT=2;
+		    if [ -n "$_verstrg" ];then
+			_verstrg="RealVNC-${_verstrg}"
+			printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
+			_ret=0;
+		    else
+			printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} --version)\"` => [ `setSeverityColor ERR NOK` ]"
+			_ret=${ABORT};
+		    fi
+		else
+		    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(open display:)'`" ];then
+			printWNG 1 $LINENO $BASH_SOURCE 0  "DISPLAY is not available"
+			printWNG 1 $LINENO $BASH_SOURCE 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
+			printWNG 1 $LINENO $BASH_SOURCE 0  "    option. Even for the utilized check by \"vncviewer --help\" "
+			printWNG 1 $LINENO $BASH_SOURCE 0  "    option a display is required."
 
                     #OpenBSD-4.6+
-		    printWNG 1 $LINENO $BASH_SOURCE 0  " 2. Another common cause for the initial usage is the missing "
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
-  		    _verstrg=GENERIC
-		    _ret=0;
-		else		printWNG 1 $LINENO $BASH_SOURCE 0  "Can not evaluate version for \"which-ed\" vncviewer."
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "."
-		    printWNG 1 $LINENO $BASH_SOURCE 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "    option. Even for the utilized check by \"vncviewer --help\" "
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "    option a display is required."
-		    printWNG 1 $LINENO $BASH_SOURCE 0  " 2. Another common cause for the initial usage is the missing "
-		    printWNG 1 $LINENO $BASH_SOURCE 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
-  		    _verstrg=GENERIC
-		    _ret=0;
+			printWNG 1 $LINENO $BASH_SOURCE 0  " 2. Another common cause for the initial usage is the missing "
+			printWNG 1 $LINENO $BASH_SOURCE 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
+  			_verstrg=GENERIC
+			_ret=0;
+		    else
+			printWNG 1 $LINENO $BASH_SOURCE 0  "Can not evaluate version for \"which-ed\" $(setStatusColor DISABLED vncviewer)."
+			printWNG 1 $LINENO $BASH_SOURCE 0  "."
+			printWNG 1 $LINENO $BASH_SOURCE 0  " 1. Check whether vncviewer is installed"
+			printWNG 1 $LINENO $BASH_SOURCE 0  " 2. One common cause is the call of \"ssh\" without the \"-X\""
+			printWNG 1 $LINENO $BASH_SOURCE 0  "    option. Even for the utilized check by \"vncviewer --help\" "
+			printWNG 1 $LINENO $BASH_SOURCE 0  "    option a display is required."
+			printWNG 1 $LINENO $BASH_SOURCE 0  " 3. Another common cause for the initial usage is the missing "
+			printWNG 1 $LINENO $BASH_SOURCE 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
+  			_verstrg=GENERIC
+			_ret=0;
+		    fi
 		fi
 	    fi
 	fi
@@ -438,11 +467,27 @@ function setVersionVNC () {
     printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "  _verstrg=${_verstrg}"
 
     #currently somewhat restrictive to specific versions.
+    VNC_PREREQ="${VNC_PREREQ0}";
     case ${_verstrg} in
+	"TigerVNC"*)
+	    VNC_MAGIC=VNCTIGER;
+	    VNC_STATE=ENABLED;
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} ";
+	    [ -n "${VNCVEXE}" ]&&VNC_PREREQ="${VNC_PREREQ} vncviewer";
+	    [ -n "${VNCSEXE}" -a "${C_EXECLOCAL}" == 1 ]&&VNC_PREREQ="${VNC_PREREQ} ${VNCVEXE:+,}vncserver";
+
+	    VNCSERVER_OPT="${VNCSERVER_OPT_TigerVNC}";
+	    VNCVIEWER_OPT="${VNCVIEWER_OPT_TigerVNC}";
+	    _ret=0;
+	    ;;
+
 	"TightVNC"*)
 	    VNC_MAGIC=VNCT;
 	    VNC_STATE=ENABLED;
-	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} vncserver,vncviewer";
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} ";
+	    [ -n "${VNCVEXE}" ]&&VNC_PREREQ="${VNC_PREREQ} vncviewer";
+	    [ -n "${VNCSEXE}" -a "${C_EXECLOCAL}" == 1 ]&&VNC_PREREQ="${VNC_PREREQ} ${VNCVEXE:+,}vncserver";
+
 	    VNCSERVER_OPT="${VNCSERVER_OPT_TightVNC}";
 	    VNCVIEWER_OPT="${VNCVIEWER_OPT_TightVNC}";
 	    _ret=0;
@@ -451,7 +496,10 @@ function setVersionVNC () {
 	"RealVNC-4"*)
 	    VNC_MAGIC=VNCR4;
 	    VNC_STATE=ENABLED;
-	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} vncserver,vncviewer";
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} ";
+	    [ -n "${VNCVEXE}" ]&&VNC_PREREQ="${VNC_PREREQ} vncviewer";
+	    [ -n "${VNCSEXE}" -a "${C_EXECLOCAL}" == 1 ]&&VNC_PREREQ="${VNC_PREREQ} ${VNCVEXE:+,}vncserver";
+
             VNCSERVER_OPT="${VNCSERVER_OPT_RealVNC4}";
             VNCVIEWER_OPT="${VNCVIEWER_OPT_RealVNC4}";
 	    _ret=0;
@@ -460,7 +508,10 @@ function setVersionVNC () {
 	"RealVNC"*)
 	    VNC_MAGIC=VNCR;
 	    VNC_STATE=ENABLED;
-	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} vncserver,vncviewer";
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} ";
+	    [ -n "${VNCVEXE}" ]&&VNC_PREREQ="${VNC_PREREQ} vncviewer";
+	    [ -n "${VNCSEXE}" -a "${C_EXECLOCAL}" == 1 ]&&VNC_PREREQ="${VNC_PREREQ} ${VNCVEXE:+,}vncserver";
+
             VNCSERVER_OPT="${VNCSERVER_OPT_RealVNC}";
             VNCVIEWER_OPT="${VNCVIEWER_OPT_RealVNC}";
 	    _ret=0;
@@ -468,9 +519,12 @@ function setVersionVNC () {
 
          *)
 	    VNC_MAGIC=VNCG;
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} ";
+	    [ -n "${VNCVEXE}" ]&&VNC_PREREQ="${VNC_PREREQ} vncviewer";
+	    [ -n "${VNCSEXE}" -a "${C_EXECLOCAL}" == 1 ]&&VNC_PREREQ="${VNC_PREREQ} ${VNCVEXE:+,}vncserver";
+
             VNCSERVER_OPT="${VNCSERVER_OPT_GENERIC}";
             VNCVIEWER_OPT="${VNCVIEWER_OPT_GENERIC}";
-	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH}";
 	    _ret=2;
 	    ;;
     esac

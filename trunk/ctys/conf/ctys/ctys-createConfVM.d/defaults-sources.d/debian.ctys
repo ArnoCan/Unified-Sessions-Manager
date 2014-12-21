@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -28,9 +28,9 @@
 #
 ########################################################################
 
-
 function set-debian () {
     DEFAULTINSTMODE=CD;
+
     case ${DISTREL} in
 	4.0_r3)
 	    case ${C_SESSIONTYPE} in
@@ -38,11 +38,27 @@ function set-debian () {
 		QEMU) set-debian-40r3-QEMU;;
 	    esac
 	    ;;
-	5.0)
+	5.0.0)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-debian-50-XEN;;
 		QEMU) set-debian-50-QEMU;;
 	    esac
+	    ;;
+ 	5.0*)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-debian-50x-XEN;;
+		QEMU) set-debian-50x-QEMU;;
+	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
 	    ;;
     esac
 }
@@ -91,17 +107,29 @@ function set-debian-40r3-XEN () {
 }
 
 function set-debian-40r3-QEMU () {
+#    local R=${DISTREL}
+    local R=4.0_r3
+    local R1=${R//.};R1=${R1//_}
+   
+    local A=${ARCH}
+    A=${A:-$MYARCH}
+    case ${A} in
+	i386);;
+	x86_64|amd64)A=amd64;;
+    esac
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/$R/raw/$R/$A/iso-dvd/debian-${R1}-$A-DVD-1
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/$R/raw/$R/$A/iso-dvd/debian-${R1}-$A-DVD-1.iso
     DEFAULT_BOOTLOADER=;
     case ${ACCELERATOR} in
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
-	HVM)
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.
@@ -119,8 +147,8 @@ function set-debian-40r3-QEMU () {
 #        to the current 'sub-release'.
 #
 function set-debian-50-XEN () {
-#    local R=${DISTREL}
-    local R=5.0.0
+    local R=${DISTREL}
+#    local R=5.0.0
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/$R/raw/$R/amd64/iso-dvd/debian-${R//./}-amd64-DVD-1
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/$R/raw/$R/amd64/iso-dvd/debian-${R//./}-amd64-DVD-1.iso
     case ${ACCELERATOR} in
@@ -157,17 +185,107 @@ function set-debian-50-XEN () {
 }
 
 function set-debian-50-QEMU () {
+    local R=${DISTREL}
+#    local R=5.0.0
+    local A=${ARCH}
+    A=${A:-$MYARCH}
+    case ${A} in
+	i386);;
+	x86_64|amd64)A=amd64;;
+    esac
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/$R/raw/$R/$A/iso-dvd/debian-${R//./}-$A-DVD-1
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/$R/raw/$R/$A/iso-dvd/debian-${R//./}-$A-DVD-1.iso
     DEFAULT_BOOTLOADER=;
     case ${ACCELERATOR} in
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
+	KVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+
+#*******************************************************************
+#
+#DIST: debian-5.0x
+#
+#REMARK: The reliable release-version misses the minor version number, thus the 
+#        available part '5.0' is used and has to be a actually set manually
+#        to the current 'sub-release'.
+#
+function set-debian-50x-XEN () {
+    local R=${DISTREL}
+    A=${A:-$MYARCH}
+    case ${A} in
+	i386);;
+	x86_64|amd64)A=amd64;;
+    esac
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/$R/raw/$A/iso-dvd/debian-${R//./}-amd64-DVD-1
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/$R/raw/$A/iso-dvd/debian-${R//./}-amd64-DVD-1.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    DEFAULT_DOMU_KERNEL=${DEFAULT_DOMU_KERNEL:-/boot/vmlinuz-2.6.26-2-xen-amd64};
+	    DEFAULT_DOMU_INITRD=${DEFAULT_DOMU_INITRD:-/boot/initrd.img-2.6.26-2-xen-amd64};
+	    DEFAULT_DOMU_MODULESDIR=${DEFAULT_DOMU_MODULESDIR:-/lib/modules/2.6.26-2-xen-amd64};
+
+	    DEFAULT_INST_KERNEL=${DEFAULT_DOMU_KERNEL}
+	    DEFAULT_INST_INITRD=${DEFAULT_DOMU_INITRD}
+	    DEFAULT_INST_EXTRA=${DEFAULT_DOMU_EXTRA:-"text ip=dhcp"}
+
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+	    #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+
+	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen-default1/bin/pygrub'}
+	    ;;
 	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+
+	    #Setting console omits graphics output, when not set normally the
+	    #call parameters for CONSOLE are sufficient.
+	    #DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro '}
+	    ;;
+    esac
+}
+
+function set-debian-50x-QEMU () {
+    local R=${DISTREL}
+    local A=${ARCH}
+    A=${A:-$MYARCH}
+    case ${A} in
+	i386);;
+	x86_64|amd64)A=amd64;;
+    esac
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/$R/raw/$A/iso-dvd/debian-${R//./}-$A-DVD-1
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/$R/raw/$A/iso-dvd/debian-${R//./}-$A-DVD-1.iso
+    DEFAULT_BOOTLOADER=;
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	QEMU)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.

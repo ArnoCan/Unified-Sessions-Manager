@@ -28,6 +28,7 @@ BEGIN{
 
     h="TCP-container";   if(colnum>0&&colsA[1]!~/^$/)hX=colsA[1];else hX=18;
     gu="TCP-guest";      if(colnum>1&&colsA[2]!~/^$/)guX=colsA[2];else guX=17;
+    io="IF";             if(colnum>1&&colsA[16]!~/^$/)ioX=colsA[16];else ioX=8;
 
     if(i>1){l="id";}else{l="label";}if(colnum>2&&colsA[3]!~/^$/)lX=colsA[3];else lX=17;
     
@@ -36,7 +37,7 @@ BEGIN{
     c="c";               if(colnum>5&&colsA[6]!~/^$/)cX=colsA[6];else cX=1;
     u="user";            if(colnum>6&&colsA[7]!~/^$/)uX=colsA[7]; else uX=10;
     gr="group";          if(colnum>7&&colsA[8]!~/^$/)grX=colsA[8];else grX=10;
-    formstrg="%-"hX"s|%-"guX"s|%-"lX"s|%-"tX"s|%-"aX"s|%"cX"s|%-"uX"s|%-"grX"s\n";    
+    formstrg="%-"hX"s|%-"guX"s|%-"ioX"s|%-"lX"s|%-"tX"s|%-"aX"s|%"cX"s|%-"uX"s|%-"grX"s\n";    
 }
 
 {
@@ -49,11 +50,12 @@ BEGIN{
 
 
 title==1{
-    printf(formstrg,substr(h,1,hX),substr(gu,1,guX),substr(l,1,lX),substr(t,1,tX),substr(a,1,aX),substr(c,1,cX),substr(u,1,uX),substr(gr,1,grX));
+    printf(formstrg,substr(h,1,hX),substr(gu,1,guX),substr(io,1,ioX),substr(l,1,lX),substr(t,1,tX),substr(a,1,aX),substr(c,1,cX),substr(u,1,uX),substr(gr,1,grX));
     x="---------------------------------------------------------------------------------------------------";
     tabline="";
     tabline=tabline""substr(x,1,hX)"+";
     tabline=tabline""substr(x,1,guX)"+";
+    tabline=tabline""substr(x,1,ioX)"+";
     tabline=tabline""substr(x,1,lX)"+";
     tabline=tabline""substr(x,1,tX)"+";
     tabline=tabline""substr(x,1,aX)"+";
@@ -80,6 +82,8 @@ title==1{
             else gu="-";
     }
 
+    if($16!~/^$/)io=substr($16,1,ioX);else io="-";
+
     if(i>1){
         if($4!~/^$/){
             LlX=length($4)-lX+1;
@@ -102,7 +106,7 @@ title==1{
     if($12!~/^$/)u=substr($12,1,uX);else u="-";
     if($13!~/^$/)gr=substr($13,1,grX);else gr="-";
     
-    printf(formstrg,h,gu,l,t,a,c,u,gr);
+    printf(formstrg,h,gu,io,l,t,a,c,u,gr);
 }
 
 

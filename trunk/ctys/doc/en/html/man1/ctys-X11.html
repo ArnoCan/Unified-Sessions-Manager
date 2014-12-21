@@ -2,9 +2,9 @@
 <HTML>
 <HEAD>
 <STYLE TYPE="text/css">
-body { margin:3em               ;} 
+body { margin:3em               ;background-color:#dcd0bc ;} 
 a    { text-decoration:none     ;} 
-pre  { background-color:#efefef ;} 
+pre  { background-color:#d6bc8f ;} 
 </STYLE>
 <META NAME="generator" CONTENT="http://txt2tags.sf.net">
 <TITLE>ctys-X11</TITLE>
@@ -21,11 +21,10 @@ June, 2010
 <H1>NAME</H1>
 <P>
 <B>ctys-X11 - X11 Interface</B>
+<br />
+<br />
 </P>
 <H1>SYNTAX</H1>
-<P>
-<B>ctys-X11</B> 
-</P>
 <P>
 <PRE>
 
@@ -34,6 +33,7 @@ June, 2010
    ctys -T ALL -a action[=&lt;suboptions&gt;] ...
 
 </PRE>
+<br />
 </P>
 <H1>DESCRIPTION</H1>
 <P>
@@ -63,6 +63,18 @@ emulation requires a single-hyphen for it's options, default is "DH".
 The default behaviour concerning the terminal emulation is to scan for
 a gnome-terminal first and prefer it if found, else an xterm emulation
 will be started by default.
+ <br /> 
+ <br /> 
+</P>
+<P>
+It should be mentioned and explained here that there are two quite similar suboptions, which on the first view
+seems to be redundant, which is actually not the case.
+The main <B>difference betweend</B> the <B>CMD</B> and <B>SHELL</B> suboptions is the behaviour.
+Whereas the SHELL just overlays the standard shell within a Session - here within a defined CONSOLE,
+the CMD suboption executes a command from within the executed shell - either the standard shell, or a pre-set custom shell.
+ <br /> 
+ <br /> 
+<br />
 </P>
 <H1>OPTIONS</H1>
 <DL>
@@ -70,10 +82,12 @@ will be started by default.
 </DL>
 
 <DL>
-<DT><B>CANCEL</B></DT><DD>
+<DT><b><a  href="./ctys.html#optCANCEL" >CANCEL</a></b></DT><DD>
 Not applicable.
+<br />
+<br />
 <P></P>
-<DT><B>CREATE</B></DT><DD>
+<DT><b><a  href="./ctys.html#optCREATE" >CREATE</a></b></DT><DD>
 <PRE>
   
   CREATE=&lt;machine-address&gt;[,]
@@ -86,6 +100,7 @@ Not applicable.
     [CD:&lt;working-directory&gt;][,]
     [(XOPTS|X):&lt;xopts&gt;][,]
     [(SHELL|S):&lt;shell&gt;][,]
+    [(STUBMODE|STUB)[:on]][,]
     [(DH|SH)][,]
     [(TITLEKEY:&lt;key-name-label&gt;|NOTITLE)]
   
@@ -94,44 +109,55 @@ Not applicable.
 
 <UL>
 <LI><B>&lt;machine-address&gt;</B>
+<br />
 The LABEL suboption is here the only supported and
 mandatory part.
 <P></P>
- <UL>
- <LI><B>&lt;callopts&gt;</B>
+<LI><B>&lt;callopts&gt;</B>
+<br />
 Refer to common options parts description.
- </UL>
 </UL>
 
  <UL>
  <LI><B>CD:&lt;working-directory&gt;</B>
+<br />
 Change current working directory for the started command.
 This provides for example the preconfiguration of specific work-sets,
 where each terminal could be opened for a specific directory.
  <P></P>
  <LI><B>CMD:&lt;cmd&gt;</B>
+<br />
 Refer to common options parts description.
 The CMD could be provided alternatively to a fixed CONSOLE.
  <P></P>
  <LI><B>CONSOLE:XTERM|GTERM|EMACS|EMACSA</B>
+<br />
 A fixed type of a CONSOLE, folowing types are supported.
  <P></P>
- <LI><B>CONSOLE:GTERM</B>
+  <UL>
+  <LI><B>CONSOLE:GTERM</B>
+<br />
 Starts the "gnome-terminal".
- <LI><B>CONSOLE:XTERM</B>
+  <LI><B>CONSOLE:XTERM</B>
+<br />
 Starts the Xterm.
- <LI><B>CONSOLE:EMACS</B>
+  <LI><B>CONSOLE:EMACS</B>
+<br />
 Starts an emacs and opens a "shell" buffer.
- <LI><B>CONSOLE:EMACSA</B>
+  <LI><B>CONSOLE:EMACSA</B>
+<br />
 Starts an emacs and opens an "ansi-term" buffer.
- <P></P>
+  <P></P>
+  </UL>
  <LI><B>(DH|SH)</B>
+<br />
 Sets a double-hyphen or a single-hyphen for call
 arguments. Where the single hyphen e.g. is required for
 old style X11 utility options, the double-hyphen for
 new options style of Gnome.
  <P></P>
  <LI><B>NOTITLE</B>
+<br />
 Suppresses the generation of title either from LABEL, or from default.
  <P></P>
 Be aware, that dynamic sessions like X11 without an LABEL visible by
@@ -140,9 +166,21 @@ Thus the only reliable support for sessions started with this flag is the
 start itself.
  <P></P>
  <LI><B>SHELL|S:&lt;shell&gt;</B>
+<br />
 Refer to common options parts description.
  <P></P>
- <LI><B>TITLEKEY:&lt;title-name-key&gt;</B>
+ </UL>
+
+<UL>
+<LI><B>STUBMODE|STUB[:on]</B>
+<br />
+The STUBMODE suppresses the remote execution of the full ctys set, instead
+just a remote shell by a simple SSH call is executed.
+This could be utilized particularly for sessions to machines without an installed
+ctys.
+<P></P>
+<LI><B>TITLEKEY:&lt;title-name-key&gt;</B>
+<br />
 Alters the options keyword to be used to set the title of an Xwindow, which is
 set by default to "title".
 Some older applications, like Xclock support different, e.g. "name" as
@@ -150,10 +188,11 @@ options keyword only.
 Due to the crucial role of the window title, which is the LABEL, this
 approach should be prefered when "title" is not supported.
 Do use NOTITLE only if definetly unavoidable.
- <P></P>
- <LI><B>&lt;xopts&gt;</B>
+<P></P>
+<LI><B>&lt;xopts&gt;</B>
+<br />
 Refer to common options parts description.
- </UL>
+</UL>
 
 <DL>
 <DT>_</DT><DD>
@@ -175,11 +214,15 @@ Resulting of this, the actual environment is a superposition of all
 previous executed target options with the global options.
 </DL>
 
+<P>
+<br />
+</P>
 <DL>
-<DT><B>ENUMERATE</B></DT><DD>
+<DT><b><a  href="./ctys.html#optENUMERATE" >ENUMERATE</a></b></DT><DD>
 Not applicable to CLI.
 <P></P>
-<DT><B>LIST</B></DT><DD>
+<br />
+<DT><b><a  href="./ctys.html#optLIST" >LIST</a></b></DT><DD>
 Almost the same output as common standard, with following
 changes in semantics.
 <P></P>
@@ -196,17 +239,50 @@ The following values are not applicable:
 uuid, mac, dsp, cp, sp
 </DL>
 
+<P>
+<br />
+</P>
 <DL>
-<DT><B>-L &lt;location&gt;</B></DT><DD>
-Even though a DISPLAY will actually not be used, this parameter
-also adopts the behavior of the execution to a providing
-environment, which is frequently for ctys true.
-So these are the only location parameters to be applied.
+<DT><b><a  href="./ctys.html#optL" >-L &lt;location&gt;</a></b></DT><DD>
+The location provides DISPLAYFORWARDING and CONNECTIONFORWARDING.
+In case of CONNECTIONFORWARDING the terminal is executed locally, whereas a
+remotesession is opend from within the contained shell.
+In case of additional STUBMODE the shell is a lean SSH login only.
+<br />
+<br />
 </DL>
 
 <H1>SEE ALSO</H1>
 <P>
-<I>ctys(1)</I>, <I>ctys-uc-X11(7)</I>, <I>ctys-plugins(1)</I>, <I>bash(1)</I>, <I>xterm(1)</I>
+<I><A HREF="../man1/ctys.html"> ctys(1)</A></I>
+,
+<I><A HREF="../man1/ctys-plugins.html"> ctys-plugins(1)</A></I>
+, <I>bash(1)</I>, <I>xterm(1)</I>
+</P>
+<P>
+<B>For standards:</B>
+ <br />
+<I>Freedesktop:</I> &lt;<A HREF="http://www.freedesktop.org">http://www.freedesktop.org</A>&gt;
+ <br />
+<I>Xorg:</I> &lt;<A HREF="http://www.x.org">http://www.x.org</A>&gt;
+ <br />
+ <br />
+</P>
+<P>
+<B>For implementations:</B>
+ <br />
+<I>FVWM:</I> &lt;<A HREF="http://www.fvwm.org">http://www.fvwm.org</A>&gt;
+ <br />
+<I>Gnome:</I> &lt;<A HREF="http://www.gnome.org">http://www.gnome.org</A>&gt;
+ <br />
+<I>KDE:</I> &lt;<A HREF="http://www.kde.org">http://www.kde.org</A>&gt;
+ <br />
+<I>XFCE:</I> &lt;<A HREF="http://www.xfce.org">http://www.xfce.org</A>&gt;
+</P>
+<P>
+ <br />
+ <br />
+ <br />
 </P>
 <H1>AUTHOR</H1>
 <P>
@@ -236,6 +312,14 @@ Written and maintained by Arno-Can Uestuensoez:
 </TABLE>
 
 <P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
 <H1>COPYRIGHT</H1>
 <P>
 Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
@@ -255,11 +339,10 @@ The whole document - all sections - is/are defined as invariant.
 For additional information refer to enclosed Releasenotes and License files.
 </P>
 <P>
-<img src="../../images/60px-Official-gnu.png" />  
-<br />
+<A HREF="http://www.gnu.org"><IMG ALIGN="middle" SRC="../../images/60px-Official-gnu.png" BORDER="0" ALT=""></A>
 <br />
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-X11.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/html/man1/ctys-X11.html -->
+<!-- cmdline: txt2tags -t html -i ctys-X11.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/html/man1/ctys-X11.html -->
 </BODY></HTML>

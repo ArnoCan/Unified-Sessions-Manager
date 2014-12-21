@@ -88,13 +88,22 @@ function listMySessionsPM () {
     _out2="${_out2};";
     _out2="${_out2};";
     _out2="${_out2};1";
-    _out2="${_out2};`getUID ${X}`";
-    _out2="${_out2};`getGID ${X}`";
-#    _out2="${_out2};PM";
-    _out2="${_out2};`getCATEGORY ${X}`";
-    _out2="${_out2};SERVER";
 
-    local RES1=";"
+    local _myX=$(getUID ${X});
+    [ -z "$_myX" ]&&_myX=root;
+    _out2="${_out2};${_myX}";
+
+    local _myX=$(getGID ${X});
+    [ -z "$_myX" ]&&_myX=root;
+    _out2="${_out2};${_myX}";
+
+    local _myX=$(getCATEGORY ${X});
+    [ -z "$_myX" ]&&_myX=PM;
+    _out2="${_out2};${_myX}";
+
+    _out2="${_out2};SERVER;";
+
+    local RES1=""
     local CSTR=";"
     local EXEP=";${MYOS}-${MYOSREL}"
     local HRX=";${PM_PRODVERS}"
@@ -109,7 +118,7 @@ function listMySessionsPM () {
 	_out="${_out1};${i%%=*}${_out2}";
 	local _ip="${i##*=}";_ip="${_ip%%\%*}";
 	local _ina="${i##*=}";_ina="${_ina##*\%}";
-	_out="${_out};${_ip};${_ina}";
+	_out="${_out}${_ip};;${_ina}";
 
 	_out="${_out};";
 	_out="${_out}${post}";

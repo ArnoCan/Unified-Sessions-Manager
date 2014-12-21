@@ -488,7 +488,7 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_SCRIPTEDIT ${_editX//%/ }&
+    $CTYS_SCRIPTEDIT ${_editX//%/ }&sleep 1
     exit $?
 fi
 

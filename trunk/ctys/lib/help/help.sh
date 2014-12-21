@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -18,7 +18,7 @@
 
 
 _myLIBNAME_help="${BASH_SOURCE}"
-_myLIBVERS_help="01.11.007"
+_myLIBVERS_help="01.11.011"
 libManInfoAdd "${_myLIBNAME_help}" "${_myLIBVERS_help}"
 
 export _myLIBBASE_help="`dirname ${_myLIBNAME_help}`"
@@ -196,6 +196,63 @@ function printHelpEx () {
   for i in $_lst;do
     KEY=`echo ${1}|tr '[:lower:]' '[:upper:]'`
     case "$KEY" in
+     _ONLINEHELP_|_HELP_)
+                  if [ -z "${CTYS_HTMLVIEWER}" ];then
+                      ABORT=1;
+	              printERR $LINENO $BASH_SOURCE ${ABORT} "No supported HTML viewer configured."
+	              printERR $LINENO $BASH_SOURCE ${ABORT} "Set variable: CTYS_HTMLVIEWER."
+	              printERR $LINENO $BASH_SOURCE ${ABORT} "DEFAULT=(firefox|konqueror)"
+		      guiERR ${ABORT} "No supported HTML viewer configured.\nSet variable: CTYS_HTMLVIEWER\nDEFAULT=(firefox|konqueror)"
+	              gotoHell $ABORT
+		  fi
+
+		  local pch=0;
+		  for ipa in ${MYDOCSEARCH//:/ };do
+                      if [ -e "${ipa}" ];then
+			  let pch++;
+		      fi
+		  done
+                  if [ $pch -eq 0 ];then
+                      ABORT=1;
+	              printERR $LINENO $BASH_SOURCE ${ABORT} "Missing html root: ${MYDOCSEARCH}"
+		      guiERR ${ABORT} "Missing html root: ${MYDOCSEARCH}"
+	              gotoHell $ABORT
+		  fi
+
+		  local _x=
+		  local _sp=
+		  for _x in doc base;do
+		      for _sp in ${MYDOCSEARCH//:/ };do
+			  local _xdir=$(getDocPath ${_sp} $_x)
+  			  _x=${_x##*/};_x=${_x%.[^/]*}
+			  _x0=$_x;
+			  _x=$(find ${_xdir} -type f \( -name "${_x}.html" -o -name "${_x}.png" \) -print|awk '{if(x!=1){print;}x=1;}')
+			  if [ -z "$_x" -a -n "${_x0}" ];then
+			      _x=$_x0
+			      _x=$(find ${_xdir} -type f \( -name '*'"${_x}"'.html' -o -name '*'"${_x}"'.png' \) -print|awk '{if(x!=1){print;}x=1;}')
+			      if [ -z "${_x}" ];then
+				  _x=$_x0
+				  _x=$(find ${_xdir} -type f \( -name '*'"${_x0}"'*.html' -o -name '*'"${_x0}"'.png' \) -print|awk '{if(x!=1){print;}x=1;}')
+			      fi
+			  fi
+			  [ -n "${_x}" ]&&break;
+		      done
+		      [ -n "${_x}" ]&&break;
+		  done
+		  if [ -z "${_x}" ];then
+		      ABORT=1;
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ONLINE-HELP."
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "MYDOCSEARCH=${MYDOCSEARCH}"
+		      guiERR ${ABORT} "Missing ONLINE-HELP files.\nMYDOCSEARCH=${MYDOCSEARCH}"
+		      gotoHell $ABORT
+		  else
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} \"${_x}\"&"
+                      ${CTYS_HTMLVIEWER} "${_x}"&
+		  fi
+                  ;;
+
+
      PRINT)       print4Printer;;
      FUNCLIST) 
                   functionHeaders  sortFunctions0;;
@@ -210,16 +267,16 @@ function printHelpEx () {
      FUNCHEAD=*) 
                   functionHeaders  sortFunctions3 ${i#*=};;
 
-     HELP)        printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" 7 ctys-help-on"
+     HELP)        printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" 7 ctys-help-on"
                   ${CTYS_MANVIEWER} -M "${MYMANPATH}:${MANPATH}" 7 ctys-help-on
                   ;;
 
-     MAN)         printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" ${MYCALLNAME}"
+     MAN)         printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" ${MYCALLNAME}"
                   ${CTYS_MANVIEWER} -M "${MYMANPATH}:${MANPATH}" ${MYCALLNAME}
                   ;;
 
      MAN=[1-9])   
-	          printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" ${i#MAN=} ${MYCALLNAME}"
+	          printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" ${i#MAN=} ${MYCALLNAME}"
          	 ${CTYS_MANVIEWER} -M "${MYMANPATH}:${MANPATH}" ${i#MAN=} ${MYCALLNAME}
                  ;;
 
@@ -246,7 +303,7 @@ function printHelpEx () {
 		  local _x=
 		  ${CTYS_MANVIEWER} ${i#*=} 2>&1>/dev/null
 		  if [ $? -ne 0 ];then
-                      _x=$(find ${MYMANPATH} ${MANPATH//:/ } -type f -name "*${i#*=}*.[1-9]" -print|awk '{if(x!=1){print;}x=1;}')
+                      _x=$(find ${MYMANPATH//:/ } ${MANPATH//:/ } -type f -name "*${i#*=}*.[1-9]" -print|awk '{if(x!=1){print;}x=1;}')
                       if [ -z "${_x}" ];then
 			  ABORT=1;
 			  printERR $LINENO $BASH_SOURCE ${ABORT} "Missing requested manpage: $i"
@@ -258,15 +315,15 @@ function printHelpEx () {
 		      if [ -z "${_x}" ];then
   			  printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		      else
-			  printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" \"${_x}\""
+			  printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} -M \"${MYMANPATH}:${MANPATH}\" \"${_x}\""
 			  ${CTYS_MANVIEWER} -M "${MYMANPATH}:${MANPATH}" "${_x}"
 		      fi
 		  else
 		      if [ -z "${_x}" ];then
   			  printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		      else
-			  printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} \"${_x}\""
-			  ${CTYS_MANVIEWER} "${_x}"
+			  printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN-Help" "${CTYS_MANVIEWER} \"${_x}\""
+			  ${CTYS_MANVIEWER} -M "${MYMANPATH}:${MANPATH}" "${_x}"
 		      fi
 		  fi
                   ;;
@@ -277,6 +334,7 @@ function printHelpEx () {
 	                printERR $LINENO $BASH_SOURCE ${ABORT} "No supported HTML viewer configured."
 	                printERR $LINENO $BASH_SOURCE ${ABORT} "Set variable: CTYS_HTMLVIEWER."
                         printERR $LINENO $BASH_SOURCE ${ABORT} "DEFAULT=(firefox|konqueror)"
+			guiERR ${ABORT} "No supported HTML viewer configured.\nSet variable: CTYS_HTMLVIEWER\nDEFAULT=(firefox|konqueror)"
 	                gotoHell $ABORT
 		  fi
 		  local _x="${MYDOCPATH}/html/man1/${MYCALLNAME}.html"
@@ -288,7 +346,7 @@ function printHelpEx () {
 		  if [ -z "${_x}" ];then
   		      printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		  else
-		      printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} ${_x}&"
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} ${_x}&"
 	              ${CTYS_HTMLVIEWER} ${_x}&
   	          fi
                   ;;
@@ -299,6 +357,7 @@ function printHelpEx () {
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "No supported HTML viewer configured."
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "Set variable: CTYS_HTMLVIEWER."
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "DEFAULT=(firefox|konqueror)"
+		      guiERR ${ABORT} "No supported HTML viewer configured.\nSet variable: CTYS_HTMLVIEWER\nDEFAULT=(firefox|konqueror)"
 	              gotoHell $ABORT
 		  fi
                   if [ ! -f "${MYDOCPATH}/html/man${i#*=}/${MYCALLNAME}.html" ];then
@@ -309,7 +368,7 @@ function printHelpEx () {
 		  if [ -z "${_x}" ];then
   		      printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		  else
-		      printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} ${MYDOCPATH}/html/man${i#*=}/${MYCALLNAME}.html&"
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} ${MYDOCPATH}/html/man${i#*=}/${MYCALLNAME}.html&"
                       ${CTYS_HTMLVIEWER} ${MYDOCPATH}/html/man${i#*=}/${MYCALLNAME}.html&
 		  fi
                   ;;
@@ -320,6 +379,7 @@ function printHelpEx () {
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "No supported HTML viewer configured."
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "Set variable: CTYS_HTMLVIEWER."
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "DEFAULT=(firefox|konqueror)"
+		      guiERR ${ABORT} "No supported HTML viewer configured.\nSet variable: CTYS_HTMLVIEWER\nDEFAULT=(firefox|konqueror)"
 	              gotoHell $ABORT
 		  fi
 
@@ -362,7 +422,7 @@ function printHelpEx () {
 		  if [ -z "${_x}" ];then
   		      printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		  else
-		      printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} \"${_x}\"&"
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:HTML-Help" "${CTYS_HTMLVIEWER} \"${_x}\"&"
                       ${CTYS_HTMLVIEWER} "${_x}"&
 		  fi
                   ;;
@@ -371,7 +431,7 @@ function printHelpEx () {
                       ABORT=1;
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "No supported PDF viewer configured."
 	              printERR $LINENO $BASH_SOURCE ${ABORT} "Set variable: CTYS_PDFVIEWER."
-	              printERR $LINENO $BASH_SOURCE ${ABORT} "DEFAULT=(kpdf|gpdf)"
+	              printERR $LINENO $BASH_SOURCE ${ABORT} "DEFAULT=(kpdf|gpdf|acroread)"
 	              gotoHell $ABORT
 		  fi
 		  local _x="${MYDOCPATH}/pdf/man1/${MYCALLNAME}.pdf"
@@ -383,7 +443,7 @@ function printHelpEx () {
 		  if [ -z "${_x}" ];then
   		      printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		  else
-		      printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:PDF-Help" "${CTYS_PDFVIEWER} ${_x}&"
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:PDF-Help" "${CTYS_PDFVIEWER} ${_x}&"
 	              ${CTYS_PDFVIEWER} ${_x}&
 		  fi
                   ;;
@@ -404,7 +464,7 @@ function printHelpEx () {
 		  if [ -z "${_x}" ];then
   		      printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		  else
-		      printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:PDF-Help" "${CTYS_PDFVIEWER} ${MYDOCPATH}/pdf/man${i#*=}/${MYCALLNAME}.pdf&"
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:PDF-Help" "${CTYS_PDFVIEWER} ${MYDOCPATH}/pdf/man${i#*=}/${MYCALLNAME}.pdf&"
                       ${CTYS_PDFVIEWER} ${MYDOCPATH}/pdf/man${i#*=}/${MYCALLNAME}.pdf&
 		  fi
                   ;;
@@ -451,13 +511,14 @@ function printHelpEx () {
 		  if [ -z "${_x}" ];then
   		      printWNG 0 $LINENO $BASH_SOURCE 0 "The requested file is not available"
 		  else
-		      printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:PDF-Help" "${CTYS_PDFVIEWER} \"${_x}\"&"
+		      printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:PDF-Help" "${CTYS_PDFVIEWER} \"${_x}\"&"
                       ${CTYS_PDFVIEWER} "${_x}"&
 		  fi
                   ;;
 
      PATH)        echo "MYDOCPATH = ${MYDOCPATH}"
                   echo "MANPATH   = ${MANPATH}"
+                  echo "MYMANPATH = ${MYMANPATH}"
                   ;;
 
      LIST)        echo
@@ -503,9 +564,9 @@ function printHelpEx () {
                   _printHelpEx|sed 's///';;
 
      *)
-		  printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN" "${CTYS_MANVIEWER} ${i:-$MYCALLNAME}"
-                  ${CTYS_MANVIEWER} ${i:-$MYCALLNAME}
-
+		  printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:MAN" "${CTYS_MANVIEWER} ${i:-$MYCALLNAME}"
+                  local _MYCALLNAME=${MYCALLNAME%.sh}
+                  ${CTYS_MANVIEWER} -M "${MYMANPATH}:${MANPATH}" ${i:-$_MYCALLNAME}
                   if [ $? -ne 0 ];then
                      echo
                      echo "This call variant transparently executes \"man ${i}\""

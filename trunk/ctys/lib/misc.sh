@@ -43,7 +43,8 @@ _myLIBNAME_miscBASE="`dirname ${_myLIBNAME_misc}`"
 #
 #FUNCEND###############################################################
 function removeLeadZeros () {
-  echo -e "${1}"|sed -n 's/^0*\([^0].*\)\(.\)$/\1\2/p'
+#4TEST:Temp reminder-4del:  echo -e "${1}"|sed -n 's/^0*\([^0].*\)\(.\)$/\1\2/p'
+  echo -e -n "${1}"|sed -n 's/^0*\([^0].*\)$/\1/p'
 }
 
 

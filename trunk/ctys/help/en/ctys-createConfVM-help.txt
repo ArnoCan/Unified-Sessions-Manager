@@ -2,7 +2,7 @@
 NAME
 ====
 
-ctys-createConfVM - creates a startup configuration of VMs
+ctys-createConfVM - Creation and Configuration of VMs
 
 SYNTAX
 ======
@@ -30,7 +30,6 @@ ctys-createConfVM
    [-t <session-type>]
    [-V]
    [-X]
-
 
 DESCRIPTION
 ===========

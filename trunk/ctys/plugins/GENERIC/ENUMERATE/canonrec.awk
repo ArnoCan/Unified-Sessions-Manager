@@ -15,6 +15,11 @@
 ########################################################################
 
 
+function pinfo(inp){
+      if(info){
+          print "INFO:" line ":" info ":" inp | "cat 1>&2"
+      }
+}
 function ptrace(inp){
       if(!d){
           print line ":" inp | "cat 1>&2"
@@ -185,6 +190,7 @@ BEGIN{mx=0;
 
 $0~/^$/||!($19~mstat){
     ptrace("DROPPED="$19" "$4);
+    pinfo("DROPPED:VMSTATE="$19":"$0);
     exit;
 }
 

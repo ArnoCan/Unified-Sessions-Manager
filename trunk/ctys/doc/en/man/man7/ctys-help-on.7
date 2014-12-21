@@ -1,4 +1,4 @@
-.TH "ctys-help-on" 1 "June, 2010" ""
+.TH "ctys-help-on" 1 "November, 2010" ""
 
 
 .P
@@ -10,7 +10,7 @@
 
 .SH SYNTAX
 .P
-\fB<any\-ctys\-call>\fR 
+\fB<ctys\-command>\fR
 
 -H <help-option>
 
@@ -23,18 +23,27 @@
      )
 
 
+.SH DESCRIPTION
+.P
+The \fB\-H\fR option is the common generic option of all tools for the display of online help.
 
 .P
-The \fB\-H\fR option is the common generic option for all tools requesting extended online help.
+The default is the display of man pages within a commandline terminal.
+This could be any valid document within the search list defined by the variable MANPATH.
+The output format could be optionally specified as PDF and HTML documents.
 
 .P
-The \fB\-H\fR option enables the extended help based on various system interfaces for display of
-manpages, PDF  and HTML documents.
-This comprises the man pages and installed manuals.
+This tool is also used within menu entries of the XDG desktop of Freedesktop.org for graphical display
+of online help.
+Therefore the current version provides the simple HTML lists \fBdoc.html\fR for the \fBDOC\-Package\fR,
+and the \fBbase.html\fR file for the \fBBASE\-Package\fR.
 
 .P
-The <help\-option> represents single entries as well as a list of entries,
-which could be utilized e.g. with the tab\-view of firefox.
+\fBREMARK:\fR
+
+.P
+For the \fB\-H\fR option of the call 'ctys \-H man' and 'ctys\-vhost \-H man' the man parameter is mandatory.
+In all other cases the call '<any\-other\-ctys> \-H' searches for 'man' output by default within MANPATH.
 
 .P
 \&.
@@ -45,23 +54,19 @@ The following suboptions and parameters could be applied:
 
 .TP
 \fB\-H path\fR
-
 Displays current document and man path.
 
 .TP
 \fB\-H list\fR
-
 Lists available online documents and manpages.
 
 .TP
 \fB\-H listall\fR
-
 Lists available online documents and manpages including the documents
 available by MANPATH.
 
 .TP
 \fB\-H (man|html|pdf)[=([1\-9]|[<help\-on\-item\-list>])\fR
-
 Displays the requested information with one of the formats
 \fBman\fR, \fBpdf\fR, or \fBhtml\fR.
 The following viewers are preconfigured as shell variables within the 
@@ -82,30 +87,27 @@ In case of expansion the first match is taken.
 
 .TP
 \fB\-H funcList[=[<any\-function>][@<module\-name>[@...]]]\fR
-
 List of function names, sorted by function names. In
 addition the file names and line numbers are displayed too.
 
 .TP
 \fB\-H funcListMod[=[<any\-function>][@<module\-name>[@...]]]\fR
-
 List of function names, sorted by file names. In addition
 the file names and line numbers are displayed too.
 
 .TP
 \fB\-H funcHead[=[<any\-function>][@<module\-name>[@...]]]\fR
-
 Displays the contents of function headers, sorted by file names.
 The following constraints could be applied:
-.TP
-
-<any\\-function>:
+.RS
+.IP \(bu 3
+<any\-function>:
 If given <any\-function> than only this is displayed.
-.TP
-
-<module\\-name>:
+.IP \(bu 3
+<module\-name>:
 If given <module\-name>, than the functions contained
 within this module only are displayed.
+.RE
 
 .P
 \&.
@@ -113,49 +115,58 @@ within this module only are displayed.
 .SH EXAMPLES
 .RS
 .IP \(bu 3
-\fB\-H html=base\fR
+\fB<ctys\-command> \-H html=base\fR
 
 Displays a summary of links for all documents contained in the \fBBASE package\fR.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H html=doc\fR
+\fB<ctys\-command> \-H html=doc\fR
 
 Displays a summary of links for all documents contained in the \fBDOC package\fR.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H list\fR
+\fB<ctys\-command> \-H list\fR
 
 Lists available online documents and manpages.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H list\fR
-
-Lists available online documents and manpages.
-
-.IP \(bu 3
-\fB\-H ctys\fR
+\fB<ctys\-command> \-H ctys\fR
 
 Displays the \fBmanpage\fR for ctys with \fBman\fR.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H man=ctys\fR
+\fB<ctys\-command> \-H man=ctys\fR
 
 Displays the \fBmanpage\fR for ctys with \fBman\fR.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H html=ctys\fR
+\fB<ctys\-command> \-H html=ctys\fR
 
 Displays the \fBmanpage\fR for ctys with CTYS_HTMLVIEWER,
 by default \fBfirefox\fR or \fBkonqueror\fR.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H pdf=ctys\fR
+\fB<ctys\-command> \-H pdf=ctys\fR
 
 Displays the \fBmanpage\fR for ctys with CTYS_PDFVIEWER,
 by default \fBkpdf\fR, \fBgpdf\fR, or \fBacroread\fR.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H pdf=howto\fR
+\fB<ctys\-command> \-H pdf=howto\fR
 
 Displays the \fBctys\-howto\-online.pdf\fR, which is
 displayed in alphabetical order before \fBctys\-howto\-print.pdf\fR.
@@ -163,7 +174,7 @@ displayed in alphabetical order before \fBctys\-howto\-print.pdf\fR.
 
 .RS
 .IP \(bu 3
-\fB\-H pdf=howto\-print\fR
+\fB<ctys\-command> \-H pdf=howto\-print\fR
 
 Displays the \fBctys\-howto\-print.pdf\fR, which is
 the first appropriate match.
@@ -171,22 +182,25 @@ the first appropriate match.
 
 .RS
 .IP \(bu 3
-\fB\-H pdf=command\-ref\fR
+\fB<ctys\-command> \-H pdf=command\-ref\fR
 
 Displays the \fBctys\-command\-reference.pdf\fR.
 .RE
 
 .RS
 .IP \(bu 3
-\fB\-H html=CLI,X11,VNC,VMW\fR
+\fB<ctys\-command> \-H html=CLI,X11,VNC,VMW\fR
 
 Displays the \fBmanpage\fR for ctys\-CLI, ctys\-X11, ctys\-VNC and
-ctys\-VNM with CTYS_HTMLVIEWER,
+ctys\-VNM with
+CTYS_HTMLVIEWER,
 by default \fBfirefox\fR or \fBkonqueror\fR.
 For incomplete names a search with \fBfind\fR is utilized for name expansion.
+.RE
 
+.RS
 .IP \(bu 3
-\fB\-H html=ctys\-extractARPlst,extractMAClst\fR
+\fB<ctys\-command> \-H html=ctys\-extractARPlst,extractMAClst\fR
 
 Displays the \fBmanpage\fR for ctys\-extractARPlst and ctys\-extractARPlst
 
@@ -200,9 +214,6 @@ For incomplete names a search with \fBfind\fR is utilized for name expansion.
 \fIctys\-command\-reference\-online.pdf\fR, \fIctys\-command\-reference\-print.pdf\fR
 
 .SH AUTHOR
-.P
-Written and maintained by Arno\-Can Uestuensoez:
-
 .TS
 tab(^); ll.
  Maintenance:^<acue_sf1@sourceforge.net>
@@ -235,5 +246,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-help-on.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/man/man7/ctys-help-on.7
+.\" cmdline: txt2tags -t man -i ctys-help-on.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man7/ctys-help-on.7
 

@@ -28,9 +28,6 @@ ctys-setupVDE
    [-Z <set-sudo-ksu>]
    (cancel|check|create|info|ports|list|listall)
 
-
-
-
 DESCRIPTION
 ===========
 

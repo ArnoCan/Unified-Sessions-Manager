@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_006alpha
+#VERSION:      01_11_011alpha
 #
 ########################################################################
 #
@@ -17,10 +17,16 @@
 ########################################################################
 
 
+_myLIBNAME_VBOX="${BASH_SOURCE}"
+_myLIBVERS_VBOX="01.01.011b01"
+libManInfoAdd "${_myLIBNAME_VBOX}" "${_myLIBVERS_VBOX}"
+
+export _myLIBBASE_VBOX="`dirname ${_myLIBNAME_VBOX}`"
+
 
 #FUNCBEG###############################################################
 #NAME:
-#  fetchMAC
+#  fetchState
 #
 #TYPE:
 #  bash-function
@@ -30,24 +36,29 @@
 #EXAMPLE:
 #
 #PARAMETERS:
+#  $1: name|uuid|path(convention!)
 #
 #OUTPUT:
 #  RETURN:
 #  VALUES:
 #
 #FUNCEND###############################################################
-function fetchMAC  {
+function fetchState  {
     local myID=$1
-    $VBOXMGR showvminfo $myID |\
-        sed -n '
-           s/NIC .*MAC: *\([0-9ABCDEF]\+\).*/mac:\1;/p
-           s/VRDP port: *\([0-9]\+\).*/vrdp:\1;/p
-           s/VT-x *VPID: *\([ofn]\+\).*/accel:\1;/p
-           s/UUID: *\([^ ]\+\).*/uuid:\1;/p
-           s/Name: *\([^ ]\+\).*/label:\1;/p
-           s@Config file: *\([^ ]\+\).*@id:\1;@p
-        '|\
-        awk 'BEGIN{x="";}{x=x""$0;}END{print x;}'
+    if [ "${myID//\//}" != "${myID}" ];then
+	myID="${myID##*/}";
+	myID="${myID%.*}";
+    fi
+
+    local _ms=$(${VBOXMGR} showvminfo $myID --machinereadable|\
+        sed -n 's/^VMState="\(.*\)"$/\1/p'|awk '{printf("%s",$0);}')
+    case ${_ms// /} in
+	paused)   _ms=PAUSE;;
+	saved)    _ms=SUSPEND;;
+	running)  _ms=ACTIVE;;
+	poweroff) _ms=DEACTIVE;;
+    esac
+    echo -n $_ms
 }
 
 
@@ -70,14 +81,48 @@ function fetchMAC  {
 #  VALUES:
 #
 #FUNCEND###############################################################
+function fetchMAC  {
+    local myID=$1
+    if [ "${myID//\//}" != "${myID}" ];then
+	myID="${myID##*/}";
+	myID="${myID%.*}";
+    fi
+
+    $VBOXMGR showvminfo $myID |\
+        sed -n '
+           s/NIC .*MAC: *\([0-9ABCDEF][0-9ABCDEF]\)\([0-9ABCDEF][0-9ABCDEF]\)\([0-9ABCDEF][0-9ABCDEF]\)\([0-9ABCDEF][0-9ABCDEF]\)\([0-9ABCDEF][0-9ABCDEF]\)\([0-9ABCDEF][0-9ABCDEF]\).*/\1:\2:\3:\4:\5:\6/p
+        '|\
+        awk 'BEGIN{x="";}{if(x!~/^$/){x=x" "$0;}else{x=x""$0;}}END{printf("%s",x);}'
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchUUID
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|path(convention!)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
 function fetchUUID  {
     local myID=$1
     if [ "${myID//\//}" != "${myID}" ];then
 	myID="${myID##*/}";
 	myID="${myID%.*}";
     fi
-    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/uuid=/{gsub(\"\\\"\",\"\",\$2);print \$2;}'"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/uuid=/{gsub(\"\\\"\",\"\",\$2);printf(\"%s\",\$2);}'"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
     if [ -n "$myID" ];then
 	eval ${_mycall}
 	return $?
@@ -87,6 +132,169 @@ function fetchUUID  {
 	return 1
     fi
 }
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchNAME
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|path(convention!)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function fetchNAME  {
+    local myID=$1
+    if [ "${myID//\//}" != "${myID}" ];then
+	myID="${myID##*/}";
+	myID="${myID%.*}";
+    fi
+    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/name=/{gsub(\"\\\"\",\"\",\$2);printf(\"%s\",\$2);}'"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+    if [ -n "$myID" ];then
+	eval ${_mycall}
+	return $?
+    else
+	ABORT=1
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing Name"
+	return 1
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchCFGFile
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|path(convention!)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function fetchCFGFile  {
+    local myID=$1
+    if [ "${myID//\//}" != "${myID}" ];then
+	myID="${myID##*/}";
+	myID="${myID%.*}";
+    fi
+    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/CfgFile=/{gsub(\"\\\"\",\"\",\$2);printf(\"%s\",\$2);}'"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+    if [ -n "$myID" ];then
+	eval ${_mycall}
+	return $?
+    else
+	ABORT=1
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing Name"
+	return 1
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchCTYSFile
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|path(convention!)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function fetchCTYSFile  {
+    local myNAME=$(fetchNAME $1);
+    if [ -z "${myNAME}" ];then
+	return 1
+    fi
+
+    local myID=$1
+    if [ "${myID//\//}" != "${myID}" ];then
+	if [ "${myID}" != "${myID%/$myNAME\/$myNAME.ctys}" ];then
+	    echo -n "$1"
+	    return 0
+	fi
+	return 1
+    fi
+
+    #might suffice in almost any case
+    myID=$(
+      $VBOXMGR showvminfo $myID --machinereadable|awk -F'=' -v n="$myNAME" '
+        $0~n"/"n".vdi"{gsub("\"","",$2);printf("%s",$2);}
+       '|sort -u);
+
+    myID=${myID//.vdi/.ctys}
+    if [ -n "$myID" ];then
+	echo -n "$myID"
+	return 0
+    else
+	ABORT=1
+	printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing ID"
+	return 1
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchCTYSDir
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|path(convention!)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function fetchCTYSDir  {
+    local myDIR=$(fetchCTYSFile $1);
+    if [ -z "${myDIR}" ];then
+	return 1
+    fi
+
+    myDIR0=${myDIR%/*}/
+    if [ "${myDIR0}" != "${myDIR}" ];then
+	echo -n "${myDIR0}"
+	return 0
+    fi
+    return 1
+}
+
 
 
 #FUNCBEG###############################################################
@@ -115,8 +323,8 @@ function getRDPport  {
 	myID="${myID%.*}";
     fi
 
-    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/vrdpport=/{gsub(\"\\\"\",\"\",\$2);print \$2;}'"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/vrdpport=/{gsub(\"\\\"\",\"\",\$2);printf(\"%s\",\$2);}'"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
     if [ -n "$myID" ];then
 	eval ${_mycall}
 	return $?
@@ -126,6 +334,46 @@ function getRDPport  {
 	return 1
     fi
 }
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getRDPportlst
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|path(convention!)
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getRDPportlst  {
+    local myID=$1
+    if [ "${myID//\//}" != "${myID}" ];then
+	myID="${myID##*/}";
+	myID="${myID%.*}";
+    fi
+
+    local _mycall="$VBOXMGR showvminfo $myID --machinereadable|awk -F'=' '/vrdpports=/{gsub(\"\\\"\",\"\",\$2);printf(\"%s\",\$2);}'"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+    if [ -n "$myID" ];then
+	eval ${_mycall}
+	return $?
+    else
+	ABORT=1
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing ID"
+	return 1
+    fi
+}
+
 
 
 #FUNCBEG###############################################################
@@ -147,26 +395,13 @@ function getRDPport  {
 #
 #FUNCEND###############################################################
 function checkIsInInventory  {
-    local myID=$1
-    if [ "${myID//\//}" != "${myID}" ];then
-	myID="${myID##*/}";
-	myID="${myID%.*}";
-    fi
-    local _mycall="$VBOXMGR showvminfo $myID --machinereadable  >/dev/null 2>/dev/null"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
-    if [ -n "$myID" ];then
-	eval ${_mycall}
-	return $?
-    else
-	ABORT=1
-	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing ID"
-	return 1
-    fi
+    local xtmp=$(fetchUUID $1);
+    [ -n "${xtmp// /}" ]&&return 0||return 1;
 }
 
 #FUNCBEG###############################################################
 #NAME:
-#  addToInventory
+#  inventoryAdd
 #
 #TYPE:
 #  bash-function
@@ -182,24 +417,32 @@ function checkIsInInventory  {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function addToInventory  {
-    local myID=$1
-    if [ "${myID//\//}" != "${myID}" ];then
-	myID="${myID##*/}";
-	myID="${myID%.*}";
-    fi
-
-    local _mycall="$VBOXMGR registervm $myID >/dev/null 2>/dev/null"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
-    if [ -n "$myID" ];then
-	eval ${_mycall}
-	return $?
-    else
-	ABORT=1
-	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing ID"
+function inventoryAdd  {
 	return 1
-    fi
 }
+
+#FUNCBEG###############################################################
+#NAME:
+#  inventoryRemove
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: name|uuid|pathname(convention!)
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function inventoryRemove  {
+	return 1
+}
+
 
 export -f fetchMAC
 export VBOXMGR
@@ -225,72 +468,8 @@ export VBOXMGR
 #
 #FUNCEND###############################################################
 function ctysVBOXListClientServers () {
-    listProcesses|\
-    awk -v d=$D '
-      function ptrace(inp){
-        if(!d){
-          print inp | "cat 1>&2"
-        }
-      }
-
-      /'$$'/{
-        next;
-      }
-      !/virtualbox/{
-        next;
-      }
-      !/VirtualBox/&&!/VBoxSDL/{
-        next;
-      }
-      /-comment/{
-        l=$0;
-        n=gsub("^.*--comment  *","",l);
-        if(x!0){n=gsub("  *.*$","",l);}
-      }
-      /-startvm /{
-        u=$0;
-        n=gsub("^.*-startvm  *","",u);
-        if(n!=0){n=gsub(" .*$","",u);}
-      }
-      /-s /{
-        u=$0;
-        n=gsub("^.*-s  *","",u);
-        if(n!=0){n=gsub(" .*$","",u);}
-      }
-
-      u!~/........-....-....-..../{
-        l=u;
-        u="";
-      }
-
-      {
-        p="";
-        for(i=1;i<8;i++){
-          p=p" "$i
-        }
-        if(u!=""||l!=""){
-          if(u!=""){
-            call="VBoxManage showvminfo --machinereadable "u;
-            call=call"|awk -F= -v L="u" \"/IDE[- ]Controller-0-0/{a=\\$2;} /vrdpport/{b=\\$2;} /^name=/{c=\\$2;} /^macaddress1=/{d=\\$2;} /^hwvirtex=/{e=\\$2;} /^ostype=/{if(\\$0~/_64/){f=\\\"x86_64\\\"}else{f=\\\"i386\\\"}} END{print a\\\";\\\"c\\\";\\\"L\\\";\\\"b\\\";\\\"d\\\";\\\"e\\\";\\\"f}\"";
-          }else{
-            call="VBoxManage showvminfo --machinereadable "l;
-            call=call"|awk -F= -v L="l" \"/IDE[ -]Controller-0-0/{a=\\$2;} /vrdpport/{b=\\$2;} /UUID/{c=\\$2;} /^macaddress1=/{d=\\$2;} /^hwvirtex=/{e=\\$2;} /^ostype=/{if(\\$0~/_64/){f=\\\"x86_64\\\"}else{f=\\\"i386\\\"}} END{print a\\\";\\\"L\\\";\\\"c\\\";\\\"b\\\";\\\"d\\\";\\\"e\\\";\\\"f}\"";
-          }
-          ptrace("call="call);
-
-          x1="";    
-          call|getline x1;
-          close(call);
-
-          ptrace("x1="x1);
-          p=p" "x1";"$8;
-          gsub("\"","",p);
-          printf("%s\n",p);
-        }
-        l="";
-        u="";
-      }
-    '
+#4TEST:D=0
+    listProcesses|awk -v d=$D -v c=1 -f ${_myLIBBASE_VBOX}/libVBOX.d/libVBOX.awk;
 }
 
 
@@ -313,71 +492,8 @@ function ctysVBOXListClientServers () {
 #
 #FUNCEND###############################################################
 function ctysVBOXListLocalServers () {
+#4TEST:D=0
     ctysVBOXListClientServers
-    listProcesses|\
-    awk -v d=$D '
-      function ptrace(inp){
-        if(!d){
-          print inp | "cat 1>&2"
-        }
-      }
-
-      /'$$'/{
-        next;
-      }
-      !/virtualbox/{
-        next;
-      }
-      !/VBoxHeadless/{
-        next;
-      }
-      /-comment/{
-        l=$0;
-        n=gsub("^.*--comment  *","",l);
-        if(x!0){n=gsub("  *.*$","",l);}
-      }
-      /-startvm /{
-        u=$0;
-        n=gsub("^.*-startvm  *","",u);
-        if(n!=0){n=gsub(" .*$","",u);}
-      }
-      /-s /{
-        u=$0;
-        n=gsub("^.*-s  *","",u);
-        if(n!=0){n=gsub(" .*$","",u);}
-      }
-
-      u!~/........-....-....-..../{
-        l=u;
-        u="";
-      }
-
-      {
-        p="";
-        for(i=1;i<8;i++){
-          p=p" "$i
-        }
-        if(u!=""||l!=""){
-          if(u!=""){
-            call="VBoxManage showvminfo --machinereadable "u;
-            call=call"|awk -F= -v L="u" \"/IDE[- ]Controller-0-0/{a=\\$2;} /vrdpport/{b=\\$2;} /^name=/{c=\\$2;} /^macaddress1=/{d=\\$2;} /^hwvirtex=/{e=\\$2;} /^ostype=/{if(\\$0~/_64/){f=\\\"x86_64\\\"}else{f=\\\"i386\\\"}} END{print a\\\";\\\"c\\\";\\\"L\\\";\\\"b\\\";\\\"d\\\";\\\"e\\\";\\\"f}\"";
-          }else{
-            call="VBoxManage showvminfo --machinereadable "l;
-            call=call"|awk -F= -v L="l" \"/IDE[ -]Controller-0-0/{a=\\$2;} /vrdpport/{b=\\$2;} /UUID/{c=\\$2;} /^macaddress1=/{d=\\$2;} /^hwvirtex=/{e=\\$2;} /^ostype=/{if(\\$0~/_64/){f=\\\"x86_64\\\"}else{f=\\\"i386\\\"}} END{print a\\\";\\\"L\\\";\\\"c\\\";\\\"b\\\";\\\"d\\\";\\\"e\\\";\\\"f}\"";
-          }
-          ptrace("call="call);
-
-          x1="";    
-          call|getline x1;
-          close(call);
-
-          ptrace("x1="x1);
-          p=p" "x1";"$8;
-          gsub("\"","",p);
-          printf("%s\n",p);
-        }
-        l="";
-        u="";
-      }
-    '
+    listProcesses|awk -v d=$D -v s=1 -f ${_myLIBBASE_VBOX}/libVBOX.d/libVBOX2.awk;
 }
+

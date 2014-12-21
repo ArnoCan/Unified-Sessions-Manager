@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_010alpha
+#VERSION:      01_11_011beta
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VBOX_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VBOX_CREATE="01.11.010alpha"
+_myPKGVERS_VBOX_CREATE="01.11.011beta"
 hookInfoAdd $_myPKGNAME_VBOX_CREATE $_myPKGVERS_VBOX_CREATE
 _myPKGBASE_VBOX_CREATE="`dirname ${_myPKGNAME_VBOX_CREATE}`"
 
@@ -181,7 +181,8 @@ function createConnectVBOX () {
 				;;
 			    ID|I|PATHNAME|PNAME|P)
                                 #can (partly for relative names) be checked now
-				if [ -n "${ARG##/*}" ]; then
+				local _ta="${ARG//\\}"
+				if [ -n "${_ta##/*}" ]; then
 				    ABORT=1;
 				    printERR $LINENO $BASH_SOURCE ${ABORT} "PNAME has to be an absolute path, use fname else."
 				    printERR $LINENO $BASH_SOURCE ${ABORT} " PNAME=${ARG}"
@@ -455,6 +456,11 @@ function createConnectVBOX () {
 	    ;;
 
 	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -494,6 +500,7 @@ function createConnectVBOX () {
 			    ;;
 			RESUME)
 			    local _reuse=1;
+			    local _resume=1;
 			    let _unambigCON+=1;
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RESUME=>Applicable for state SUSPENDED"
 			    ;;
@@ -556,7 +563,8 @@ function createConnectVBOX () {
 			    ;;
 
 			ID|PATHNAME|PNAME|P)
-                            if [ -n "${_pname}" -a "${_pname}" != "${ARG}" ];then
+			    local _ta="${ARG//\\}"
+                            if [ -n "${_pname}" -a "${_pname}" != "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "This version supports just ONE KEY=<${KEY}> "
 				printERR $LINENO $BASH_SOURCE ${ABORT} "for each ACTION=<${ACTION}> call"
@@ -565,13 +573,13 @@ function createConnectVBOX () {
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Will be extended soon."
  				gotoHell ${ABORT}
                             fi
-                            if [ ! -f "${ARG}" ];then
+                            if [ ! -f "${_ta}" ];then
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing given file or access permission for ID/PNAME"
 				printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${ARG}"
  				gotoHell ${ABORT}
                             fi
-                            local _pname="${ARG}";
+                            local _pname="${_ta}";
 			    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "RANGE:PATHNAME=${_pname}"
 			    ;;
 
@@ -811,7 +819,6 @@ function createConnectVBOX () {
 		    ;;
 	    esac
 
-
             #
             #0. Try cache - DB-INDEX
             #
@@ -847,7 +854,7 @@ function createConnectVBOX () {
 
             #
             #2. Use filesystem
-            #   This does an requires a UNIQUE match only.
+            #   This does(and requires) a UNIQUE match only.
             #
             if [ -z "${_pname// /}" ];then
 		local _rem=${C_TERSE}
@@ -911,7 +918,7 @@ function createConnectVBOX () {
 
 	    if [ -z "${_label}"  ];then
                 #first trial, local access
-                _label=`sed -n 's/\t//g;/^#/d;s/displayName *= *"\([^"]*\)"/\1/p' ${_pname}`;
+                _label=$(fetchNAME ${_pname});
 		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "_label=${_label}"
 	    fi 
 
@@ -921,12 +928,13 @@ function createConnectVBOX () {
 		ABORT=1;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Can not get displayName from pname:\"${_pname}\""
 		printERR $LINENO $BASH_SOURCE ${ABORT} "  This is almost only possible "
-		printERR $LINENO $BASH_SOURCE ${ABORT} "  -> when you cannot access the vmx-file"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "  -> when you cannot access the vdi-file"
 		printERR $LINENO $BASH_SOURCE ${ABORT} "  -> for local client with \"-L CONNECTIONFORWARDING\""
 		printERR $LINENO $BASH_SOURCE ${ABORT} "  -> because it's accessible remote-only."
 		printERR $LINENO $BASH_SOURCE ${ABORT} ""
-		printERR $LINENO $BASH_SOURCE ${ABORT} "The internal remote access to sessions a.k.a. vmx-files is not yet supported."
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Use \"-a ENUMERATE\" for evaluation of <label>, gwhich is foreseen for internal remote access."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "The internal remote access to sessions a.k.a. vdi-files is not yet supported."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Use \"-a ENUMERATE\" for evaluation of <label>, gwhich is foreseen for "
+		printERR $LINENO $BASH_SOURCE ${ABORT} "internal remote access."
  		gotoHell ${ABORT}
 	    fi
 
@@ -1038,7 +1046,7 @@ function createConnectVBOX () {
                 #check for running local server...
                 #...remember, this part is actually running local-on-remote site!
  		local _IDx=`fetchID4Label ${_label}`
-		_pname=${_pname:-$_IDx}
+                [ "$_IDx" != none ]&&_pname=${_pname:-$_IDx}
             else
                 #Is executed on the calling station
                 #so is to be executed completely locally or a local client to be tunneled.
@@ -1098,12 +1106,36 @@ function createConnectVBOX () {
 
 			fi
                         #trust for now - any garbage is removed
-			connectSessionVBOX "${_pname}" "${_label}" "${_RDP_CLIENT_MODE}" "${_tcp}"  "${_conty}"
+                        local _curStat=$(fetchState "${_pname}");
+			case ${_curStat} in
+			    PAUSE)
+				case "${_conty}" in
+				    SDL|RDP)connectSessionVBOX "${_pname}" "${_label}" "${_RDP_CLIENT_MODE}" "${_tcp}"  "${_conty}";;
+				    NONE|*);;
+				esac
+				if [ -n "${_resume}" ];then
+				    local _mi=$(fetchUUID "${_pname}");
+				    local _mc=;
+				    case "${_conty}" in
+					SDL)_mc=gui;;
+					RDP)_mc=vrdp;;
+					NONE|*)_mc=nogui;;
+				    esac
+				    vmMgrVBOX RESUME "${_label}" "${_mi}" "${_mc}"
+				fi
+				;;
+			    *)
+				connectSessionVBOX "${_pname}" "${_label}" "${_RDP_CLIENT_MODE}" "${_tcp}"  "${_conty}"
+				;;
+			esac
 		    fi
 		else
 		    ABORT=1
 		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "Session already exists ID=${_IDx} - LABEL=${_label}"
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Session already exists ID=${_IDx} - LABEL=${_label}"
+		    local _curstate=$(fetchState "${_uuid:-$_IDx}");
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Current State:${_curstate}"
+
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "  Choose \"REUSE\" and \"RDP\" console if you want connect-only to an"
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "  existing session. Requires RDP access to be enabled before."
 		    gotoHell ${ABORT}
@@ -1116,7 +1148,7 @@ function createConnectVBOX () {
                     #So, this is executed on server site, it is a DISPLAYFORWARDING
                     #
  		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
-		    startSessionVBOX "${_label}" "${_pname}" "${_tcp}" "${_conty}"
+		    startSessionVBOX "${_label}" "${_pname}" "${_tcp}" "${_conty}" ${_resume:+RESUME}
 		else
                     #
                     #So, this is executed on the client site, different from server site,

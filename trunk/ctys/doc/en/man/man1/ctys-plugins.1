@@ -5,12 +5,11 @@
 
 .SH NAME
 .P
-\fBctys-plugins - verifiescurrent install status of ctys\fR
+\fBctys-plugins - verifies current install status of ctys\fR
 
 .SH SYNTAX
 .P
 \fBctys-plugins\fR 
-
 
    [-d <common-debug-option>]
    [-E ]
@@ -25,8 +24,6 @@
    [-X]
    [-Z <set-sudo-ksu>]
    <list-of-target-acounts>
-
-
 
 
 .SH DESCRIPTION
@@ -188,17 +185,17 @@ Displays a short list of overall states for selected plugins on each target.
 
 
 .nf
-  Hostname    Plugin   Accelerator  Version          MAGIC-ID     State     
-  ------------------------------------------------------------------------------
-  acue@ws2    CLI                   01.06.001a09     CLIBASH      ENABLED   
-  acue@ws2    RDP                   01.11.007alpha   RDPRD        ENABLED   
-  acue@ws2    VNC                   01.10.013        VNCR4        ENABLED   
-  acue@ws2    X11                   01.06.001a09     X11          ENABLED   
-  acue@ws2    QEMU     QEMU         01.10.013        QEMU_091     DISABLED  
-  acue@ws2    VBOX                  01.11.006alpha   NOLOC        DISABLED  
-  acue@ws2    VMW                   01.11.005        VMW_GENERIC  DISABLED  
-  acue@ws2    XEN                   01.10.013        DISABLED     DISABLED  
-  acue@ws2    PM       VMX          01.10.008        PM_Linux     ENABLED   
+  Hostname  Plugin Accelerator  Version          MAGIC-ID     State
+  --------------------------------------------------------------------
+  acue@ws2  CLI                 01.06.001a09     CLIBASH      ENABLED
+  acue@ws2  RDP                 01.11.007alpha   RDPRD        ENABLED
+  acue@ws2  VNC                 01.10.013        VNCR4        ENABLED
+  acue@ws2  X11                 01.06.001a09     X11          ENABLED
+  acue@ws2  QEMU   QEMU         01.10.013        QEMU_091     DISABLED
+  acue@ws2  VBOX                01.11.006alpha   NOLOC        DISABLED
+  acue@ws2  VMW                 01.11.005        VMW_GENERIC  DISABLED
+  acue@ws2  XEN                 01.10.013        DISABLED     DISABLED
+  acue@ws2  PM     VMX          01.10.008        PM_Linux     ENABLED
 .fi
 
 
@@ -224,7 +221,8 @@ For limitation of error messages and some ssh info the error channel should be r
 
 .nf
   
-  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all) 2>/dev/null
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all)\e
+    2>/dev/null
   
 .fi
 
@@ -233,27 +231,27 @@ due to parallel execution.
 
 .nf
   
-  Hostname              | PM     | CLI  X11  VNC  RDP  | KVM    QEMU   VBOX   VMW    XEN 
-  ----------------------+--------+---------------------+---------------------------------
-  root@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
-  root@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
-  root@hydra.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
-  root@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
-  root@olymp.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
-  root@app1.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
-  root@app2.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
-  root@lab04            | VMX    | x    x    x    x    | -      -      -      W7     -   
-  acue@lab04            | VMX    | x    x    x    x    | -      QEMU   -      W7     -   
-  vadmin@delphi.soho    | VMX    | x    x    x    x    | -      -      -      S1     -   
-  acue@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
-  acue@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
-  acue@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
-  root@lab03            | PAE    | x    x    x    x    | -      -      -      -      HVM 
-  root@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      PARA
-  5000@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      -   
-  acue@lab03            | PAE    | x    x    x    x    | -      -      -      -      -   
-  acue@app1.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
-  acue@app2.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  Hostname          | PM  | CLI X11 VNC RDP | KVM  QEMU  VBOX  VMW   XEN
+  ------------------+-----+-----------------+---------------------------
+  root@lab05.soho   | PAE | x   x   x   x   | -    -     -     S2    -  
+  root@lab02.soho   | VMX | x   x   x   x   | -    QEMU  V     -     -  
+  root@hydra.soho   | VMX | x   x   x   x   | -    -     -     -     -  
+  root@delphi.soho  | VMX | x   x   x   x   | -    -     -     S1    -  
+  root@olymp.soho   | VMX | x   x   x   x   | -    -     -     -     -  
+  root@app1.soho    | VMX | x   x   x   x   | -    -     -     -     -  
+  root@app2.soho    | VMX | x   x   x   x   | -    -     -     -     -  
+  root@lab04        | VMX | x   x   x   x   | -    -     -     W7    -  
+  acue@lab04        | VMX | x   x   x   x   | -    QEMU  -     W7    -  
+  vadmin@delphi.soho| VMX | x   x   x   x   | -    -     -     S1    -  
+  acue@lab05.soho   | PAE | x   x   x   x   | -    -     -     S2    -  
+  acue@lab02.soho   | VMX | x   x   x   x   | -    QEMU  V     -     -  
+  acue@delphi.soho  | VMX | x   x   x   x   | -    -     -     S1    -  
+  root@lab03        | PAE | x   x   x   x   | -    -     -     -     HVM
+  root@lab01.soho   | PAE | x   x   x   -   | -    -     -     -     PAR
+  5000@lab01.soho   | PAE | x   x   x   -   | -    -     -     -     -  
+  acue@lab03        | PAE | x   x   x   x   | -    -     -     -     -  
+  acue@app1.soho    | VMX | x   x   x   x   | KVM  KVM   -     -     -  
+  acue@app2.soho    | VMX | x   x   x   x   | KVM  KVM   -     -     -  
   
 .fi
 
@@ -429,9 +427,6 @@ Missing an environment element like files or databases.
 \fIdmidecode(8)\fR
 
 .SH AUTHOR
-.P
-Written and maintained by Arno\-Can Uestuensoez:
-
 .TS
 tab(^); ll.
  Maintenance:^<acue_sf1@sourceforge.net>
@@ -464,5 +459,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.010/doc-tmp/BASE/en/man/man1/ctys-plugins.1
+.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.011/doc-tmp/BASE/en/man/man1/ctys-plugins.1
 

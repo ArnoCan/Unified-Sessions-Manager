@@ -154,7 +154,7 @@ function digLocalPort () {
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME Assembled tunnel-call:"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _tunnel=${_tunnel}"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME "
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval $_tunnel"
+    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval $_tunnel"
     eval $_tunnel
 
     if [ $? -ne 0 ];then
@@ -264,7 +264,7 @@ function digGetClientTPfromServer () {
 	local _rcall="${MYLIBEXECPATHNAME} -t ${3:-$C_SESSIONTYPE} -a GETCLIENTPORT=$1${4:+,$4} ${C_DARGS} ${2:-$R_HOSTS}"
     fi
 #    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _rcall=${_rcall}"
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-GETCLIENTPORT-CALL" "${_rcall}"
+    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-GETCLIENTPORT-CALL" "${_rcall}"
     local _cPort=`$_rcall`
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _cPort=${_cPort}"
     echo ${_cPort#*=}

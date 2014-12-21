@@ -1,13 +1,13 @@
 #!/bin/bash
 ########################################################################
 #
-#PROJECT:      Unified Sessions Manager
+#PROJET:      Unified Sessions Manager
 #AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
 #MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_008
+VERSION=01_11_011
 #DESCRIPTION:
 #  Install script for ctys.
 #
@@ -688,52 +688,13 @@ if [ -z "${LIBDIR}" ];then
 	LIBDIR="${MYLIBPATH}"
     else
 	LIBDIR=$HOME/lib
+	LIBDIR0=$LIBDIR
 	LIBDIR="${LIBDIR}/ctys-$(${MYCALLPATH}/getCurCTYSRel.sh)";
-    fi
-fi
 
-if [ ! -d "${LIBDIR}" ];then
-    mkdir -p "${LIBDIR}"
-    if [ ! -d "${LIBDIR}" ];then
-	ABORT=1;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:LIBDIR=\"${LIBDIR}\""
-	gotoHell ${ABORT}
-    fi
-fi
-
-if [ -n "${BINDIR}" -a ! -d "${BINDIR}" ];then
-    mkdir -p "${BINDIR}"
-    if [ ! -d "${BINDIR}" ];then
-	ABORT=1;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:BINDIR=\"${BINDIR}\""
-	gotoHell ${ABORT}
-    fi
-fi
-
-if [ ! -d "${UTILDIR}" ];then
-    mkdir -p "${UTILDIR}"
-    if [ ! -d "${UTILDIR}" ];then
-	ABORT=1;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:UTILDIR=\"${UTILDIR}\""
-	gotoHell ${ABORT}
-    fi
-fi
-
-if [ ! -d "${SCRIPTDIR}" ];then
-    mkdir -p "${SCRIPTDIR}"
-    if [ ! -d "${SCRIPTDIR}" ];then
-	ABORT=1;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:SCRIPTDIR=\"${SCRIPTDIR}\""
-	gotoHell ${ABORT}
-    fi
-fi
-
-if [ -n "${TEMPLATEDIR}" -a ! -d "${TEMPLATEDIR}" ];then
-    mkdir -p "${TEMPLATEDIR}"
-    if [ ! -d "${TEMPLATEDIR}" ];then
-	ABORT=1;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:TEMPLATEDIR=\"${TEMPLATEDIR}\""
-	gotoHell ${ABORT}
+        #Set link for add-on installs by unpack-only
+	LIBDIRlnk="$(${MYCALLPATH}/getCurCTYSRel.sh)";
+	LIBDIRlnk="${LIBDIRlnk//_/.}";
+	LIBDIRlnk="${LIBDIR0}/ctys-${LIBDIRlnk}";
     fi
 fi
 
@@ -785,23 +746,28 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-macmap.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-plugins.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-scripts.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-setversion.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-setupVDE.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-smbutil.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-testutils.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vdbgen.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vboxutils.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vhost.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vmw2utils.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-vping.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-wakeup.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-xdg.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-xen-network-bridge.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCPUinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurArch.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurCTYSRel.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurCTYSVariant.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurDistribution.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurGID.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurOS.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurOSRel.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurRelease.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurWM.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getFSinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getGeometry.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getHDDinfo.sh"
@@ -811,16 +777,13 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getSolarisUUID.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getVMinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/pathlist.sh"
-
-
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/gnome-starter.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/gnome-terminal-msg.sh"
 fi
 printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "LNKLSTBIN = <${LNKLSTBIN}>"
 
 LNKLSTUTIL="${UTILDIR}/ctys-distBuild.sh"
 LNKLSTUTIL="${LNKLSTUTIL} ${UTILDIR}/ctys-distBuild.d"
-
-LNKLSTUTIL="${LNKLSTUTIL} ${UTILDIR}/gnome-starter.sh"
-
 
 CTYSTEMPLATES="${TEMPLATEDIR}"
 CTYSTEMPLATESINST="${LIBS}/ctys"
@@ -857,6 +820,47 @@ case ${MYDIST} in
 	VNCCONFINST="${LIBS}/conf/vnc"
 	;;
 esac
+
+
+if [ -n "$REMOVE" -a -z "$FORCECLEAN" ];then
+    gotoHell 0
+fi
+
+
+#######
+#create
+#######
+printOut ""
+printOut "Check installed vs. new version"
+printOut ""
+NEWVER=`${MYLIBEXECPATH}/ctys.sh -X -V -d w:0,i:0`
+if [ $? -ne 0 ];then
+    printOut "  Cannot get number from installed version"
+    if [ -n "${FORCE}" -o -n "${FORCEALL}" -o -n "${FORCECLEAN}" ];then
+	printOut "  Anyhow, FORCE is set, thus kill it blindly."
+        printOut ""
+	NEWVER=;
+    else
+	printOut "  For procedure  use a FORCE flag, meanwhile terminate installation for safety."
+    fi
+fi
+
+if [  -n "${BINDIR}" -a -d "${BINDIR}" -a -f "${BINDIR}/ctys.sh" ];then
+    if [ -f "${VERSGEN}" ];then
+	OLDVER=`cat ${VERSGEN}|sed -n 's/^CTYSREL="\([^"][^"]*\)"/\1/p'`
+    else
+	OLDVER=;
+    fi
+
+    printOut "  Will be installed if following is true:"
+    printOut ""
+    printOut "    installed:\"${OLDVER}\" =< new:\"$NEWVER\""
+    printOut ""
+    printOut "  OR one of force-flags is set."
+else
+    OLDVER=;
+    printOut "  not yet installed => install new:$NEWVER"
+fi
 
 
 ######
@@ -965,6 +969,62 @@ if [ -n "$REMOVE" ];then
     fi
 fi
 
+if [ -L "${LIBDIR}" ];then
+    rm -f "${LIBDIR}"
+fi
+
+
+if [ -L "${LIBDIRlnk}" ];then
+    rm -f "${LIBDIRlnk}"
+fi
+
+
+if [ ! -d "${LIBDIR}" ];then
+    mkdir -p "${LIBDIR}"
+    if [ ! -d "${LIBDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:LIBDIR=\"${LIBDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+if [ -n "${BINDIR}" -a ! -d "${BINDIR}" ];then
+    mkdir -p "${BINDIR}"
+    if [ ! -d "${BINDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:BINDIR=\"${BINDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+if [ ! -d "${UTILDIR}" ];then
+    mkdir -p "${UTILDIR}"
+    if [ ! -d "${UTILDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:UTILDIR=\"${UTILDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+if [ ! -d "${SCRIPTDIR}" ];then
+    mkdir -p "${SCRIPTDIR}"
+    if [ ! -d "${SCRIPTDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:SCRIPTDIR=\"${SCRIPTDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+if [ -n "${TEMPLATEDIR}" -a ! -d "${TEMPLATEDIR}" ];then
+    mkdir -p "${TEMPLATEDIR}"
+    if [ ! -d "${TEMPLATEDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:TEMPLATEDIR=\"${TEMPLATEDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+
 ######
 #clean libraries
 ######
@@ -981,45 +1041,6 @@ if [ -n "$REMOVE" ];then
     done
 fi
 
-
-if [ -n "$REMOVE" -a -z "$FORCECLEAN" ];then
-    gotoHell 0
-fi
-
-#######
-#create
-#######
-printOut ""
-printOut "Check installed vs. new version"
-printOut ""
-NEWVER=`${MYLIBEXECPATH}/ctys.sh -X -V -d w:0,i:0`
-if [ $? -ne 0 ];then
-    printOut "  Cannot get number from installed version"
-    if [ -n "${FORCE}" -o -n "${FORCEALL}" -o -n "${FORCECLEAN}" ];then
-	printOut "  Anyhow, FORCE is set, thus kill it blindly."
-        printOut ""
-	NEWVER=;
-    else
-	printOut "  For procedure  use a FORCE flag, meanwhile terminate installation for safety."
-    fi
-fi
-
-if [  -n "${BINDIR}" -a -d "${BINDIR}" -a -f "${BINDIR}/ctys.sh" ];then
-    if [ -f "${VERSGEN}" ];then
-	OLDVER=`cat ${VERSGEN}|sed -n 's/^CTYSREL="\([^"][^"]*\)"/\1/p'`
-    else
-	OLDVER=;
-    fi
-
-    printOut "  Will be installed if following is true:"
-    printOut ""
-    printOut "    installed:\"${OLDVER}\" < new:\"$NEWVER\""
-    printOut ""
-    printOut "  OR one of force-flags is set."
-else
-    OLDVER=;
-    printOut "  not yet installed => install new:$NEWVER"
-fi
 
 printOut ""
 printOut ""
@@ -1126,6 +1147,13 @@ if [ -z "${OLDVER}"  -o "${NEWVER}" \> "${OLDVER}" -o -n "${FORCE}" -o -n "${FOR
 	done
     fi
 fi
+
+
+#
+#put self-starter for shared-no-install services in place
+#
+
+
 
 if [ -z "$BINDIR" ];then
     printOut ""
@@ -1265,6 +1293,26 @@ LOCNET=`find ${MYINSTALLPATH} -type f -name '*[!~]'  -name '[!0-9][!0-9]*' -exec
 
 INSTVERSION=$(${MYCALLPATH}/getCurCTYSRel.sh)
 
+
+if [ -e "${MYLIBPATH}/INTERNAL" ];then
+    INSTVARIANT=INTERNAL
+else
+    if [ -e "${MYLIBPATH}/ALL" ];then
+	INSTVARIANT=ALL
+    else
+	if [ -e "${MYLIBPATH}/DOC" ];then
+	    INSTVARIANT=DOC
+	else
+	    if [ -e "${MYLIBPATH}/BASE" ];then
+		INSTVARIANT=BASE
+	    else
+
+		INSTVARIANT=$(${MYCALLPATH}/getCurCTYSVariant.sh)
+	    fi
+	fi
+    fi
+fi
+
 LOD1=`find ${MYINSTALLPATH}/help ${MYINSTALLPATH}/doc -type f -name '*[!~]'  -exec cat {} \;|wc -l`
 
 MYDOCSOURCE="`dirname ${MYINSTALLPATH}`/ctys-manual.${INSTVERSION}"
@@ -1283,11 +1331,15 @@ LOD=$((LOD1+LOD2));
 
 VERSGEN=${VERSGEN//\"}
 echo "###">"${VERSGEN}"
+echo "DATE=${DATE}">>"${VERSGEN}"
+echo "TIME=${TIME}">>"${VERSGEN}"
+echo "###">>"${VERSGEN}"
 echo "LOC=\"${LOC// }\"">>"${VERSGEN}"
 echo "LOCNET=\"${LOCNET// }\"">>"${VERSGEN}"
 echo "LOD=\"${LOD// }\"">>"${VERSGEN}"
 echo "VERSION=\"${INSTVERSION}\"">>"${VERSGEN}"
 echo "CTYSREL=\"${INSTVERSION}\"">>"${VERSGEN}"
+echo "CTYSVARIANT=\"${INSTVARIANT}\"">>"${VERSGEN}"
 
 
 if [ -n "${NOCONF}" ];then 
@@ -1303,13 +1355,34 @@ else
 	FNAME=;
 	if [ -f ${HOME}/.bashrc ];then
 	    FNAME=${HOME}/.bashrc
+	    printOut "Setting:$(setSeverityColor INF ' "$HOME/.bashrc"')."
+	else
+	    printOut "$(setSeverityColor WNG '***************************************')"
+	    printOut "ATTENTION:Missing .bashrc"
+	    printOut "$(setSeverityColor ERR ' "$HOME/.bashrc"'), this may cause errors of type:"
+	    printOut "$(setSeverityColor WNG 'Variable not yet set:CTYS_INI')"
+	    printOut "$(setSeverityColor TRY 'At least provide an empty file.')"
+	    printOut "$(setSeverityColor WNG '***************************************')"
 	fi
 
 	if [ -f ${HOME}/.bash_profile ];then
 	    FNAME="${FNAME} ${HOME}/.bash_profile"
+	    printOut "Setting:$(setSeverityColor INF ' "$HOME/.bash_profile"')."
+	else
+	    if [ -z "${FNAME}" ];then
+		printOut "$(setSeverityColor WNG '***************************************')"
+		printOut "ATTENTION:Missing .bash_profile"
+		printOut "$(setSeverityColor WNG ' "$HOME/.bash_profile"'), this may later cause errors of type:"
+		printOut "$(setSeverityColor WNG 'Variable not yet set:CTYS_INI')"
+		printOut "$(setSeverityColor TRY 'At least provide an empty file.')"
+		printOut "$(setSeverityColor WNG '***************************************')"
+	    else
+		printOut "Missing:$(setSeverityColor WNG ' "$HOME/.bash_profile"')"
+	    fi
 	fi
 	if [ -f ${HOME}/.profile ];then
 	    FNAME="${FNAME} ${HOME}/.profile"
+	    printOut "Setting:$(setSeverityColor INF ' "$HOME/.profile"')"
 	fi
 
 	if [ -z "${FNAME}" ];then
@@ -1371,6 +1444,16 @@ else
 fi
 
 
+#Set link for add-on installs by unpack-only
+if [ -d "$LIBDIR" ];then
+   if [ -L "$LIBDIRlnk" ];then
+       rm -f "$LIBDIRlnk"
+   fi 
+   ln -s "$LIBDIR" "$LIBDIRlnk"
+fi
+
+
+
 if [ -n "$VERIFY" ];then
     printOut ""
     printOut ""
@@ -1414,4 +1497,12 @@ Try help first:  "ctys -h"
    
 EOF
 
+
+printOut "$(setSeverityColor TRY 'HINT:')"
+printOut "If you want to $(setSeverityColor TRY ' deactivate specific plugins')"
+printOut "check the file $(setSeverityColor TRY ' "ctys.conf.sh"')"
+printOut "for variables:$(setSeverityColor TRY '"export <plugin-type>_IGNORE=1"')"
+printOut "But $(setSeverityColor WNG ' review dependencies') before, "
+printOut "$(setSeverityColor INF 'e.g. CLI, X11, and VNC are required by QEMU/KVM and XEN.')"
+printOut "$(setSeverityColor INF 'RDP is required by VBOX.')"
 

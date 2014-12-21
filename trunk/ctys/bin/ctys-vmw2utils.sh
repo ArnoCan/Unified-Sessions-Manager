@@ -358,9 +358,38 @@ else
 fi
 
 
-
+. ${MYLIBPATH}/lib/libconf.sh
+. ${MYLIBPATH}/lib/libVMWconf.sh
 . ${MYLIBPATH}/lib/libVMWserver2.sh
 
+
+
+#
+##########################################
+#4TEST-START
+#
+#quick-hack - just for now
+#
+# function hookInfoAdd () {
+#     local x=;
+# }
+# function hookPackage () {
+#     local x=;
+# }
+# . ${MYLIBPATH}/plugins/CORE/CONFIG/hook.sh
+# case ${MYOS} in
+#     Linux)
+# 	. ${MYLIBPATH}/plugins/CORE/CONFIG/config-Linux.sh
+# 	;;
+#     *)
+# 	ABORT=1;
+# 	printERR $LINENO $BASH_SOURCE ${ABORT} "OS=${MYOS} is not supported"
+# 	gotoHell ${ABORT}
+# 	;;
+# esac
+#4TEST-END
+##########################################
+#
 
 ##########################
 ##########################
@@ -401,6 +430,27 @@ function execAction () {
 			shift;
 			ctysVMWS2FetchDatastore $1;
 			;;
+
+		    VMWMACLIST|MACLST|ML) 
+			shift;
+			getVMWMAClst $1;
+			;;
+
+		    VMWMAC0|MAC0|M0) 
+			shift;
+			getVMWMAC0 $1;
+			;;
+
+		    VMWUUID|VU) 
+			shift;
+			getVMWUUID $1;
+			;;
+
+		    VMWACCEL|VA) 
+			shift;
+			getVMWACCEL $1;
+			;;
+
 		    *)
 			printERR $LINENO $BASH_SOURCE ${ABORT} "ACTION=$ACTION unknown SCOPE=$SCOPE"
 			gotoHell ${ABORT}  
@@ -496,7 +546,7 @@ while [ -n "$1" ];do
 	    ;;
 
 	*)
-   	    _ARGS="${_ARGS} $1"
+   	    _ARGS="${_ARGS} ${1}"
 	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS=${_ARGS}"
 	    ;;
     esac

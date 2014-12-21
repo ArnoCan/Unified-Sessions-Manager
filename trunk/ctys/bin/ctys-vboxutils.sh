@@ -8,12 +8,14 @@
 #############
 #
 #
-echo
-echo "##########################"
-echo "# Currently not provided #">&2
-echo "##########################"
-echo
-exit 1
+function curNotProvided () {
+    echo
+    echo "##########################"
+    echo "# Currently not provided #">&2
+    echo "##########################"
+    echo
+    exit 1
+}
 #
 #
 #############
@@ -29,7 +31,7 @@ exit 1
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alphaPreRelease
+#VERSION:      01_11_011alpha
 #
 ########################################################################
 #
@@ -55,7 +57,7 @@ exit 1
 #                   Begin of FrameWork                         #
 ################################################################
 
-DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
+DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-CLI}
 DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 C_SCOPE=${C_SCOPE:-$DEFAULT_C_SCOPE}
 
@@ -83,7 +85,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_006alphaPreRelease
+VERSION=01_11_011alpha
 #DESCRIPTION:
 #  Offers some base functions, currently pre-release, may even not work.
 #
@@ -382,7 +384,29 @@ else
 fi
 
 
+#system tools
+if [ -f "${HOME}/.ctys/vbox/vbox.conf-${MYOS}.sh" ];then
+    . "${HOME}/.ctys/vbox/vbox.conf-${MYOS}.sh"
+else
 
+    if [ -f "${MYCONFPATH}/vbox/vbox.conf-${MYOS}.sh" ];then
+	. "${MYCONFPATH}/vbox/vbox.conf-${MYOS}.sh"
+    else
+	if [ -f "${MYLIBEXECPATH}/../conf/ctys/vbox/vbox.conf-${MYOS}.sh" ];then
+	    . "${MYLIBEXECPATH}/../conf/ctys/vbox/vbox.conf-${MYOS}.sh" 
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf-${MYDIST}.sh\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+
+. ${MYLIBPATH}/lib/libVBOXbase.sh
+. ${MYLIBPATH}/lib/libVBOXconf.sh
 . ${MYLIBPATH}/lib/libVBOX.sh
 
 PLUGINPATHS=${MYINSTALLPATH}/plugins/CORE
@@ -432,79 +456,125 @@ function execAction () {
 	case $ACTION in
 	    FETCH|F)
 		case $SCOPE in
-# 		    VBOXPATH4OBJID|P4O) 
-# 			shift;
-# 			ctysVBOXS2FetchVBOXPath4ObjID $1;
-# 			;;
-# 		    VBOXOBJID4PATH|O4P) 
-# 			shift;
-# 			ctysVBOXS2FetchVBOXObjID4Path $1;
-# 			;;
-# # 		    REMOTEVBOXPATH4OBJID) 
-# # 			ctysVBOXS2FetchRemoteVBOXPath4ObjID
-# # 			;;
-# 		    DATASTORE|D) 
-# 			shift;
-# 			ctysVBOXS2FetchDatastore $1;
-# 			;;
+		    VBOXPATH4ID|P4I) 
+			shift;
+			fetchCTYSFile $1;
+			;;
+
+		    VBOXUUID4PATH|UUID) 
+			shift;
+			fetchUUID $1;
+			;;
+
+		    VBOXNAME|NAME) 
+			shift;
+			fetchNAME $1;
+			;;
+
+		    VBOXCFGFILE|CFGFILE) 
+			shift;
+			fetchCFGFile $1;
+			;;
+
+		    VMSTATE|STATE|VS) 
+			shift;
+			fetchState $1;
+			;;
+
+		    VMMAC|MAC) 
+			shift;
+			fetchMAC $1;
+			;;
+
+		    VMMACLST|MACLST) 
+			shift;
+			getVBOXMAClst $1;
+			;;
+
+		    VMRDP|VR) 
+			shift;
+			getRDPport  $1;
+			;;
+
+		    VMRDPLST|VRL) 
+			shift;
+			getRDPportlst  $1;
+			;;
+
+		    VMACCEL|VA) 
+			shift;
+			getVBOXACCEL  $1;
+			;;
+
+		    HDDSIZE|HS) 
+			shift;
+			getVBOXBOOTHDDSIZE $1;
+			;;
+
 		    *)
+			ABORT=1;
 			printERR $LINENO $BASH_SOURCE ${ABORT} "ACTION=$ACTION unknown SCOPE=$SCOPE"
 			gotoHell ${ABORT}  
 			;;
 		esac
 		;;
 
-	    CONVERT|C)
+	    CHECK|CHK)
 		case $SCOPE in
-# 		    TODATASTORE|2D) 
-# 			shift;
-# 			ctysVBOXS2ConvertToDatastore $1
-# 			;;
-# # 		    CHECKLOCALCLIENT) 
-# # 			ctysVBOXS2CheckLocalClient
-# # 			;;
+		    ISININVENTORY|ISIN) 
+			shift;
+			checkIsInInventory  $1
+			exit $?
+			;;
 		    *)
+			ABORT=1;
 			printERR $LINENO $BASH_SOURCE ${ABORT} "ACTION=$ACTION unknown SCOPE=$SCOPE"
 			gotoHell ${ABORT}  
 			;;
 		esac
 		;;
+
+# 	    CONVERT|C)
+# 		case $SCOPE in
+# 		    *)
+# 			printERR $LINENO $BASH_SOURCE ${ABORT} "ACTION=$ACTION unknown SCOPE=$SCOPE"
+# 			gotoHell ${ABORT}  
+# 			;;
+# 		esac
+# 		;;
+
+	    VMMANAGE)
+		case $SCOPE in
+		    GETCFGFILE) 
+			shift;
+			local myCFG=$(fetchCFGFile $1);
+			local myVMDIR=$(fetchCTYSDir $1);
+			local _mycall="${CP} \"${myCFG}\" \"${myVMDIR}${myCFG##*/}-${DATETIME}\""
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-COPY-CALL" "${_mycall}"
+			eval ${_mycall}
+			return $?
+			;;
+		    *)
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "ACTION=$ACTION unknown SCOPE=$SCOPE"
+			gotoHell ${ABORT}  
+			;;
+		esac
+		;;
+
 
 	    LIST|L)
 		case $SCOPE in
-# 		    INVENTORY|I) 
-# 			ctysVBOXS2ListVmInventory
-# 			;;
-# 		    DATASTORES|D) 
-# 			ctysVBOXS2ListDatastores
-# 			;;
-		    SERVERS) 
+		    SERVERS_RAW) 
 			ctysVBOXListLocalServers
 			;;
-# 		    SERVERPATHS) 
-# 			ctysVBOXS2ListServerPaths
-# 			;;
-		    CLIENTS) 
+		    CLIENTS_RAW) 
 			C_SCOPE="USER"
 			C_SCOPE_ARGS="ALL"
 			ctysVBOXListClientServers
 			;;
-# 		    LOCALCLIENTS) 
-# 			ctysVBOXS2ListLocalClients
-# 			;;
-# 		    REMOTECLIENTS) 
-# 			ctysVBOXS2ListRemoteClients
-# 			;;
-# 		    REMOTECLIENTSEX) 
-# 			ctysVBOXS2ListRemoteClientsEx
-# 			;;
-# 		    LOCALCLIENTSEX) 
-# 			ctysVBOXS2ListLocalClientsEx
-# 			;;
-# 		    RELAYS) 
-# 			ctysVBOXS2ListRelays
-# 			;;
 		    *)
+			ABORT=1;
 			printERR $LINENO $BASH_SOURCE ${ABORT} "ACTION=$ACTION unknown SCOPE=$SCOPE"
 			gotoHell ${ABORT}  
 			;;

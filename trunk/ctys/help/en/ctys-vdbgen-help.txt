@@ -34,9 +34,8 @@ ctys-vdbgen
    [-T]
    [-V]
    [-X]
-   -- <target-list>
-
-
+   -- 
+   <target-list>
 
 DESCRIPTION
 ===========

@@ -109,6 +109,9 @@ function getVBOXMAGIC () {
     local _m=;
     case ${_lv} in
 	VirtualBox-3.1.2)  _m=VBOX_030102;;
+	VirtualBox-3.2.6*) _m=VBOX_030206;;
+	VirtualBox-3.2*)   _m=VBOX_0302x;;
+	VirtualBox-3.*)    _m=VBOX_03x;;
 	VirtualBox-2*)     _m=VBOX_02x;;
 	VirtualBox-*)      _m=VBOX_GENERIC;;
          *)                       echo -n NOLOC;return 1;;
@@ -152,7 +155,8 @@ function getACCELERATOR_VBOX () {
     if [ -z "${1}" ];then
 	return
     fi
-    echo VBOX
+    local _a=$(getVBOXACCEL $1)
+    echo ${_a:-VBOX}
 }
 
 

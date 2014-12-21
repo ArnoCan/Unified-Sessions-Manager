@@ -495,6 +495,7 @@ if [ ! -f "${_myFilePath}" ];then
     gotoHell ${ABORT}
 fi
 
+
 if [ -n "$_edit" ];then
     _editX=;
     for i in ${_edit//%/ };do
@@ -503,7 +504,7 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_MACROSEDIT ${_editX//%/ }&
+    $CTYS_MACROSEDIT ${_editX//%/ }&sleep 1
     exit $?
 fi
 

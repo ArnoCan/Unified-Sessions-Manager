@@ -1,0 +1,153 @@
+<!DOCTYPE Menu PUBLIC "-//freedesktop//DTD Menu 1.0//EN"
+	  "http://www.freedesktop.org/standards/menu-spec/menu-1.0.dtd">
+<!-- 
+     ########################################################################
+     #
+     #PROJECT:      Unified Sessions Manager
+     #AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+     #MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+     #SHORT:        ctys
+     #CALLFULLNAME: Commutate To Your Session
+     #LICENCE:      GPL3
+     #VERSION:      01_11_011
+     #
+     ########################################################################
+     #
+     # Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+     #
+     ########################################################################
+
+     ########################################################################
+     #
+     #     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+     #
+     #     This program is free software: you can redistribute it and/or modify
+     #     it under the terms of the GNU General Public License as published by
+     #     the Free Software Foundation, either version 3 of the License, or
+     #     (at your option) any later version.
+     #
+     #     This program is distributed in the hope that it will be useful,
+     #     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     #     GNU General Public License for more details.
+     #
+     #     You should have received a copy of the GNU General Public License
+     #     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+     #
+     ########################################################################
+  -->
+<Menu>
+  <Name>Applications</Name>
+  <MergeDir>applications-merged/</MergeDir>
+  <MergeDir>_MYHOME_/.config/menus/applications-merged/</MergeDir>
+  <AppDir>_MYHOME_/.local/share/applications/</AppDir>
+  <DirectoryDir>_MYHOME_/.local/share/desktop-directories/</DirectoryDir>
+
+  <DefaultAppDirs/>
+  <DefaultDirectoryDirs/>
+
+  <Menu>
+    <Name>UnifiedSessionsManager</Name>
+    <Directory>ctys-UnifiedSessionsManager.directory</Directory>
+    <Include>
+      <Filename>ctys-help.desktop</Filename>
+      <Filename>ctys-help-dev.desktop</Filename>
+      <Filename>ctys-CREATE-CONSOLE.desktop</Filename>
+      <Filename>ctys-LOGIN-CONSOLE.desktop</Filename>
+    </Include>
+
+
+    <Layout>
+      <!--       <Merge type="all"/> -->
+      <Filename>ctys-help.desktop</Filename>
+      <Filename>ctys-help-dev.desktop</Filename>
+      <Menuname>ctys-admin</Menuname>
+      <!--       <Merge type="menus"/> -->
+      <!--       <Merge type="files"/> -->
+      <Separator/>
+      <Filename>ctys-CREATE-CONSOLE.desktop</Filename>
+      <Filename>ctys-LOGIN-CONSOLE.desktop</Filename>
+      <Separator/>
+      <Menuname>Desktops</Menuname>
+      <Separator/>
+      <Menuname>HOSTs Sessions</Menuname>
+      <Menuname>Virtual Machines</Menuname>
+      <Menuname>Physical Machines</Menuname>
+    </Layout>
+
+    <Menu>
+      <Name>Desktops</Name>
+      <Directory>ctys-desktops.directory</Directory>
+      <Include>
+        <Filename>ctys-localhost-vnc.desktop</Filename>
+      </Include>
+
+      <Layout>
+        <Filename>ctys-localhost-vnc.desktop</Filename>
+	<Separator/>
+	<Merge type="all"/>
+      </Layout>
+    </Menu>
+
+    <Menu>
+      <Name>Desktops</Name>
+      <Directory>ctys-desktops.directory</Directory>
+      <Include>
+	<Or>
+          <Category>X-GROUPS</Category>
+          <Category>X-SCRIPTS</Category>
+	</Or>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <Name>HOST Sessions</Name>
+      <Directory>ctys-HOSTs.directory</Directory>
+      <Include>
+        <Category>X-HOSTs</Category>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <Name>Virtual Machines</Name>
+      <Directory>ctys-VMs.directory</Directory> 
+      <Include>
+        <Category>X-VMs</Category>
+      </Include>
+    </Menu>
+
+    <Menu>
+      <Name>Physical Machines</Name>
+      <Directory>ctys-PMs.directory</Directory> 
+      <Include>
+        <Category>X-PMs</Category>
+      </Include>
+    </Menu>
+
+
+    <Menu>
+      <Name>ctys-admin</Name>
+      <Directory>ctys-admin.directory</Directory>
+
+      <Include>
+        <Filename>ctys-MENUES.desktop</Filename>
+        <Filename>ctys-CONFIG.desktop</Filename>
+        <Filename>ctys-GROUPS.desktop</Filename>
+        <Filename>ctys-MACROS.desktop</Filename>
+        <Filename>ctys-SCRIPTS.desktop</Filename>
+      </Include>
+
+      <Layout>
+        <Filename>ctys-MENUES.desktop</Filename>
+	<Separator/>
+	<Filename>ctys-CONFIG.desktop</Filename>
+	<Separator/>
+        <Filename>ctys-GROUPS.desktop</Filename>
+        <Filename>ctys-MACROS.desktop</Filename>
+        <Filename>ctys-SCRIPTS.desktop</Filename>
+      </Layout>
+    </Menu>
+
+  </Menu>
+</Menu>
+

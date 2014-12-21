@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -159,11 +159,38 @@ if [ -n "$C_EXECLOCAL" ];then
     [ -z "$CTYS_ROUTE" ]&&CTYS_ROUTE=`getPathName $LINENO $BASH_SOURCE ERROR route /sbin`
 
     case ${MYDIST} in
+	MeeGo)
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+
+	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
+
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/bin`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/libexec`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /opt/qemu/bin`
+
+
+            #
+            #To be set when required, the actual path may vary.
+            #
+            #Sets the virtual switch for interconnection of QEMU-VMs with the
+            #external NIC of current container, which could be VM itself.
+	    #QEMUBIOS=${QEMUBIOS:-/usr/share/kvm}
+	    ;;
+
 	CentOS)
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -184,7 +211,34 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
+
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/bin`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/libexec`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /opt/qemu/bin`
+
+
+            #
+            #To be set when required, the actual path may vary.
+            #
+            #Sets the virtual switch for interconnection of QEMU-VMs with the
+            #external NIC of current container, which could be VM itself.
+	    #QEMUBIOS=${QEMUBIOS:-/usr/share/kvm}
+	    ;;
+
+	RHEL)
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+
+	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -205,7 +259,10 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -226,7 +283,10 @@ if [ -n "$C_EXECLOCAL" ];then
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -250,6 +310,8 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT netcat /usr/bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/bin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -273,6 +335,8 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /usr/bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/bin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -287,6 +351,15 @@ if [ -n "$C_EXECLOCAL" ];then
             #Sets the virtual switch for interconnection of QEMU-VMs with the
             #external NIC of current container, which could be VM itself.
 	    #QEMUBIOS=${QEMUBIOS:-/usr/share/kvm}
+
+	    #
+            #Force appropriate options for embedded QEMU VNC server when required.
+	    #VNCVIEWER_OPT_RealVNC4="  -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	    #VNCVIEWER_OPT_RealVNC="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	    #VNCVIEWER_OPT_TigerVNC="  -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	    #VNCVIEWER_OPT_TightVNC="  -encodings         hextile  -truecolour  -shared "
+	    #VNCVIEWER_OPT_GENERIC=""
+
 	    ;;
 
 	debian)
@@ -313,6 +386,8 @@ if [ -n "$C_EXECLOCAL" ];then
   	            [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT netcat /bin`
 		    ;;
 	    esac
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/bin`
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
@@ -369,6 +444,8 @@ if [ -n "$C_EXECLOCAL" ];then
 		$CTYS_NETCAT -h 2>&1|grep -e '-U'|grep -q 'UNIX' 2>/dev/null
 		[ $? != 0 ]&&unset CTYS_NETCAT
 	    fi
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kvm /usr/local/bin`
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kvm /usr/bin`
@@ -391,6 +468,8 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
@@ -414,6 +493,8 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT netcat /usr/bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+	    #CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/bin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu /usr/local/bin`
@@ -437,6 +518,10 @@ if [ -n "$C_EXECLOCAL" ];then
 
 	    #[ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING netcat /bin`
 	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nc /usr/bin`
+
+            #for safety
+	    CTYS_NETCAT_ACCESS_DELAY=${CTYS_NETCAT_ACCESS_DELAY:-1}
+
 	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
 
 	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`

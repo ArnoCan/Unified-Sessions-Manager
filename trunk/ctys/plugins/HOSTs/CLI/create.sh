@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,9 +17,10 @@
 ########################################################################
 
 _myPKGNAME_CLI_CREATE="${BASH_SOURCE}"
-_myPKGVERS_CLI_CREATE="01.11.005"
+_myPKGVERS_CLI_CREATE="01.11.011"
 hookInfoAdd $_myPKGNAME_CLI_CREATE $_myPKGVERS_CLI_CREATE
 _myPKGBASE_CLI_CREATE="`dirname ${_myPKGNAME_CLI_CREATE}`"
+
 
 #FUNCBEG###############################################################
 #NAME:
@@ -72,6 +73,8 @@ function createConnectCLI () {
 			-o -z "${ARG}" \
 			-a \( \
                           "${KEY}" == "DUMMY"  \
+                          -o "${KEY}" == "STUB" \
+                          -o "${KEY}" == "STUBMODE" \
                         \) \
 			];then
 			case $KEY in
@@ -121,6 +124,16 @@ function createConnectCLI () {
 				let _unambig+=1;
 				;;
 
+                            STUBMODE|STUB)
+				C_STUBCALL=1;
+ 				printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "STUBMODE"
+                                local _wrapper="${ARG// /}";
+				case "$_wrapper" in
+				    [oO][nN])C_NOWRAPPER=;
+				esac
+ 				printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "WRAPPER=${_wrapper:-OFF}"
+				;;
+
 			    *)
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown sub-opts for CLI:${KEY}"
@@ -154,6 +167,15 @@ function createConnectCLI () {
 	    ;;
 
 	ASSEMBLE)
+	    if [ -z "$C_STUBCALL" ];then
+		assembleExeccall 
+	    else
+		${FUNCNAME} EXECUTE $ACTION 
+	    fi
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
 	    ;;
 
 	EXECUTE)
@@ -212,7 +234,15 @@ function createConnectCLI () {
                                 local _fname="${ARG}";
 				printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "FILENAME=${_fname}"
 				;;
-
+                            STUBMODE|STUB)
+				C_STUBCALL=1;
+ 				printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "STUBMODE"
+                                local _wrapper="${ARG// /}";
+				case "$_wrapper" in
+				    [oO][nN])C_NOWRAPPER=;
+				esac
+ 				printDBG $S_CLI ${D_UID} $LINENO $BASH_SOURCE "WRAPPER=${_wrapper:-OFF}"
+				;;
 			    *)
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected sub-opts for CLI:${KEY}"

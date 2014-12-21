@@ -19,23 +19,31 @@ ctys-vboxutils
    [
      (
        (FETCH|F) (
-           VMWPATH4OBJID|P4O
-          |VMWOBJID4PATH|O4P
-          |DATASTORE|D
+           VBOXPATH4ID|P4I
+           |VBOXUUID4PATH|UUID
+           |VBOXNAME|NAME
+           |VBOXCFGFILE|CFGFILE
+           |VMSTATE|STATE|VS
+           |VMMAC|MAC
+           |VMRDP|VR
+           |VMRDPLST|VRL
         )
      )
      |
      (
-       (CONVERT|C) (TODATASTORE|2D)
+       VMMANAGE (
+           GETCFGFILE
+        )
      )
      |
      (
        (LIST|L) (
-           INVENTORY|I
-          |DATASTORES|D
+           SERVERS_RAW
+           |CLIENTS_RAW
        )
      )
    ]
+
 DESCRIPTION
 ===========
 

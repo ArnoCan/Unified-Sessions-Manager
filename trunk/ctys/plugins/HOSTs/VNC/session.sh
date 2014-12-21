@@ -163,7 +163,7 @@ function startSessionVNC () {
 	if [ "${C_CLIENTLOCATION}" !=  "-L CONNECTIONFORWARDING" ];then
 	    SERVER="${VNCSERVER} ${C_DARGS} ${_serveropt} "
 	    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "SERVER=${SERVER}"
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-VNC:SERVER(${_label})" "${SERVER}"
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-VNC:SERVER(${_label})" "${SERVER}"
 	    CURSES=`eval ${SERVER}`
 	    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "CURSES=${CURSES}"
 	    if [ -z "${CURSES}" -o -n "`echo ${CURSES}|sed 's/[0-9]*//g'`" ];then
@@ -207,15 +207,15 @@ function startSessionVNC () {
 	printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "${C_NOEXEC:-CALL:}${CALLER}"
         #don't exec here, it could be one of a set!
 	printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "WAITS=${WAITS}"
-	printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:vncserver(${_label},WAITS)" "sleep ${WAITS}"
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})" "${CALLER}"
+	printFINALCALL 2  $LINENO $BASH_SOURCE "WAIT-TIMER:vncserver(${_label},WAITS)" "sleep ${WAITS}"
+	printFINALCALL 2  $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})" "${CALLER}"
 	if [ -z "${C_NOEXEC}" ];then
 
 	    if [ -n "${C_DISPLAY}" ];then
 		DISPLAY=":${C_DISPLAY}";
 		export DISPLAY;
 	    fi
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
+	    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
 
 	    case ${C_DISPLAY// /} in
 		*[a-z][A-Z]*)
@@ -316,7 +316,7 @@ function connectSessionVNC () {
 	DISPLAY=":${C_DISPLAY}";
 	export DISPLAY;
     fi
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
+    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
     case ${C_DISPLAY// /} in
 	*[a-z][A-Z]*)
 	    export DISPLAY=":$(C_SESSIONTYPE=ALL fetchDisplay4Label ALL ${C_DISPLAY})";

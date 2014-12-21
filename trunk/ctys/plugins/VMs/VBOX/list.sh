@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_011beta
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VBOX_LIST="${BASH_SOURCE}"
-_myPKGVERS_VBOX_LIST="01.11.006alpha"
+_myPKGVERS_VBOX_LIST="01.11.011beta"
 hookInfoAdd $_myPKGNAME_VBOX_LIST $_myPKGVERS_VBOX_LIST
 _myPKGBASE_VBOX_LIST="`dirname ${_myPKGNAME_VBOX_LIST}`"
 
@@ -85,22 +85,22 @@ function listMySessionsVBOX () {
     #
 
     case ${VBOX_MAGIC} in
-	VBOX_030102)
+	VBOX_03*)
 
 	    if [ "${_site}" == S -o "${_site}" == B ];then
-		SERVERLST=$(ctysVBOXListLocalServers)
+		SERVERLST="$(ctysVBOXListLocalServers)"
 	    fi
 	    if [ "${_site}" == C -o "${_site}" == B ];then
 		case ${C_RESOLVER} in
 		    0|OFF)
-			CLIENTLST=$(ctysVBOXListClientServers)
+			CLIENTLST="$(ctysVBOXListClientServers)"
 			;;
 		    1|STAR)
-			CLIENTLST=$(ctysVBOXListClientServers)
+			CLIENTLST="$(ctysVBOXListClientServers)"
 			CLIENTLST_UNRES=
 			;;
 		    2|CHAIN)
-			CLIENTLST=$(ctysVBOXListClientServers)
+			CLIENTLST="$(ctysVBOXListClientServers)"
 			;;
 		esac
 	    fi
@@ -114,6 +114,7 @@ function listMySessionsVBOX () {
 		return ${ABORT}
 #		gotoHell ${ABORT}
 	    fi
+	    return;
 	    ;;
     esac
 
@@ -136,48 +137,89 @@ function listMySessionsVBOX () {
     export -f gotoHell
     export VBOX_MAGIC
 
+
     ###################################
     #ServerSessions
     ###################################
-    [ -n "${SERVERLST}" ]&&SERVERLST=`echo "${SERVERLST}"|\
-      awk -v d=$D -v s=$SUBTYPE -f ${_myPKGBASE_VBOX}/serverlst01.awk`
+    [ -n "${SERVERLST}" ]&&SERVERLST=$(echo "${SERVERLST}"|awk -v d=$D -v s=$SUBTYPE -v mode=1 -f ${_myPKGBASE_VBOX}/clientserverlst.awk;)
 
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "SERVERLST(PROCESSED-0)=\"${SERVERLST}\""
     case $VBOX_MAGIC in
-	VBOX_030102)
-            #now in canonical format and does not need exported funcs
-            #correct reduced cli-footprint of forked vmw server
+	VBOX_03*)
 	    local il=;
 	    local il0=;
 	    local il17=;
 	    local il8=;
 	    local il8x=;
+	    local _c=;
+
 	    for il in ${SERVERLST};do
 		if [ -z "$_c" ];then
 		    local _c=1;
 		    SERVERLST=;
 		fi
 		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il=<${il}>"
-		il0=${il##;*};
-		il07=${il%;*;*;*;*;*;*;*;*;};
-                il17=${il07#*;*;*;*;};
-		il8x=${il#$il07;};
- 		il8=${il8x%%;*;*;*;*;*};
- 		il9x=${il8x#*;*;*;*;};
-		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il0=${il0}<>${il8}"
-		if [ -z "${il0}" ];then
+
+
+                local _lbl="${il%%;*}"
+		local _pid="${il#*;*;*;*;*;*;*;}";_pid="${_pid%%;*}"
+		if [ -z "${lbl}" ];then
 		    if [ -z "${recurDetect226VBOXLIST}" ];then 
 			recurDetect226VBOXLIST=1;
-			il0=`fetchLabel4PID ${il8}`
+			lbl=`fetchLabel4PID ${_pid}`
 		    fi
-		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il0 =${il0}"
-		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il17=${il17}"
-		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il8 =${il8}"
-		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il9x =${il9x}"
-		    SERVERLST="${SERVERLST} ${il0};${il17};${il8};${il9x}"
-		else
-		    SERVERLST="${SERVERLST} $il"
+		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "lbl =${lbl}"
 		fi
+
+		local _myIP=;
+                local _A0="${il%%;*}"
+
+                #ID
+                local _A1="${il#*;}"
+		local _A1="${_A1%%;*}"
+		local _uu="${il#*;*;}";_uu="${_uu%%;*}"
+		if [ -z "$_A1" -a -n "$_uu" ];then
+		    local _x=$(fetchCTYSFile $_uu)
+		fi
+		if [ -z "$_A1" ];then
+		    _A1=$_x
+		fi
+
+                #TCP
+		local _A2="${il%;*;*;*;*;*;*;*;*;*;*}"
+		local _A2="${_A2##*;}"
+		if [ -z "$_A2" ];then
+		    local _m="${il#*;*;*;}"
+		    local _m="${_m%%;*}"
+		    local _V="${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} -i $_m "
+		    printFINALCALL 2  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_V}"
+
+		    local _t=$(eval $_V)
+		fi
+
+                #IFNAME -Number
+		local _ifn="${il##*;}"
+
+
+
+		local _A3="${il#*;*;*;*;}";_A3="${_A3%;*;*;*;*;*}"
+		local _A4="${il#*;*;*;*;*;*;*;*;*;*;*;*;*;}";_A4="${_A4%;*;*;*}";
+		local _exepath="${il#*;*;*;*;*;*;*;*;*;*;*;*;*;*;}";_exepath="${_exepath%;*;*}";
+
+		local _A5="${il%;*}";_A5="${_A5##*;}";
+
+
+                local _j=;
+		if [ -n "${_pid}" ];then
+		    _j=`cacheGetAttrFromPersistent LAZY "${_pid}" JOBID`
+		    printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "JOBID=${_j}"
+		fi
+
+                local _ctx=;
+                local _hyv=;
+
+		local _curRec="${MYHOST};${_A0};${_A1};${_uu};${_m};${_A3};${_t};${_j};${_ifn};;${_ctx};${_exepath};${_hyv};${_A4};${_A5}"
+		SERVERLST="${SERVERLST} $_curRec"
 	    done
 	    ;;
     esac
@@ -188,10 +230,87 @@ function listMySessionsVBOX () {
     ###################################
     #ClientSessions
     ###################################
-    [ -n "${CLIENTLST}" ]&&CLIENTLST=`echo "${CLIENTLST}"|\
-      awk -v d=$D -v s=$SUBTYPE -f ${_myPKGBASE_VBOX}/clientlst02.awk;
-      `
+    [ -n "${CLIENTLST}" ]&&CLIENTLST=$(echo "${CLIENTLST}"|awk -v d=$D -v s=$SUBTYPE -v mode=0 -f ${_myPKGBASE_VBOX}/clientserverlst.awk;)
+
+    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "CLIENTLST(PROCESSED-0)=\"${CLIENTLST}\""
+    case $VBOX_MAGIC in
+	VBOX_03*)
+	    local il=;
+	    local il0=;
+	    local il17=;
+	    local il8=;
+	    local il8x=;
+	    local _c=;
+
+	    for il in ${CLIENTLST};do
+		if [ -z "$_c" ];then
+		    local _c=1;
+		    CLIENTLST=;
+		fi
+		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "il=<${il}>"
+
+
+                local _lbl="${il%%;*}"
+		local _pid="${il#*;*;*;*;*;*;*;}";_pid="${_pid%%;*}"
+		if [ -z "${lbl}" ];then
+		    if [ -z "${recurDetect226VBOXLIST}" ];then 
+			recurDetect226VBOXLIST=1;
+			lbl=`fetchLabel4PID ${_pid}`
+		    fi
+		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "lbl =${lbl}"
+		fi
+
+		local _myIP=;
+                local _A0="${il%%;*}"
+
+                #ID
+                local _A1="${il#*;}"
+		local _A1="${_A1%%;*}"
+		local _uu="${il#*;*;}";_uu="${_uu%%;*}"
+		if [ -z "$_A1" -a -n "$_uu" ];then
+		    local _x=$(fetchCTYSFile $_uu)
+		fi
+		if [ -z "$_A1" ];then
+		    _A1=$_x
+		fi
+
+                #TCP
+		local _A2="${il%;*;*;*;*;*;*;*;*;*;*}"
+		local _A2="${_A2##*;}"
+		if [ -z "$_A2" ];then
+		    local _m="${il#*;*;*;}"
+		    local _m="${_m%%;*}"
+		    local _V="${MYLIBEXECPATH}/ctys-macmap.sh ${C_DARGS} -p ${DBPATHLST} -i $_m "
+		    printFINALCALL 2  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_VHOST}"
+
+		    local _t=$(eval $_V)
+		fi
+
+                #IFNAME -Number
+		local _ifn="${il##*;}"
+
+		local _A3="${il#*;*;*;*;}";_A3="${_A3%;*;*;*;*;*}"
+		local _A4="${il#*;*;*;*;*;*;*;*;*;*;*;*;*;}";_A4="${_A4%;*;*;*}";
+		local _exepath="${il#*;*;*;*;*;*;*;*;*;*;*;*;*;*;}";_exepath="${_exepath%;*;*}";
+
+		local _A5="${il%;*}";_A5="${_A5##*;}";
+
+                local _j=;
+		if [ -n "${_pid}" ];then
+		    _j=`cacheGetAttrFromPersistent LAZY "${_pid}" JOBID`
+		    printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "JOBID=${_j}"
+		fi
+
+                local _ctx=;
+                local _hyv=${VBOX_PRODVERS};
+
+		local _curRec="${MYHOST};${_A0};${_A1};${_uu};${_m};${_A3};${_t};${_j};${_ifn};;${_ctx};${_exepath};${_hyv};${_A4};${_A5}"
+		CLIENTLST="${CLIENTLST} $_curRec"
+	    done
+	    ;;
+    esac
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+
     local i=;
     local _myPid=;
     local _myJobID=;
@@ -203,21 +322,26 @@ function listMySessionsVBOX () {
     local arch=;
 
     for i in ${SERVERLST} ${CLIENTLST};do
-	_myPid=${i#*;*;*;*;*;*;*;*;*;}
-	_myPid=${_myPid%%;*}
-	printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "_myPid=${_myPid}"
-	if [ -n "${_myPid}" ];then
-	    _myJobID=`cacheGetAttrFromPersistent LAZY "${_myPid}" JOBID`
-	    printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "_myJobID=${_myJobID}"
-	    cstrg="";
-	    hrx=${VBOX_PRODVERS};
-	    exep=${i%;*;};exep=${exep##*;};
-	    acc=${i%;*;*;};acc=${acc##*;};acc=${acc//on/HVM};
-	    arch=${i%;};arch=${arch##*;};
-	    i="${i%;*;*;*;};${_myJobID}${reserved01};${cstrg};${exep};${hrx};${acc};${arch}";
- 	fi
+# 	_myPid=${il#*;*;*;*;*;*;*;}
+# 	_myPid=${_myPid%%;*}
 
-        i="${MYHOST};${i}"
+# 	printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "_myPid=${_myPid}"
+# 	if [ -n "${_myPid}" ];then
+# 	    _myJobID=`cacheGetAttrFromPersistent LAZY "${_myPid}" JOBID`
+# 	    printDBG $S_VBOX ${D_BULK} $LINENO $BASH_SOURCE "_myJobID=${_myJobID}"
+# 	    _prej=${i}
+
+# 	    _poj=${i}
+
+# 	    cstrg="";
+# 	    hrx=${VBOX_PRODVERS};
+# 	    exep=${i%;*;*;};exep=${exep##*;};
+# 	    acc=${i%;*;*;*;};acc=${acc##*;};acc=${acc//on/HVM};
+# 	    arch=${i%;*;};arch=${arch##*;};
+# 	    i="${i%;*;*;*;};${_myJobID}${reserved01};${cstrg};${exep};${hrx};${acc};${arch}";
+#  	fi
+
+#         i="${MYHOST};${i}"
 	printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "MATCH=${i}"
 	echo "${i}"
     done

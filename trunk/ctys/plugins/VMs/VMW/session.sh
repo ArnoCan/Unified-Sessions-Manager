@@ -355,7 +355,7 @@ function startSessionVMW () {
 		if [ $? -ne 0 ];then
 		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:add to inventory:<$_pname>"
 		    local _mycall="${VMWCALL} ${VMWMGR} -s register '${_pname}'"
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
 		    callErrOutWrapper $LINENO $BASH_SOURCE $_mycall
 		    if [ $? -ne 0 -a $? -ne 20  ];then
                         ABORT=1;
@@ -395,7 +395,7 @@ function startSessionVMW () {
 		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:add to inventory path:<$_pname>"
 		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:as:<$_store>"
 		    local _mycall="${VMWCALL} ${VMWMGR} register '${_store}'"
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_mycall}"
 		    eval "$_mycall"
 		    if [ $? -ne 0 ];then
 			ABORT=1;
@@ -572,11 +572,11 @@ function startSessionVMW () {
  	    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VMW_MAGIC}-CALLSERVER=${_store}"
 	    case ${VMW_MAGIC} in
 		VMW_S2*|VMW_RC)
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER} \"${_store}\""
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER} \"${_store}\""
 		    eval ${CALLSERVER} "\"${_store}\""&>/dev/null&
 		    ;;
 		*)
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER}"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER}"
 		    eval ${CALLSERVER}&>/dev/null&
 		    ;;
 	    esac
@@ -587,27 +587,27 @@ function startSessionVMW () {
  		printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VMW_MAGIC}-CALLCLIENT=${CALLCLIENT}"
 		case ${VMW_MAGIC} in
 		    VMW_WS*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
 			eval ${CALLCLIENT} &
 			;;
 		    VMW_P*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
 			eval ${CALLCLIENT} &
 			;;
 		    VMW_S1*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
 			eval ${CALLCLIENT} &>/dev/null&
 			;;
 		    VMW_RC)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
 			eval ${CALLCLIENT} "${CALLCLIENTARGS}"&>/dev/null&
 			;;
 		    VMW_S2*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
 			eval ${CALLCLIENT} "${CALLCLIENTARGS}"&>/dev/null&
 			;;
 		    *)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
 			eval ${CALLCLIENT} &
 			;;
 		esac
@@ -667,11 +667,11 @@ function startSessionVMW () {
 #		VMW_S2*)
 		VMW_S2*|VMW_RC)
  		    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${CALLCLIENT} ${CALLCLIENTARGS}"
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS:+\"$CALLCLIENTARGS\"}&"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS:+\"$CALLCLIENTARGS\"}&"
 		    eval ${CALLCLIENT} ${CALLCLIENTARGS:+"$CALLCLIENTARGS"}&
 		    ;;
 		*)
-		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} &"
+		    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} &"
 		    eval ${CALLCLIENT} &
 		    ;;
 	    esac
@@ -999,11 +999,11 @@ function vmMgrVMW () {
 		    VMW_WS*)
 			case $(_params) in
 			    gui)
-				printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id"
+				printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id"
 				${VMWMGR} start $_id
 				;;
 			    nogui)
-				printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id nogui"
+				printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id nogui"
 				${VMWMGR} start "$_id" nogui
 				;;
 			    *)
@@ -1018,7 +1018,7 @@ function vmMgrVMW () {
 				gotoHell ${ABORT}
 				;;
 			    nogui)
-				printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id hard"
+				printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id hard"
 				${VMWMGR} $_id start hard
 				;;
 			    *)
@@ -1035,11 +1035,11 @@ function vmMgrVMW () {
 			    nogui)
 				case $_cmd in
 				    START)
-					printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id \"${_store}\""
+					printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start $_id \"${_store}\""
 					eval ${VMWMGR} start "\"${_store}\""
 					;;
 				    RESUME)
-					printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start \"${_store}\""
+					printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} start \"${_store}\""
 					eval ${VMWMGR} start "\"${_store}\""
 					;;
 				esac
@@ -1066,11 +1066,11 @@ function vmMgrVMW () {
 			${VMWMGR} stop $_id
 			;;
 		    VMW_S2*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} stop \"${_store}\""
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} stop \"${_store}\""
 			eval ${VMWMGR} stop "\"${_store}\""
 			;;
 		    VMW_S1*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} $_id stop trysoft"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} $_id stop trysoft"
 			${VMWMGR} $_id stop trysoft
 			;;
 		esac
@@ -1081,7 +1081,7 @@ function vmMgrVMW () {
 		printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:SUSPEND"
 		case $VMW_MAGIC in
 		    VMW_WS*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} suspend $_id"
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} suspend $_id"
 			${VMWMGR} suspend $_id
 			;;
 		    VMW_S1*)
@@ -1110,7 +1110,7 @@ function vmMgrVMW () {
 			${VMWMGR} $_id reset hard
 			;;
 		    VMW_S2*)
-			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} reset \"${_store}\""
+			printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} reset \"${_store}\""
 			eval ${VMWMGR} reset "\"${_store}\""
 #			eval ${VMWMGR} reset "\"${_store}\""&>/dev/null&
 			;;
@@ -1129,15 +1129,15 @@ function vmMgrVMW () {
 		    printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}:Require hypervisor for:POWEROFF"
 		    case $VMW_MAGIC in
 			VMW_WS*)
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} stop $_id"
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} stop $_id"
 			    ${VMWMGR} stop $_id
 			    ;;
 			VMW_S1*)
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} $_id stop hard"
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR} $_id stop hard"
 			    ${VMWMGR} $_id stop hard
 			    ;;
 			VMW_S2*)
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR}  stop \"${_store}\""
+			    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${VMWMGR}  stop \"${_store}\""
 			    eval ${VMWMGR} stop "\"${_store}\""
 			    ;;
 		    esac

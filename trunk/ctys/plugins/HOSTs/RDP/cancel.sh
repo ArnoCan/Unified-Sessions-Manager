@@ -149,8 +149,13 @@ function cutCancelSessionRDP () {
       CHECKPARAM)
 	  ;;
 
-      ASSEMBLE)
-	  ;;
+	ASSEMBLE)
+	    assembleExeccall
+	    ;;
+
+	PROPAGATE)
+	    assembleExeccall PROPAGATE
+	    ;;
 
       EXECUTE)
           if [ -n "${R_TEXT}" ];then

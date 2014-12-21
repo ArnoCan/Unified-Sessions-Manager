@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_018
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_GENERIC_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_GENERIC_ENUMERATE="01.11.008"
+_myPKGVERS_GENERIC_ENUMERATE="01.11.011"
 hookInfoAdd "$_myPKGNAME_GENERIC_ENUMERATE" "$_myPKGVERS_GENERIC_ENUMERATE"
 _myPKGBASE_GENERIC_ENUMERATE="`dirname ${_myPKGNAME_GENERIC_ENUMERATE}`"
 
@@ -245,7 +245,6 @@ function enumerateMySessions () {
  	  if [ -n "`typeset -f enumerateMySessions${y}`" ];then
 	      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE} => ${y}"
 	      if [ "${C_SESSIONTYPE}" == "${y}" -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == "DEFAULT" ];then
-
 		  if [ "${_pkg}" == "1" ];then
 		      local _blacklist=1;
 		      local _ip=;
@@ -256,19 +255,19 @@ function enumerateMySessions () {
 			  fi
 		      done
 		      if [ "${_blacklist}" == "1" ];then
-			  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "IGNORED:\"${_pkg}\"!=\"${y}\""
+			  printINFO 2 $LINENO $BASH_SOURCE 1 "BLACKLISTED:DROPPED:PLUGIN(${y})"
+			  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "BLACKLISTED:DROPPED:PLUGIN(${y})"
 			  continue;
 		      fi
 		  fi
 		  local _stime=`getCurTime`;
 		  _matched=1;
-
 		  local _curServer=`eval echo \\\${${y}_SERVER}`
  		  if [ -n "$_chkEnabled" -a "$_curServer" != ENABLED ];then
-		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "IGNORED:\"${_pkg}\"!=\"${y}\""
+		      printINFO 2 $LINENO $BASH_SOURCE 2 "OPERATIONAL-STATE=DISABLED:DROPPED:PLUGIN(${y})->STATE(${_curServer})"
+		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "OPERATIONAL-STATE=DISABLED:DROPPED:PLUGIN(${y})->STATE(${_curServer})"
 		      continue;
 		  fi
-
 		  printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-${y}-${_stime}--"
 		  if [ -n "$_base" ];then
 		      SESLST="${SESLST} `enumerateMySessions${y} \"${_base}\"`"
@@ -278,16 +277,19 @@ function enumerateMySessions () {
 		  local _ftime=`getCurTime`;
 		  local _duration=`getDiffTime $_ftime $_stime`;
 		  printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-${_duration}"
+		  printINFO 2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-${_duration}"
 	      fi
 	  else
 	      local _ftime=`getCurTime`;
 	      local _duration=`getDiffTime $_ftime $_stime`;
 	      printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-IGNORED"
+	      printINFO 2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-IGNORED"
 	  fi
       done
       local _fsumtime=`getCurTime`;
       local _sumduration=`getDiffTime $_fsumtime $_ssumtime`;
       printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:FINISH-machine-${_ssumtime}-${_fsumtime}-${_sumduration}"
+      printINFO 2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:FINISH-machine-${_ssumtime}-${_fsumtime}-${_sumduration}"
 
       if((_matched==0));then
 	  ABORT=2
@@ -331,6 +333,7 @@ function enumerateMySessions () {
       fi
 
       awk -F';' -v vb="$_VB" -v ip="$_IP" -v dist="$_dist" -v os="$_os" -v ver="$_ver" -v ser="$_ser" \
+	  -v info="$((INF>2))"\
 	  -v reserv="$_reserv"\
 	  -v acc="$_acc" -v hrx="$_hrx" -v exep="$_exep" \
 	  -v vmstate="$_vmstate" -v hyperrel="$_hyperrel" -v stackcap="$_stackcap" -v stackreq="$_stackreq" \
@@ -712,12 +715,12 @@ function enumerateMySessions () {
   fi
 
   #set content default
-  if((_SPORT+_VCP+_VB+_VDSP+_L+_ID+_UU+_MAC+_T+_dist+_distrel+_os+_osrel+_ver+_ser+_cat+_IP+_vmstate+_hyperrel+_stackcap+_stackreq+_arch+_platform+_vram+_vcpu+_contextstrg+_userstr+_sshport+hwcap+hwreq+execloc+reloccap+netname+ifname+ctysrel+netmask+gateway+relay+_exep+_acc+_hrx+_gid+_uid+_reserv+_defcon+_defhosts));then
+  if((_SPORT+_VCP+_VB+_VDSP+_L+_ID+_UU+_MAC+_T+_dist+_distrel+_os+_osrel+_ver+_ser+_cat+_IP+_vmstate+_hyperrel+_stackcap+_stackreq+_arch+_platform+_vram+_vcpu+_contextstrg+_userstr+_sshport+_hwcap+_hwreq+_execloc+_reloccap+_netname+_ifname+_ctysrel+_netmask+_gateway+_relay+_exep+_acc+_hrx+_gid+_uid+_reserv+_defcon+_defhosts==0));then
       printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "Force of ID"
+      _L=1;
+      _T=1;
       _ID=1;
   fi
-
-
 
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "_VCP=$_VCP _VB=$_VB _VDSP=$_VDSP _L=$_L _ID=$_ID _UU=$_UU _IP=$_IP "
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "_MAC=$_MAC _T=$_T _dist=$_dist _os=$_os _ver=$_ver "
@@ -735,7 +738,6 @@ function enumerateMySessions () {
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "reserv=$_reserv defhosts=$_defhosts defcon=$_defcon"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "relay=$_relay _exep=$_exep _acc=$_acc _hrx=$_hrx"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "mstat=$_mstat"
-
 
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE}"
   local SESLST=
@@ -758,7 +760,6 @@ function enumerateMySessions () {
       esac
   else
       local _matched=0;
-
 
       if [ "$_epilogue" == 0 ];then
 	  if [ "$C_CACHEDOP" == 0  ];then

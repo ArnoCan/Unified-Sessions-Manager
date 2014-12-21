@@ -10,9 +10,7 @@ SYNTAX
 ctys-xen-network-bridge
 
 
-
     ctys-xen-network-bridge [options] [<action-arguments>] 
-
 
 DESCRIPTION
 ===========

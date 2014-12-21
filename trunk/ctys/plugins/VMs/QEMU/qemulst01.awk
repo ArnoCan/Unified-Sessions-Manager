@@ -14,6 +14,7 @@
 #
 ########################################################################
 
+
 function ptrace(inp){
     if(!d){
         print line ":" inp | "cat 1>&2"
@@ -21,6 +22,9 @@ function ptrace(inp){
 }
 
 BEGIN{
+#4TEST:d=0;
+    
+
     line=0;
     ptrace("QEMU:Start record with AWK:QEMU:SERVERLST");
     ptrace("mycallpath="mycallpath);

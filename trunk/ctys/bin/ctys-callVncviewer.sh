@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_002
+#VERSION:      01_11_011
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_002
+VERSION=01_11_011
 #DESCRIPTION:
 #  Wrapper schript for calling vncviewer.
 #
@@ -359,6 +359,24 @@ fi
 #    Specific definitions - User-Customizable  from shell      #
 ################################################################
 
+case ${MYOS} in
+    Linux)
+	if [ ! -f $HOME/.vnc/passwd ];then
+	    cp $HOME/.vnc/passwd.realVNC $HOME/.vnc/passwd
+	fi
+	;;
+    FreeBSD|OpenBSD)
+	if [ ! -f $HOME/.vnc/passwd ];then
+	    cp $HOME/.vnc/passwd.tightVNC $HOME/.vnc/passwd
+	fi
+	;;
+    SunOS)
+	if [ ! -f $HOME/.vnc/passwd ];then
+	    cp $HOME/.vnc/passwd.tightVNC $HOME/.vnc/passwd
+	fi
+	;;
+esac
+
 
 if [ "${*}" != "${*//--print/}" ];then
     C_PRINT=1
@@ -403,6 +421,12 @@ X="`cliOptionsAddMissing $CLIDEFAULTS -- $X`"
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
 
 
+if [ -z "${VNCVIEWER_NATIVE}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing vncviewer!"
+    gotoHell ${ABORT}
+fi
+
 OUTPUT="${VNCVIEWER_NATIVE} ${X}"
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "PATH=${PATH}"
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "PWD=${PWD}"
@@ -411,12 +435,12 @@ printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "C_ASYNC=${C_ASYNC}"
 
 
 if [ "${C_ASYNC}" == 0 ];then
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "${OUTPUT}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "${OUTPUT}"
     if [ -z "${C_CHECK}" ];then
 	eval ${OUTPUT}  
     fi
 else
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&"
     if [ -z "${C_CHECK}" ];then
 	OUTPUT="${OUTPUT}"
 	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "EXEC:${OUTPUT} &"
@@ -426,6 +450,15 @@ else
 #exec ${BASHEXE} -c "${OUTPUT}"
 #	exec ${BASHEXE} -c "${OUTPUT}"&
 #
-	exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
+
+	case $MYDIST in
+	    openSUSE)
+		exec ${BASHEXE} -c "${OUTPUT}"
+		;;
+	    *)
+		exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
+		;;
+	esac
+
     fi
 fi

@@ -411,12 +411,12 @@ printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "C_ASYNC=${C_ASYNC}"
 
 
 if [ "${C_ASYNC}" == 0 ];then
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callRDPviewer" "${OUTPUT}"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callRDPviewer" "${OUTPUT}"
     if [ -z "${C_CHECK}" ];then
 	eval ${OUTPUT}  
     fi
 else
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callRDPviewer" "exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&"
+    printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callRDPviewer" "exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&"
     if [ -z "${C_CHECK}" ];then
 	OUTPUT="${OUTPUT}"
 	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "EXEC:${OUTPUT} &"

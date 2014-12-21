@@ -118,6 +118,8 @@ MAC0="MARKER_MAC"
 #VNCACCESSDISPLAY=
 
 
+#@#DEFAULTHOSTS              = "MARKER_DEFAULTHOSTS"
+#@#DEFAULTCONSOLE            = "MARKER_DEFAULTCONSOLE"
 
 
 
@@ -264,8 +266,8 @@ ARCH=${ARCH:-MARKER_ARCH}
 #
 if [ -n "${ARCH}" ];then
     case ${ARCH// /} in
-	x86_64|amd64) CPU="qemu64";;
-	i386|i586|i686) CPU="qemu32";;
+	[xX]86_64|[aA][mM][dD]64) CPU="qemu64";;
+	[iI]386|[iI]586|[iI]686) CPU="qemu32";;
 
 	#anyhow...for suprising pop-ups of x86-types
 	*) CPU="qemu32";;
@@ -305,6 +307,15 @@ TIMEOPT="${TIMEOPT:--localtime} "
 #NIC=${NIC:-pcnet}
 NIC=${NIC:-rtl8139}
 
+
+
+#
+#Arbitrary additional arguments for QEMU:
+#========================================
+#
+#Foreseen for manual configurations.
+#
+ARGSADD=;
 
 
 

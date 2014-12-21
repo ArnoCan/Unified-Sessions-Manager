@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_011
 VERSION=MARKER_VERNO
 #
 #
@@ -354,7 +354,7 @@ while [ -n "$1" ];do
 
         '--instmode')
 	    INSTMODE=;
-	    INSTMODE_SETTINGS=defaults
+	    INSTMODE_SETTINGS=defaults;
 	    ;;
 
         '--initmode')
@@ -605,8 +605,14 @@ fi
 #
 #Network
 #
-_XB=$XENBRDG
-XENBRDG=$(${MYLIBEXECPATH}/ctys-getNetInfo.sh -X --bcx=${XENBRDG})
+if [ -n "${FORCE_THIS_IS_XEN_BRIDGE}" ];then
+    XENBRDG="${FORCE_THIS_IS_XEN_BRIDGE}"
+    _XB=$XENBRDG
+else
+    _XB=$XENBRDG
+    XENBRDG=$(${MYLIBEXECPATH}/ctys-getNetInfo.sh -X --bcx=${XENBRDG})
+fi
+
 if [  -z "$XENBRDG" ];then
     printWNG 1 $LINENO $BASH_SOURCE 1 "Configured bridge(${_XB}) is no Xen bridge, scan for others."
     XENBRDG=$(${MYLIBEXECPATH}/ctys-getNetInfo.sh -X --blx)
@@ -617,7 +623,12 @@ if [  -z "$XENBRDG" ];then
 	printWNG 1 $LINENO $BASH_SOURCE 1 "WARNING:Take the first(${XENBRDG})"
     else
 	ABORT=127
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing bridge."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot find a Xen-bridge, this is possibly due to."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "one of the special configurations. "
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Than just force a defined bridge manual in the"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "\"${_myconf}.ctys\" file."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Force a specific bridge manual when required by:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "->\"FORCE_THIS_IS_XEN_BRIDGE\""
 #	gotoHell ${ABORT}
     fi
 fi
@@ -842,7 +853,7 @@ function prepInstTarget () {
 		else
 		    _EX="${_EX} count=${HDDBOOTIMAGE_INST_BLOCKCOUNT}"
 		fi
-		printFINALCALL $LINENO $BASH_SOURCE "FINAL-INIT-HDD" "${_EX}"
+		printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-INIT-HDD" "${_EX}"
 		if [ "$_check" == "0" ];then
 		    ${_EX}
 		    if [ $? != 0 ];then
@@ -1133,7 +1144,7 @@ if [ "$_print" == "1" ];then
     splitArgs "     " EXECALL ${EXECALL}
 fi
 
-printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${EXECALL}"
+printFINALCALL 0  $LINENO $BASH_SOURCE "FINAL-EXECCALL" "${EXECALL}"
 if [ "$_check" == "0" ];then
     eval "${EXECALL}"
     _ret=$?
