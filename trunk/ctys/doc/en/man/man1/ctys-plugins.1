@@ -185,17 +185,19 @@ Displays a short list of overall states for selected plugins on each target.
 
 
 .nf
-  Hostname  Plugin Accelerator  Version          MAGIC-ID     State
-  --------------------------------------------------------------------
-  acue@ws2  CLI                 01.06.001a09     CLIBASH      ENABLED
-  acue@ws2  RDP                 01.11.007alpha   RDPRD        ENABLED
-  acue@ws2  VNC                 01.10.013        VNCR4        ENABLED
-  acue@ws2  X11                 01.06.001a09     X11          ENABLED
-  acue@ws2  QEMU   QEMU         01.10.013        QEMU_091     DISABLED
-  acue@ws2  VBOX                01.11.006alpha   NOLOC        DISABLED
-  acue@ws2  VMW                 01.11.005        VMW_GENERIC  DISABLED
-  acue@ws2  XEN                 01.10.013        DISABLED     DISABLED
-  acue@ws2  PM     VMX          01.10.008        PM_Linux     ENABLED
+  
+  Hostname Plugin Accelerator Version        MAGIC-ID    State
+  ---------------------------------------------------------------
+  acue@ws2 CLI                01.06.001a09   CLIBASH     ENABLED
+  acue@ws2 RDP                01.11.007alpha RDPRD       ENABLED
+  acue@ws2 VNC                01.10.013      VNCR4       ENABLED
+  acue@ws2 X11                01.06.001a09   X11         ENABLED
+  acue@ws2 QEMU   QEMU        01.10.013      QEMU_091    DISABLED
+  acue@ws2 VBOX               01.11.006alpha NOLOC       DISABLED
+  acue@ws2 VMW                01.11.005      VMW_GENERIC DISABLED
+  acue@ws2 XEN                01.10.013      DISABLED    DISABLED
+  acue@ws2 PM     VMX         01.10.008      PM_Linux    ENABLED
+  
 .fi
 
 
@@ -231,27 +233,27 @@ due to parallel execution.
 
 .nf
   
-  Hostname          | PM  | CLI X11 VNC RDP | KVM  QEMU  VBOX  VMW   XEN
-  ------------------+-----+-----------------+---------------------------
-  root@lab05.soho   | PAE | x   x   x   x   | -    -     -     S2    -  
-  root@lab02.soho   | VMX | x   x   x   x   | -    QEMU  V     -     -  
-  root@hydra.soho   | VMX | x   x   x   x   | -    -     -     -     -  
-  root@delphi.soho  | VMX | x   x   x   x   | -    -     -     S1    -  
-  root@olymp.soho   | VMX | x   x   x   x   | -    -     -     -     -  
-  root@app1.soho    | VMX | x   x   x   x   | -    -     -     -     -  
-  root@app2.soho    | VMX | x   x   x   x   | -    -     -     -     -  
-  root@lab04        | VMX | x   x   x   x   | -    -     -     W7    -  
-  acue@lab04        | VMX | x   x   x   x   | -    QEMU  -     W7    -  
-  vadmin@delphi.soho| VMX | x   x   x   x   | -    -     -     S1    -  
-  acue@lab05.soho   | PAE | x   x   x   x   | -    -     -     S2    -  
-  acue@lab02.soho   | VMX | x   x   x   x   | -    QEMU  V     -     -  
-  acue@delphi.soho  | VMX | x   x   x   x   | -    -     -     S1    -  
-  root@lab03        | PAE | x   x   x   x   | -    -     -     -     HVM
-  root@lab01.soho   | PAE | x   x   x   -   | -    -     -     -     PAR
-  5000@lab01.soho   | PAE | x   x   x   -   | -    -     -     -     -  
-  acue@lab03        | PAE | x   x   x   x   | -    -     -     -     -  
-  acue@app1.soho    | VMX | x   x   x   x   | KVM  KVM   -     -     -  
-  acue@app2.soho    | VMX | x   x   x   x   | KVM  KVM   -     -     -  
+  Hostname          | PM  | CLI X11 VNC RDP | KVM  QEMU  VBOX VMW  XEN
+  ------------------+-----+-----------------+-------------------------
+  root@lab05.soho   | PAE | x   x   x   x   | -    -     -    S2   -  
+  root@lab02.soho   | VMX | x   x   x   x   | -    QEMU  V    -    -  
+  root@hydra.soho   | VMX | x   x   x   x   | -    -     -    -    -  
+  root@delphi.soho  | VMX | x   x   x   x   | -    -     -    S1   -  
+  root@olymp.soho   | VMX | x   x   x   x   | -    -     -    -    -  
+  root@app1.soho    | VMX | x   x   x   x   | -    -     -    -    -  
+  root@app2.soho    | VMX | x   x   x   x   | -    -     -    -    -  
+  root@lab04        | VMX | x   x   x   x   | -    -     -    W7   -  
+  acue@lab04        | VMX | x   x   x   x   | -    QEMU  -    W7   -  
+  vadmin@delphi.soho| VMX | x   x   x   x   | -    -     -    S1   -  
+  acue@lab05.soho   | PAE | x   x   x   x   | -    -     -    S2   -  
+  acue@lab02.soho   | VMX | x   x   x   x   | -    QEMU  V    -    -  
+  acue@delphi.soho  | VMX | x   x   x   x   | -    -     -    S1   -  
+  root@lab03        | PAE | x   x   x   x   | -    -     -    -    HVM
+  root@lab01.soho   | PAE | x   x   x   -   | -    -     -    -    PAR
+  5000@lab01.soho   | PAE | x   x   x   -   | -    -     -    -    -  
+  acue@lab03        | PAE | x   x   x   x   | -    -     -    -    -  
+  acue@app1.soho    | VMX | x   x   x   x   | KVM  KVM   -    -    -  
+  acue@app2.soho    | VMX | x   x   x   x   | KVM  KVM   -    -    -  
   
 .fi
 
@@ -449,15 +451,14 @@ This is software and documentation from \fBBASE\fR package,
 for software see GPL3 for license conditions,
 .IP \(bu 3
 for documents  see GFDL\-1.3 with invariant sections for license conditions.
-.RE
 
-.P
 The whole document \- all sections \- is/are defined as invariant.
+.RE
 
 .P
 For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/man/man1/ctys-plugins.1
+.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/man/man1/ctys-plugins.1
 

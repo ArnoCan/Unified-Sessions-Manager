@@ -21,7 +21,7 @@ November, 2010
 </P>
 <H1>Abstract</H1>
 <P>
-The UnifiedSessionsManager is from beginning on designed for the management of
+The UnifiedSessionsManager is from beginning on designed for the management of 
 embedded services within virtual and physical machines, including the login sessions for both.
 This results in a slightly different concept than of the products which are actually
 designed around the machine in their main focus.
@@ -30,7 +30,7 @@ designed around the machine in their main focus.
 <P>
 Thus the concept of the UnifiedSessionsManager avoids - whenever possible - the application of
 machine oriented attributes, but presents a common generic task oriented interface.
-Where the user could be for example either an ordinary user with restricted permissions, or
+Where the user could be either an ordinary user with restricted permissions, or
 an administrator with advanced permissions.
 Therefore the interface is designed as an task oriented User-Centric interface, encapsulating  technical
 details whenever possible.
@@ -51,15 +51,17 @@ details whenever possible.
  <br /> 
 </P>
 <P>
-The overall resulting functionality is positioned as a Service-Manager, and offers specific features
+The overall resulting functionality is positioned as a personal Service-Manager, and offers specific features
 for the ease of the handling of combined services.
-The presented interface for this is kept unique by the definition of a superset of attributes.
+The presented interface for this is kept unique by the definition of a superset of partly optional attributes.
 Thus the neatless view onto a pool of services with various available features - v-components - is provided.
  <br /> 
 </P>
 <P>
 The current version features particularly the desktop based assembly and automation of arbitrary services,
-following versions will emphasize the VM based assembly.
+following versions will emphasize the VM based assembly. Either by reference, or by containment of nested VMs - 
+stacked-VMs - VSTACKs.
+ <br /> 
  <br /> 
  <br /> 
 </P>
@@ -68,21 +70,19 @@ following versions will emphasize the VM based assembly.
 The first step to define a target structure for the requirements of
 a 'personal Cloud-Management' application is the definition of an
 overall concept for the major day-by-day usage embedded into a
-heterogeneous IT lanscape.
+heterogeneous IT landscape.
  <br /> 
 </P>
 <P>
 Related to the CloudServices the evolution of the basically
-quite similar 
+quite similar progress of the 
 <B>internet/intranet</B>
 could be used as a
 <B>pattern.</B>
-</P>
-<P>
 This was developed by using the term 'internet' for the 'geek-period',
 the term 'intranet' for the migration into the high-priced enterprise
 customers. Finally ther term 'internet' is used for the conversion
-into the publich volume market.
+into the public volume market.
 Each of the overlapping periods had it's specific product policies and
 design requirements.
  <br /> 
@@ -113,8 +113,7 @@ a <B>personal service management application</B> - <B>A Personal CloudComposer</
 </P>
 <P>
 The UnifiedSessionsManager is focusing on the personal management and application
-of embedded services within the the machines.
-This slight implication implies a considerable difference throughout the whole interface and software design.
+of embedded services within the machines.
 The contained services are represented by specialized applications, either as a single application, or a
 set of grouped applications.
  <br /> 
@@ -149,12 +148,12 @@ Thus the UnifiedSessionsManager is targeted as a <B>Personal Service-Management 
  <br /> 
 </P>
 <P>
-The first emphasis is the composition of assembled desktops by varios network services, which are actually 
+The first emphasis is the composition of assembled desktops by various network services, which are actually 
 ordinary logins to machines with specific software sets. Therefore the script interface with GROUPS and MACROs
 is provided first. Thus any user could easily design his personal complex service compositions 
 including the frontend.
 Optionally by dialogue, or for batch-repetition by the creation of a few simple bash scripts
-based on remote-logins and execution.
+based on remote-logins and remote-execution.
  <br /> 
 </P>
 <P>
@@ -196,8 +195,8 @@ The following test demonstrated the instanciation of multiple entities within ea
 The scope of applicability comprises the neatless application by ordinary users as well, as by administrators 
 with advanced permissions.
 The access control is almost solely delegated to the system facilities - here OpenSSH, Kerberos, LDAP, and sudo
-in combination with file access permission either by UNIX only or by Posix-Attributes.
-This could be extended by SELinux when required and running on Linux.
+in combination with file access permissions either by UNIX only or by Posix-Attributes.
+This could be extended by SELinux and/or AFS when required and running on Linux.
  <br /> 
 </P>
 <P>
@@ -209,6 +208,7 @@ appliance structure based on their contained guest OS attributes.
 The first full feature set and target direction of the
 UnifiedSessionsManager was described 02/2008 within the version 
 01.03.003a01 available from sourceforge.net/berlios.org.
+ <br /> 
 </P>
 <P>
 The first basically stable applicable VSTACK feature set for the VM-based
@@ -222,7 +222,8 @@ sourceforge.net/berlios.org.
 <P>
 These comprise the definition and refrence implementation for the automatic boot and shutdown of VSTACKs with multiple
 instances on each layer forming a tree structure.
-This particularly requires the bottom-up startup and top-down shutdown of the mashed runtime dependencies.
+This particularly requires the controlled bottom-up startup and top-down shutdown of the mashed runtime dependencies.
+ <br /> 
  <br /> 
  <br /> 
 </P>
@@ -236,7 +237,7 @@ technical 'administration functionality' only. Either for the
 systemsadministrator in a more comprising but granular feature scope,
 or for the user with a more restricted and abstract feature set.
 Whereas the UnifiedSessionsManager emphasizes the contained applications
-and shifting the focus to the provided services which are represented
+and shifting the focus to the provided services, which are represented
  by sets of applications.
  <br /> 
 </P>
@@ -258,7 +259,7 @@ The stacked VMs - <B>VSTACKS</B> - even offer <B>a generic assembly feature</B>,
 where the contained services could be either <B>referenced</B> 
 only, or physically located within the superior VM by <B>containment</B>. 
 This actually flexible interface is based on TCP/IP, like CORBA. 
-The distinction to SOA is the <B>completely contained runtime-environment</B>
+The distinction to the current SOA pattern is the <B>completely contained runtime-environment</B>
 within each v-component, offering almost independent assembly modules.
  <br /> 
 </P>
@@ -279,60 +280,69 @@ level with extensive configuration features.
  <br /> 
 </P>
 <P>
-The following is just a gimmick, but the
+The following example is just a gimmick, but the
 implementation of 'moving and resizing appliances' on your desktop with animated
-VM and HOSTs Consoles shows the available configuration and customization capabilities. The <B>-g</B> option is 
+VM and HOSTs Consoles shows the available configuration and customization capabilities. The 
+<B><A HREF="../html/man1/ctys.html#optg"> -g</A></B>
+option is 
 a superset of the <B>--geometry</B> option of X11.
 The following examples demonstrate the neatless interface, where the type of the session is going to
 be deleted for unambitiously defined entities based on a pre-created inventory database.
  <br /> 
  <br /> 
-For <B>QEMU/KVM</B>:
+For 
+<B><A HREF="../html/man1/ctys-QEMU.html"> QEMU/KVM</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t QEMU -create=l:myApp,reconnect -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t QEMU -create=l:myApp,reconnect -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
-For <B>VirtualBox</B>(TM):
+For 
+<B><A HREF="../html/man1/ctys-VBOX.html"> VirtualBox(TM)</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t VBOX -create=l:myApp,reconnect -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t VBOX -create=l:myApp,reconnect -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
-For <B>VMWare-Server-1/2+Player-1/2/3+WS-6/7</B>(TM) - next <B>VMWare-ESX+ESXi</B>(TM) :
+For 
+<B><A HREF="../html/man1/ctys-VMW.html"> VMWare-Server-1/2+Player-1/2/3+WS-6/7(TM) - next VMWare-ESX+ESXi(TM)</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t VMW -create=l:myApp,reconnect -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t VMW -create=l:myApp,reconnect -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
-For <B>Xen</B> - next <B>XenServer</B>(TM) :
+For
+<B><A HREF="../html/man1/ctys-XEN.html"> Xen - next XenServer(TM)</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t XEN -create=l:myApp,reconnect -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t XEN -create=l:myApp,reconnect -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
-For <B>RDP</B>-Console:
+For
+<B><A HREF="../html/man1/ctys-RDP.html"> RDP-Console</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t RDP -create=l:myApp -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t RDP -create=l:myApp -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
-For <B>VNC</B>-Desktop:
+For
+<B><A HREF="../html/man1/ctys-VNC.html"> VNC-Console</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t VNC -create=l:myApp -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t VNC -create=l:myApp -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
-And similarly for <B>X11</B>-Console:
+And similarly for 
+<B><A HREF="../html/man1/ctys-X11.html"> X11-Console</A></B>:
 </P>
 <PRE>
-    for i in 10 20 30;do ctys -t X11 -create=l:myApp -g $ix100+$i+100;done
+    for i in 10 20 30;do ctys -t X11 -create=l:myApp -g ${i}x100+${i}+100;done
 </PRE>
 <P>
  <br /> 
@@ -348,6 +358,7 @@ The presented desktops and workspaces on the home page are
 just started within seconds by an ordinary Gnome menu entry - even
 though partly containing dozens of VMs on several hosts and additionaly
 several guest logins by VNC, RDP, X11, etc..
+ <br /> 
  <br /> 
  <br /> 
 </P>
@@ -382,15 +393,15 @@ These  have quite similar algorithms for execution environment constraints.
 The typical constraint migt be a specific hardware or a specific
 set of software to be installed in the requested machine founding a service
 for a specific task.
-The constraint apply to the physical access machine of a user in case of e.g. a lable-printer as well.
+The constraint apply to the physically accessed machine of a user, e.g. requiring a locally attached label-printer.
  <br /> 
 </P>
 <P>
 A typical constraint for the assignment of a service aspects is a personal
 printer. For employees with a lot of 1-2 page printouts a department
-printer may not be suitable, or the maentioned example of a label-printer attached to the physical workstation
+printer may not be suitable, also the previous example of a label-printer attached to the physical workstation
 may require a specific software including drivers.
-For other tasks the lable-printer may not be required.
+For other tasks the label-printer may not be required.
  <br /> 
 </P>
 <P>
@@ -408,7 +419,7 @@ contained applications.
 <P>
 So when assigning the VM to a specific PM from a pool of available,
 the contained application has to be recognize by the balancer. 
-Particularly when a market for appliances as lean applications evolves in broader range.
+Particularly when a market for appliances as lean applications evolves in a broader range.
  <br /> 
 </P>
 <P>
@@ -421,34 +432,151 @@ But the desktop based integration of distributed services is already present and
 <P>
 The next aspect is the security related to the access permissions.
 The administrator is supported for this by system features for user
-permissions and various features of the UnifiedSessiosnManager like
+permissions and various features of the UnifiedSessionsManager like
 the provisioning of individual database sets, which comprise the
 'known as accessible' VMs.
 So due to the basic approach of application of available system services, the user
 access could be provisioned by standard mechanisms.
  <br /> 
  <br /> 
+ <br /> 
 </P>
-<H1>Open Issues</H1>
+<H1>Current State and Open Issues</H1>
 <P>
-The main enhancements planned to be implemented and added to the service concept are:
+The implementation for now is - due to the typical evolution from an applied solution - based on scripting by bash and Python.
+The emphasis was set on a modular expandable and replaceable software architecture, thus providing the
+basic structure for the furture migration.
+Even though, the current available implementation fits the requirements for individual usage and is fully production ready,
+the application within environments for a huge number of users may cause some performances degradation.
+Also some feature enhancement is required.
+Thus based on the current implementation the key challanges will be worked on now for consolidation 
+towards a major enterprise environment.
+ <br /> 
+</P>
+<P>
+The main enhancements planned to be implemented and added to the service concept first are:
 </P>
 <OL>
 <LI>Recoding.
 <LI>Introduction of optional server deamons.
 <LI>Introduction of LDAP based shared data.
 <LI>Introduction of an optional graphical user interface.
+<LI>Introduction of Microsoft-Windows(TM) based features and agents.
 <P></P>
  <br /> 
 </OL>
 
+<P>
+Therefore some funding and probably support is required.
+</P>
+<P>
+ <br /> 
+ <br /> 
+ <br /> 
+</P>
 <H1>SEE ALSO</H1>
 <P>
-<I><A HREF="../man1/ctys.html"> ctys(1)</A></I>
+<B>Datasheets:</B>
+ <br />
+<I><A HREF="../intro/datasheet-overview-en-03.02.002.pdf"> UnifiedSessionsManager - Virtualisation and Cloud-Computing as a personal Workspace</A></I>
+ <br />
+</P>
+<P>
+<B>Manuals:</B>
+ <br />
+<I><A HREF="../html/man1/ctys.html"> ctys(1)</A></I>
 ,
-<I><A HREF="../pdf/ctys-howto-online.pdf"> HowTo</A></I>
+<I><A HREF="../html/man1/ctys-distribute.html"> ctys-distribute(1)</A></I>
 ,
-<I><A HREF="../pdf/ctys-user-manual-online.pdf"> User-Manual</A></I>
+<I><A HREF="../html/man1/ctys-createConfVM.html"> ctys-createConfVM(1)</A></I>
+,
+<I><A HREF="../pdf/ctys-command-reference-online.pdf"> Command-Reference(*)</A></I>
+,
+<I><A HREF="../pdf/ctys-howto-online.pdf"> HowTo(*)</A></I>
+,
+<I><A HREF="../pdf/ctys-user-manual-online.pdf"> User-Manual(*)</A></I>
+</P>
+<P>
+ <br />
+<B>Use-Cases:</B>
+ <br />
+</P>
+ <UL>
+ <LI><B>Desktop Automation - Desktop-Level Service Composition:</B>
+ <br />
+<I><A HREF="../html/man7/ctys-configuration-Gnome.html"> ctys-configuration-Gnome(*)</A></I>
+ <br />
+ <br />
+ <LI><B>Plugins:</B>
+ <br />
+<I><A HREF="../html/man7/ctys-uc-CLI.html"> ctys-uc-CLI</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-PM.html"> ctys-uc-PM</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-QEMU.html"> ctys-uc-QEMU(*)</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-RDP.html"> ctys-uc-RDP</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-VBOX.html"> ctys-uc-VBOX(*)</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-VMW.html"> ctys-uc-VMW(*)</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-X11.html"> ctys-uc-X11</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-XEN.html"> ctys-uc-XEN(*)</A></I>
+ <br />
+ <br />
+ <LI><B>GuestOSs:</B>
+ <br />
+ <P></P>
+<I><A HREF="../html/man7/ctys-uc-CentOS.html"> ctys-uc-CentOS(*)</A></I>
+,
+<I>ctys-uc-Debian(*)</I>
+,
+<I>ctys-uc-Enterprise-Linux(*)</I>
+,
+<I>ctys-uc-FreeBSD(*)</I>
+,
+<I>ctys-uc-Mandriva(*)</I>
+,
+<I>ctys-uc-OpenBSD(*)</I>
+,
+<I>ctys-uc-OpenSUSE(*)</I>
+,
+<I>ctys-uc-RHEL(*)</I>
+,
+<I>ctys-uc-Ubuntu(*)</I>
+ <P></P>
+ <br />
+<I><A HREF="../html/man7/ctys-uc-Android.html"> ctys-uc-Android(*)</A></I>
+,
+<I><A HREF="../html/man7/ctys-uc-MeeGo.html"> ctys-uc-MeeGo(*)</A></I>
+ <br />
+ <br />
+<I>ctys-uc-QNX(*)</I>
+,
+<I>ctys-uc-uCLinux(*)</I>
+ <P></P>
+ <br />
+<I>ctys-uc-MS-Windows-NT(*)</I>
+,
+<I>ctys-uc-MS-Windows-2000(*)</I>
+,
+<I>ctys-uc-MS-Windows-2003(*)</I>
+,
+<I>ctys-uc-MS-Windows-2008(*)</I>
+,
+<I>ctys-uc-MS-Windows-7(*)</I>
+,
+<I>ctys-uc-MS-Windows-XP(*)</I>
+ </UL>
+
+<P>
+ <br />
+ <br />
+(*) Contained in the DOC-Package only by CCL-3.0.
+ <br />
+ <br />
 </P>
 <P>
  <br />
@@ -515,5 +643,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i UnifiedSessionsManager-ServiceManagement.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/intro/UnifiedSessionsManager-ServiceManagement.html -->
+<!-- cmdline: txt2tags -t html -i UnifiedSessionsManager-ServiceManagement.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/intro/UnifiedSessionsManager-ServiceManagement.html -->
 </BODY></HTML>

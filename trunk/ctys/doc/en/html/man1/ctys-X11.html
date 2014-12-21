@@ -72,6 +72,10 @@ seems to be redundant, which is actually not the case.
 The main <B>difference betweend</B> the <B>CMD</B> and <B>SHELL</B> suboptions is the behaviour.
 Whereas the SHELL just overlays the standard shell within a Session - here within a defined CONSOLE,
 the CMD suboption executes a command from within the executed shell - either the standard shell, or a pre-set custom shell.
+</P>
+<P>
+Additional information containing use-cases with application examples is available from
+ <b><a  href="../man7/ctys-uc-X11.html" >ctys-uc-X11</a></b>.
  <br /> 
  <br /> 
 <br />
@@ -82,12 +86,12 @@ the CMD suboption executes a command from within the executed shell - either the
 </DL>
 
 <DL>
-<DT><b><a  href="./ctys.html#optCANCEL" >CANCEL</a></b></DT><DD>
+<DT><b><a  href="./ctys.html#optCANCEL" >-a CANCEL</a></b></DT><DD>
 Not applicable.
 <br />
 <br />
 <P></P>
-<DT><b><a  href="./ctys.html#optCREATE" >CREATE</a></b></DT><DD>
+<DT><b><a  href="./ctys.html#optCREATE" >-a CREATE</a></b></DT><DD>
 <PRE>
   
   CREATE=&lt;machine-address&gt;[,]
@@ -105,33 +109,25 @@ Not applicable.
     [(TITLEKEY:&lt;key-name-label&gt;|NOTITLE)]
   
 </PRE>
-</DL>
-
-<UL>
-<LI><B>&lt;machine-address&gt;</B>
-<br />
+<P></P>
+ <DL>
+ <DT><b><a  href="../man7/ctys-common-addresssyntax.html#machine-address" >&lt;machine-address&gt;</a></b></DT><DD>
 The LABEL suboption is here the only supported and
 mandatory part.
-<P></P>
-<LI><B>&lt;callopts&gt;</B>
-<br />
+ <P></P>
+ <DT><B>&lt;callopts&gt;</B></DT><DD>
 Refer to common options parts description.
-</UL>
-
- <UL>
- <LI><B>CD:&lt;working-directory&gt;</B>
-<br />
+ <P></P>
+ <DT><B>CD:&lt;working-directory&gt;</B></DT><DD>
 Change current working directory for the started command.
 This provides for example the preconfiguration of specific work-sets,
 where each terminal could be opened for a specific directory.
  <P></P>
- <LI><B>CMD:&lt;cmd&gt;</B>
-<br />
+ <DT><B>CMD:&lt;cmd&gt;</B></DT><DD>
 Refer to common options parts description.
 The CMD could be provided alternatively to a fixed CONSOLE.
  <P></P>
- <LI><B>CONSOLE:XTERM|GTERM|EMACS|EMACSA</B>
-<br />
+ <DT><B>CONSOLE:XTERM|GTERM|EMACS|EMACSA</B></DT><DD>
 A fixed type of a CONSOLE, folowing types are supported.
  <P></P>
   <UL>
@@ -149,38 +145,29 @@ Starts an emacs and opens a "shell" buffer.
 Starts an emacs and opens an "ansi-term" buffer.
   <P></P>
   </UL>
- <LI><B>(DH|SH)</B>
-<br />
+ <DT><B>(DH|SH)</B></DT><DD>
 Sets a double-hyphen or a single-hyphen for call
 arguments. Where the single hyphen e.g. is required for
 old style X11 utility options, the double-hyphen for
 new options style of Gnome.
  <P></P>
- <LI><B>NOTITLE</B>
-<br />
+ <DT><B>NOTITLE</B></DT><DD>
 Suppresses the generation of title either from LABEL, or from default.
- <P></P>
 Be aware, that dynamic sessions like X11 without an LABEL visible by
 ps, are not - or just limited - recognized by LIST action. 
 Thus the only reliable support for sessions started with this flag is the
 start itself.
  <P></P>
- <LI><B>SHELL|S:&lt;shell&gt;</B>
-<br />
+ <DT><B>SHELL|S:&lt;shell&gt;</B></DT><DD>
 Refer to common options parts description.
  <P></P>
- </UL>
-
-<UL>
-<LI><B>STUBMODE|STUB[:on]</B>
-<br />
+ <DT><B>STUBMODE|STUB[:on]</B></DT><DD>
 The STUBMODE suppresses the remote execution of the full ctys set, instead
 just a remote shell by a simple SSH call is executed.
 This could be utilized particularly for sessions to machines without an installed
 ctys.
-<P></P>
-<LI><B>TITLEKEY:&lt;title-name-key&gt;</B>
-<br />
+ <P></P>
+ <DT><B>TITLEKEY:&lt;title-name-key&gt;</B></DT><DD>
 Alters the options keyword to be used to set the title of an Xwindow, which is
 set by default to "title".
 Some older applications, like Xclock support different, e.g. "name" as
@@ -188,17 +175,17 @@ options keyword only.
 Due to the crucial role of the window title, which is the LABEL, this
 approach should be prefered when "title" is not supported.
 Do use NOTITLE only if definetly unavoidable.
-<P></P>
-<LI><B>&lt;xopts&gt;</B>
-<br />
+ <P></P>
+ <DT><B>&lt;xopts&gt;</B></DT><DD>
 Refer to common options parts description.
-</UL>
+ </DL>
+</DL>
 
 <DL>
 <DT>_</DT><DD>
 <P></P>
-A specific exeception to the sysnchronous character of an
-CLI shell occurs, when multiple execution instaces are
+A specific exception to the sysnchronous character of an
+X11 shell occurs, when multiple execution instaces are
 addressed by the arguments of current call. When the "-b
 off" option for background a.k.a asynchronous operations
 is selected, the standard synchronous foreground operation
@@ -218,11 +205,11 @@ previous executed target options with the global options.
 <br />
 </P>
 <DL>
-<DT><b><a  href="./ctys.html#optENUMERATE" >ENUMERATE</a></b></DT><DD>
-Not applicable to CLI.
+<DT><b><a  href="./ctys.html#optENUMERATE" >-a ENUMERATE</a></b></DT><DD>
+Not applicable to X11.
 <P></P>
 <br />
-<DT><b><a  href="./ctys.html#optLIST" >LIST</a></b></DT><DD>
+<DT><b><a  href="./ctys.html#optLIST" >-a LIST</a></b></DT><DD>
 Almost the same output as common standard, with following
 changes in semantics.
 <P></P>
@@ -244,9 +231,18 @@ uuid, mac, dsp, cp, sp
 </P>
 <DL>
 <DT><b><a  href="./ctys.html#optL" >-L &lt;location&gt;</a></b></DT><DD>
-The location provides DISPLAYFORWARDING and CONNECTIONFORWARDING.
+The location provides 
+<a href="../../images/dispforwarding.png" >
+DISPLAYFORWARDING
+</a> -
+and 
+<a href="../../images/connforwarding.png" >
+CONNECTIONFORWARDING
+</a>
+.
+CONNECTIONFORWARDING.
 In case of CONNECTIONFORWARDING the terminal is executed locally, whereas a
-remotesession is opend from within the contained shell.
+remotesession is opened from within the contained shell.
 In case of additional STUBMODE the shell is a lean SSH login only.
 <br />
 <br />
@@ -330,11 +326,10 @@ This is software and documentation from <B>BASE</B> package,
 <UL>
 <LI>for software see GPL3 for license conditions,
 <LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+<br />  
+The whole document - all sections - is/are defined as invariant.
 </UL>
 
-<P>
-The whole document - all sections - is/are defined as invariant.
-</P>
 <P>
 For additional information refer to enclosed Releasenotes and License files.
 </P>
@@ -344,5 +339,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys-X11.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/html/man1/ctys-X11.html -->
+<!-- cmdline: txt2tags -t html -i ctys-X11.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/html/man1/ctys-X11.html -->
 </BODY></HTML>

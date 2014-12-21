@@ -414,6 +414,7 @@ The user to be used for native access to the &lt;action-target&gt;.
   [PING:(OFF|&lt;#repetition&gt;%&lt;sleep&gt;)][,]
   [SSHPING:(OFF|&lt;#repetition&gt;%&lt;sleep&gt;)][,]
   [STACKCHECK:&lt;stack-check&gt;][,]
+  [(STUBMODE|STUB)[:ON]][,]
   [(VNCDESKIDLIST|VDIL):&lt;list-of-custom-ids&gt;][,]
   [WAITC:&lt;timer&gt;][,]
   [WAITS:&lt;timer&gt;][,]
@@ -712,7 +713,6 @@ error state is performed. Therefore a new client is started.
 The CONSOLE supports a common user access facility, which could be
 an ordinary CLI interface to be used within a shell, as well as a
 VNC based remote desktop accesible from a X11 based local desktop.
-<P></P>
 The main distinction between a CONSOLE and the HOSTs access is the
 direct and native access of a CONSOLE to a hypervisor facility,
 whereas a HOSTs session is an ordinary full-scale login into the
@@ -723,7 +723,6 @@ type of local or remote frontend could be provided by combining
 DISPLAYFORWARDING, CONNECTIONFORWARDING and an explicit call by CMD 
 suboption of CLI or X11 plugin.
 For examples refer to CLI-Examples and X11-Examples.
-<P></P>
 Anyhow, for now the following console types are supported for the
 various plugins as preconfigured enumerations.
 <br />
@@ -1167,6 +1166,12 @@ context.
 </PRE>
 for additional information refer to STACKCHECK-REF
 and to STACKEDSESSIONS-REF.
+<P></P>
+<DT><B>STUBMODE|STUB[:on]</B></DT><DD>
+The STUBMODE suppresses the remote execution of the full ctys set, instead
+just a remote shell by a simple SSH call is executed.
+This could be utilized particularly for sessions to machines without an installed
+ctys.
 </DL>
 
 <DL>
@@ -2586,32 +2591,56 @@ the internal job control, which should avoided.
   
 </PRE>
 <P></P>
-The operations of ctys utilize special virtual-nameservice information where this 
-option controls the usage and selection of the distributed caches at the local and/or remote site.
+The operations of ctys utilize special virtual-nameservice information which optionally could be
+read from the inventory database.
+Either from the local host, or the remote hosts allocated local database.
+This option controls the usage and selection of the location of these distributed caches at the local and/or remote site.
 <P></P>
-Even though for performance only aspects the usage of cached data could be
-suppressed, for the utilisation of stacked VMs the availability of the cache facility is mandatory.
+ <br /> 
+ <br /> 
 <P></P>
+<center><img src="../../images/distributedcaches.png" width="60%"  /> </center> 
+</DL>
+
+<TABLE ALIGN="center" CELLPADDING="4">
+<TR>
+<TH>Distributed Caches</TH>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+ <br /> 
+</P>
+<P>
+Even though the considerable gain of performance by usage of cached data could be abandoned,
+the availability of the cache facility is mandatory required for the utilisation of stacked VMs.
+This is due to required information of the contained environment, which is the runtime environment
+of the nested VM.
+</P>
+<P>
 The UnifiedSessionsManager itself is designed as a distributed
 client-server system operating itself by distributing it's tasks to
 the managed entities, and propagation of the required states within the
 vertical stack-dependencies.
 For this tasks at almost each point of operations ctys requires access
 data for it's managed objects.
-<P></P>
+</P>
+<P>
 Therefore the UnifiedSessionsManager supports a distributed cache model
 consisting of multiple cache databases - cacheDBs - which has to be
 in sync if present, atleast might not contain inconsistent data.
 Partly present data will be handeled by match-priority.
 Alternatively the filesystem is scanned for available configuration
 files of VMs, once the execution target is entered.
-<P></P>
-The following flags are supported in order of control which
-nameservice-caches has to be used, or ignored.
-The default behaviour is to use "BOTH" caches, and to scan the
+</P>
+<P>
+The following flags are supported in order of control for the selection of
+the nameservice-caches to be used, or ignored.
+The default behaviour is to use "BOTH" caches optionally, and to scan the
 filesystem on the execution target if no cache-hit occurs.
 For additional information refer to Section "Distributed Nameservice and CacheDB" 
-<P></P>
+</P>
  <UL>
  <LI><B>BOTH</B>
  <br /> 
@@ -2645,7 +2674,8 @@ For additional information refer to Section "Distributed Nameservice and CacheDB
   supplied entries.
  <P></P>
   The entry available in the local cache is resolved to a fully qualified
-  &lt;machine-address&gt; with all of it's actually present parts, and
+ <b><a  href="../man7/ctys-common-addresssyntax.html#machine-address" >&lt;machine-address&gt;</a></b>
+with all of it's actually present parts, and
   inserted as the first argument to the relevant ACTION of the current
   job from the internal schedular, before the local/remote task is
   finally executed.
@@ -2653,7 +2683,8 @@ For additional information refer to Section "Distributed Nameservice and CacheDB
   and may lead to desired and/or unintended deviation from the local
   contents of the cacheDB.
  <P></P>
-  Anyhow, the input used for evaluation of the &lt;machine-address&gt;
+  Anyhow, the input used for evaluation of the 
+ <b><a  href="../man7/ctys-common-addresssyntax.html#machine-address" >&lt;machine-address&gt;</a></b>
   from the cacheDB should be in sync.
  <P></P>
  <LI><B>OFF</B>
@@ -2678,7 +2709,6 @@ For additional information refer to Section "Distributed Nameservice and CacheDB
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optC" />
@@ -3936,11 +3966,10 @@ This is software and documentation from <B>BASE</B> package,
 <UL>
 <LI>for software see GPL3 for license conditions,
 <LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+<br />  
+The whole document - all sections - is/are defined as invariant.
 </UL>
 
-<P>
-The whole document - all sections - is/are defined as invariant.
-</P>
 <P>
 For additional information refer to enclosed Releasenotes and License files.
 </P>
@@ -3950,5 +3979,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/html/man1/ctys.html -->
+<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/html/man1/ctys.html -->
 </BODY></HTML>

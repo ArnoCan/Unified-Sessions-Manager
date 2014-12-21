@@ -29,7 +29,8 @@ and remote filesystems and collecting the information of detected
 VMs into a local ASCII file\-database.
 
 .P
-The access to VMs is supported by the full scope of the \fB<machine\-address>\fR,
+The access to VMs is supported by the full scope of the 
+\fB<machine\-address>\fR,
 thus e.g. a user defined LABEL as a shortcut\-alias could be used.
 The XEN plugin is "\fBVM\-STACK safe\fR" as it handles running embedded virtual machines
 and emulators by propagating state change events(e.g. SHUTDOWN) of the execution platform to
@@ -44,13 +45,20 @@ thus no furter parameters for version distinction are required.
 Current version supports the server versions 3.x.
 Updates will be available soon.
 
+.P
+Additional information for installation is available from 
+\fBctys\-configuration\-XEN\fR,
+information containing use\-cases with application examples is available from
+\fBctys\-uc\-XEN\fR.
+
 .SS OPTIONS
 .TP
 \fB\-a <action>\fR
 
 .P
 For the complete Syntax refer to the depicted generic superset 
-within the call\-framework \fBctys(1)\fR.
+within the call\-framework 
+\fBctys(1)\fR.
 
 .TP
 \fB\-a CANCEL\fR
@@ -67,6 +75,7 @@ CONSOLE types can \- whereas some cannot \- be applied.
 .RS
 .IP \(bu 3
 \fBCONSOLE:(CLI|XTERM|GTERM|EMACS|VNC|NONE)\fR
+
 The appropriate settings for the choosen console has to be
 prepared within the related config file.
 
@@ -79,12 +88,12 @@ could be set as default too.
 
 .TS
 center, allbox, tab(^); cllrl.
- \fBNBSP\fR^\fBNBSP\fR^\fBXTERM\fR^\fBNBSP\fR^\fBNBSP\fR
- \fBNBSP\fR^\fBNBSP\fR^\fBGTERM\fR^\fBNBSP\fR^\fBNBSP\fR
- \fBNBSP\fR^\fBNBSP\fR^\fBEMACS\fR^\fBNBSP\fR^\fBNBSP\fR
- \fBNBSP\fR^\fBNBSP\fR^\fBEMACSM\fR^\fBNBSP\fR^\fBNBSP\fR
- \fBNBSP\fR^\fBNBSP\fR^\fBEMACSA\fR^\fBNBSP\fR^\fBNBSP\fR
- \fBNBSP\fR^\fBCLI\fR^\fBEMACSAM\fR^\fBVNC\fR^\fBNONE\fR
+ \fB \fR^\fB \fR^\fBXTERM\fR^\fB \fR^\fB \fR
+ \fB \fR^\fB \fR^\fBGTERM\fR^\fB \fR^\fB \fR
+ \fB \fR^\fB \fR^\fBEMACS\fR^\fB \fR^\fB \fR
+ \fB \fR^\fB \fR^\fBEMACSM\fR^\fB \fR^\fB \fR
+ \fB \fR^\fB \fR^\fBEMACSA\fR^\fB \fR^\fB \fR
+ \fB \fR^\fBCLI\fR^\fBEMACSAM\fR^\fBVNC\fR^\fBNONE\fR
  CONNECTIONFORWARDING^\-^\-^X^X
  DISPLAYFORWARDING^X^X^X^X
  SERVERONLY^\-^X^\-^X
@@ -104,33 +113,26 @@ center, tab(^); l.
 .TE
 
 
-.nf
-  X)   Supported.
-  
-  A.)  Supported, but will block the call-terminal 
-       for the whole session, so might not be used 
-       from a single-console environment.
-  B.)  Blocks the console for other calls, thus 
-       allows for bulk targets serial execution
-       only.
-  M.)  Mandatory, but could be suppressed with 
-       "-z NOPTY" when a terminal with some 
-       drawbacks is sufficient. One of specific
-       than is that the password will be echoed 
-       for some systems in cleartext, anyhow as 
-       a lonely night-rider it might not hurt 
-       you.
-.fi
+.TS
+center, tab(^); l.
+ X)   Supported.
+ A.)  Supported, but will block the call\-terminal for the whole session,
+       so might not be used from a single\-console environment.
+ B.)  Blocks the console for other calls, thus allows for bulk targets
+       serial execution only.
+ M.)  Mandatory, but could be suppressed with "\-z NOPTY" when a terminal
+       with some drawbacks is sufficient. One of specific than is that the
+       password will be echoed for some systems in cleartext, anyhow as
+       a lonely night\-rider it might not hurt you.
+.TE
 
 
 .TP
 _
-
 Types of CONSOLE to be applied depends on the \fB\-b\fR
 parameter for background execution too.
 
 The following behaviour applies:
-
 .RS
 .IP \(bu 3
 \fB\-b 0 \- synchronous foreground execution\fR
@@ -189,7 +191,7 @@ CLI interface.
 This case is somewhat different to the previous, in
 the way that two independent calls for the DomU
 itself are required.
-
+.RS
 .IP \(bu 3
 The DomU has to be started, which is performed by
 calling \fBxm <conf>\fR.
@@ -201,22 +203,24 @@ Therefore a timeout will be applied, which could
 be controlled by the environment variable
 \fBXEN_CONSOLE_DOMU_INIT_WAIT\fR,
 which is used for a sleep\-call.
-
-So, due to buffer handling some console messages
+Due to buffer handling some console messages
 could probably be lost.
 
-The client call is in internal call to VNC plugin,
-which is basically completely independent and could
+The client call is an internal call of the VNC plugin,
+which is independent and could
 be applied separately.
 
+.RE
 .IP \(bu 3
 \fBCONSOLE:NONE\fR
+
 No console is started, any type could be connected later. 
 \fB\-z 2 \- force allocation of a pty by ssh\fR
 Allocates a pty.
 .RE
 
-.TP
+.RS
+.IP \(bu 3
 \fB<callopts>\fR
 
 When <callopts> are given, these will be passed
@@ -228,6 +232,7 @@ through to the call:
 
 
 For additional information refer to Xen manual.
+.RE
 
 .TP
 \fB\-g <geometry>|<geometryExtended>\fR
@@ -238,14 +243,17 @@ DomU. Just the client will be set:
 .RS
 .IP \(bu 3
 \fBCLI\fR
+
 Not appliccable.
 
 .IP \(bu 3
 \fBXTERM|GTERM\fR
 
 The size Xsiz and Ysiz provide the UNIT of CHARACTERS only.
+
 .IP \(bu 3
 \fBVNC\fR
+
 As expected.
 .RE
 
@@ -273,13 +281,11 @@ Not supported.
 Refer to common options parts description.
 
 .P
-\&.
+\&. 
 
 .SH NOTES
 .P
 The XEN plugin adds support for XEN sessions where the client types 
-
-.P
 \fBCLI\fR
 ,
 \fBVNC\fR
@@ -287,8 +293,6 @@ The XEN plugin adds support for XEN sessions where the client types
 and 
 \fBX11\fR
 are supported.
-
-.P
 Any non\-listed standard option of ctys applies as defined. In
 cases of divergent behaviour for similar options, and options
 with specific suboptions, these are listed in this section.
@@ -419,17 +423,13 @@ CREATE and CANCEL actions, same for LIST.
 
 .IP \(bu 3
 \fBXEN_CONSOLE_DOMU_INIT_WAIT\fR
+
 This variable contains the sleep value after \fBxm create ...\fR
 and before calling a \fBgnome\-terminal\fR or \fBxterm\fR. Therefore in
 case of a machine which has difficulties due it's performance
 the value could be adjusted. The current value of 8seconds
 seems to be safe for initialization of created DomU.
 .RE
-
-.P
-Templates and recipes for installation of Xen on CentOS\-5 are
-available in 
-XEN\-Install.
 
 .SH SEE ALSO
 .P
@@ -476,15 +476,14 @@ This is software and documentation from \fBBASE\fR package,
 for software see GPL3 for license conditions,
 .IP \(bu 3
 for documents  see GFDL\-1.3 with invariant sections for license conditions.
-.RE
 
-.P
 The whole document \- all sections \- is/are defined as invariant.
+.RE
 
 .P
 For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-XEN.t2t -o /tmpn/0/ctys/bld/01.11.014/doc-tmp/BASE/en/man/man1/ctys-XEN.1
+.\" cmdline: txt2tags -t man -i ctys-XEN.t2t -o /tmpn/0/ctys/bld/01.11.015/doc-tmp/BASE/en/man/man1/ctys-XEN.1
 
