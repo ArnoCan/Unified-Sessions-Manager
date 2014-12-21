@@ -1,0 +1,121 @@
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+Currently no specific installer for a rpm, deb, or any other type of
+packages is provided.
+
+The installation is supported by simple archive to be extracted and a
+propriatary shell script, which has several options in order to
+protect edited configuration files and create shared installations
+based on symbolic links. The call is simply 
+
+   "ctys.01_08_001b02/bin/ctys-install <option>"
+
+where option could be for example
+
+   "ctys.01_08_001b02/bin/ctys-install forceclean"
+
+
+The installation creates the directories:
+
+  $HOME/bin
+  $HOME/lib
+  $HOME/ctys
+  $HOME/.ctys
+  $HOME/.vnc
+
+The ".profile" is extended for the PATH variable to include the
+"$HOME/bin" directory.
+
+Also the following files are copied:
+
+  $HOME/.toprc
+
+There are from now on several measures required, if not yet in place,
+in order to setup QEMU, Xen, and/or VMware, and to install VMs.
+
+Several examples and templates are supported for the specific
+hypervisors, and also check-tools like "ctys-plugins" are contained
+within the distribution.
+
+Also an extended and sophisticated debugging-facility is contained
+within the ctys, which allows for several switches in order to control
+the traced output.
+
+The most important switches for the initial setup might be "-d 64,P",
+which is thoroughly described within the manual, just for giving an
+intention:
+
+  This switch sets up the debugging to a bit-pattern-mode, where only
+  the system-calls(64) are traced. This shows exactly, when for
+  example SUDO and/or KSU is not properly configured.
+
+  But anyhow, this is properly documented and shown how to be facilitated
+  for the initial installation.
+
+Additional and extended information, including a graphical work-flow
+of the whole setup is included in the chapter "Examples->ctys Setup"
+of the User-Manual. A figure with the overview of the workflow is
+provided as a seperate file for download:"install.png".
+The components involved in the of the address resolution are also
+seperately provided as a graphical overview:"addressResolution.png".
+
+In case of difficulties for start of VMs, initially a VM should be
+called manually ny it's wrapper only. This is recommended, due to the
+required redirection of the output for the server, in order to avoid a
+local dengling SSH session-peer.
+
+Yes, the initial required understanding may require some effort to
+spent for basic related to networking, hypervisors, the incolved OSs,
+and of course the components of the UnifiedSessionsManager.
+
+But it shouldn't be forgotten, that the UnifiedSessionsManager, once
+successfully installed and is operable, could be the unique and
+comprising interface to:
+
+  QEMU,XEN,VMware
+
+  +CONSOLES:X11,CLI,VNC,EMACS
+
+  with GuestOSs: CentOS/RHEL,Fedora,OpenSUSE,Debian,Ubuntu,
+                 OpenBSD,Solaris
+
+  and soon additionally
+
+  NetBSD,FreeBSD,
+
+  eCOS, uCLinux
+
+And it does this quite well and definetly efficient.
+
+Thus the effort seems to be actually quite moderate, once the possible
+pit-falls for each of the single system are taken into account,
+and additionally the benefit of the resulting slim alternative
+call-interface of the UnifiedSessionsManager is considered.
+
+Also the advance of a locally cached database, containing almost any
+relevant data of the off-line GuestOSs, with an average response-time
+of 0.4-0.8seconds for arbitrary single-queries of 500-1000
+VM-Entries(refer to examples chapter for meseaurement details), will
+be something which no one will miss, once became used. In several
+cases the usage of cache off-line data is even mandatory. Information
+for database generation is available for "ctys-vdbgen",
+"ctys-extractMAClst" and "ctys-extractARPlst".
+

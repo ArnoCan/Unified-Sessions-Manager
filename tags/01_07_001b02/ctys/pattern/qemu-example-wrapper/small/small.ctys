@@ -1,0 +1,186 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_03_002a02
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+#@#MAGICID-IGNORE
+
+
+#
+#If required, this wrapper could be build as complex as e.g. 
+#callVncviewer or callVncserver.
+#
+
+
+#from test examples of QEMU
+
+#####################
+#
+#The following environment variables are used if set, else as default.
+#
+
+. `dirname $0`/bootstrap.01.01.001
+
+MYOS=`getCurOS`
+MYCONF=$HOME/.ctys/qemu/qemu.conf.${MYOS}
+if [ -f "${MYCONF}" ];then
+    . ${MYCONF}
+fi
+
+#
+#The socket for access to VDE's virtual switch port: vde_switch
+QEMUSOCK=${QEMUSOCK:-/var/tmp/vde_switch0.$USER}
+
+#
+#inherited by export, but normally as defined here
+QEMUBIOS=${QEMUBIOS:-$HOME/qemu/pc-bios}
+
+#
+#inherited by export, but normally as defined here
+#QEMU=${QEMU:-vdeqemu}
+QEMU=vdeqemu
+
+
+#####################
+#
+#The following CLI parameters will be supported to the call of this script:
+#
+#  
+#  $1:DISPLAYMODE
+#       CLI: To be used in a terminal
+#       SDL: To be used for X11 GUI.
+#       VNC: To be used for VNC, this is the only mode which supports 
+#            CONNECTIONFORWARDING too.
+#
+#       REMARK: XTERM and GTERM are just encapsulated CLI calls.
+#
+#
+#  $2:BOOTMODE
+#       PXE: Will boot by PXE, this is currently only available for 
+#            x86 platforms.
+#
+#            Could be used for initial install, and e.g. boot-strapping 
+#            Kickstart of course.
+#
+
+DISPMODE=$1;shift
+BOOTMODE=$1;shift
+
+ARGSADD=$*
+
+
+################################################
+################################################
+
+MYCALLPATH=`bootstrapGetRealPathname ${0%/*}`
+MYCALLNAME=`basename $0`
+
+
+################################
+#
+#Values required for ENUMERATE, even though some values, e.g. UUID
+#are currently not yet actually utilized by the QEMU-VM itself.
+#The values are used as search key within the ctys-name-services. 
+#So it makes "heavyly" sence to maintain them thoroughly, and keep
+#all values unique, where applicable.
+#
+
+#@#MAGICID-QEMU
+#@#LABEL              = "small"
+LABEL="small"
+#@#SESSIONTYPE        = "QEMU-i386"
+#@#UUID               = "95f93aec19834d5487c41a543229e26c"
+#@#MAC0               = "00:50:56:13:11:49"
+MAC0="00:50:56:13:11:49"
+# by DHCP @#IP0                = 
+#@#VNCACCESSPORT      = 
+#@#VNCBASEPORT        = 
+#@#VNCACCESSDISPLAY   = "47"
+VNCACCESSDISPLAY=17
+#@#DIST             = "QEMU"
+#@#DISTREL          = "0.9.1"
+#@#OS                 = "NetBSD"
+#@#OSREL            = ""
+#@#SERNO              = 
+#@#CATEGORY           = "VM"
+
+
+
+
+####################################
+#
+#Start assembly of call.
+#
+LASTPATH=" -hda ${MYCALLPATH}/small.ffs "
+
+
+QCALL="${QEMUCALL} ${QEMU} ";
+#QCALL="${QCALL} -m 384 "
+QCALL="${QCALL} -localtime "
+#QCALL="${QCALL} -k de "
+QCALL="${QCALL} -L ${QEMUBIOS} "
+QCALL="${QCALL} -net nic,macaddr=${MAC0} "
+QCALL="${QCALL} -net vde,sock=${QEMUSOCK} "
+
+
+case ${BOOTMODE} in
+    PXE)
+    QCALL="${QCALL} -boot n -no-reboot"
+    QCALL="${QCALL} -option-rom ${QEMUBIOS}/pxe-ne2k_pci.bin "
+    ;;
+esac
+
+
+case ${DISPMODE} in
+    CLI)
+       #without graphical output
+	echo "Unsupported DISPMODE=\"${DISPMODE}\"">&2
+	exit 127
+#       $QCALL -nographic -append "console=ttyAMA0" ${ARGSADD}
+    ;;
+    SDL)
+       #with graphical output
+       $QCALL  ${ARGSADD} 
+    ;;
+    VNC)
+       $QCALL  -vnc :${VNCACCESSDISPLAY}  ${ARGSADD}  ${LASTPATH}
+    ;;
+    *)
+    echo "Unknown display DISPMODE=\"${DISPMODE}\"">&2
+    exit 127
+    ;;
+esac
+
+

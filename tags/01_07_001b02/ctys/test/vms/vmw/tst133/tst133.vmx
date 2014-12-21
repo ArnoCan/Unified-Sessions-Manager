@@ -1,0 +1,88 @@
+#!/usr/bin/vmware
+
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+#---------------------------------------------
+#@#MAGICID-IGNORE
+#--------------------------------------------
+
+config.version = "8"
+virtualHW.version = "6"
+scsi0.present = "TRUE"
+scsi0.virtualDev = "lsilogic"
+memsize = "512"
+MemAllowAutoScaleDown = "FALSE"
+scsi0:0.present = "TRUE"
+scsi0:0.fileName = "tst133.vmdk"
+ide1:0.present = "TRUE"
+ide1:0.autodetect = "TRUE"
+ide1:0.deviceType = "cdrom-raw"
+floppy0.autodetect = "TRUE"
+usb.present = "TRUE"
+ehci.present = "TRUE"
+sound.present = "TRUE"
+sound.fileName = "-1"
+sound.autodetect = "TRUE"
+svga.autodetect = "TRUE"
+pciBridge0.present = "TRUE"
+displayName = "tst133"
+guestOS = "ubuntu"
+nvram = "tst133.nvram"
+deploymentPlatform = "windows"
+virtualHW.productCompatibility = "hosted"
+RemoteDisplay.vnc.port = "0"
+tools.upgrade.policy = "useGlobal"
+
+floppy0.fileName = "/dev/fd0"
+extendedConfigFile = "tst133.vmxf"
+
+
+
+ethernet0.wakeOnPcktRcv = "FALSE"
+
+
+#Ethernet-Interface
+ethernet0.present = "TRUE"
+ethernet0.addressType = "static"
+ethernet0.address = "00:50:56:13:11:61"
+
+#UUID
+#uuid.action = "keep"
+uuid.location = "56 4d a2 d1 35 bb 90 a1-90 92 4e 1e 24 49 f4 05"
+uuid.bios = "56 4d a2 d1 35 bb 90 a1-90 92 4e 1e 24 49 f4 05"
+
+#@#IP0="192.168.1.217"
+#@#DIST="Ubuntu"
+#@#DISTREL="8.04-LTS-S"
+#@#OS="Linux"
+#@#OSREL="2.6"
+#@#VERSION="01.01.001"
+#@#SERNO="20080526165700"
+#@#CATEGORY="VM"
+
+ide1:0.startConnected = "FALSE"
+scsi0:0.redo = ""
+pciBridge0.pciSlotNumber = "17"
+scsi0.pciSlotNumber = "16"
+ethernet0.pciSlotNumber = "32"
+sound.pciSlotNumber = "33"
+ehci.pciSlotNumber = "34"
+tools.remindInstall = "TRUE"
+sound.startConnected = "FALSE"

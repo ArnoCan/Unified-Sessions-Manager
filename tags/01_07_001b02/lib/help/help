@@ -1,0 +1,332 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+_myLIBNAME_help="${BASH_SOURCE}"
+_myLIBVERS_help="01.02.002a01"
+libManInfoAdd "${_myLIBNAME_help}" "${_myLIBVERS_help}"
+
+export _myLIBBASE_help="`dirname ${_myLIBNAME_help}`"
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  functionHeaders
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Internal development support.
+#
+#  Well, for Emacs usage primarily, so no backups of type "*~" shown.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <format>
+#      sortFunctions0
+#      sortFunctions1
+#      sortFunctions2
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function functionHeaders () {
+    local x=
+    local arg=$2
+
+    function fetchFileList () {
+        if [ -n "$arg" ];then 
+	    x=${arg#*@}
+	    if [ -n "$x" -a "$x" != "${arg}" ];then 
+                local _ia=;
+                local _iax=;
+                for _ia in ${x//@/ };do
+		    _iax="$_iax "`find ${MYINSTALLPATH} -type f  |grep "$_ia"`;
+                done
+                x=$_iax
+            else
+                x=;
+	    fi
+	fi
+        arg=${arg%%@*};
+        if [ -z "$x" ];then x=`find ${MYINSTALLPATH} -type f -name '*[!~]' -print`; fi
+    }
+
+
+    case $1 in
+	sortFunctions0) 
+	    fetchFileList
+
+            for i in $x;do
+                cat $i|\
+                    awk -v fn=$i '
+                       BEGIN{n=0;line=0}
+                       {line++;}
+                       $1~/^#NAME:/{n=1;getline;line++;}
+                       n==1{
+                         n=0;
+                         printf("%-35s",$2);
+                         printf(":%04d:%-50s\n",line,fn);
+                       }
+                    ';
+            done|if [ -n "$arg" ];then grep $arg;else sort;fi
+            ;;
+	sortFunctions1) 
+	    fetchFileList
+
+            for i in $x;do
+                L=50;
+                cat $i|sed -n '/^#FUNCBEG#*$/,/^#FUNCEND#*$/!d;p'|\
+                    awk -v fn=$i '
+                       BEGIN{n=0;line=0}
+                       {line++;}
+                       $1~/^#NAME:/{
+                         printf("...%-'$((L+5))'s:%04d:",substr(fn,length(fn)-'$L','$L'+1),line); n=1;getline;
+                       }
+                       n==1{print $2;n=0}
+                    ';
+            done|if [ -n "$arg" ];then grep $arg;else sort;fi
+            ;;
+	sortFunctions2) 
+            for i in `find ${MYINSTALLPATH} -type f -print`;do
+                cat $i|sed -n '/^#FUNCBEG#*$/,/^#FUNCEND#*$/!d;p'|\
+                    awk -v fn=$i '
+                       BEGIN{n=0;b=0;buffer[b]="";}
+                       $1~/^#FUNCBEG#/&&n==0{
+                         n=1;
+                         printf("**************************************************************\n");
+                         printf("*FILE:%s\n",fn);
+                         printf("**************************************************************\n");
+                       }
+                       {
+                         print $0;
+                       }
+                    ';
+            done
+            ;;
+	sortFunctions3) 
+	    fetchFileList
+
+            for i in $x;do
+                cat $i|sed -n '/^#FUNCBEG#*$/,/^#FUNCEND#*$/!d;p'|\
+                    awk -v fn=$i -v fu=$arg -f ${_myLIBBASE_help}/sortFunctions3.awk;
+            done
+            ;;
+	*)
+            ;;
+    esac
+
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  printHelpEx
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $@: list of help items.
+#      Special keywords suppoerted are:
+#
+#        all
+#          Complete user-interface help, no functions.
+#
+#        
+#        funcList[=<any-function>]
+#          List of functionnames, sorted by functionnames.
+#          if given <any-function> only.
+#
+#        funcListMod[=<any-function>]
+#          List of functionnames, sorted by filenames.
+#          if given <any-function> only.
+#
+#        funcHead[=<any-function>]
+#          List of functionheaders, sorted by filenames.
+#          if given <any-function> only.
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printHelpEx () {
+  local _lst=${@//[, ]/ }
+
+  printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "_lst=${_lst}"
+
+  for i in $_lst;do
+    KEY=`echo ${1}|tr '[:lower:]' '[:upper:]'`
+    case "$KEY" in
+     PRINT)       print4Printer;;
+     FUNCLIST) 
+                  functionHeaders  sortFunctions0;;
+     FUNCLIST=*) 
+                  functionHeaders  sortFunctions0 ${i#*=};;
+     FUNCLISTMOD) 
+                  functionHeaders  sortFunctions1;;
+     FUNCLISTMOD=*) 
+                  functionHeaders  sortFunctions1 ${i#*=};;
+     FUNCHEAD) 
+                  functionHeaders  sortFunctions2;;
+     FUNCHEAD=*) 
+                  functionHeaders  sortFunctions3 ${i#*=};;
+
+     ALL|'*'|"")  #this is literally "all=='*'==''"
+                  _printHelpEx|sed 's///';;
+
+     *)           #this is any "*", which is not to be recognized a keyword,
+                  #but expected to be "search-keyword", refer to manual.
+  		  if [ -z "${_prea}" ];then printVersion;local _prea=1;fi
+		  doDebug $S_LIB $D_BULK $LINENO $BASH_SOURCE
+                  local D=$?
+
+		  echo 
+		  echo "SEARCH-KEYWORD-SECTION:regexpr< *$1.*>"
+		  echo 
+		  {
+                    if [ -z "${i//[^-]}" ];then _printHelpEx;
+                    else   cat ${MYOPTSFILES} 2>/dev/null; fi
+                   }|\
+                  awk -v _a=$i -v d="${D}" -f ${_myLIBBASE_help}/helpEx1.awk;
+                  ;;
+		esac
+		done
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  showToolHelp
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Displays help for a specific tool only. Therefore the following naming
+#  convention applies for the filename(shell-regexpr):
+#
+#    ${MYHELPPATH}/[0-9][0-9]*_${MYCALLNAME}
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function showToolHelp () {
+    local _myhlp=`echo ${MYHELPPATH}/*_${MYCALLNAME}`
+    if [ -n "${_myhlp}" -a -f "${_myhlp}" ];then
+	cat ${_myhlp}
+    else
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing online help-file:\"${_myhlp}\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Refer to the manual for required information"
+	gotoHell $ABORT
+    fi
+    echo
+    echo "Due to reasons of consistency this version supports help by generated subchapters"
+    echo "from the User-Manual(meanwhile more than 400 pg.) only."
+    echo
+    echo "Some conversion problems from LaTex to ASC-II still lead to some unexpected"
+    echo "text changes. Particularly some difficulties with hyperlink marks still resist."
+    echo 
+    echo "Though when the online help seems to be too curious, refer to the PDF document."
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  printVersion
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Displays basic version infomation for all tools.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function printVersion () {
+    if [ -n "$C_TERSE" ];then
+	echo -n ${VERSION}
+	return
+    fi
+
+
+cat <<EOF
+--------------------------------------------------------------------------
+
+UnifiedSessionsManager Copyright (C) 2007, 2008 Arno-Can Uestuensoez
+
+This program comes with ABSOLUTELY NO WARRANTY; for details  
+refer to provided documentation.
+This is free software, and you are welcome to redistribute it
+under certain conditions. For details refer to "GNU General Public 
+License - version 3" <http://www.gnu.org/licenses/>.
+
+--------------------------------------------------------------------------
+PROJECT          = ${FULLNAME} 
+--------------------------------------------------------------------------
+CALLFULLNAME     = ${CALLFULLNAME}
+CALLSHORTCUT     = ${MYCALLNAME}
+
+AUTHOR           = ${AUTHOR}
+MAINTAINER       = ${MAINTAINER}
+VERSION          = ${VERSION}
+DATE             = ${DATE}
+
+LOC              = ${LOC} CodeLines
+LOC-BARE         = ${LOCNET} BareCodeLines (no comments and empty lines)
+LOD              = ${LOD} DocLines, include LaTeX-sources
+
+EOF
+    cat ${MYCONFPATH}/versinfo.txt
+cat <<EOF
+--------------------------------------------------------------------------
+COPYRIGHT        = ${AUTHOR}
+LICENCE          = GPL3
+--------------------------------------------------------------------------
+EXECUTING HOST   = ${MYHOST}
+--------------------------------------------------------------------------
+EOF
+}
+
