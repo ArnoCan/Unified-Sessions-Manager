@@ -1,0 +1,310 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;background-color:#dcd0bc ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#d6bc8f ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-uc-X11</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-uc-X11</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-uc-X11 - Use-Cases for X11 Interface</B>
+<br />
+<br />
+<br />
+</P>
+<H1>USE-CASES</H1>
+<H2>Xterm with Interactive bash</H2>
+<P>
+This opens a Xterm window with an interactive bash.
+Various consoles could be used, which are actually X-terminals
+such as Xterm ore gnome-terminal.
+</P>
+<P>
+Due to the different usage of hyphens for the variuos graphical user interfaces
+the duboptions 'SH' and 'DH' - 'single hyphen' and 'double hyphen' were introduced.
+The "SH" suboption is here mandatory for the usage of Xterm, because the Xterm
+emulation requires a single-hyphen for it's options, default is "DH".
+</P>
+<P>
+The default behaviour concerning the terminal emulation is to scan for
+a gnome-terminal first and prefer it if found, else an xterm emulation
+will be started by default.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11 lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same by call CONSOLE:XTERM alias.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,console:xterm lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same by call args.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,cmd:xterm,sh lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same by call args with explicit shell.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,cmd:xterm,c:bash%-i,sh lab00
+  
+</PRE>
+<P></P>
+<P>
+<br />
+</P>
+<H2>Gnome-Terminal with Interactive bash</H2>
+<P>
+This opens a Gnome-Terminal window with an interactive bash. 
+The "DH" suboption is here mandatory but the default.
+This is required because the gnome-terminal emulation
+requires a double-hyphen for it's options.
+</P>
+<P>
+The the default behaviour is to open a gnome-terminal when detected.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11 lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same by call CONSOLE:GTERM alias.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,console:gterm lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same as the default behaviour.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,dh lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same as the default behaviour.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,cmd:gnome-terminal,c:bash%-i,dh lab00
+  
+</PRE>
+<P></P>
+<P>
+<br />
+</P>
+<H2>Emacs Session in shell-mode</H2>
+<P>
+Starts an remote Emacs in 
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,cmd:emacs%-f%shell,s:bash%-i lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The same by call CONSOLE:EMACS alias.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,console:emacs lab00
+  
+</PRE>
+<P></P>
+<P>
+<br />
+</P>
+<H2>Emacs Session with cd</H2>
+<P>
+Starts an remote Emacs:
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx1,console:emacs,cd:/var/tmp app1
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+The result is:
+<center><img src="../../images/example-x11-emacs-cd-001.png" width="55%"  /> </center> 
+</P>
+<TABLE ALIGN="center" CELLPADDING="4">
+<TR>
+<TH>Emacs-Console with 'cd /var/tmp'</TH>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+<br />
+</P>
+<H2>Single XClock</H2>
+<P>
+This starts an Xclock with an altered options keyword for windows
+title, additionaly the "SH" key is required for using single-hyphens.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,cmd:xclock,titlekey:name,sh lab00
+  
+</PRE>
+<P>
+<br />
+</P>
+<P>
+Similar, but not the same. This starts an Xclock with NOTITLE, which
+suppresses the setting of the title for a window by the LABEL string. 
+Thus this window is no longer recognized by LIST, or just with limits.
+</P>
+<PRE>
+  
+  ctys -t x11 -a create=l:tstx11,cmd:xclock,notitle lab00
+  
+</PRE>
+<P>
+<br />
+<br />
+</P>
+<H1>SEE ALSO</H1>
+<P>
+<I><A HREF="../man1/ctys.html"> ctys(1)</A></I>
+,
+<I><A HREF="../man1/ctys-plugins.html"> ctys-plugins(1)</A></I>
+, <I>bash(1)</I>, <I>xterm(1)</I>
+</P>
+<P>
+<B>For standards:</B>
+ <br />
+<I>Freedesktop:</I> &lt;<A HREF="http://www.freedesktop.org">http://www.freedesktop.org</A>&gt;
+ <br />
+<I>Xorg:</I> &lt;<A HREF="http://www.x.org">http://www.x.org</A>&gt;
+ <br />
+ <br />
+</P>
+<P>
+<B>For implementations:</B>
+ <br />
+<I>FVWM:</I> &lt;<A HREF="http://www.fvwm.org">http://www.fvwm.org</A>&gt;
+ <br />
+<I>Gnome:</I> &lt;<A HREF="http://www.gnome.org">http://www.gnome.org</A>&gt;
+ <br />
+<I>KDE:</I> &lt;<A HREF="http://www.kde.org">http://www.kde.org</A>&gt;
+ <br />
+<I>XFCE:</I> &lt;<A HREF="http://www.xfce.org">http://www.xfce.org</A>&gt;
+</P>
+<P>
+ <br />
+ <br />
+ <br />
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<A HREF="http://www.gnu.org"><IMG ALIGN="middle" SRC="../../images/60px-Official-gnu.png" BORDER="0" ALT=""></A>
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-uc-X11.t2t -o /tmpn/0/ctys/bld/01.11.012/doc-tmp/BASE/en/html/man7/ctys-uc-X11.html -->
+</BODY></HTML>
