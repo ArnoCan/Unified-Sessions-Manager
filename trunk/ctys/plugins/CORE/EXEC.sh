@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a15
+#VERSION:      01_11_003
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_EXEC="${BASH_SOURCE}"
-_myPKGVERS_EXEC="01.06.001a15"
+_myPKGVERS_EXEC="01.11.003"
 hookInfoAdd "$_myPKGNAME_EXEC" "$_myPKGVERS_EXEC"
 
 
@@ -818,25 +818,31 @@ function doExecCall () {
 		X11)
 		    _call=${_call//ssh/ssh -f};
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "$FUNCNAME:VMSTACK:_call => <${_call}>"
+		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval ${_call} &"
  		    eval "${_call} &"; 
 		    ;;
 		VNC)
 		    _call=${_call//ssh/ssh -f};
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "$FUNCNAME:VMSTACK:_call => <${_call}>"
+		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
  		    { eval "${_call}"; } &
 		    ;;
 		*)
 		    if [ "${C_PARALLEL}" == 1 ];then
+			printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
  			{ eval "${_call}"; } &
 		    else
+			printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }"
 			{ eval "${_call}"; }
 		    fi
 		    ;;
 	    esac
 	else
 	    if [ "${C_PARALLEL}" == 1 ];then
+		printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "{ eval ${_call}; }&"
  		{ eval "${_call}"; } &
 	    else
+		printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval ${_call}"
  		eval "${_call}"       
 	    fi
 	fi

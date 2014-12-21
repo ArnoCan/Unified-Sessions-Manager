@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_11_003
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_DIGGER="${BASH_SOURCE}"
-_myPKGVERS_DIGGER="01.07.001b06"
+_myPKGVERS_DIGGER="01.11.003"
 hookInfoAdd "$_myPKGNAME_DIGGER" "$_myPKGVERS_DIGGER"
 
 _myPKGBASE_DIGGER=`dirname ${_myPKGNAME_DIGGER}`
@@ -154,6 +154,7 @@ function digLocalPort () {
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME Assembled tunnel-call:"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _tunnel=${_tunnel}"
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME "
+    printFINALCALL $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval $_tunnel"
     eval $_tunnel
 
     if [ $? -ne 0 ];then
@@ -311,9 +312,9 @@ function digGetExecLink () {
 	return
     fi
 
-   #check masking of braces, but might be first/last positioned, though 
-   #should not be critical
-   if [ "${1//SUBGROUP\{/}" != "${1}" ];then
+    #check masking of braces, but might be first/last positioned, though 
+    #should not be critical
+    if [ "${1//SUBGROUP\{/}" != "${1}" ];then
         local _grp="${1// /}";
         _grp="${_grp//SUBGROUP\{/}";
         _grp="${_grp%\}}";
@@ -323,16 +324,16 @@ function digGetExecLink () {
         return 2
     fi
 
-   #check masking of braces, but might be first/last positioned, though 
-   #should not be critical
-   if [ "${1//VMSTACK\{/}" != "${1}" ];then
-        local _grp="${1// /}";
-        _grp="${_grp//VMSTACK\{/}";
-        _grp="${_grp%\}}";
+    #check masking of braces, but might be first/last positioned, though 
+    #should not be critical
+    if [ "${1//VMSTACK\{/}" != "${1}" ];then
+	local _grp="${1// /}";
+	_grp="${_grp//VMSTACK\{/}";
+	_grp="${_grp%\}}";
 	local _ret="cd ${HOME}&&::${_grp}"
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:VMSTACK detected:${_ret}"
 	echo -n -e "${_ret}"
-        return 3
+	return 3
     fi
 
 
@@ -340,7 +341,7 @@ function digGetExecLink () {
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:use cached data only"
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:   \"cd \$HOME&&\" "
 	echo -n "cd $HOME&&"
-        return 1
+	return 1
     fi
 
     local _target="${1// }";
@@ -349,10 +350,10 @@ function digGetExecLink () {
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:for unified PATH semantics:"
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:   \"cd \$HOME&&\" "
 	echo -n "cd $HOME&&"
-        return 1
+	return 1
     fi
 
-    #OK. even though it might to be executed on localhost, it is not the same USER!
+    #OK - Even though it might to be executed on localhost, it is not the same USER!
     #So use SSH.
     if [ -n "${C_SSH}" ];then
 	_EXECLINK="ssh -X "
@@ -373,11 +374,17 @@ function digGetExecLink () {
 	    _EXECLINK="${_EXECLINK} -f "
 	fi
 
-        if [ "$WNG" == 0 ];then
+	if [ -n "${C_AGNTFWD}" -a "${C_AGNTFWD}" == 1 ];then
+	    _EXECLINK="${_EXECLINK} -A "
+	fi
+
+	if [ "$WNG" == 0 ];then
 	    _EXECLINK="${_EXECLINK} -q "
 	fi
 
-        _EXECLINK="${_EXECLINK} ${_target}"
+
+
+	_EXECLINK="${_EXECLINK} ${_target}"
 
 	printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_EXECLINK=${_EXECLINK}"
 
@@ -389,7 +396,7 @@ function digGetExecLink () {
 	    fi
 	fi
     else
-        ABORT=1
+	ABORT=1
 	printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Only SSH sessions are supported for remote execution."
 	gotoHell ${ABORT}
     fi

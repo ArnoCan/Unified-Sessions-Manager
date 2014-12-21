@@ -12,11 +12,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_1_003
 #
 ########################################################################
 #
-#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_09_001
+VERSION=01_11_003
 #DESCRIPTION:
 #  Generated a sorted list of 3-column table containing:
 #
@@ -205,7 +205,7 @@ MYLANG=${MYLANG:-en}
 MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYLIBEXECPATH`}
 
 #path for various loads: libs, help, macros, plugins
-MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+MYHELPPATH=${MYHELPPATH:-$MYLIBPATH/help/$MYLANG}
 
 ###################################################
 #Check master hook                                #
@@ -215,7 +215,7 @@ bootstrapCheckInitialPath
 #OK - Now should work.                            #
 ###################################################
 
-MYCONFPATH=${MYLIBPATH}/conf/ctys
+MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
   exit 1
@@ -225,13 +225,13 @@ if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
     . ${MYCONFPATH}/versinfo.conf.sh
 fi
 
-MYMACROPATH=${MYCONFPATH}/macros
+MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
   exit 1
 fi
 
-MYPKGPATH=${MYLIBPATH}/plugins
+MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
   exit 1
@@ -345,6 +345,7 @@ CTYS_GROUPS_PATH="${HOME}/.ctys/groups:${MYCONFPATH}/groups${CTYS_GROUPS_PATH:+:
 
 . ${MYLIBPATH}/lib/help/help.sh
 . ${MYLIBPATH}/lib/misc.sh
+. ${MYLIBPATH}/lib/network/network.sh
 . ${MYLIBPATH}/lib/groups.sh
 
 
@@ -425,63 +426,32 @@ _RUSER0=;
 
 for i in $*;do
     case $1 in
-	'-E')_ethers=0;;
-	'-n'|'-i'|'-m')sortKey=$1;;
-	'-p')shift;_dbfilepath=$1;;
-	'-P')_dbfilepath=${DEFAULT_DBPATHLST};;
-	'-q')_quiet=1;;
+	'-E')_ethers=0;shift;;
+	'-n'|'-i'|'-m')sortKey=$1;shift;;
+	'-p')shift;_dbfilepath=$1;shift;;
+	'-P')_dbfilepath=${DEFAULT_DBPATHLST};shift;;
+	'-q')_quiet=1;shift;;
 
-	'-d')shift;;
+	'-d')shift;shift;;
 
-	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
-	'-h'|'--help'|'-help')_showToolHelp=1;;
-	'-V')_printVersion=1;;
-	'-X')C_TERSE=1;;
-
-	'-L')shift;_RUSER0=$1;;
-	'-R')shift;_RHOSTS0=$1;;
+	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";shift;;
+	'-h'|'--help'|'-help')_showToolHelp=1;shift;;
+	'-V')_printVersion=1;shift;;
+	'-X')C_TERSE=1;shift;;
 
         -*)
 	    ABORT=1;
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unkown option:\"$1\""
 	    gotoHell ${ABORT}
 	    ;;
+	*)
+	    _ARGS="${_ARGS} ${1}"
+	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS=${_ARGS}"
+	    shift;
+	    ;;
     esac
-    shift;
 done
-function beamMeUp () {
-    if [ -n "${_RHOSTS0}" ];then
-	_RARGS=${_ARGSCALL//$_ARGS/}
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_ARGSCALL//$_RHOSTS0/}
-	_RARGS=${_RARGS//-R/}
-	if [ -n "${_RUSER0}" ];then
-	    _RARGS=${_RARGS//$_RUSER0/}
-	    _RARGS=${_RARGS//\-L/}
-	fi
-	_RARGS=$(echo ${_RARGS}|sed 's/^  *//;s/  *$//')
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_RARGS//\%/\%\%}
-	_RARGS=${_RARGS//,/,,}
-	_RARGS=${_RARGS//:/::}
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS// /\%}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
 
-	if [ "$C_TERSE" != 1 ];then
-	    printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_RHOSTS0}"
-	fi
-	_call="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS} ${_RUSER0:+-l $_RUSER0} ${_RHOSTS0}"
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
-	${_call}
-	exit $?
-    fi
-}
-beamMeUp
 
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";
@@ -497,12 +467,12 @@ if [ -n "$_printVersion" ];then
 fi
 
 
-if [ -n "$*" ];then
-    _x=" ${*} "
+if [ -n "$_ARGS" ];then
+    _x=" ${_ARGS} "
     if [ "${_x// -}" != "${_x}"  ];then
 	ABORT=1;
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Invalid host-list, seems to have an \"late-option\""
-	printERR $LINENO $BASH_SOURCE ${ABORT} "  remaining-args=${*}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  remaining-args=${_ARGSCALL}"
 	gotoHell ${ABORT}
     fi
 else
@@ -514,7 +484,7 @@ fi
 
 #OK-first let's expand ctys-groups.sh
 printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
-hostlist=`expandGroups ${*}`
+hostlist=`expandGroups ${_ARGS}`
 
 #OK-second let's resolve ctys <machine-address>-es
 #printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"

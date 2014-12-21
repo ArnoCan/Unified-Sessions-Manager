@@ -116,8 +116,7 @@
       [-T <type-list>]
       [-V]
       [-X]
-      <awk-regexpr>[ <awk-regexpr>[ <...>]
-      ]
+      <awk-regexpr>[ <awk-regexpr>[ <...>]]
 
 
 
@@ -129,13 +128,13 @@ is the basic address resolution interface for runtime
 execution of commands based on ctys addressing. 
 
 .P
-The similarity of UNIX "host" function is expanded with several
+The similarity of UNIX 'host' function is expanded with several
 features, which take into account the roaming of VMs and thus
-changing their actual execution path within a so called "execution
-stack" assembled by PMs, VMs, and HOSTs.
+changing their actual execution path within a so called 
+\&'execution stack' assembled by PMs, VMs, and HOSTs.
 Due to technical reasons the locator functionality required for
 building complete fully qualified ctys\-addresses of execution
-stacks, which could be seen as a UNIX "ping" similarity, is
+stacks, which could be seen as a UNIX 'ping' similarity, is
 included.
 
 .P
@@ -164,23 +163,23 @@ is based on simple unstructured pattern matching by regular
 expressions onyl whenever possible(which is almost for each call).
 Even though the line\-record is structured by fields
 as given by 
-"\-a LIST=MACHINE"
+\&'\-a LIST=MACHINE'
  and 
-"\-a ENUMERATE=MACHINE"
+\&'\-a ENUMERATE=MACHINE'
 , the match 
 itself will be performed as a simple regexpr by 
-"awk\-match"
+\&'awk\-match'
 \&. 
 Whereas the output is performed on the level of fields. Multiple
 regexprs are supported and will be iterative applied on the
 intermediary results. The reduction of the output as requested by
-the "\-o" option is performed on the final set of resulting records
+the '\-o' option is performed on the final set of resulting records
 only.
 
 .P
 This fits perfectly, as long as the given IDs are kept unique,
 when ambiguity occurs, the match will be taken as defined by
-"\-M" option.
+\&'\-M' option.
 
 .P
 Ambiguity occurs frequently when using a VM with NFS(or an other
@@ -188,14 +187,14 @@ some more secure network file system) from multiple machines and
 using the nodes as processing\-capacity\-only. Accessing the same
 files and enumerating them for selection of the appropriate
 execution machine could be a mandatory requirement for
-load\-distribution policies. In this case a basic COST option "\-C"
-supports the very basic "\-M" option for some quite usable load
+load\-distribution policies. In this case a basic COST option '\-C'
+supports the very basic '\-M' option for some quite usable load
 distribution within execution\-groups.
 
 .P
 In most other cases uniqueness should be given, e.g. the key
 UUID is defined to be unique, but could be tampered e.g. by
-co\-allocated backups. For avoiding of backup\-access the "\-M first"
+co\-allocated backups. For avoiding of backup\-access the '\-M first'
 option might be helpful.
 
 .P
@@ -203,18 +202,19 @@ Anyhow, the management of up to some hundred VMs might not be a
 challange by the current file\-DB and not really
 performance\-optimized toolset. One of the next versions will
 additionally support LDAP based nameservices, targeting an
-enterprise environment with "unlimited" and "volatile" distributed
+enterprise environment with 'unlimited' and 'volatile' distributed
 services to be managed.
 
 .P
-When a MAC\-IPAddress\-HostName mapping table a.k.a. "macmap\-DB"
+When a MAC\-IPAddress\-HostName mapping table a.k.a. 'macmap\-DB'
 is present this will be used for open mappings which are not
 configured within the VM configuration files a.k.a. enum\-DB. 
 Particularly any IP or PM/Hostname address for given MAC\-Address
 will be resolved when not present within the enum\-DB.
 
 .P
-The address resolution will be performed by the following steps:
+The address resolution will be performed by the following steps
+:
 
 .RS
 .IP \(bu 3
@@ -222,12 +222,12 @@ Check the static list of given ExecGroup for possible candidates.
 .IP \(bu 3
 List the active sessions on the given ExecGroup.
 .IP \(bu 3
-Take the appropriate PM/VM by utilising "\-C" and/or "\-M" option.
+Take the appropriate PM/VM by utilising '\-C' and/or '\-M' option.
 .RE
 
 .P
-For additional help refer to online help within  "ctys" to the 
-section "NAMESERVICE\-BASE".
+For additional help refer to online help within  'ctys' to the 
+section 'NAMESERVICE\-BASE'.
 
 .P
 Now some real benefits when using ctys\-vhost as interactive tool 
@@ -235,8 +235,8 @@ instead of using id from scripts:
 
 .RS
 .IP \(bu 3
-Given partial strings, e.g. "192.168.1" lists all machines of 
-that subnet. When the "\-M active" option is choosen, all
+Given partial strings, e.g. '192.168.1' lists all machines of 
+that subnet. When the '\-M active' option is choosen, all
 currently active sessions within that subnet are listed.
 
 .IP \(bu 3
@@ -248,7 +248,7 @@ regexpr, just literal characters are supported.
 
 .IP \(bu 3
 The database founding the mapping information of ctys\-vhost
-could be altered by "\-p" option for handling of multiple sets,
+could be altered by '\-p' option for handling of multiple sets,
 e.g. for test\-purposes. 
 
 .IP \(bu 3
@@ -257,13 +257,13 @@ native information provided by their main sources, dhcpd.conf
 and the config\-files of supported VMs. Therefore not any
 information might be present in each of them, e.g. the
 IP\-Address of the GuestOS might be present within the macmap\-DB,
-but not within the VM\-config. The "\-S" option allows the
-combined usage of multiple sources, e.g. by values "all",
-"macmap", or "enum".
+but not within the VM\-config. The '\-S' option allows the
+combined usage of multiple sources, e.g. by values 'all',
+\&'macmap', or 'enum'.
 
 .IP \(bu 3
 ctys specific configurations\-extensions as described for the 
-"\-a ENUMERATE" option are fully supported. This includes
+\&'\-a ENUMERATE' option are fully supported. This includes
 particularly the storage of GuestOS information within the
 VM\-config by specific ctys\-Prefixes(#@#) and some helpful
 keywords.
@@ -1576,11 +1576,15 @@ This is software and documentation from \fBBASE\fR package,
 for software see GPL3 for license conditions,
 .IP \(bu 3
 for documents  see GFDL\-1.3 with invariant sections for license conditions.
-
-For additional information refer to enclosed Releasenotes and License files.
 .RE
+
+.P
+The whole document \- all sections \- is/are defined as invariant.
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-vhost.t2t -o /tmpn/0/ctys/bld/01.11.002/doc-tmp/BASE/en/man/man1/ctys-vhost.1
+.\" cmdline: txt2tags -t man -i ctys-vhost.t2t -o /tmpn/0/ctys/bld/01.11.003/doc-tmp/BASE/en/man/man1/ctys-vhost.1
 

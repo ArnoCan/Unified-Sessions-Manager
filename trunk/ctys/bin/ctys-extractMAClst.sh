@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_11_003
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_09_001
+VERSION=01_11_003
 #DESCRIPTION:
 #  Generated a sorted list of 3-column table containing:
 #
@@ -206,7 +206,7 @@ MYLANG=${MYLANG:-en}
 MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYLIBEXECPATH`}
 
 #path for various loads: libs, help, macros, plugins
-MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+MYHELPPATH=${MYHELPPATH:-$MYLIBPATH/help/$MYLANG}
 
 
 ###################################################
@@ -217,7 +217,7 @@ bootstrapCheckInitialPath
 #OK - Now should work.                            #
 ###################################################
 
-MYCONFPATH=${MYLIBPATH}/conf/ctys
+MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
   exit 1
@@ -227,13 +227,13 @@ if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
     . ${MYCONFPATH}/versinfo.conf.sh
 fi
 
-MYMACROPATH=${MYCONFPATH}/macros
+MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
   exit 1
 fi
 
-MYPKGPATH=${MYLIBPATH}/plugins
+MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
   exit 1
@@ -317,6 +317,9 @@ esac
 
 
 . ${MYLIBPATH}/lib/help/help.sh
+. ${MYLIBPATH}/lib/misc.sh
+. ${MYLIBPATH}/lib/network/network.sh
+. ${MYLIBPATH}/lib/groups.sh
 
 #path to directory containing the default mapping db
 if [ -d "${HOME}/.ctys/db/default" ];then
@@ -389,9 +392,6 @@ for i in $*;do
 
 	'-d')shift;;
 
-	'-L')shift;_RUSER0=$1;;
-	'-R')shift;_RHOSTS0=$1;;
-
         -*)
 	    ABORT=1;
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Unkown option:\"$1\""
@@ -400,39 +400,6 @@ for i in $*;do
     esac
     shift;
 done
-function beamMeUp () {
-    if [ -n "${_RHOSTS0}" ];then
-	_RARGS=${_ARGSCALL//$_ARGS/}
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_ARGSCALL//$_RHOSTS0/}
-	_RARGS=${_RARGS//-R/}
-	if [ -n "${_RUSER0}" ];then
-	    _RARGS=${_RARGS//$_RUSER0/}
-	    _RARGS=${_RARGS//\-L/}
-	fi
-	_RARGS=$(echo ${_RARGS}|sed 's/^  *//;s/  *$//')
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_RARGS//\%/\%\%}
-	_RARGS=${_RARGS//,/,,}
-	_RARGS=${_RARGS//:/::}
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS// /\%}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-
-	if [ "$C_TERSE" != 1 ];then
-	    printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_RHOSTS0}"
-	fi
-	_call="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS} ${_RUSER0:+-l $_RUSER0} ${_RHOSTS0}"
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
-	${_call}
-	exit $?
-    fi
-}
-beamMeUp
 
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";
@@ -450,6 +417,8 @@ fi
 
 if [ -n "$1" ];then
     infile=$*
+else
+    infile=/etc/dhcpd.conf
 fi
 
 

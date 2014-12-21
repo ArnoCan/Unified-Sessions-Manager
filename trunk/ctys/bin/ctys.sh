@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_007
+#VERSION:      01_11_003
 #
 ########################################################################
 #
@@ -61,7 +61,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_10_007
+VERSION=01_11_003
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -205,7 +205,7 @@ MYLANG=${MYLANG:-en}
 MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYLIBEXECPATH`}
 
 #path for various loads: libs, help, macros, plugins
-MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+MYHELPPATH=${MYHELPPATH:-$MYLIBPATH/help/$MYLANG}
 
 
 ###################################################
@@ -216,7 +216,7 @@ bootstrapCheckInitialPath
 #OK - Now should work.                            #
 ###################################################
 
-MYCONFPATH=${MYLIBPATH}/conf/ctys
+MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
   exit 1
@@ -226,13 +226,13 @@ if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
     . ${MYCONFPATH}/versinfo.conf.sh
 fi
 
-MYMACROPATH=${MYCONFPATH}/macros
+MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
   exit 1
 fi
 
-MYPKGPATH=${MYLIBPATH}/plugins
+MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
   exit 1
@@ -497,6 +497,9 @@ C_STACKMASTER=0;
 #2=>find topmost-only
 C_STACKREUSE=0;
 
+
+#ForwardAgent of SSH, default is NO. Setting to 1=>'-A'
+unset C_AGNTFWD;
 
 #0=>off, 1=>on
 C_ASYNC=DEFAULT;

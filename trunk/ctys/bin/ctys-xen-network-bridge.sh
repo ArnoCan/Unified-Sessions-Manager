@@ -251,13 +251,13 @@ bootstrapCheckInitialPath
 #OK - Now should work.                            #
 ###################################################
 
-MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+MYHELPPATH=${MYHELPPATH:-$MYLIBPATH/help/$MYLANG}
 if [ ! -d "${MYHELPPATH}" ];then
     echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYHELPPATH=${MYHELPPATH}"
     exit 1
 fi
 
-MYCONFPATH=${MYLIBPATH}/conf/ctys
+MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
     echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
     exit 1
@@ -267,13 +267,13 @@ if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
     . ${MYCONFPATH}/versinfo.conf.sh
 fi
 
-MYMACROPATH=${MYCONFPATH}/macros
+MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
     echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
     exit 1
 fi
 
-MYPKGPATH=${MYLIBPATH}/plugins
+MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
     echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
     exit 1

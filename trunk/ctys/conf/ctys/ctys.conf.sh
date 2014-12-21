@@ -697,3 +697,11 @@ CTYS_PREDETACH_TIMEOUT=20
 #delay checks for some seconds.
 #
 NET_WAIT_BOND_WORKAROUND=${NET_WAIT_BOND_WORKAROUND:-8}
+
+
+#
+#Handling of free ports mainly for SSH-Tunnels
+#
+NET_PORTRANGE_MIN=20000
+NET_PORTRANGE_MAX=21000
+NET_PORTSEED=100

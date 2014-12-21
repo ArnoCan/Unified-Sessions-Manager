@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_11_003
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_10_008
+VERSION=01_11_003
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -203,7 +203,7 @@ MYLANG=${MYLANG:-en}
 MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYLIBEXECPATH`}
 
 #path for various loads: libs, help, macros, plugins
-MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+MYHELPPATH=${MYHELPPATH:-$MYLIBPATH/help/$MYLANG}
 
 
 ###################################################
@@ -214,7 +214,7 @@ bootstrapCheckInitialPath
 #OK - Now should work.                            #
 ###################################################
 
-MYCONFPATH=${MYLIBPATH}/conf/ctys
+MYCONFPATH=${MYCONFPATH:-$MYLIBPATH/conf/ctys}
 if [ ! -d "${MYCONFPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
   exit 1
@@ -224,13 +224,13 @@ if [ -f "${MYCONFPATH}/versinfo.conf.sh" ];then
     . ${MYCONFPATH}/versinfo.conf.sh
 fi
 
-MYMACROPATH=${MYCONFPATH}/macros
+MYMACROPATH=${MYMACROPATH:-$MYCONFPATH/macros}
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
   exit 1
 fi
 
-MYPKGPATH=${MYLIBPATH}/plugins
+MYPKGPATH=${MYPKGPATH:-$MYLIBPATH/plugins}
 if [ ! -d "${MYPKGPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
   exit 1
@@ -317,6 +317,7 @@ esac
 . ${MYLIBPATH}/lib/help/help.sh
 . ${MYLIBPATH}/lib/groups.sh
 . ${MYLIBPATH}/lib/network/network.sh
+. ${MYLIBPATH}/lib/groups.sh
 
 #path to directory containing the default mapping db
 if [ -d "${HOME}/.ctys/db/default" ];then
@@ -543,6 +544,72 @@ function setGroupsFeature () {
 }
 
 
+
+#FUNCBEG###############################################################
+#NAME:
+#  myFetchOptionsPre
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI options. It sets the appropriate context, gwhich could be 
+#  for remote or local execution.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Callcontext:
+#      LOCAL  : for local execution
+#      REMOTE : for local and remote execution, because some HAS to 
+#               be recognized locally too, so for "simplicity" => both.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function myFetchOptionsPre () {
+    printDBG $S_BIN ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=<${@}>"
+    local _myArgs=$@
+
+    printDBG $S_BIN ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_myArgs=<${_myArgs}>"
+
+    _RUSER0=;
+    _RHOST0=;
+
+    #control flow
+    EXECUTE=1;
+    unset ABORT
+    OPTIND=1
+    OPTLST="c:C:d:hH:i:I:l:L:M:o:p:R:sS:T:VwWx:X";
+    _ARGSCALL=$_myArgs
+    while getopts $OPTLST CUROPT ${_myArgs} && [ -z "${ABORT}" ]; do
+	case ${CUROPT} in
+	    L) #[-l:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote user for SSH access-verification: \"-L\""
+		fi
+                _RUSER0=${OPTARG}
+		printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "remote user for SSH access-verification:$_RUSER0"
+		;;
+
+	    R) #[-R]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "database path or address-mapping: \"-p\""
+		fi
+                _RHOSTS0=${OPTARG}
+		printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "database path or address-mapping:_RHOSTS0=\"${_RHOSTS0}\""
+		;;
+	esac
+    done
+}
+
+
+
 #FUNCBEG###############################################################
 #NAME:
 #  myFetchOptions
@@ -581,7 +648,7 @@ function myFetchOptions () {
     EXECUTE=1;
     unset ABORT
     OPTIND=1
-    OPTLST="c:C:d:hH:i:I:l:L:M:o:p:R:sS:T:VwWx:X";
+    OPTLST="c:C:d:hH:i:I:l:M:o:p:sS:T:VwWx:X";
     while getopts $OPTLST CUROPT ${_myArgs} && [ -z "${ABORT}" ]; do
 	case ${CUROPT} in
 
@@ -782,18 +849,13 @@ function myFetchOptions () {
 		done
 		;;
 
-	    L) #[-l:]
-		_RUSER0=$1;
-		;;
-
 	    l) #[-L:]
 		if [ -z "${OPTARG}" ]; then
 		    ABORT=1;         
-   		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote user for SSH access-verification: \"-L\""
+   		    printERR $LINENO $BASH_SOURCE ${ABORT} "remote user for SSH access-verification: \"-l\""
 		fi
                 _user=${OPTARG}
-		printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "remote user for SSH access-verification:$_user"
-		
+		printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "remote user for SSH access-verification:$_user"		
 		;;
 
 	    M) #[-M:]
@@ -950,10 +1012,6 @@ function myFetchOptions () {
 		    ABORT=1;         
    		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing selected cacheDB=\"${DBPATHLST}\""
 		fi
-		;;
-
-	    R) #[-R]
-		_RHOSTS0=$1
 		;;
 
 	    s) #[-s]
@@ -2150,39 +2208,7 @@ _args="${_args//\%\%/%}";
 printDBG $S_BIN ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_args=<${_args}>"
 
 
-function beamMeUp () {
-    if [ -n "${_RHOSTS0}" ];then
-	_RARGS=${_ARGSCALL//$_ARGS/}
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_ARGSCALL//$_RHOSTS0/}
-	_RARGS=${_RARGS//-R/}
-	if [ -n "${_RUSER0}" ];then
-	    _RARGS=${_RARGS//$_RUSER0/}
-	    _RARGS=${_RARGS//\-L/}
-	fi
-	_RARGS=$(echo ${_RARGS}|sed 's/^  *//;s/  *$//')
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_RARGS=${_RARGS//\%/\%\%}
-	_RARGS=${_RARGS//,/,,}
-	_RARGS=${_RARGS//:/::}
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS//  / }
-	_RARGS=${_RARGS// /\%}
-	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
-	_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
-
-	if [ "$C_TERSE" != 1 ];then
-	    printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_RHOSTS0}"
-	fi
-	_call="ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_RARGS:+%$_RARGS} ${_RUSER0:+-l $_RUSER0} ${_RHOSTS0}"
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
-	${_call}
-	exit $?
-    fi
-}
-beamMeUp
+myFetchOptionsPre ${_args:-*}
 
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";

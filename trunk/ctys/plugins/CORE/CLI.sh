@@ -311,7 +311,7 @@ function fetchOptions () {
     EXECUTE=1;
     unset ABORT
     OPTIND=1
-    OPTLST="a:A:b:d:D:c:C:EfF:g:hH:j:k:l:L:M:no:O:p:r:R:s:S:t:T:vVwW:Xyz:Z:";
+    OPTLST="a:A:b:d:D:c:C:EfF:g:hH:j:k:l:L:M:no:O:p:r:s:S:t:T:vVwW:x:XyYz:Z:";
 
     #otherwise does it awk-y
     if [ -z "${_myArgs// }" ];then
@@ -734,28 +734,6 @@ function fetchOptions () {
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "   => C_REMOTERESOLUTION=${C_REMOTERESOLUTION}"
 		;;
 
-	    R) #[-R:]
-		if [ -z "${OPTARG}" ]; then
-		    ABORT=1;         
-		fi
-		local _cnt=0;
-		for i in ${OPTARG//,/ };do
-		    case $i in
-  			0|[Oo][Ff][Ff])C_RESOLVER=OFF;;
-  			1|[Ss][Tt][Aa][Rr])C_RESOLVER=STAR;;
-  			2|[Cc][Hh][Aa][Ii][Nn])C_RESOLVER=CHAIN;;
-		    esac
-		done
-		R_OPTS="${R_OPTS} -R ${C_RESOLVER}"
-		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "-R <nested-access-resolver>}"
-		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "  C_RESOLVER =${C_RESOLVER}"
-		if((_cnt=0));then
-		    ABORT=2;
-		    printERR $LINENO $BASH_SOURCE ${ABORT} "Argument error:\"-R ${OPTARG}\""
-		    gotoHell $ABORT
-		fi
-		;;
-
 	    s) #[-s:]
 		if [ -z "${OPTARG}" ]; then
 		    ABORT=1;         
@@ -914,6 +892,34 @@ function fetchOptions () {
 		fi
 		;;
 
+	    x) #[-x:]
+		if [ -z "${OPTARG}" ]; then
+		    ABORT=1;         
+		fi
+		local _cnt=0;
+		for i in ${OPTARG//,/ };do
+		    case $i in
+  			0|[Oo][Ff][Ff])C_RESOLVER=OFF;;
+  			1|[Ss][Tt][Aa][Rr])C_RESOLVER=STAR;;
+  			2|[Cc][Hh][Aa][Ii][Nn])C_RESOLVER=CHAIN;;
+			*)
+			    ABORT=1;         
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown Resolver-Option:-x \"${OPTARG}\""
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Valid:OFF|STAR|CHAIN"
+			    gotoHell ${ABORT}
+			    ;;
+		    esac
+		done
+		R_OPTS="${R_OPTS} -R ${C_RESOLVER}"
+		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "-x <nested-access-resolver>}"
+		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "  C_RESOLVER =${C_RESOLVER}"
+		if((_cnt=0));then
+		    ABORT=2;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Argument error:\"-x ${OPTARG}\""
+		    gotoHell $ABORT
+		fi
+		;;
+
 	    X) #[-X]
 		R_OPTS="${R_OPTS} -X ";
 		C_TERSE=" -X ";
@@ -922,6 +928,10 @@ function fetchOptions () {
 	    y) #[-y]
 		CTYS_XTERM=0;
 		R_OPTS="${R_OPTS} -y ";
+		;;
+
+	    Y) #[-Y]
+		C_AGNTFWD=1;
 		;;
 
 	    z) #[-z:]
