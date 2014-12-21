@@ -85,7 +85,7 @@ EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -201,7 +201,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -236,7 +236,7 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 #                     End of FrameWork                         #
 ################################################################
 if [ "${*}" != "${*//-X/}" ];then
-    CTRL_TERSE=1
+    C_TERSE=1
 fi
 
 . ${MYLIBPATH}/lib/help/help
@@ -247,7 +247,7 @@ if [ -d "${HOME}/.ctys/db/default" ];then
 fi
 
 #path to directory containing the default mapping db
-if [ -d "${MYCONFPATH}/conf/db/default" ];then
+if [ -d "${MYCONFPATH}/db/default" ];then
     DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
 fi
 
@@ -258,23 +258,23 @@ if [ -f "${HOME}/.ctys/ctys.conf" ];then
 fi
 
 #Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
-  . "${MYCONFPATH}/conf/ctys.conf"
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+  . "${MYCONFPATH}/ctys.conf"
 fi
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
 else
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
 	else
 	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
 	    gotoHell ${ABORT}
 	fi

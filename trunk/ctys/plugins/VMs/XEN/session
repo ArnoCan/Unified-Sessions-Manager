@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a10
 #
 ########################################################################
 #
@@ -20,8 +20,6 @@ _myPKGNAME_XEN_SESSION="${BASH_SOURCE}"
 _myPKGVERS_XEN_SESSION="01.01.001a00"
 hookInfoAdd $_myPKGNAME_XEN_SESSION $_myPKGVERS_XEN_SESSION
 _myPKGBASE_XEN_SESSION="`dirname ${_myPKGNAME_XEN_SESSION}`"
-
-_XEN_SESSION="${_myPKGNAME_XEN_SESSION}"
 
 _VNC_CLIENT_MODE=;
 
@@ -50,6 +48,7 @@ _VNC_CLIENT_MODE=;
 function fetchXenDomID4Label () {
     local _x=`callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} domid $1`
     local _ret=$?
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:domid=${_x//[^0-9]/}"
     echo ${_x//[^0-9]/}
     return $_ret
 }
@@ -74,7 +73,12 @@ function fetchXenDomID4Label () {
 #
 #FUNCEND###############################################################
 function noClientServerSplitSupportedMessageXEN () {
-    printWNG $LINENO $BASH_SOURCE ${ABORT} "INFO:This message Should not occur."
+    ABORT=1
+    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "INFO:Client-Server-Split is supported by Xen, thus check following hints:"
+    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "INFO: - Server is not running"
+    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "INFO: - VNC is not configured for DomU:\"vnc=1\""
+    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "INFO: - No access permissions for \"virsh dumpxml\", check sudo/ksu"
+    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "INFO: - No SSH access to target"
 }
 
 
@@ -99,7 +103,7 @@ function noClientServerSplitSupportedMessageXEN () {
 #
 #FUNCEND###############################################################
 function expandSessionIDXEN () {
-  echo $1
+    echo $1
 }
 
 
@@ -114,11 +118,11 @@ function expandSessionIDXEN () {
 #DESCRIPTION:
 #
 # GENERIC-IF-DESCRIPTION:
-#  Gives the termination points port number, to which a client could be 
+#  Gives the termination points port number, to gwhich a client could be 
 #  attachhed. This port is forseen to be used in port-forwarding e.g.
 #  by OpenSSH.
 #
-#  The port is the local port number, which in general has to be mapped 
+#  The port is the local port number, gwhich in general has to be mapped 
 #  on remote site, when already in use. Therefore the application has
 #  to provide a port-number-independent client access protocol in order 
 #  to be used by connection forwarding. In any other case display 
@@ -131,7 +135,7 @@ function expandSessionIDXEN () {
 #  While others require for each channel a seperate litenning port.
 #
 #  So it is up to the specific package to support a function returning 
-#  the required port number which could be used to attach an forwarded 
+#  the required port number gwhich could be used to attach an forwarded 
 #  port. 
 #  
 #  The applications client has to support a remapped port number.
@@ -140,7 +144,7 @@ function expandSessionIDXEN () {
 #
 #PARAMETERS:
 #  $1: <label>
-#       The <label> to which the client will be attached.
+#       The <label> to gwhich the client will be attached.
 #
 #  $2: <pname>
 #      The pname of the configuration file, this is required for 
@@ -153,22 +157,15 @@ function expandSessionIDXEN () {
 #
 #  VALUES:
 #    <TP-port>
-#      The TP port, to which a client could be attached.
+#      The TP port, to gwhich a client could be attached.
 #
 #FUNCEND###############################################################
 function getClientTPXEN () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
-    local _port=;
-
-    _port=`listMySessionsXEN S MACHINE|awk -F';' -v l="${_label}" '$1~l{print $7;}'`
-    if [ -z "${_port}" ];then
-	_port="NO-CPORT"
-    fi
-    local _ret=$_port;  
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _ret=`listMySessionsXEN S MACHINE|awk -F';' -v l="${1}" '$2~l{print $7;}'`
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=<$_ret> from LABEL=<$1> ID=<$2>"
     echo ${_ret}
 }
-
 
 
 #FUNCBEG###############################################################
@@ -189,6 +186,9 @@ function getClientTPXEN () {
 #     in config file(pname), so must not differ!!!
 #
 # $2: ID/pname
+# $3: console type:CLI|VNC|GTERM|XTERM
+# $4: BootMode
+# $5: GuestOS-TCP/IP-Address
 #
 #OUTPUT:
 #  RETURN:
@@ -197,125 +197,307 @@ function getClientTPXEN () {
 #
 #FUNCEND###############################################################
 function startSessionXEN () {
-  local _label=$1
-  local _pname=$2
-  local _console=${3:-VNC}
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL=$_label"
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME=$_pname"
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:CONSOLE=$_console"
+    local _label=$1
+    local _pname=$2
+    local _console=${3:-$XEN_CONSOLE_DEFAULT}
+    local _bootmode=$4
+    local _myVM=${5};
 
-  #should not happen, anyhow, once again, check it
-  if [ -z "${_label}" ];then
-      ABORT=1
-      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing LABEL"
-      gotoHell ${ABORT}
-  fi
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL              =<$_label>"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME              =<$_pname>"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:CONSOLE            =<$_console>"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:BOOTMODE           =<$_bootmode>"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:C_CLIENTLOCATION   =<$C_CLIENTLOCATION>"
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:GUEST-IP          =<$_myVM>"
 
-  #should not happen, anyhow, once again, check it
-  if [ -z "${_pname}" ];then
-      ABORT=1
-      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing PNAME"
-      gotoHell ${ABORT}
-  fi
+    local CALLER=;
+
+    #should not happen, anyhow, once again, check it
+    if [ -z "${_label}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing LABEL"
+	gotoHell ${ABORT}
+    fi
+
+    #should not happen, anyhow, once again, check it
+    if [ -z "${_pname}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing PNAME"
+	gotoHell ${ABORT}
+    fi
+
+    if [ "${C_STACK}" == 1 ];then
+	printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "C_STACK=${C_STACK}"
+	if [ -z "${_myVM}" -a \( "$_pingXEN" == 1 -o  "$_sshpingXEN" == 1 \) ];then
+	    ABORT=2;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing the TCP/IP address of VM:${_label}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Cannot operate synchronous with GuestOS."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:So VMSTACK is in almost any case not operable."
+	    gotoHell ${ABORT}
+	fi
+    fi
+
+    #
+    #if pathname exists, bootmode is ignored
+    #
+    if [ ! -e "${_pname}" ];then
+	if [ -n "$_bootmode" ];then
+	    _pname="${_pname%%.conf}"
+	    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME              =$_pname"
+
+	    case $_bootmode in
+		[vV][hH][dD][dD]) #default, key could be omitted
+		    _pname=${_pname}-[vV][hH][dD][dD].conf
+		    local _pnameX=`ls ${_pname} 2>/dev/null`
+		    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME              =$_pnameX"
+		    if [ "${_pnameX}" == "${_pname}" ];then
+			_pname=${_pname}.conf
+		    fi
+		    ;;
+		[fF][dD][dD])
+		    _pname=${_pname}-[fF][dD][dD].conf
+		    ;;
+		[uU][sS][bB])
+		    _pname=${_pname}-[uU][sS][bB].conf
+		    ;;
+		[iI][sS][oO])
+		    _pname=${_pname}-[iI][sS][oO].conf
+		    ;;
+		[kK][eE][rR][nN][eE][lL])
+		    _pname=${_pname}-[kK][eE][rR][nN][eE][lL].conf
+		    ;;
+		[pP][xX][eE])
+		    _pname=${_pname}-[pP][xX][eE].conf
+		    ;;
+		[iI][nN][sS][tT][aA][lL][lL])
+		    _pname=${_pname}-[iI][nN][sS][tT].conf
+		    ;;
+		*)
+		    ABORT=1
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:BOOTMODE not supported:<${_bootmode}>"
+		    gotoHell ${ABORT}
+		    ;;
+
+	    esac
+	    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME              =$_pname"
+	    _pname=`echo ${_pname}`
+	fi
+	if [ ! -e "${_pname}" ];then
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing file PNAME=${_pname}"
+	    gotoHell ${ABORT}
+	fi
+    fi
+
+    case ${XEN_MAGIC} in
+	XEN_30) #verified to work
+	    ;;
+	XEN_303) #verified to work
+	    ;;
+	XEN_3*)
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, "
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:but any version \"3.x\" might work."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
+	    ;;
+	XEN_GENERIC)
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:When you see this, something went wrong."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
+	    ;;
+	*)
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, "
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:you cannot really expect it to work properly."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
+	    ;;
+    esac
 
 
-  case ${XEN_MAGIC} in
-      XEN_303) #verified to work
-	  ;;
-      XEN_3x)
-	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, but any version \"3.x\" might work."
-	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
-	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
-	  ;;
-      *)
-	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, you cannot really expect it to work properly."
-	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_VERSTRING = ${XEN_VERSTRING}"
-	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  XEN_MAGIC     = ${XEN_MAGIC}"
-	  ;;
-  esac
+    #set appropriate DomU call
+    if [ "${C_ASYNC}" == 1 ];then
+	CALLER="${XENCALL} ${XM} create \"${_pname}\""
+    else
+	case $_console in
+	    CLI)
+		CALLER="${XENCALL} ${XM} create -c \"${_pname}\""
+		;;
+	    *)
+		CALLER="${XENCALL} ${XM} create \"${_pname}\""
+		;;
+	esac
+
+    fi
+
+    #check for backgound execution when locally called, without ssh.
+    if [ "${C_STACK}" == 0 ];then
+	if [ "${C_ASYNC}" == 1 ];then
+	    if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" \
+		-o "${C_CLIENTLOCATION}" ==  "-L LOCALONLY" \
+ 		];then
+		CALLER="${CALLER} &"
+	    fi
+	fi
+    else
+	CALLER="${CALLER} &"
+    fi
+
+    #bring up the DomU now
+    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "ENABLE DomU:${CALLER}"
+    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "TERM=${TERM}"
+
+    if [ "${C_STACK}" == 1 ];then
+	_pingXEN=1;
+	_sshpingXEN=1;
+    fi
+
+    if [ -z "${C_NOEXEC}" ];then
+	eval ${CALLER} 
+	printINFO 1 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Give DomU some time to start:${XEN_INIT_WAITS}seconds"
+	sleep ${_waitsXEN}
+
+	local _pingok=0;
+	local _sshpingok=0;
 
 
-  #set appropriate DomU call
-  if [ "${CTRL_ASYNC}" == 1 ];then
-      CALLER="${XENCALL} ${XM} create \"${_pname}\""
-  else
-      case $_console in
-	  CLI)
-	      CALLER="${XENCALL} ${XM} create -c \"${_pname}\""
-	      ;;
-	  *)
-	      CALLER="${XENCALL} ${XM} create \"${_pname}\""
-	      ;;
-      esac
+	if [ "$_pingXEN" == 1 ];then
+	    netWaitForPing "${_myVM}" "${_pingcntXEN}" "${_pingsleepXEN}"
+	    _pingok=$?;
+	fi
 
-  fi
+	if [ "$_pingok" == 0 -a "$_sshpingXEN" == 1 ];then
+	    netWaitForSSH "${_myVM}" "${_sshpingcntXEN}" "${_sshpingsleepXEN}" "${_actionuserXEN}"
+	    _sshpingok=$?;
+	fi
 
-  #check for backgound execution when locally called, without ssh.
-  if [ "${CTRL_ASYNC}" == 1 ];then
-      if [ "${CTRL_CLIENTLOCATION}" ==  "-L ConnectionForwarding" \
-          -o "${CTRL_CLIENTLOCATION}" ==  "-L LocalOnly" \
- 	  ];then
-	  CALLER="${CALLER} &"
-      fi
-  fi
+	if [ "${C_STACK}" == 1 ];then
+	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "C_STACK=${C_STACK}"
+	    if [ $_pingok != 0 ];then
+		ABORT=1
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForPing"
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
 
-  #bring up the DomU now
-  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "ENABLE DomU:${CALLER}"
-  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "TERM=${TERM}"
+		printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
+		printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myVM}> <${_pingcntXEN}> <${_pingsleepXEN}>"
+		gotoHell ${ABORT}
+	    else
+ 		printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessable by ping:${_myVM}"
+	    fi
 
-  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER} 
+	    netWaitForSSH "${_myVM}" "${_sshpingcntXEN}" "${_sshpingsleepXEN}" "${_actionuserXEN}"
+	    if [ $? != 0 ];then
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
 
-  if [ "$_console" == "CLI" ];then
-      return
-  fi
-
-  #anyhow, let's do it in any case - for now
-  if [ "${CTRL_ASYNC}" == 1 ];then
-      sleep ${XEN_CONSOLE_DOMU_INIT_WAIT}
-  fi
-
-
-  #if no client required
-  if [ "${CTRL_CLIENTLOCATION}" ==  "-L ServerOnly" ];then
-      return
-  fi
+		printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
+		printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myVM}> <${_sshpingcntXEN}> <${_sshpingsleepXEN}>"
+		gotoHell 0
+	    else
+ 		printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessable by ssh:${_myVM}"
+	    fi
+	fi
+	cacheStoreWorkerPIDData SERVER XEN "${_pname}" "${_label}" 0 "${XENJOBPOSTFIX}"
+    fi
 
 
-  #now check for console
-  #assuming that combination check for options has been validated!
-  local _args1=;
-  _args1="${_args1} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} "
-  _args1="${_args1} ${CTRL_ASYNC:+ -b $CTRL_ASYNC} "
-  _args1="${_args1} ${CTRL_GEOMETRY:+ -g $CTRL_GEOMETRY} "
-  _args1="${_args1} ${CTRL_XTOOLKITOPTS} "
-  local _args=;
-  case $_console in
-      GTERM)
-	  _args=" -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
-	  _args="${_args},c:\\\"${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`\\\" ${_args1}"
-	  ;;
-      XTERM)
-	  _args=" -t X11 -a create=l:${_label},cmd:xterm,sh"
-	  _args="${_args},c:${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}` ${_args1}"
-	  ;;
-      VNC)
-	  MYVNCPORT=`${MYCALLPATH}/ctys -t xen -a list=label,cport|awk -F';' -v l=${_label} '$1==l{print $2;}'`
-	  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "MYVNCPORT=${MYVNCPORT}"
-	  _args=" -t VNC -a create=l:${_label},v:${MYVNCPORT},connect  ${_args1}"
-	  ;;
-      *)
-	  ABORT=1
-	  printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unexpected CONSOLE:${_console}"
-	  gotoHell ${ABORT}
-	  ;;
-  esac
 
-  CALLER="${MYCALLPATH}/ctys ${_args}"
+    if [ "$_console" == "CLI" -o "$_console" == "NONE"  ];then
+	return
+    fi
+    if [ "${C_CLIENTLOCATION}" ==  "-L SERVERONLY"  ];then
+	return
+    fi
 
-  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
-  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER} 
+    #now check for console
+    #assuming that combination check for options has been validated!
+    local _args1=;
+    _args1="${_args1} ${C_DARGS} "
+    _args1="${_args1} ${C_GEOMETRY:+ -g $C_GEOMETRY} "
+    _args1="${_args1} ${C_XTOOLKITOPTS} "
+
+
+    local _args=" -j ${CALLERJOBID} -E -F ${VERSION} ";
+    local _myCon=`fetchXenDomID4Label ${_label}`;
+    case $_console in
+	GTERM)
+	    _args="${_args} -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
+	    _args="${_args},c:\"${XENCALL// /%}%${XM}%console%${_myCon}\" ${_args1}"
+	    CALLER="${_args}"
+	    ;;
+	XTERM)
+	    _args="${_args}  -t X11 -a create=l:${_label},cmd:xterm,sh"
+	    _args="${_args},c:${XENCALL// /%}%${XM}%console%${_myCon} ${_args1}"
+	    CALLER="${_args}"
+	    ;;
+	EMACS|EMACSA|EMACSM|EMACSAM)
+	    _args="${_args}  -t X11 -a create=l:${_label},console:$_console"
+	    _args="${_args},c:${XENCALL// /%}%${XM}%console%${_myCon} ${_args1}"
+	    CALLER="${_args}"
+	    ;;
+	VNC)
+	    MYVNCPORT=`${MYCALLPATH}/ctys -t xen -a list=label,cport,terse|awk -F';' -v l=${_label} '$1==l{print $2;}'`
+	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "MYVNCPORT=${MYVNCPORT}"
+	    _args="${_args}  -t VNC -a create=l:${_label},vncport:${MYVNCPORT},connect  ${_args1}"
+	    ;;
+	NONE)
+	    _args=;
+	    ;;
+	*)
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unexpected CONSOLE:${_console}"
+	    gotoHell ${ABORT}
+	    ;;
+    esac
+
+
+    ##
+     #following STACK-Aware is reminder for next changes
+    ##
+
+    if [ -n "$_args" ];then
+        #force CONSOLE for VMSTACK to background
+	if [ "${C_STACK}" == 1 ];then
+	    _args1="$(cliOptionsUpdate "-b async,par" -- "${_args1}")"
+	fi
+	CALLER="${MYCALLPATH}/ctys ${_args} ${_args1} "
+	printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
+	if [ -z "${C_NOEXEC}" ];then
+	    eval ${CALLER} 
+	    sleep ${_waitcXEN}
+	fi
+    fi
+
+
+    #
+    #assure for a VMSTACK the environment of next peer to be prepared
+    if [ "${C_STACK}" != 0 ];then
+	local _VHOST="${MYCALLPATH}/ctys-vhost ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
+	local _myVM=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+
+        #
+        #
+	netWaitForPing "${_myVM}" "${CTYS_PING_ONE_MAXTRIAL_XEN}" "${CTYS_PING_ONE_WAIT_XEN}"
+	if [ $? != 0 ];then
+            ABORT=1
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForPing"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
+	    gotoHell ${ABORT}
+	else
+ 	    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ping:${_myVM}"
+	fi
+
+        #
+        #
+	netWaitForSSH "${_myVM}" "${CTYS_SSHPING_ONE_MAXTRIAL_XEN}" "${CTYS_SSHPING_ONE_WAIT_XEN}"
+	if [ $? != 0 ];then
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  VM =${_myVM}"
+	    gotoHell 0
+	else
+ 	    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ssh:${_myVM}"
+	fi
+    fi
 }
-
 
 
 #FUNCBEG###############################################################
@@ -328,7 +510,7 @@ function startSessionXEN () {
 #DESCRIPTION:
 #  This function is the plugins local connection wrapper.
 #  The basic decisions from where the connection is established and 
-#  to which peer it has to be connected is done before calling this.
+#  to gwhich peer it has to be connected is done before calling this.
 #  But some knowledge of the connection itself is still required here.
 #
 #  So "the wrapper is in close relation to the controller", it is his  
@@ -359,71 +541,85 @@ function startSessionXEN () {
 #
 #FUNCEND###############################################################
 function connectSessionXEN () {
-  local _contype=${1}
-  local _label=${2}
-  local _id=${3}
-  local _actaccessID=${4}
+    local _contype=${1}
+    local _label=${2}
+    local _id=${3}
+    local _actaccessID=${4}
 
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME ${_contype} ${_label} ${_id} ${_actaccessID}"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL              =$_label"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:ID                 =$_id"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:ACTACCESSID        =$_actaccessID"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:CONTYPE            =$_contype"
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:C_CLIENTLOCATION=$C_CLIENTLOCATION"
 
-  if [ -z "${_id}" -o -z "${_label}" ];then
-      ABORT=1
-      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:At least one parameter required:<session-id> or <session-label>"
-      gotoHell ${ABORT}
-  fi
+    if [ -z "${_id}" -o -z "${_label}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:At least one parameter required:<session-id> or <session-label>"
+	gotoHell ${ABORT}
+    fi
+
+    local CALLER=;
+
+    local _args=;
+    local _args1=;
+    _args1="${_args1} ${C_DARGS} "
+    _args1="${_args1} ${C_ASYNC:+ -b $C_ASYNC} "
+    _args1="${_args1} ${C_GEOMETRY:+ -g $C_GEOMETRY} "
+    _args1="${_args1} ${C_ALLOWAMBIGIOUS+ -A $C_ALLOWAMBIGIOUS} "
+    _args1="${_args1} ${C_XTOOLKITOPTS} "
 
 
-  local _args=;
-  local _args1=;
-  _args1="${_args1} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} "
-  _args1="${_args1} ${CTRL_ASYNC:+ -b $CTRL_ASYNC} "
-  _args1="${_args1} ${CTRL_GEOMETRY:+ -g $CTRL_GEOMETRY} "
-  _args1="${_args1} ${CTRL_ALLOWAMBIGIOUS+ -A $CTRL_ALLOWAMBIGIOUS} "
-  _args1="${_args1} ${CTRL_XTOOLKITOPTS} "
+    local _args=" -j ${CALLERJOBID}.$((JOB_SUBIDX++)) -E -F ${VERSION} ";
 
+    #
+    #local native access: same as DISPLAYFORWARDING or LOCALONLY
+    #
+    case $_contype in
+	CLI)
+	    CALLER="${XENCALL} ${XM} console `fetchXenDomID4Label ${_label}`"
+	    ;;
+	GTERM)
+	    _args="${_args} -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
+ 	    _args="${_args},c:${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`"
+            _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
+	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
+	    CALLER="${_args}"
+	    ;;
+	XTERM)
+	    _args="${_args} -t X11 -a create=l:${_label},cmd:xterm,sh,c:${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`"
+            _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
+	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
+	    CALLER="${_args}"
+	    ;;
+	EMACS|EMACSA|EMACSM|EMACSAM)
+	    _args="${_args} -t X11 -a create=l:${_label},console:${_contype},c:${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`"
+            _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
+	    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "_args=${_args}"
+	    CALLER="${_args}"
+	    ;;
+	VNC)
+	    if [ -n "${_actaccessID}" ];then
+ 		connectSessionXENVNC "${_actaccessID}" "${_label}" 
+	    else
+		ABORT=1
+		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing port for VNC viewer, reasons could be:"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:- Configuration error, check \"vnc=1\""
+		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:- Server is not running"
+		gotoHell ${ABORT}
+	    fi
+	    return
+	    ;;
+	*)
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unknown CONSOLE:${_contype}"
+	    gotoHell ${ABORT}
+	    ;;
+    esac
 
-  #
-  #local native access: same as DisplayForwarding or LocalOnly
-  #
-  case $_contype in
-      CLI)
-	  ${XENCALL} ${XM} console `fetchXenDomID4Label ${_label}`
-	  ;;
-      GTERM)
-	  _args="${_args} -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
- 	  _args="${_args},c:${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`"
-          _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
-	  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "_args=${_args}"
-	  ${_args}
-	  ;;
-      XTERM)
-	  _args="${_args} -t X11 -a create=l:${_label},cmd:xterm,sh,c:${XENCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`"
-          _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
-	  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "_args=${_args}"
-	  ${_args}
-	  ;;
-      VNC)
-	  if [ -n "${_actaccessID}" ];then
-#timeout>>!20
-#	      _args=" -t VNC -a create=l:${_label},v:${_actaccessID},connect ${_args}"
-#	      _args=" -t VNC -a create=l:${_label},v:${_actaccessID},connect ${_args}"
-#              _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
-#	      ${_args}
- 	      connectSessionXENVNC "${_actaccessID}" "${_label}" 
-	  else
-	      ABORT=1
-	      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing _actaccessID:${_actaccessID}"
-	      gotoHell ${ABORT}
-	  fi
-	  ;;
-      *)
-	  ABORT=1
-	  printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unknown CONSOLE:${_contype}"
-	  gotoHell ${ABORT}
-	  ;;
-  esac
+    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "TERM=${TERM}"
+    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
+    [ -z "${C_NOEXEC}" ]&&eval ${CALLER} 
 }
-
 
 
 
@@ -458,7 +654,7 @@ function connectSessionXEN () {
 #
 #FUNCEND###############################################################
 function vmMgrXEN () {
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "${FUNCNAME} $*"
+    printDBG $S_XEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME} $*"
     local _cmd=$1;shift
     local _label=$1;shift
     local _id=$1;shift
@@ -485,7 +681,7 @@ function vmMgrXEN () {
     case $_cmd in
         #CREATE######################
 	RESUME)
-            if [ -z "${CTRL_NOEXEC}" ];then
+            if [ -z "${C_NOEXEC}" ];then
 		if [ -n "${_arg}" ];then
 		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "restore" "${_arg}"
 		else
@@ -494,38 +690,32 @@ function vmMgrXEN () {
 	    fi
 	    ;;
 
-
         #CANCEL######################
 	SUSPEND)
-            if [ -z "${CTRL_NOEXEC}" ];then
+            if [ -z "${C_NOEXEC}" ];then
 		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "save" "$_label" "${_arg}"
 	    fi
 	    ;;
-
 	PAUSE)
-            if [ -z "${CTRL_NOEXEC}" ];then
+            if [ -z "${C_NOEXEC}" ];then
 		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "suspend" "$_label"
 	    fi
 	    ;;
-
 	REBOOT|RESET)
-            if [ -z "${CTRL_NOEXEC}" ];then
+            if [ -z "${C_NOEXEC}" ];then
 		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "reboot" "$_label"
 	    fi
 	    ;;
 	POWEROFF)
-            if [ -z "${CTRL_NOEXEC}" ];then
+	    echo  "POWEROFF-SERVER Session: $_label(delay=${_arg:-1})"
+            if [ -z "${C_NOEXEC}" ];then
 		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "shutdown" "$_label"
 		sleep ${_arg:-1}
 		callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} "destroy" "$_label"
-
 	    fi
-
             ;;
     esac
 }
-
-
 
 
 #FUNCBEG###############################################################
@@ -555,31 +745,26 @@ function vmMgrXEN () {
 #
 #FUNCEND###############################################################
 function connectSessionXENVNC () {
-  local _id=${1}
-  local _label=${2}
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME ${_id} ${_label}"
+    local _id=${1}
+    local _label=${2}
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME ${_id} ${_label}"
 
+    #even though this condition might be impossible now, let it beeeee ...
+    if [ -z "${_label}" -a -z "${_id}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Fetch of peer entry failed:_id=${_id} - _label=${_label}"
+	gotoHell ${ABORT}
+    fi
 
-  #even though this condition might be impossible now, let it beeeee ...
-  if [ -z "${_label}" -a -z "${_id}" ];then
-    ABORT=1
-    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Fetch of peer entry failed:_id=${_id} - _label=${_label}"
-    gotoHell ${ABORT}
-  fi
+    printDBG $S_XEN ${D_FRAME} $LINENO $BASH_SOURCE "OK:_id=${_id} - _label=${_label}"
+    #
+    #Now shows name+id in title, id could not be set for server as default.
+    local _vieweropt="-name ${_label}:${_id} ${VNCVIEWER_OPT} ${C_GEOMETRY:+ -geometry=$C_GEOMETRY} "
 
-  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "OK:_id=${_id} - _label=${_label}"
-  #
-  #Now shows name+id in title, id could not be set for server as default.
-  local _vieweropt="-name ${_label}:${_id} ${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry=$CTRL_GEOMETRY} "
-
-  #old version with server-default label in title
-  #  local _vieweropt="${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry=$CTRL_GEOMETRY} "
-  local CALLER="${VNCVIEWER} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} ${_vieweropt} :${_id}"
-  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "${CALLER}"
-  export CTRL_ASYNC;
-  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER}
+    #old version with server-default label in title
+    #  local _vieweropt="${VNCVIEWER_OPT} ${C_GEOMETRY:+ -geometry=$C_GEOMETRY} "
+    local CALLER="${VNCVIEWER} ${C_DARGS} ${_vieweropt} :${_id}"
+    printDBG $S_XEN ${D_FRAME} $LINENO $BASH_SOURCE "${CALLER}"
+    export C_ASYNC;
+    [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
 }
-
-
-
-

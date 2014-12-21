@@ -6,62 +6,83 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a13
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
-#    output format: "host:label:id:uuid:pid:uid:gid:sessionType:clientServer"
-#                     +    +     +  +    +   +   +       +          +
+#    output format: "label;id;uuid;pid;uid;gid;sessionType;clientServer;JobID"
+#                    1     2  3    4   5   6   7           8            9
+
+function ptrace(inp){
+    if(!d){
+        print line ":" inp | "cat 1>&2"
+    }
+}
+
+BEGIN{
+    line=0;
+    ptrace("Start record with AWK:X11:SERVERLST");
+}
+
+{
+    line++;
+    ptrace("input=<"$0">")
+}
+
 
 {
     found=0;
-
-    #label
-    if($16){
-        x0=$16;        
-        gsub(".*l:","",x0);
-        gsub(" .*","",x0);
-        gsub(",.*","",x0);
-        
-        printf("%s", x0);
+    res="";
+    
+    #id+job+label
+    x0=$0;
+    f=gsub("^.*CTYS-X11-","",x0);
+    if(f>0){
+        gsub(" .*$","",x0);
+        j=x0;
+        gsub("-.*$","",j);
+        id=j;
+        xm=match(id,"^[^:]*:[^:]*:");
+        if(xm!=0){            
+        id=substr(id,RSTART,RLENGTH-1);
+        }else{
+            id="";
+        }
+        gsub("[^-]*-","",x0);
         found=1;  
     }
-
-    #id
-    if($2!~/^$/){
-        id=$2;
-        printf(";%s", id);
-        found=1;  
-    }
+    ptrace("label=<"x0">")
+    ptrace("id=<"id">")
+    ptrace("jobid=<"j">")
+    res=x0";"id;
 
     if(found!=0){
-        if(id=="")
-            printf(";;;");
-        else
-            printf(";;;%s",id);           
-
-        printf(";");
-        printf(";");
+        res=res";;;;;";
     
         #pid+uid
-        printf(";%s;%s;", $2, $1);
+        res=res";"$2";"$1;
         {
             #gid
             cll="id " $1 "|sed -n \"s/.*gid=[0-9]*(\\([^)]*\\)).*/\\1/p\"";
-            cll|getline x1;printf("%s", x1);
-            printf(";");
+            cll|getline x1;
+            res=res";"x1;
         }
 
-        #sessioType
-        printf("X11");
+        #sessionType
+        res=res";X11";
 
         #clientServer
-        printf(";CLIENT");
-        printf(" ");
+        res=res";CLIENT;";
+
+        #job
+        res=res";"j;
+
+        res=res" ";
+        printf("%s",res);
     }
     found=0;
 }

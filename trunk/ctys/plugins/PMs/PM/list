@@ -40,8 +40,6 @@ hookInfoAdd $_myPKGNAME_PM_LIST $_myPKGVERS_PM_LIST
 #     C: clients
 #     S: servers
 #     B: both
-# $2: 1=MACHINE|0=HUMAN
-# $*: FULLPATH|UUID
 #
 #OUTPUT:
 #  RETURN:
@@ -51,36 +49,63 @@ hookInfoAdd $_myPKGNAME_PM_LIST $_myPKGVERS_PM_LIST
 #FUNCEND###############################################################
 function listMySessionsPM () {
     local _site=$1;shift
-    local _machine=$1;shift
 
-    if [ "${MYOS}" != OpenBSD -a "${MYOS}" != Linux ];then
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:OS not supported by PM:${MYOS}"
+    printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:\$@=$@"
+
+    case ${MYOS} in
+	OpenBSD);;
+	Linux);;
+	SunOS);;
+	*)
+	    printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:OS not supported by PM:${MYOS}"
+	    return
+    esac
+    if [ "${_site}" != S -a "${_site}" != B ];then
 	return
     fi
 
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME $_site <$*>"
-    if [ "${CTRL_SESSIONTYPE}" != "PM" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
+    printDBG $S_PM ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME $_site <$*>"
+    if [ "${C_SESSIONTYPE}" != "PM" -a "${C_SESSIONTYPE}" != "ALL" ];then 
         ABORT=2
-        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:C_SESSIONTYPE=${C_SESSIONTYPE}"
         gotoHell ${ABORT}
     fi
 
-    local _id=/etc/ctys.d/pm.conf
+    local X=/etc/ctys.d/pm.conf
+    if [ ! -f "${X}" ];then
+	local X=/etc/ctys.d/vm.conf
+    fi
+    local _out=;
 
-    local _rec=;
-    _rec="${MYHOST}";
-    _rec="${_rec};`getLABEL ${_id}`";
-    _rec="${_rec};${_id}";
-    _rec="${_rec};`getUUID ${_id}`";
-    _rec="${_rec};`getMAC ${_id}`";
-    _rec="${_rec};";
-    _rec="${_rec};";
-    _rec="${_rec};";
-    _rec="${_rec};1";
-    _rec="${_rec};`getUID ${_id}`";
-    _rec="${_rec};`getGID ${_id}`";
-    _rec="${_rec};PM";
-    _rec="${_rec};SERVER";
+    local _out1=;
+    _out1="${MYHOST}"; 
+    _out1="${_out1};`getLABEL ${X}`";
+    _out1="${_out1};${X}";
+    _out1="${_out1};`getUUID ${X}`";
+    #out="${_out};`getMAC ${X}`";
+    local _out2=;
+    _out2="${_out2};";
+    _out2="${_out2};";
+    _out2="${_out2};";
+    _out2="${_out2};1";
+    _out2="${_out2};`getUID ${X}`";
+    _out2="${_out2};`getGID ${X}`";
+#    _out2="${_out2};PM";
+    _out2="${_out2};`getCATEGORY ${X}`";
+    _out2="${_out2};SERVER";
 
-    echo $_rec
+    local _cnt=0;
+    local _il="`netGetIFlst`";
+    printDBG $S_PM ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:Polled if-list:${_il}"
+    for i in $_il;do
+	_out="${_out1};${i%%=*}${_out2};${i##*=}";
+	_out="${_out};";
+	echo $_out
+        let _cnt++;
+    done
+    if((_cnt==0));then
+	_out="${_out1};${_out2};";
+	_out="${_out};";
+	echo $_out
+    fi
 }

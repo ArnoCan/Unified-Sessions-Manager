@@ -1,3 +1,33 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a15
+#
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
 #FUNCEG###############################################################
 #
 #PROJECT:
@@ -22,7 +52,7 @@ LICENCE=GPL3
 #  sh-script
 #
 #VERSION:
-VERSION=01_01_001b04
+VERSION=01_06_001A15
 #DESCRIPTION:
 #  Install script for ctys. Generic shell script for bootstrap, 
 #  should work on almost any bourne-like shell.
@@ -59,6 +89,53 @@ VERSION=01_01_001b04
 #
 #FUNCEND###############################################################
 
+MYOS=`dirname $0`
+MYOS=`${MYOS}/getCurOS`
+
+
+if [ -z "$BASH" ];then
+    echo "*********************************************************************"
+    echo "* The UnifiedSessionsManager scripts require the \"bash\".            *"
+    echo "* For the installation of this version a user driven setting of the *"
+    echo "* \"bash\" shell is required.                                         *"
+    echo "*                                                                   *"
+    echo "* Call: 1. bash                                                     *"
+    echo "*       2. <path>/ctys-install <args>                               *"
+    echo "*                                                                   *"
+    echo "*********************************************************************"
+    exit 1
+fi
+
+
+if [ "$HOME" == "/" ];then
+    echo "The UnifiedSessionsManager requires a HOME directory differen from top=\"/\"."
+    echo "If you are root, you may create \"/root\" and set this as your home."
+    exit 1
+fi
+
+case ${MYOS} in
+    SunOS)
+	export PATH=/usr/xpg4/bin:/opt/sfw/bin:/usr/sbin:/usr/bin:/usr/openwin/bin:$PATH
+	;;
+esac
+
+function gwhich () {
+    case ${MYOS} in
+	SunOS)
+	    local _xf=`which $*`;
+	    case $_xf in
+		no*)
+		    return 1;
+		    ;;
+	    esac
+	    echo -n -e $_xf
+	    ;;
+	*)which $*
+	    ;;
+    esac
+}
+
+
 if [ "${*}" != "`echo ${*}|sed 's/-h//'`" ];then
     dn=`dirname $0`
     ${dn}/ctys-install1 -h
@@ -66,10 +143,10 @@ if [ "${*}" != "`echo ${*}|sed 's/-h//'`" ];then
 fi
 
 if [ "${*}" != "`echo ${*}|sed 's/-X//'`" ];then
-    CTRL_TERSE=1
+    C_TERSE=1
 fi
 if [ "${*}" != "`echo ${*}|sed 's/-V//'`" ];then
-    if [ -n "${CTRL_TERSE}" ];then
+    if [ -n "${C_TERSE}" ];then
 	echo -n ${VERSION}
     else
 	echo "$0: VERSION=${VERSION}"
@@ -91,13 +168,13 @@ echo
 ######################################################################
 
 #mandatory-0
-MANDATORY="which bash dirname basename find grep awk sleep "
+MANDATORY="which bash dirname basename find grep awk sleep uname "
 echo "Check for level-0==absolutely-mandatory - else almost nothing might work."
 for i in $MANDATORY;do
-    CHK=`which $i 2>&1 >/dev/null`
-    if [ $? != 0 ];then
+    gwhich $i 2>&1 >/dev/null
+    if [ $? -ne 0 ];then
 	echo "Oh, ...."
-	echo "....missing level-0==absolutely-mandatory:\"$i\", so check your basic shell evironment."
+ 	echo "....missing level-0==absolutely-mandatory:\"$i\", so check your basic shell evironment."
 	exit 1
     else
 	echo "      $i - OK"
@@ -106,11 +183,11 @@ done
 echo
 
 #mandatory-1
-MANDATORY="ps"
+MANDATORY="ps "
 echo "Check fof level-1==mandatory - else (for now too!) almost nothing might work."
 for i in $MANDATORY;do
-    CHK=`which $i 2>&1 >/dev/null`
-    if [ $? != 0 ];then
+    gwhich $i 2>&1 >/dev/null
+    if [ $? -ne 0 ];then
 	echo "Oh, ...."
 	echo "....missing level-1==mandatory:\"$i\", so check your basic shell evironment."
 	echo "....you might be probably operating within a restricted-shell."
@@ -123,20 +200,23 @@ echo
 
 #mandatory-2
 MANDATORY="vncserver vncviewer"
-echo "Check fof level-2==mandatory - else (for now too!) no remote-desktops."
+echo "Check of level-2==mandatory - else (for now too!) no remote-desktops."
 for i in $MANDATORY;do
-    CHK=`which $i 2>&1 >/dev/null`
-    if [ $? != 0 ];then
+    gwhich $i 2>&1 >/dev/null
+    if [ $? -ne 0 ];then
 	echo "Oh, ...."
-	echo "....missing level-1==mandatory:\"$i\", so check your basic shell evironment."
-	echo "....you do at least require \"vncserver\" for \"ConnectionForwarding\"."
+	echo "....missing level-2==mandatory:\"$i\", so check your basic shell evironment."
+	echo "....you do at least require \"vncserver\" for \"CONNECTIONFORWARDING\"."
 	echo "....\"TightVNC\" or \"RealVNC\""
-	exit 1
+
+	echo "Anyhow, for now continue."
+#	exit 1
     else
 	echo "      $i - OK"
     fi
 done
 echo
+
 
 
 #by convention: CURCALLDIR=$CURINSTTREE/bin
@@ -146,8 +226,8 @@ CURINSTCONF=${CURINSTTREE}/conf/ctys
 
 MANDATORY="${CURCALLDIR}/ctys-install1"
 for i in $MANDATORY;do
-    CHK=`which $i 2>&1 >/dev/null`
-    if [ $? != 0 ];then
+    gwhich $i 2>&1 >/dev/null
+    if [ $? -ne 0 ];then
 	echo "Oh, ...."
 	echo "....missing \"$i\", so check your basic shell evironment."
 	exit 1
@@ -161,36 +241,39 @@ echo
 echo "Setting distribution."
 echo
 CUROS=`${CURCALLDIR}/getCurOS`;
-echo "   CUROS   = ${CUROS}"
+echo "   CUROS      = ${CUROS}"
 
-CURREL=`${CURCALLDIR}/getCurRelease`;
-echo "   CURREL  = ${CURREL}"
+CUROSREL=`${CURCALLDIR}/getCurOSRel`;
+echo "   CUROSREL   = ${CUROSREL}"
 
 CURDIST=`${CURCALLDIR}/getCurDistribution`;
-echo "   CURDIST = ${CURDIST}"
+echo "   CURDIST    = ${CURDIST}"
+
+CURREL=`${CURCALLDIR}/getCurRelease`;
+echo "   CURREL     = ${CURREL}"
 
 
 echo
-######################################################################
-echo
-echo "  - Switch \"systools.conf\""
-echo
-######################################################################
-echo
-echo "    Current OS-REL=${CUROS}-${CURREL}"
-echo "     =>${CURINSTCONF}/systools.conf.${CURDIST}"
-echo
-if [ ! -f "${CURINSTCONF}/systools.conf.${CURDIST}" ];then
-   echo "Missing: ${CURINSTCONF}/systools.conf.${CURDIST}"
-   exit 1
-fi
+# ######################################################################
+# echo
+# echo "  - Switch \"systools.conf.${MYDIST}\""
+# echo
+# ######################################################################
+# echo
+# echo "    Current OS-REL=${CUROS}-${CURREL}"
+# echo "     =>${CURINSTCONF}/systools.conf.${MYDIST}.${CURDIST}"
+# echo
+# if [ ! -f "${CURINSTCONF}/systools.conf.${MYDIST}.${CURDIST}" ];then
+#    echo "Missing: ${CURINSTCONF}/systools.conf.${MYDIST}.${CURDIST}"
+#    exit 1
+# fi
 
-###########
-#REMARK:
-#  Do this for a short migration time of legacy only, threafter
-#  use seamlessly the pre-typeID-postfix-approach.
-cp ${CURINSTCONF}/systools.conf.${CURDIST} ${CURINSTCONF}/systools.conf
-###########
+# ###########
+# #REMARK:
+# #  Do this for a short migration time of legacy only, threafter
+# #  use seamlessly the pre-typeID-postfix-approach.
+# cp ${CURINSTCONF}/systools.conf.${CURDIST} ${CURINSTCONF}/systools.conf
+# ###########
 
 
 ######################################################################
@@ -201,7 +284,7 @@ echo "    Check accesibility of ctys scripts by their standard shells."
 echo
 ######################################################################
 STDPATH="/bin/bash"
-CURPATH=`which bash`
+CURPATH=`gwhich bash`
 if [ "${CURPATH}" == "${STDPATH}" ];then
     echo "      CURRENT(#!${CURPATH}) == ORIGINAL(#!${STDPATH})"
     echo 
@@ -272,6 +355,11 @@ echo "###################"
 echo 
 ${CURCALLDIR}/ctys-install1 $*
 
-
-
+echo
+echo "*********************************************************************"
+echo
+echo "Logout now, and login again for init of the required environment."
+echo
+echo "*********************************************************************"
+echo
 

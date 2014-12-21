@@ -1,0 +1,261 @@
+  
+  
+  
+  
+Name:
+
+  ctys-utilities
+  
+  
+  Following support-utilities are provided with ctys:
+  
+  
+  
+  1.1 ctys-install
+  
+  
+Usage:
+  
+  
+  
+  ctys-install [<key>[=<value>]] ...
+  
+  
+  
+Description:
+  Basic install and update-script for raw usage from CLI when installed indi-
+  vidually from olesystem.
+  
+  
+  The basic operations could be controlled by the following options and argu-
+  ments. Two basic applications could be distinguished:
+  
+  
+  
+    1. Individual Install
+       Install by copy of conogurations and lib-subdirectory(default).
+  
+  
+  
+            "ctys-install"
+            "ctys-install force"
+            "ctys-install forceall"
+            "ctys-install forceclean"
+  
+  
+  
+    2. Centralized Install
+       Install conogurations and symbolic links only("linkonly").
+  
+  
+            "ctys-install linkonly"
+            "ctys-install linkonly force"
+            "ctys-install linkonly forceall"
+            "ctys-install linkonly forceclean"
+  
+  
+  
+  Following options are available:
+  
+  
+  
+  Options
+  
+  
+  [libdir=<default=$HOME/lib>]
+  
+  
+       DEFAULT=$HOME/lib
+       The root path for the physical install target. The actual physical
+       install is handled by a name including the current version in a
+       similar manner as shared libraries naming convention.
+  
+  
+  [bindir=<default=$HOME/bin>]
+  
+  
+       The path to the starter directory, which is contained in the PATH
+       variable.
+       Symbolic link: $bindir/ctys -> $libdir/ctys.<version>/bin/ctys
+       Bootstrap ole: $bindir/bootstrap/bootstrap.<version>
+  
+  
+  [templatedir=<default=$HOME/ctys>]
+  
+  
+       Directory to templates and test-data matching current version.
+       When an emtpy string is set, the install is suppressed, and the
+       templates are contained within the libdir only.
+  
+  
+  [remove<default=unset>]
+  
+  
+       Removes previous conoguration and templates.
+  
+  
+  [noconf<default=unset>]
+  
+  
+       Suppresses the install of initial conoguration oles. Could be some-
+       what dangerous, because some essential parameters are stored
+       within the conoguration and should match the executed version.
+  
+  
+  [force<default=unset>]
+  
+  
+       Checks "ctys -V -X" alphabetically/literally, normally only up-
+       dates are allowed, but force installs in any case.
+  
+  
+  
+       Current users conoguration director $HOME/.ctys will be left
+       unchanged.
+  
+  
+  [forceall<default=unset>]
+  
+  
+       Checks "ctys -V -X" alphebetically/literally, normally only up-
+       dates are allowed, but forceall installs in any case.
+  
+  
+  
+       Anything, else than users conoguration directory $HOME/.ctys,
+       will be removed and installed again. The users current conogu-
+       ration will be moved to $HOME/.ctys.bak.$DATETIME.
+  
+  
+  [forceclean<default=unset>]
+  
+  
+       Checks "ctys -V -X" alphebetically/literally, normally only up-
+       dates are allowed, but force installs in any case.
+  
+  
+  
+       Anything, including current users conoguration directory $HOME/.ctys,
+       will be removed and installed again.
+  
+  
+  [linkonly<default=unset>]
+  
+  
+       Suppress the local copy to $HOME/lib directory, just appropriate
+       symbolic links are set to the given source directory determined
+       by this call.
+  
+  
+  
+       Anyhow, the conoguration is copied and/or preserved as usual.
+  
+  
+  [version_version_-V]
+  
+  
+  [-X]
+  
+  
+  [help_help_-help_-h]
+  
+  
+  
+  1.2 ctys-install1
+  
+  
+  
+  Internal call for ctys-install.
+  
+  
+  
+  1.3 getCurOS
+  
+  
+  Echoes the name of current OS. Will be used widely for internal execution
+  variant selection during runtime.
+  
+  
+  
+  1.4 getCurOSRelease
+  
+  
+  Echoes the release of current OS. Will be used widely for internal execution
+  variant selection during runtime.
+  
+  
+  
+  1.5 getCurDistribution
+  
+  
+  Echoes the name of current distro. Will be used widely for internal execution
+  variant selection during runtime.
+  
+  
+  
+  1.6 getCurRelease
+  
+  
+  Echoes the release of current distro-release. Will be used widely for internal
+  execution variant selection during runtime.
+  
+  
+  
+  1.7 pathlist
+  
+  
+  Shell interface for "pathSplit" library function, lists each element of common
+  colon seperated search paths line by line. Could be used for trouble shooting
+  support when PATH resolution fails.
+  
+  
+  
+  1.8 ctys-getMasterPid
+  
+  
+  
+  Internal call for evaluation of the master pid for a process.  This works for
+  detached processes and already running processes too.  For additional ex-
+  planation refer to  Section ?? s:procFindTopBottom s:procFindTopBottom
+  .
+  
+  
+  
+Author:
+  
+  
+  Arno-Can Uestuensoez.
+  
+  
+  
+Reporting Bugs:
+  
+  
+  Report bugs to <acue_sf1@sourceforge.net>
+  
+  
+  
+Copyright:
+  
+  
+  Copyright (C) 2007 Arno-Can Uestuensoez (UnioedSessionsManager.org)
+  
+  
+  This program comes with ABSOLUTELY NO WARRANTY; for details re-
+  fer to provided documentation. This is free software, and you are welcome to
+  redistribute it under certain conditions. For details refer to "GNU General
+  Public License - version 3" <http://www.gnu.org/licenses/>.
+  
+  
+  
+See also:
+  
+  
+  ctys User-Manual.
+  
+  
+  Generated by "dvi2tty" from the unique LaTex sources.
+  
+  
+  
+                                     1

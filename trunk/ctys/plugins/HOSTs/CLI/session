@@ -21,9 +21,6 @@ _myPKGVERS_CLI_SESSION="01.01.001a01"
 hookInfoAdd $_myPKGNAME_CLI_SESSION $_myPKGVERS_CLI_SESSION
 _myPKGBASE_CLI_SESSION="`dirname ${_myPKGNAME_CLI_SESSION}`"
 
-_CLI_SESSION="${_myPKGNAME_CLI_SESSION}"
-
-
 
 
 #FUNCBEG###############################################################
@@ -49,39 +46,48 @@ _CLI_SESSION="${_myPKGNAME_CLI_SESSION}"
 #
 #FUNCEND###############################################################
 function startSessionCLI () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$1=$1"
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$2=$2"
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$3=$3"
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$1=$1"
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$2=$2"
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$3=$3"
     local _label=${1:-DEFAULT-$DATETIME};shift
     checkUniqueness4Label ${_label};
     if [ $? -eq 0 ];then
 	local _unique=1
     else
-	if [ -z "${CTRL_ALLOWAMBIGIOUS}" ];then
+	if [ -z "${C_ALLOWAMBIGIOUS}" ];then
 	    ABORT=2
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Ambigious <session-label>:${_label}"
 	    gotoHell ${ABORT}
 	else 
-	    printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Label is ambigious:${_label}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Label is ambigious:${_label}"
 	fi
     fi
 
     _label2="${USER}@${MYHOST}:${_label}"
-    case "${2}" in 
+    case "${1%% *}" in 
         bash*)
-            echo -ne "\033]2;${_label2}\007\033]1;\007"
+	    if [ "$CTYS_XTERM" == 0 ];then
+		echo -ne "\033]2;${_label2}\007\033]1;\007"
+	    fi
 	    ;;
-	*)
-	    local _title=" --title ${_label2} "
+        *sh)
+	    if [ "$CTYS_XTERM" == 0 ];then
+		echo -ne "\033]2;${_label2}\007\033]1;\007"
+	    fi
 	    ;;
+# 	*)
+# 	    local _title=" --title ${_label2} "
+# 	    ;;
     esac 
 
-#    BATCHTASK=":CLI:chost:${_label}:${MYHOST}"
+
     local _execStrg="$*  ${_title}"
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_execStrg=${_execStrg}"
-    [ -z "${CTRL_NOEXEC}" ]&&${_execStrg}
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:C_SSH_PSEUDOTTY=${C_SSH_PSEUDOTTY}"
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:TERM=${TERM}"
+    printDBG $S_CLI ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_execStrg=${_execStrg}"
+    [ -z "${C_NOEXEC}" ]&&eval ${_execStrg}
 }
 
 

@@ -14,13 +14,13 @@ function bootstrapRegisterLib () {
 #  bootstrap
 #
 #TYPE:
-#  bash-function-libraryr
+#  bash-function-library
 #
 #DESCRIPTION:
 #  Used during bootstrap of current called script in order to find and
 #  assign the installed runtime environment. 
 #
-#  Has to be located in the same directory as the callee which is
+#  Has to be located in the same directory as the callee gwhich is
 #  going to set it's environment.
 #
 #EXAMPLE:
@@ -52,7 +52,7 @@ function bootstrapRegisterLib () {
 #  The exeption is, that hardlinks are not treated specially, thus 
 #  symbolic links has to be used instead.
 #
-#  Has to be located in the same directory as the callee which is
+#  Has to be located in the same directory as the callee gwhich is
 #  going to set it's environment.
 #
 #EXAMPLE:

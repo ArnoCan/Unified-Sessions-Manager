@@ -20,6 +20,6 @@ $1~/#@#LABEL */        {mx++;}
 $1~/#@#UUID */         {mx++;}
 $1~/#@#MAC */          {mx++;}
 $1~/#@#IP */           {mx++;}
-$1~/#@#DISTRO */       {mx++;}
+$1~/#@#DIST */       {mx++;}
 END                    {if(mx>matchMin)exit 0;else exit 1;}
 

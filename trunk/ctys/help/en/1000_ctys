@@ -1,0 +1,1269 @@
+  
+  
+  
+  
+  1  ctys Generic Options
+  
+  
+  -A <0_ooe_1_on>
+       Allow ambiguity, this has several eoeects on values which may or may
+       not be allowed to be ambiguous.  Allow  [it:optA]ambiguity(-A 1)  or
+       [it:optA]disallow(-A 0:default) .
+  
+  
+        LABELs
+            Even though the labels might be ambiguous, the IDs are not,
+            thus an unambiguous labels only restrict the access by labels, but
+            could be used to group sessions together, if access by IDs only is
+            suOEcient.
+  
+        HOSTS
+            When lists of hosts and groups are applied and resolved to redun-
+            dant hosts within the list, this could be a desired circumstance or
+            not. If not activated, redundancies in resulting group lists will be
+            removed silently.
+  
+  
+       Else just executed as given.
+  
+  
+  -b <background-mode>
+  
+  
+  
+       <background-mode>=
+          -b
+              stack
+              _
+              (
+                (sync_off_0)_(async_on_1)
+                [,
+                  (sequential_seq_2)
+                  _(parallel_par_3)
+                ]
+              )
+  
+  
+       Background and/or parallel execution. This option combines the con-
+       trol of detachment from console and the job distribution to multiple
+       targets.  In addition this option controls the execution of VM-Stacks,
+       which are closely coupled to GROUPS as well as to the background
+       mode, refer to Section ??s:StacksAsVerticalSubgroups s:StacksAsVerticalSub*
+   *groups
+       .
+  
+  
+        stack-mode
+            The stack-mode is a specioc enforcement of an appropriate com-
+            bination for asynchronous operation sof the VMs within an se-
+            quential dependant nested VMSTACK. Therefore the values SEQ
+            and SYNC are forced and blocked, thus could not be reset for the
+            actual VMSTACK.
+  
+  
+  
+            The VMSTACK in addition decouples CONSOLE operations, though
+            these frequently block the STDIO due to SSH only operations.
+            The dialogue components of a VMSTACK are generally proceeded
+            in ASYNC mode, but after the previous non-interactive task has
+            onished. The onish of a non-interactive task is here the successful
+            startup of a VM/PM.
+  
+        detachment of jobs
+            The detachment of jobs from the callers console causes the top
+            level dispatcher to start all resulting jobs by the "-f" option of
+            "ssh" and to return immediately. This results in a number of un-
+            managed jobs which implicitly are executed as autonomous paral-
+            lel tasks by OpenSSH. The consequence of this is, that no higher
+            level group functions could be performed on the whole set of re-
+            sults. Typical examples are
+  
+             CREATE
+                CREATE is performed by default as a DETACHED job, be-
+                cause it just creates interactive desktop sessions which are
+                frequently not dependent on each other.
+  
+             LIST
+                LIST is performed by default as ATTACHED job, because it
+                has some overall properties for tasks spanning multiple targets
+                like SORTALL, where the individual sets could be intermixed.
+  
+        parallel execution
+            The high-level PARALLEL execution with ATTACHED console
+            combines both advantages. The parallel execution reduces for bulk
+            lists of targets the overall processing time to the slowest individual
+            by controlled dispatch. Second it keeps the overall synchronity for
+            performing group tasks like SORT. Typical examples are
+  
+             CREATE
+                CREATE is performed by default as a DETACHED job as
+                stated before.  In the case of DETACHED the PARALLE
+                property has no eoeect, because jobs with "ssh -f" return "suc-
+                cessfully" straight after execution.
+  
+             LIST
+                LIST is performed by default as ATTACHED job, thus the
+                PARALLEL property has frequently a tremendous eoeect.
+                When listing a a set of 20 machines where each requires about
+                15 seconds to scan all processes and calculate the results
+                for each plugin, the overall processing time is reduced from
+                300seconds=5minutes to 15seconds.
+  
+  
+       Therefore the two properties complement each other, even though some
+       similar eoeects could occur.
+  
+  
+  
+       REMARK: The usage of "&" by shell expansion will just superpose
+       the internal job control, which should avoided.
+  
+  
+  -c <args>
+  
+  
+  
+       <args>=(
+                 ON
+                 [,(BOTH_LOCAL_REMOTE)]
+                 [,ONLY]
+               )
+               _OFF
+  
+  
+       The operations of ctys utilize special virtual-nameservice
+       information for several reasons.  These option controls the usage and
+       selection of the caches at the local and/or remote site.
+  
+  
+  
+       Even though for performance only aspects the usage of cached data
+       could be suppressed, for the utilisation of stac*
+   *ked
+       VMs  the availability of the cache facility is mandatory.
+  
+  
+  
+       The UnioedSessionsManager itself is designed as a distributed client-
+       server system operating itself by distributing it's tasks to the man-
+       aged entities, and propagating required states within the vertical stack-
+Name:
+
+  ctys
+       requires access data for it's managed objects.  Therefore the Unioed-
+       SessionsManager supports a  distributed cache
+       model consisting of multiple cache databases - cacheDBs - which has
+       to be in sync if present, atleast might not contain inconsistent data.
+       Partly present data will be handeled by match-priority. Alternatively
+       the olesystem is scanned for available conoguration oles of VMs, once
+       the execution target is entered.
+  
+  
+  
+       The following AEags are supported in order of control which nameservice-
+       caches has to be used, or ignored.  The default behaviour is to use
+       "BOTH" caches, and to scan the olesystem on the execution target
+       if no cache-hit occurs.  For additional information refer to Section ??
+       s:DistributedNameserviceCacheDB.
+  
+  
+        BOTH
+            Use orst local cacheDB, if no match occurs than delay for usage of
+            cacheDB at the remote execution target. When no cache data is
+            found, and the scanning of olesystem is still active, the olesystem
+            on the onal execution target is scanned for conoguration data for
+            plugins based ob conf-oles. The cache DB is created by the tool
+            s:vdbgen.
+  
+  
+  
+            This is the default behaviour.
+  
+        LOCAL
+            Use local cacheDB at the caller's site.  The remote cacheDB on
+            intermediate relays and on the onal execution target are ignored.
+            When no cache data is found, and the scanning of olesystem is
+            still active, the olesystem on the onal execution target is scanned
+            for conoguration data for plugins based ob conf-oles.  The cache
+            DB is created by the tool s:vdbgen.
+  
+  
+  
+            For the Local option one specioc point is to be considered. The ba-
+            sic design and resulting implementation of the locally pre-fetched
+            cache is based on the implementation of options evaluation with
+            permitting repetition of the same option/suboption and the "Last-
+            Win" philosophy. Values from  caches  are
+            evaluated orst, before the actual user supplied entries.
+  
+  
+  
+            The entry available in the local cache is resolved to a fully qual-
+            ioed  <machine-address>  with all of it's
+            actually present parts, and inserted as the orst argument to the
+            relevant ACTION of the current job from the internal schedu-
+            lar, before the local/remote task is onally executed.  Thus user
+            supplied parts will superpose elements from the cache and may
+            lead to desired and/or unintended deviation from the local con-
+            tents of the cacheDB. Anyhow, the iput used for evaluation of the
+            <machine-address> from the [s:DistributedNameserv*
+   *iceCacheDB]cacheDB
+            should be in sync.
+  
+        OFF
+            Deactivates both types of caches, could only used alone.
+  
+        ON
+            Activates cache, is set implicitly by all others.
+  
+        ONLY
+            Uses cache only, no dynamic data is fetched.
+  
+        REMOTE
+            Use remote cacheDB at the onal execution target. When no cache
+            data is found, and the scanning of olesystem is still active, the
+            olesystem on the onal execution target is scanned for conoguration
+            data for plugins based ob conf-oles.  The cache DB has to be
+            created by the tool s:vdbgen.
+  
+  
+  -C <args>
+  
+  
+  
+       <args>=(
+       ON
+       [,KEEP]
+       [,ONLY]
+       [,RAW]
+       [,(FIN_FOUT):<cache-filepath>]
+       [,LIFETIME:<seconds>]
+       [,AUTO]
+       )
+       _OFF
+  
+  
+       For ctys two basic types of data-
+       caches  are used.  The orst one is the plugin specioc in-mem cache,
+       where frequent operations like "ps" for LABEL mapping will be cached
+       for the lifetime of a process.  The second is the  cacheDB
+       . on-disk cacheing, which could span multiple calls to a specioc exe-
+       cutable.
+       The in-mem caching is active by default, because the assumption is
+       made that the systems state might not alter relevant to ctys within a
+       call-cycle. This could be deactivated for the common plugins by with
+       the "OFF" option, which additionally.
+  
+       The on-disk caching is used for two specioc reasons.
+  
+  
+         1. Enables collecting data for overall-processing like sort, where data
+            from all remote tasks is prefetched on localhost into ole system
+            and postprocessed as one set.
+  
+         2. Boosts performance for repetitive access to remote data,  par-
+            ticularly when this is required within the same task in periods
+            of seconds.   Therefore an ageing timer will be set for having
+            "neartime" data.  The variable SESSIONCACHEPERIOD (de-
+            fault=20seconds) controls the ageing timer.
+  
+  
+       Even though the assumption that the systems state on a local machine
+       is "more ore less static" within an uncritical ordinary call, this could
+       not be said clearly for remote calls with on-disk caching. Thus on-disk
+       caching of runtime data is ooe by default, except for collector actions,
+       which do not reuse the "pure-data" cache.
+  
+  
+  
+       Following suboptions are applicable:
+  
+  
+        AUTO
+            The behaviour in case of an LIFETIME exceed is changed to au-
+            tomatic remove of cache data.  Missing oles are silently created
+            from origination. This is particularly foreseen for the internal us-
+            age of "ctys -a LIST".  The AUTO suboptions is supported for
+            local access only.
+  
+        FIN:<cache-olepath>
+            A user-deoned cache ole to be used instead of collecting remote
+            data. This ole has to contain previously cached data, which was
+            held by usage of "KEEP" suboption. The same <cache-olepath>
+            should be used.
+  
+        FOUT:<cache-olepath>
+            A user-deoned cache ole to be used instead of default, this is the
+            read-write runtime cache.  The olepath, if relative, is relative to
+            "$MYTMP", but no "mkdir" is called. An absolute path is used
+            literally.
+  
+        KEEP
+            Keeps cache-oles instead of removing them before exit.
+  
+        KEEPALL
+            Keeps cache-oles of all subcalls, instead of removing them before
+            exit.
+  
+        LIFETIME
+            The maximum age a provided cache for "ONLY" is allowed to be.
+            If the age exceeds, than as default the action is aborted.  This
+            behaviour is the default due to data safety.
+  
+        OFF
+            Deactivates both types of caches, could only used alone.
+  
+        ON
+            Activates cache, is set implicitly by all others.
+  
+        ONLY
+            Uses cache only, no dynamic data is fetched.
+  
+        RAW
+            Stores RAW data in cache, if not set the onal results of current
+            operation on it's actual execution-target are stored.
+  
+  
+  -d <debug-args>
+  
+  
+  
+       <debug-args>=
+       <debug-bit-array>[,(PATTERN_P)_MIN_MAX]
+       [,(SUBSYSTEM_S):<subsystem-bit-array>]
+       [,(WARNING_W):[0-9]]
+       [,(INFO_I):[0-9]]
+       [,(FILELIST_F):<file-list>[,(EXCLUDE_INCLUDE)]]
+  
+  
+  
+       <debug-bit-array>=2#(0_1)-1,32"_[0-9]*_<any-bash-format-32bit>
+  
+  
+       <subsystem-bit-array>=2#(0_1)-1,32"_[0-9]*_<any-bash-format-32-bit>
+  
+  
+       <file-list>=<file>[%<file-list>]
+  
+  
+         DEFAULT:
+  
+  
+         -d <#integer>
+  
+  
+         is equal to:
+  
+  
+         -d <#integer>,MAX,WARNING:1,INFO:1
+  
+  
+  
+       Sets the level and range of debug output.
+  
+  
+        <debug-bit-array>[,(PATTERN_P)_MIN_MAX]
+            The debug output could be controlled by one of two basic styles,
+            the level-mode(MIN_MAX) or the match-mode(PATTERN).
+  
+             level-mode(MIN_MAX)
+                The level-mode sets a threshold from which on(MIN), or up
+                to which(MAX) a trace output is displayed.  The switch-on
+                value has to be increment one above the destination output
+                level.
+  
+             match-mode(PATTERN)
+                The match mode displays trace only by bitwise AND opera-
+                tion.
+  
+            The debug mode value could be provided in any bash supported
+            notation, but only 32bit arrays should be used.
+  
+            <debug-bit-array>=2#(0_1)-1,32"_[0-9]*_<any-bash-format-32bit>
+  
+            The following variables are predeoned to be used for levels and
+            pattern.
+  
+             ERRORS
+                Traced independently and in any case.
+  
+             D_UI=1=2#1  Common UserInterface.
+  
+  
+  
+             D_FLOW=2=2#10
+                Common UserInterfaceExtended, call AEow.
+  
+             D_UID=4=2#100
+                Common UserInterfaceDebug, draft data collection.
+  
+             D_DATA=8=2#1000
+                Detailed data processing.
+  
+             D_MAINT=16=2#10000=16#10
+                Maintenance, details of attribute evaluation.
+  
+             D_FRAME=32=2#100000=16#20
+                Traces the framework.
+  
+             D_SYS=64=2#1000000=16#40
+                Traces system calls encapsulated by "callErrOutWrapper".
+                Particularly useful for evaluating the required root-permissions
+                for "ksu" and/or "sudo".
+  
+             D_TST=16384=2#100000000000000=16#4000
+                Traces sync-points for regression tests.
+  
+             D_BULK=32768=2#1000000000000000=16#8000
+                This is the the haystack.
+  
+        (SUBSYSTEM_S):<subsystem-bit-array>
+            Subsystems as match-mode bitr array.
+  
+            <subsystem-bit-array>=2#(0_1)-1,32"_[0-9]*_<any-bash-format-32-bit>
+  
+            The following variables are predeoned to be used for subsystems.
+  
+             S_CONF=1
+  
+             S_BIN=2
+  
+             S_LIB=4
+  
+             S_CORE=8
+  
+             S_GEN=16
+  
+             S_CLI=32
+  
+             S_X11=64
+  
+             S_VNC=128
+  
+             S_QEMU=256
+  
+             S_VMW=512
+  
+             S_XEN=1024
+  
+             S_PM=2048
+  
+        Common generic values:
+            Values to be used for multiple categories.
+  
+             D_ALL=65535=16#oeoe
+                This activates all.
+  
+        (WARNING_W):[0-9]
+            Warnings to be displayed, level-mode only and no subsystem. "0"
+            switches ooe. The switch-on value has to be increment one above
+            the destination output level.
+  
+        (INFO_I):[0-9]
+            Info to be displayed, level-mode only and no subsystem.  "0"
+            switches ooe. The switch-on value has to be increment one above
+            the destination output level.
+  
+        (FILELIST_F):<ole-list>[,(EXCLUDE_INCLUDE)]
+            A list of oles to be included exclusively or excluded. The names
+            are matched with the presented string on output "<dir>/<ole>",
+            where due to performance reasons a simple pattern-match is per-
+            formed only. For the same reason the EXCLUDE and INCLUDE
+            keywords are applied to the whole set at once.
+  
+            <file-list>=<file>[%<file-list>]
+  
+  
+  -D <DesktopId>_<DesktopLabel>
+       This parameter requires the tool 'wmctrl' to be present, if not the usage
+       is not provided and an error message is generated before exiting ctys.
+  
+       When provided by system and successully detected, the following ap-
+       plies:
+  
+  
+        <DesktopId>
+            The id of the desktop to be used for placing the window. Currently
+            1-3 digits are supported.
+  
+        <DesktopLabel>
+            The user deoned label of the  desktop
+            to be used for placing the window. When beginning with a digit,
+            and is shorter than 4 characters, at least one character has to be
+            a non-digit, otherwise it will be detected as <DesktopId>.
+  
+  
+  
+            Currently special characters like '&' are not supported, so just
+            digits and ordinary characters and hyphens should be used.
+  
+  
+       A list of current desktops could be shown by calling:
+  
+  
+        "wmctrl -d"
+  
+  
+       Where the orst column is the id of the desktop, and the last is the
+       label. For further information on wmctrl refer to related man page.
+  
+  
+  
+       In current implementation of ctys two cases for the addressing of desk-
+       tops has to be distinguished.
+  
+  
+          o Display Forwarding In case of Display Forwarding the window is
+            not managed by target Xserver, just it's window is drawn. So this
+            window could not addressed by wmctrl, and it is not listed when
+            using 'wmctrl -l'.  So this case will be handled by switching the
+            desktop to the target, and semi-sysnchronous starting the session,
+            until the window appears on the desktop.
+  
+          o Connection Forwarding In this case the client is executed on the lo-
+            cal machine and is - if supported - managed by the target Xserver.
+            But, this seems not to be reliable.
+  
+  
+       So in any case, when the desktop is specioed, ctys switches to syn-
+       chronous operations and switches one after another to all desktops
+       where a window has to be depicted. Current processed desktop is the
+       visible desktop, until any assigned window has appeared.
+  
+  
+        LIMITS:
+            Due to restrictions of current wmctrl versions window-selection
+            the sessions for each destop are called grouped together and placed
+            on the deoned desktop by previous switching of visible desktop be-
+            fore calling conogured sessions.
+  
+  
+  
+            OK, so far so good, BUT when using SSH and requiring authen-
+            tication by password - which is when no SSO is implemented -
+            due to call convention of SSH(ssh -f ...) the password is requested
+            in the callers CLI/XTerm.  When the selected output desktop is
+            dioeerent from that, it will be switched before calling SSH-session
+            of course. This means it leads to a now hidden password-request
+            on the calling desktop.
+  
+  
+  
+            There is - due to basic SSH concept - NO SCRIPTING WORKAROUND
+            to this behaviour when no reliable "moving windows between
+            desktops" support is available. So the possible solutions for now
+            are:
+  
+  
+  
+             1. Establish Authentication on SSH level, by key-distribution or
+                usage of kerberized SSH.
+                Obvious, but once again:  Please not by rhost, and not for
+                root at all.  Probably you can integrate ksu into your login.
+                Avoid remote access permissions for root in any case!
+  
+             2. Make the calling terminal visible on all your desktops, at least
+                during ctys conoguration call.
+  
+  
+  -e
+       For completeness only: Execute locally, this indicates the termination
+       point of a virtual circuit. This parameter is foreseen for internal usage
+       only, and must not be used, by ordinary users, thus it is not further
+       detailed.
+  
+  
+  -f
+       Force execution and ignore minor warnings. Basically no "destructive"
+       operation, particularly nothing irreversible will be performed.
+  
+  
+  -F <remote_version>
+       Force remote version.
+  
+  
+  -g <geometry>_<geometryExtended>
+       The geometry for client-side representation.  It is the exact syntax of
+       X client "geometry" parameter with an additional screen parameter
+       as alias or index for usage with Xorg multiple displays.
+  
+  
+       ATTENTION:     In order of using xorg.conf and saving eoeort some mi-
+            nor assumptions as requirements concerning the xorg.conf ole are
+            made. Current implementation requires due to stateless oltering
+            the oeld "Identioer" as orst entry in "ServerLayout" sections.
+  
+  
+       Supported variants:
+  
+  
+        Xorg-style: <geometry>
+            "<x-size>x<y-size>[[+,-]<x-ooeset>[+,-]<y-ooeset>]"
+            Any screen ooeset has to be calculated manually.
+  
+        Xinerama-alias-style: <geometryExtended>
+            "<Xorg-style>[:[<ScreenSection>_<ScreenIndex>][:<ServerLayout>]]"
+  
+        "<x-size>x<y-size>:Screen4"
+            The screen from the orst ServerLayout section with given Screen
+            section name as alias will be used.  The required ooesets will be
+            calculated from the "/etc/X11/xorg.conf" ole.
+  
+        "<x-size>x<y-size>:Screen4:Layout[0,1]"
+            The screen from the LayoutSection named "Layout[0,1]" with
+            given Screen section name as alias will be used.  The required
+            ooesets will be calculated from the "/etc/X11/xorg.conf" ole.
+  
+        "<x-size>x<y-size>:4:Layout[0,1]"
+            The screen from the LayoutSection named "Layout[0,1]" with
+            given Screen index will be used. The required ooesets will be cal-
+            culated from the "/etc/X11/xorg.conf" ole.
+  
+  
+  -h
+  
+  
+  
+       ATTENTION:
+            Refer to  [it:optH]"-H"  for additional information.
+  
+  
+       Help, Shows a short sum-up of call convention and possible call details
+       for getting additional help.
+  
+  
+  -H <item[,item  [,item]...>]
+  
+  
+  
+       ATTENTION:
+            Due to the amount of documentatin required, which is currently
+            already more than 400 pages, the "inline documentation" is shifted
+            to a LaTex document and is provided as a complete document in
+            one of the formats:
+  
+  
+  
+              o PDF - online, with extended table of contents for callHyper-
+                linked bookmarks.
+  
+              o PDF - oOine, whith some reduction for paper prints.
+  
+              o HTML - generated by texi2html.
+  
+  
+  
+            Therefore parts of the online help from the commandline are tem-
+            porarily unavailable, and under construction in general.
+  
+  
+  
+            As soon as a generic approach is decided to produce ASC-II help
+            text from LaTex-sources this will be included.
+  
+  
+  
+       The "-H" option shows detailed description and extended help. There-
+       fore it is possible to constrain the output by choosing a list of specioc
+       options or any other item literals from the help text. For displaying of
+       the whole text any of following generic options could be used:
+  
+  
+        "ctys -H j"
+  
+        "ctys -H all"
+  
+        "ctys -H '*'"
+  
+  
+       For displaying of the whole text with formatted output for printing
+       the following option could be used. The same text as with "-H all" is
+       printed than, but with oltering and formatting by "pr". The variable
+       "PR_OPTS=$-PR_OPTS"" could be pre-set. Current default is "-o
+       5 -l 76" for DIN-A5.
+  
+  
+        "ctys -H print"
+  
+  
+       For displaying a specioc subset of the help text an literal item could be
+       specioed. The given literal will be matched at the beginning of leading
+       non-whitespace and non-commentary lines within the output of "ctys
+       -H all".  So e.g.  to ond help on how to list functions just type "ctys
+       -H func".  But be aware, the help content may change, therefore this
+       searched entity could be obsoleted in a later version.  For listing the
+       description of option '-H' only the following has to be called:
+  
+  
+        "ctys -H '-H'"
+  
+  
+       For listing the description of both options '-H' and '-h' only the follow-
+       ing has to be called:
+  
+  
+        "ctys -H '-h,-H'"
+  
+  
+       So for listing the help only for any list of options (with hyphen) just
+       type the list of suboptions as for '-h,-H'. For listing of additional lite*
+   *rals
+       from text now a short description of the item literal is neccessary.
+  
+  
+        SECTION-KEYS
+            Each given item is used internally as a keyword in order to deter-
+            mine the beginning of a section with it's own description. Multiple
+            sections for an item are supported.  The decision when an item
+            is matched, or it's description section is starting and onishing is
+            made based on indention of the text. Therefore the starting point
+            is searched as a string given by the following regexp
+  
+             "*"<item>
+  
+            or
+  
+             precisely by '$1 ""_a' in awk, where _a is the value of item,
+                where the seperator is default.
+                Even though leading white-spaces in the item - if less then the
+                search target - will function well, they are eliminated by in-
+                termediary shell-expansion within the processing script. Thus
+                keys are only supported without spaces.
+  
+            This means, that the orst string is matched, which consists of non-
+            whitespace characters and is terminated by a whitespace.  The
+            matching line is the orst line of description.
+  
+            Next the indention is utilized in order to decide the termination
+            of the specioc description. Therefore the leading white-spaces are
+            used to assemble a new regexpr in order to search for the orst
+            terminating line of current description, which is excluded.
+  
+  
+  
+            The item could be a shortcut of the targeted keyword, but should
+            be unambiguous, otherwise any matching item - which is some
+            more - is listed.
+  
+  
+  
+            The only one exception to this is that leading "=" are ignored,
+            this is in order to underline visually main headers - beeing could-
+            be items of choice - with equivalent width to the search item itself.
+  
+  
+  
+            Another important fact is, the item is evaluated literally, which is
+            case sensitive of course.
+  
+  
+  
+            For listing the description of "SECTION-KEY" only type:
+  
+             "ctys -H SECTION-KEYS"
+  
+  
+       So for now the description might be suOEcient to understand the options
+       for items to be displayed. For example the "DESCRIPTION" section
+       will be displayed with one of the following calls:
+  
+  
+        "ctys -H DESC"
+  
+        "ctys -H DESCR"
+  
+        "ctys -H DESCRIPTION"
+  
+  
+       But nothing is displayed with the following calls:
+  
+  
+        "ctys -H DESc"
+  
+        "ctys -H DESCRIPTIOn"
+  
+        "ctys -H DESCRIPTIONx"
+  
+  
+       Additional following keywords are supported for development inter-
+       faces.  Literal bash functions and Script header are distinguished by
+       TYPE(bash-function vs. bash-script).
+  
+  
+        funcList[=[<any-function>][@<module-name>[@...]]]
+            List of function names, sorted by function names. In addition the
+            ole names and line numbers are displayed too.
+  
+        funcListMod[=[<any-function>][@<module-name>[@...]]]
+            List of function names, sorted by ole names. In addition the ole
+            names and line numbers are displayed too.
+  
+        funcHead[=[<any-function>][@<module-name>[@...]]]
+            List of function headers, sorted by ole names.
+  
+  
+       The following constraints could be applied:
+  
+  
+        <any-function>
+            If given <any-function> than only this is displayed.
+  
+        <module-name>
+            If given <module-name>, than the functions contained within this
+            module only are displayed.
+  
+  
+  -j <job-id>
+       The ID of current job. This is an internal call and therefore should just
+       used by developers for test purposes. Any variation of the JOB_IDX
+       for the CLI call may severe job execution seriously and even can dam-
+       age user data when set for a CANCEL operation. The originating CLI
+       call should not use this option in productive operations, any subcall
+       may have a propagated value as required. The value within the origi-
+       nating interactive CLI call is set to "JOB_IDX=0". This is the value
+       for the starting point of internal task-scheduler data, and thus the in-
+       dex for the orst performed task too. The value is evaluated by plugins
+       for handling job specioc PROLOG and within EPILOG for decision of
+       the state of passed job and eventual required post-processing.
+  
+  
+  
+       In addition a variable "CTYS_SUBCALL" is set.
+  
+  
+        "-j $-DATETIME":$-JOB_SUPER""
+  
+        default:"CALLERDATETIME=$-DATETIME""
+            "CALLERJOB_IDX=$-JOB_IDX""
+            "CTYS_SUBCALL=$-1""
+  
+  
+  -l <login-name>
+       The users, which will be used for hosts without an exlicitly given user.
+       The hosts/groups entries provide the common EMail-Style "<user>@<execution-
+       target>". The default is "$USER", when neither "-l", nor an explicit
+       user is provided.
+  
+  
+  -L <execution-location>
+  
+  
+  
+       <execution-location>=(
+       (LOCALONLY_LO)
+       _(CONNECTIONFORWARDING_CF)
+       _(DISPLAYFORWARDING_DF)
+       _(DisplayRedirection_DR):<display>[.<screen>]
+       _(CLIENTONLY_CO)
+       _(SERVERONLY_SO)
+       )
+  
+  
+       This option controls the location and possible split of the involved client
+       and server parts of current session. When connecting a user interface
+       with it's server components the following basic constellations could be
+       distinguished:
+  
+  
+        LOCALONLY
+            Client and server components are coallocated on users worksta-
+            tion, the display is driven locally.
+  
+        DISPLAYFORWARDING
+            Client and server components are coallocated on server, and the
+            display is forwarded to the users workstation.
+  
+        DisplayRedirection:<display>.<screen>
+            Almost the same case as DISPLAYFORWARDING, the only dif-
+            ference is that a redirection of the display on "localhost" will be
+            done. The localhost is the only supported redirection, due to se-
+            curity issues.
+  
+        CONNECTIONFORWARDING
+  
+  
+            Client and server are split, whereas the client component is lo-
+            cated on the users workstation and the server component is lo-
+            cated on the server machine.  The connection from server/client
+            component is forwarded on application protocol level.
+  
+        CLIENTONLY
+            This is a client in standalone mode, still used internal only, e.g.
+            for COPY when performing phase-2 with remote-copy from local
+            client.
+  
+        SERVERONLY
+            This is a server in a so called headless-mode.
+  
+  
+  -M <message>
+       Free text to be used as preox for target exec. It will be printed before
+       output.
+  
+       default:""
+  
+  
+  -n
+       Just display, do not execute. For test only.
+  
+  
+  -p <db-directory-path-list>
+       Path list to directories containing DBs for name resolution, same for
+       each <db-directory-path> as for ctys-vdbgen. ctys will internally han-
+       dle names by multiple levels of resolution, which depends on the ac-
+       tual executing plugin.  The most sophisticated address resolution is
+       frequently required for VMs when using them in a roaming manner
+       on groups of machines, where after some plugin specioc resolution of
+       convenient VM-addressing by user an TCP/IP service-access-point for
+       OpenSSH has to be addressed.
+  
+  
+  
+       The second case to be handled is the addressing of execution entities
+       of type HOSTs transparently within a VM or PM. This will be sup-
+       plied by ctys-nameservice too. For almost all of the nameservice tasks
+       additionally required for plugin-specioc address resolution actions the
+       ctys-vhost command is used internally. This option sets the databases
+       for operations of ctys-vhost. If not present ctys-vhost defaults will be
+       applied.
+  
+  
+  -P
+       Use default <db-directory-path>.
+  
+  
+  -r <xsize>x<ysize>
+       Remote resolution, which is by default the same as local client size
+       given by "-g" option.  This conogures the virtual graphic card of the
+       server with the provided resolution. This parameter is not applicable
+       to any application. It has to be deoned in the application specioc pack-
+       age. The current supported applications are:
+  
+  
+  
+        VNC: for vncserver
+  
+  
+  -s <scope>
+       Restrics/expands the scope/selected set for mode of operations.
+  
+  
+        USER
+            Own sessions.
+  
+        GROUP
+            Sessions of own group.
+  
+        USRLST=(usr1[,usr2][,...])_all
+            Given list.
+  
+        GRPLST=(grp1[,grp2][,...])_all
+            Given list.
+  
+        ALL
+            This value is remapped to "USRLST=all".
+  
+  
+   -S [(on_ooe)][,][<ignore-signal-spec>]
+       Sets the signal spectrum to be ignored.  The values are accepted as
+       numeric values only.  Applicable values could be displayed by "trap
+       -l"(within bash).
+  
+  
+  
+       The default values are "1,3,19", which is set for CLI0 consoles only by
+       default.
+  
+  
+  
+       In case of CLI, generally for any multi-session call, it has to be consid-
+       ered thoroughly whether and which signals could be set.
+  
+  
+  
+                                     1
+  
+  
+  
+  
+  -t <session-type>[=suboptions   ]
+       Deones the context of execution and the resulting applicable feature
+       set.  This could be a AEat endpoint-user-session in case of VNC, or a
+       virtual OS-starter in case of a VM session e.g. in case of VMW or XEN.
+       Suboptions specify more detailed characteristics. Thus this parameter
+       has to be set orst.
+  
+  
+        <session_type>(default:VNC)
+  
+             VNC
+                Remote VNC sessions, calls the scripts ctys-callVncserver and/or
+                ctys-callVncviewer.  The specioc behaviour is here to set a
+                password for the VNC session from a passwd-ole via CLI op-
+                tion. The access rights of this stored passwd in
+  
+                 $HOME/.vnc/passwd
+  
+                should be checked.
+  
+  
+       For additional types refer to the specioc plugins.
+  
+  
+  
+       To load multiple plugins for one call, the environment variable CTYS_MULTI*
+   *TYPE
+       or the "-T" option could be set.
+  
+  
+  -T <session-type>[:<session-type>[:...  ] _ all]
+       Preloads given list of <session_type> instead of loading the plugins of
+       requested types by "-t" option. Alternatively the environment variable
+       CTYS_MULTITYPE could be pre-set, which has the same result. If
+       CTYS_MULTITYPE and the "-T" option are provided, the option
+       has priority.
+  
+  
+  
+       This option is required for the scope control of generic actions, which
+       generally will be applied by calling of all current loaded <session_type>
+       interfaces. E.g. the "-a LIST" action lists active sessions for all actu-
+       ally loaded <session_type>.  For display of current active sessions of
+       all available <session_type>, the "-T all" has to be used.
+  
+  
+        <session_type>
+            The name of a dynamic loaded plugin, which is the <session_type>.
+  
+        all
+            Tries to load all present plugins, this would frequently fail, when
+            the conogured resources of bash are exceeded.
+  
+            This could be even caused by a single module, which exhausts
+            available resources - as in any existing system.
+  
+            Thus the default will be set to requested types by "-t" options or
+            NIL by default.
+  
+  
+  -v
+       Show version. Current version scheme is as follows:
+  
+  
+  -V
+       Show version. Current version scheme is as follows:
+  
+  
+        AA_BB_CCC[abc]DD
+  
+  
+  
+             AA:
+                OOEcial major upgrades.
+  
+             BB:
+                OOEcial minor upgrades.
+  
+             CCC:
+                Build <-> Test versions.
+  
+            abc  :
+                Development versions, Test-States:
+  
+                a lpha
+  
+                b eta
+  
+                c (g)amma
+  
+             DD:
+                Pre-Release development versions. Anyway, if publicly avail-
+                able might be yet almost stable.
+  
+  
+       This option strongly interacts with the "-X" option, when set only the
+       version number is display, without a <CR>. This is the only relevant
+       information for batch-processing. Else all current loaded components -
+       libraries + CORE-plugins + Application-plugins - are listed.
+  
+       Using this option twice shows in addition to the plugin short-names the
+       actual ole of storage. Sub-packages loaded by Application are contained
+       in the list too.
+  
+       This list is generated at the end of execution, thus on-demand-loaded
+       sub-packages are listed too, as far as the have been demanded during
+       current call.  The set of the "on-demand-loaded" plugins can vary in
+       dependency of the actual performed control AEow.
+  
+       When using this option alone, only the initial by "default-loaded-componen*
+   *ts
+       are listed.
+  
+  
+  -X
+       Generate terse output for post processing. The '-v Verbose' AEag is not
+       eoeected and should be only used for testing.
+  
+  
+  -y
+       Activates some terminal capabilities, mainly coloring of ERROR, WARN-
+       ING, and WARNINGEXT. Very handy when debugging, but not yet
+       supported for Emacs-Consoles. As an alternate the variable "CTYS_TERM_COLO*
+   *RS"
+       could be set to "0".  When selected the local and remote settings are
+       both set at once.  In current version this is set by default when the
+       variable TERM is set to "xterm".
+  
+  
+  -z (NOPTY_PTY_1_2)
+       Control the allocation of a pseudotty by ssh. Therefore one or two "-t"
+       options could be set for the internal "ssh" call.
+  
+  
+  
+       NOPTY     : Eliminates "-l" of standard bash-call
+                    and "-t" for ssh-call.
+       PTY       : "-t"
+       PTY,PTY   : "-t -t"
+       1         : "-t"
+       2         : "-t -t"
+  
+  
+  
+  -Z (KSU_NOKSU_SUDO_NOSUDO_ALL)
+       Controls call permission-grant.  The calls requiring impersonation to
+       another users ID, frequently "root" for restricted system resources, are
+       supported to use "ksu" and/or "sudo". This option replaces the default
+       settings from the conoguration ole. The mechanisms could be switched
+       on/ooe selectively.
+  
+  
+  
+       KSU      : use Kerberos
+       NOKSU    : do not use Kerberos (DEFAULT)
+       SUDO     : use sudo
+       NOSUDO   : do not use sudo      (DEFAULT)
+       ALL      : use al provided
+  
+  
+  
+       As an persistent alternative following environment variables could be
+       pre-set.
+  
+  
+  
+       USE_KSU (0=>off 1=>on)          (DEFAULT:0=>off)
+       USE_SUDO (0=>off 1=>on)          (DEFAULT:0=>off)
+  
+  
+  
+       The evaluation is implemented as a generic check for orst match of
+       hard-coded call-check. The following order of permission tests is per-
+       formed for each system callee.
+  
+  
+         1. user is root
+  
+         2. native access granted
+  
+         3. ksu call
+  
+         4. sudo call
+  
+  
+       In case of 2.)  the current ID is checked for "$USER==root", if not,
+       than a warning is generated, but continued with procedure. This is due
+       to possible security AEaws, when assigning root-ID to an ordinary user.
+       Anyhow, when using ctys from a system account, this might be OK.
+  
+  
+       REMARK:
+            When a user cannot be authentioed by one of sudo or ksu, then
+            the system waits for a user interaction.  BUT, due to internal
+            "silent" checks the stdio was redirected, of course. Thus the sys-
+            tem seems to be "hanging", or requests "Password:" and seem not
+            to continue afterwards, but it "may work".
+  
+  
+  
+            This is a "natural dilemma", because within the generic check
+            function called for each task several times the output has to be
+            suppressed. Currently no detection for an exceptional User-Dialog
+            request is implemented.  So for now are two diagnosis facilities
+            implemented:
+  
+             1. A warning as "**HINT**" is generated, when "-w" option
+                for extended warning is set. This shows the wrapped native
+                call, which should be called manually by cut/paste on the
+                ACTUAL EXECUTING system.
+  
+             2. The system variable CTYS_NOCALLWRAPPER could be
+                set, which deactivates the wrapping of stdio and stderr for
+                the call wrapper only.
+                This means, that some redirection for the call context is still
+                active, because it is a required output data, or is simply bulk
+                data which might AEaw the whole sense of diagnosis.
+  
+            When typing a RETURN the process will continue, but disabling
+            the current type of permission mechanism.  This could be OK,
+            when KSU and SUDO is set, and KSU has no permissions con-
+            ogured, but SUDO has. It could lead to an later error too, when
+            none could be detected. This scenario occurs for:
+  
+             1. KSU: Kerberos credential was timed-out.
+  
+             2. SUDO: User and/or call are not conogured in sudo for exe-
+                cution target.
+  
+             3. On client machine no permissions for system calls are conog-
+                ured. This case can frequently be ignored safely.
+  
+             4. The only case where this can lead to an error is the missing
+                permission for access to a proprietary client application.
+  
+  
+       When using "sudo" the AEag "requirestty" within "/etc/sudoers" con-
+       trol whether a TTY is required or not.  When in order to avoid this
+       uncomment the AEag within sudoers ole. The "-z" option could be used
+       to activate a pseudotty.
+  
+  
+  
+Author:
+  
+  
+  Arno-Can Uestuensoez.
+  
+  
+  
+Reporting Bugs:
+  
+  
+  Report bugs to <acue_sf1@sourceforge.net>
+  
+  
+  
+Copyright:
+  
+  
+  Copyright (C) 2007 Arno-Can Uestuensoez (UnioedSessionsManager.org)
+  
+  
+  This program comes with ABSOLUTELY NO WARRANTY; for details re-
+  fer to provided documentation. This is free software, and you are welcome to
+  redistribute it under certain conditions. For details refer to "GNU General
+  Public License - version 3" <http://www.gnu.org/licenses/>.
+  
+  
+  
+See also:
+  
+  
+  ctys User-Manual.
+  
+  
+  Generated by "dvi2tty" from the unique LaTex sources.
+  
+  
+  
+                                     2

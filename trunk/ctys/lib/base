@@ -8,19 +8,69 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a13
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ########################################################################
+
+
+shopt -s nullglob
+shopt -s extglob
+
+#
+#Set some common basic definitions.
+#
+
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+if [ ! -d "${MYHELPPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYHELPPATH=${MYHELPPATH}"
+  exit 1
+fi
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
 
 
 _myLIBNAME_base="${BASH_SOURCE}"
 _myLIBVERS_base="01.03.001b01"
 
-#The only comprimese for bootstrap, calling it explicit 
+
+
+#The only compromise for bootstrap, calling it explicit 
 #from anywhere. 
 function baseRegisterLib () {
   libManInfoAdd "${_myLIBNAME_base}" "${_myLIBVERS_base}"
@@ -31,84 +81,164 @@ function baseRegisterLib () {
 ################################################################
 MYCALLPATH=${MYCALLPATH:-`direname $0`}
 
+MYHOST=`uname -n`
+
 #Basic OS info for variant decisions.
 MYOS=${MYOS:-`$MYCALLPATH/getCurOS`}
 MYOSREL=${MYOSREL:-`$MYCALLPATH/getCurOSRel`}
 MYDIST=${MYDIST:-`$MYCALLPATH/getCurDistribution`}
 MYREL=${MYREL:-`$MYCALLPATH/getCurRelease`}
+MYARCH=${MYARCH:-`$MYCALLPATH/getCurArch`}
 
+MYUID=$USER
+MYGID=`$MYCALLPATH/getCurGID`
+MYPID=$$
+MYPPID=$PPID
 
 DATE=`date +"%Y.%m.%d"`
 TIME=`date +"%H:%M:%S"`
-DATETIME=`date +"%Y%m%d%H%M%S"`
+HOUR=${TIME%%:*};
+#DATETIME=`date +"%Y%m%d%H%M%S"`
+DATETIME="${DATE//.}${TIME//:}"
 DAYOFWEEK=`date +"%u"`
 
 
-#Debugging
-#For description refer to "-d" option of CLI.
 #
-#The value of '0' switches the debugging off,
-#which could be usefull for exclusion of spacific 
-#machines within a group.
+#For now 16bit-array, to be used in level-mode or match-mode.
 #
-export DBG_LVL_UI=${DBG_LVL_UI:-1}
-export DBG_LVL_UIE=${DBG_LVL_UIE:-2}
-export DBG_LVL_UID=${DBG_LVL_UID:-3} 
-export DBG_LVL_SUPPORT=${DBG_LVL_SUPPORT:-4}
-export DBG_LVL_MAINT=${DBG_LVL_MAINT:-5}
-export DBG_LVL_OVERKILL=${DBG_LVL_OVERKILL:-6}
-export DBG_LVL_HAYSTACK=${DBG_LVL_HAYSTACK:-10}
 
-export DBG_RANGE_MIN=0;
-export DBG_RANGE_MAX=99999;
+#
+#levels
+#
+export      D_UI=$((2#1))
+export    D_FLOW=$((2#10))
+export     D_UID=$((2#100))
+export    D_DATA=$((2#1000))
+export   D_MAINT=$((2#10000))
+export   D_FRAME=$((2#100000))
+export     D_SYS=$((2#1000000))
+export    D_STAT=$((2#10000000000000))
+export     D_TST=$((2#100000000000000))
+export    D_BULK=$((2#1000000000000000))
+
+#
+#subsystems
+#
+export    S_CONF=$((2#1))
+export     S_BIN=$((2#10))
+export     S_LIB=$((2#100))
+export    S_CORE=$((2#1000))
+export     S_GEN=$((2#10000))
+export     S_CLI=$((2#100000))
+export     S_X11=$((2#1000000))
+export     S_VNC=$((2#10000000))
+export    S_QEMU=$((2#100000000))
+export     S_VMW=$((2#1000000000))
+export     S_XEN=$((2#10000000000))
+export      S_PM=$((2#100000000000))
+
+#
+#ALL4all
+#
+export     D_ALL=$((16#ffff))
+
+#mode
+M=4;
+
+#debug
+DBG=0;
+
+#info
+INF=2;
+
+#warning
+WNG=2;
 
 #Debugging
-unset CTRL_VERBOSE;
-#Handling bootstrap-debugging by ...
-#External variable: _SUPRESSVERBOSESTARTUP
+C_DARGS=;
+
+#file-scope-list
+F=0;
+FLST=;
+I=1;
 
 
 ###############################################################
 #                    Base definitions                          #
 ################################################################
 
-#Handling bootstrap-debugging by ...
-if [ -z "${_SUPRESSVERBOSESTARTUP}" ];then
+function fetchDBGArgs () {
+    if [ -n "`echo $*| sed -n 's/([^)]*)//g;s/-d /1/p'`" ];then
+	C_DARGS=`echo " ${*} "| sed -n 's/^.*-d  *\([^ \t)]*\)[ \t)].*$/\1/p'`
+	local i=;
+	local KEY=;
+	local ARG=;
+	for i in ${C_DARGS//[,()]/ };do
+	    KEY=`echo ${i%%:*}|tr '[:lower:]' '[:upper:]'`
+	    ARG=`echo ${i}|awk -F':' '{print $2}'`
+	    case $KEY in
+		FILELIST|F)
+		    if [ -z "${ARG}" ];then
+			echo "requires numeric value:$KEY">&2
+			exit 1;
+		    fi
+		    FLST=${ARG//[eE][xX][cC][lL][uU][dD][eE]/};
+		    if [ "$FLST" != "$ARG" ];then
+			I=0;
+		    else
+			FLST=${FLST//[iI][nN][cC][lL][uU][dD][eE]/};
+			if [ "$FLST" != "$ARG" ];then
+			    I=1;
+			fi
+		    fi
+                    F=1;
+		    ;;
+		SUBSYSTEM|S)
+		    S=${ARG};
+		    if [ -n "${S//[0-9]/}" ];then
+			echo "requires numeric value:$KEY">&2
+			exit 1;
+		    fi
+		    ;;
+		PATTERN|P)M=1;;
+		MIN)M=2;;
+		MAX)M=4;;
+		WARNING|W)
+		    export WNG=${ARG};
+		    if [ -n "${WNG//[0-9]/}" ];then
+			echo "requires numeric value:$KEY">&2
+			exit 1;
+		    fi
+		    ;;
+		INFO|I)
+		    export INF=${ARG};
+		    if [ -n "${I//[0-9]/}" ];then
+			echo "requires numeric value:$KEY">&2
+			exit 1;
+		    fi
+		    ;;
+		[0-9]*)
+		    DBG=$KEY;
+		    if [ -n "${DBG//[0-9]/}" ];then
+			echo "requires numeric value:$KEY">&2
+			exit 1;
+		    fi
+		    ;;
+		ALL)DBG=$D_ALL;;
+		*)
+		    echo "unknown value:$KEY">&2
+		    exit 1;
+		    ;;
+	    esac
+	done
+	C_DARGS=" -d ${C_DARGS} "
+    fi
+}
+fetchDBGArgs $*
 
-  #... "-d <#debug-level>"
-  #Does not match at EOL, but this seem not to be occuring! So ignore it! If requires use 1 SPACE at least.
-  if [ -n "`echo $*| sed -n 's/([^)]*)//g;s/-d /1/p'`" ];then
-      _DLVL=`echo $*| sed -n 's/^.*-d *\([0-9]*\)[ )].*$/\1/p'`
-      #Honestly, yes sometimes I patchwork-it...it's too late in the "morning" now!!!!
-      [ -z "${_DLVL}" ]&&_DLVL=`echo $*| sed -n 's/^.*-d *\([0-9]*\)$/\1/p'`
-      if [ -n "${_DLVL}" ];then
-	  CTRL_VERBOSE=${_DLVL};
-	  if [ "${_DLVL}" -ge "${DBG_LVL_OVERKILL}" ];then
-	      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:Setting verbose bootstrap until \"-d ${_DLVL}\" eval." >&2;
-	      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:  => HOSTNAME     = ${HOSTNAME};" >&2;
-	      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:  => CTRL_VERBOSE = ${CTRL_VERBOSE};" >&2;
-	  fi
-      else
-	  echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:ERROR:Debugging option \"-d\" detected, but missing level" >&2;
-	  echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:VERBOSESTARTUP:ERROR: \$*=<$*>" >&2;
-	  exit 1;  
-      fi
-  fi
-  #... "-w" add extended warning
-  if [ -z "`echo $*| sed -n 's/-w/1/p'`" ];then
-      unset CTRL_WARNINGEXT;
-  else
-      export CTRL_WARNINGEXT="1";
-  fi
-
-  #... "-W" suppress warning
-  if [ -n "`echo $*| sed -n 's/-W/1/p'`" ];then
-      unset CTRL_WARNING;
-  else
-      export CTRL_WARNING="1";
-  fi
+if [ -n "`echo $*| sed -n 's/-y/1/p'`" ];then
+    export CTYS_XTERM=0;
 fi
-
 
 
 #FUNCBEG###############################################################
@@ -134,10 +264,10 @@ function checkBASHversion () {
   #Check some debug features, for runtime basically,
   #for technical part of development, could be ignored for application, if really neccessary!
   if [ ${BASH_VERSINFO[0]} -lt 3 ];then
-    echo "${MYCALLNAME}@${MYHOST}:$LINENO $BASH_SOURCE:WARNING:Version of BASH should be newer than 3.0 required:${BASH_VERSINFO[*]};" >&2;
+    echo "${MYCALLNAME}:${MYUID}@${MYHOST}:$LINENO $BASH_SOURCE:WARNING:Version of BASH should be newer than 3.0 required:${BASH_VERSINFO[*]};" >&2;
     if [ -z "`echo $*| sed -n 's/-f/1/p'`" ];then
-      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:INFO:An appropriate version might be installed." >&2;
-      echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:INFO:For now the mismatch is regarded as minor, though try temporarily the  \"-f\" option." >&2;
+      echo "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$LINENO $BASH_SOURCE:INFO:An appropriate version might be installed." >&2;
+      echo "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$LINENO $BASH_SOURCE:INFO:For now the mismatch is regarded as minor, though try temporarily the  \"-f\" option." >&2;
       exit 1  
     fi
   fi
@@ -148,14 +278,12 @@ function checkBASHversion () {
        ${BASH_VERSINFO[0]} -lt 2 \
        -o ${BASH_VERSINFO[0]} -lt 2 -a ${BASH_VERSINFO[1]} -lt 6 \
   ];then
-    echo "${MYCALLNAME}@${MYHOST}:$$:$LINENO $BASH_SOURCE:ERROR:Version of BASH newer than 2.05 required, current=${BASH_VERSINFO[*]};" >&2;
+    echo "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$LINENO $BASH_SOURCE:ERROR:Version of BASH newer than 2.05 required, current=${BASH_VERSINFO[*]};" >&2;
     exit 1  
   fi
 }
 
-
 checkBASHversion $*
-
 
 #FUNCBEG###############################################################
 #NAME:
@@ -169,6 +297,8 @@ checkBASHversion $*
 #  actions to be done. E.g. evaluating time-intensive
 #  debug actions for tests.
 #
+#   -> doDebug <subsys> <dbg-level> <line> <file>
+#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -180,25 +310,24 @@ checkBASHversion $*
 #  VALUES:
 #
 #FUNCEND###############################################################
-function doDebug () {
-  local level=$1;shift
-  local linenr=$1;shift
-  local filename=${1##/*/};shift
-  if [ -n "${CTRL_VERBOSE}" ]; then
-    if((CTRL_VERBOSE>=level&&linenr>=DBG_RANGE_MIN&&linenr<=DBG_RANGE_MAX));then
-      printf "%s@%s:$$:%s:%s:%s" ${MYCALLNAME} ${MYHOST} $filename $linenr $level >&2;
-      echo ":Debug it!" >&2;
-      return 0;
-    fi
-  fi
-  return 1;
+function doDebug  () {
+    ((DBG>0))||return 1;
+    local s=$1;shift;
+    [ -n "${S}" ]&&{ ((S&s))||return 1; }
+    local l=$1;shift;
+    local L=$1;shift;
+    local f=${1%/*/*};f=${1#$f\/};shift;
+    if((M&4&&DBG>l));then echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$l:DBG>on">&2;return 0;fi
+    if((M&2&&DBG<l));then echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$l:DBG<on">&2;return 0;fi
+    if((M&1&&DBG&l));then echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$l:DBG&on">&2;return 0;fi
+    return 1;
 }
 
 
 
 #FUNCBEG###############################################################
 #NAME:
-#  printVerboseDebug
+#  printDBG
 #
 #TYPE:
 #  bash-function
@@ -207,52 +336,39 @@ function doDebug () {
 #  Prints only when called with more than one option and matches defined 
 #  number.
 #
+#   -> printDBG <subsys> <dbg-level> <line> <file> <message>
+#
+#  implementation priority: PERFORMANCE
 #
 #EXAMPLE:
-#
 #PARAMETERS:
-#
 #OUTPUT:
 #  RETURN:
-#
 #  VALUES:
-#
 #FUNCEND###############################################################
-function printVerboseDebug () {
-  local level=$1;shift
-  local linenr=$1;shift
-  local filename=${1##/*/};shift
-  if [ -n "${CTRL_VERBOSE}" ];then
-    if((CTRL_VERBOSE>=level&&linenr>=DBG_RANGE_MIN&&linenr<=DBG_RANGE_MAX));then
-      printf "%s@%s:$$:%s:%s:%s" ${MYCALLNAME} ${MYHOST} $filename $linenr $level >&2;
-      echo ":$*" >&2;
-    fi
-  fi
-}
-
-
-#FUNCBEG###############################################################
-#NAME:
-#  printVerbose
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#  Prints only when called with debug.
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#
-#OUTPUT:
-#  RETURN:
-#
-#  VALUES:
-#
-#FUNCEND###############################################################
-function printVerbose () {
-  printVerboseDebug 0 $*
+function printDBG {
+    local r=$?;
+    ((DBG>0))||return $r;
+    local s=$1;shift;
+    [ -n "${S}" ]&&{ ((S&s))||return $r; }
+    local l=$1;shift;
+    local L=$1;shift;
+    local f=${1%/*/*};f=${1#$f\/};shift;
+    ((F^1))&&{
+	((M&4&&DBG>l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	((M&2&&DBG<l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	((M&1&&DBG&l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+    }||{ [  "$I" == 1 -a "${FLST//$f/}" != "${FLST}" ]&&{
+	    ((M&4&&DBG>l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	    ((M&2&&DBG<l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	    ((M&1&&DBG&l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	}
+    }||{ [ "$I" == 0 -a "${FLST//$f/}" == "${FLST}" ]&&{
+	    ((M&4&&DBG>l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	    ((M&2&&DBG<l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	    ((M&1&&DBG&l))&&{ echo -e "${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:$s:$l:$*">&2;return $r; }
+	}
+    }
 }
 
 
@@ -265,26 +381,22 @@ function printVerbose () {
 #
 #DESCRIPTION:
 #  Prints errors
-#   -> printERR <line> <code> <message>
-#
+#   -> printERR <line> <fname> <code> <message>
 #
 #EXAMPLE:
-#
 #PARAMETERS:
-#
 #OUTPUT:
 #  RETURN:
-#
 #  VALUES:
-#
 #FUNCEND###############################################################
 function printERR () {
-  local linenr=$1;shift
-  local filename=${1##/*/};shift
-  echo -n "${MYCALLNAME}@${MYHOST}:$$:$filename:$linenr" >&2;
-  echo -n ":ERROR" >&2;
-  echo -n ":CODE=$1" >&2;shift;
-  echo ":$*" >&2;
+    local r=$?;
+    local L=$1;shift;
+    local f=${1%/*/*};f=${1#$f\/};shift;
+    if [ "$CTYS_XTERM" == 1  ];then local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:ERROR:$1";
+    else local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:\033[31mERROR\033[m:$1";fi
+    shift;echo -e "$b:$*" >&2;
+    return $r;
 }
 
 
@@ -298,7 +410,7 @@ function printERR () {
 #
 #DESCRIPTION:
 #  Prints warnings
-#   -> printWNG <line> <code> <message>
+#   -> printWNG <warning-level> <line> <fname> <code> <message>
 #
 #EXAMPLE:
 #
@@ -311,30 +423,30 @@ function printERR () {
 #
 #FUNCEND###############################################################
 function printWNG () {
-  if [ -n "${CTRL_WARNING}" ];then
-    local linenr=$1;shift
-    local filename=${1##/*/};shift
-    echo -n "${MYCALLNAME}@${MYHOST}:$$:$filename:$linenr" >&2;
-    echo -n ":WARNING" >&2;
-    echo -n ":CODE=$1" >&2;shift;
-    echo ":$*" >&2;
-  fi
+    local r=$?;
+    local l=$1;shift;
+    ((WNG>l))||return;
+    local L=$1;shift;
+    local f=${1%/*/*};f=${1#$f\/};shift;
+    if [ "$CTYS_XTERM" == 1  ];then local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:WARNING:$1";
+    else local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:\033[35mWARNING\033[m:$1";fi
+    shift;echo -e "$b:$*" >&2;
+    return $r;
 }
+
 
 
 
 #FUNCBEG###############################################################
 #NAME:
-#  printWNGEXT
+#  printINFO
 #
 #TYPE:
 #  bash-function
 #
 #DESCRIPTION:
-#  Prints warnings with extended severity, mostly not required.
-#  Will be controled by a seperate option "-w".
-#
-#   -> printWNGEXT <line> <code> <message>
+#  Prints warnings
+#   -> printINFO <info-level> <line> <fname> <code> <message>
 #
 #EXAMPLE:
 #
@@ -346,18 +458,17 @@ function printWNG () {
 #  VALUES:
 #
 #FUNCEND###############################################################
-function printWNGEXT () {
-  if [ -n "${CTRL_WARNINGEXT}" ];then
-    local linenr=$1;shift
-    local filename=${1##/*/};shift
-    echo -n "${MYCALLNAME}@${MYHOST}:$$:$filename:$linenr" >&2;
-    echo -n ":WARNING" >&2;
-    echo -n ":CODE=$1" >&2;shift;
-    echo ":$*" >&2;
-  fi
+function printINFO () {
+    local r=$?;
+    local l=$1;shift;
+    ((INF>l))||return;
+    local L=$1;shift;
+    local f=${1%/*/*};f=${1#$f\/};shift;
+    if [ "$CTYS_XTERM" == 1  ];then local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:INFO:$1";
+    else local b="${MYCALLNAME}:${MYUID}@${MYHOST}:$$:$f:$L:\033[32mINFO\033[m:$1";fi
+    shift; echo -e "$b:$*" >&2;
+    return $r;
 }
-
-
 
 #FUNCBEG###############################################################
 #NAME:
@@ -374,6 +485,9 @@ function printWNGEXT () {
 #
 #EXAMPLE:
 #
+#GLOBAL:
+#  CTYS_NOCALLWRAPPER
+#
 #PARAMETERS:
 #  $1:    LINENO of caller
 #  $2:    BASH_SOURCE of caller
@@ -387,25 +501,37 @@ function printWNGEXT () {
 #
 #FUNCEND###############################################################
 function callErrOutWrapper () {
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:<${@}>"
-    printWNGEXT $LINENO $BASH_SOURCE 0 "$FUNCNAME:<${@}>"
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:<${@}>"
+
     local _originLine=$1;shift
     local _originFile=$1;shift
     local _cli=$*
     local _res=0
-    printWNGEXT $_originLine "$_originFile" 0 "$FUNCNAME:<${@}>"
+    printDBG $S_LIB $D_BULK $_originLine "$_originFile" 0 "$FUNCNAME:<${@}>"
+
+    if [ -n "${CTYS_NOCALLWRAPPER}" ];then
+	${_cli}
+	return $?
+    fi
 
     exec 3>&1
     exec 4>&2
-    local _buf=`${_cli} 2>&1 1>&3`
-    #basically risky workaround!!!
-    [ -n "$_buf" ]&&_res=1;
-    #_res=$?;
-    #_res fails here, but not in pattern ???
+    local _buf=`eval ${_cli} 2>&1 1>&3;echo -n "_-_-_$?";`
+    printDBG $S_LIB $D_BULK $_originLine "$_originFile" "$FUNCNAME:A-_buf=<${_buf}>"
+    _res="${_buf##*_-_-_}"
+    _buf="${_buf%_-_-_.*}"
 
+    printDBG $S_LIB ${D_BULK} $_originLine "$_originFile" "$FUNCNAME:B-_buf=<${_buf}>"
     exec 3>&-
     exec 4>&-
-    printWNGEXT $_originLine "$_originFile" 0 "$FUNCNAME:_res=<${_res}> _buf=<${_buf}>"
+
+    local _rd=;
+    [ "$CTYS_XTERM" == 0 ]\
+      &&{ [ "$_res" == 0 ]&&_rd="\033[32m OK \033[m"||_rd="\033[31m NOK \033[m"; }\
+      ||{ [ "$_res" == 0 ]&&_rd=" OK "||_rd=" NOK "; }
+
+    printDBG $S_LIB ${D_BULK} $_originLine "$_originFile" "$FUNCNAME:_res=<${_rd}>"
+    printDBG $S_LIB ${D_SYS} $_originLine "$_originFile" "$FUNCNAME:`setSeverityColor TRY \"call(${_cli})\"` => [ ${_rd} ]"
     return $_res
 }
 
@@ -472,12 +598,12 @@ function splitPath () {
 #FUNCEND###############################################################
 function checkPathElements () {
   local PNAME=$1;shift
-  local P
+  local P=;
   for i in `echo ${*}|awk -F':' '{for(i=1;i<=NF;i++)print $i;}'`;do 
     if [ ! -d "${i}" ];then
        RET=1;
-       [ -z "$P" ]&&P=1&&printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Invalid search path element in \"${PNAME}\":"
-       printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}: ->${i}"
+       [ -z "$P" ]&&P=1&&printWNG 2 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Invalid search path element in \"${PNAME}\":"
+       printWNG 2 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}: ->${i}"
     fi
   done
   return ${RET}
@@ -510,8 +636,8 @@ function checkFileListElements () {
   for i in `echo ${*}|awk -F'[:]' '{for(i=1;i<=NF;i++)print $i;}'`;do 
     if [ ! -f "${i}" ];then
        RET=1;
-       [ -z "$P" ]&&P=1&&printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Invalid search file list element in \"${PNAME}\":"
-       printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}: ->${i}"
+       [ -z "$P" ]&&P=1&&printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Invalid search file list element in \"${PNAME}\":"
+       printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}: ->${i}"
     fi
   done
   return ${RET}
@@ -551,7 +677,7 @@ function getRealPathname () {
     local _realPath=${1}
     local _cnt=0
 
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_realPath=${_realPath}"
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "_realPath=${_realPath}"
     while((_cnt<_maxCnt)) ;do    
 	if [ -h "${_realPath}" ];then
             _realPath=`ls -l ${1}|awk '{print $NF}'`
@@ -560,7 +686,7 @@ function getRealPathname () {
 	fi
 	let cnt++;
     done
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "_realPath=${_realPath}"
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "_realPath=${_realPath}"
     if((_maxCnt==0));then
         ABORT=1;
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Path could not be evaluated:${1}"
@@ -595,10 +721,10 @@ function getRealPathname () {
 #
 #FUNCEND###############################################################
 function gotoHell () {
-  printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Controlled exit($1)"
-  [ -n "${CTRL_PRINTINFO}" -a "${CTRL_PRINTINFO}"  != 0 ]&&printLegal;
+  printDBG $S_LIB ${D_FLOW} $LINENO $BASH_SOURCE "Controlled exit($1)"
+  [ -n "${C_PRINTINFO}" -a "${C_PRINTINFO}"  != 0 ]&&printLegal;
   [ -z "${IGNORE}" ]&&exit $1
-  printWNG $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Ignoring exit"
+  printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Ignoring exit"
 }
 
 
@@ -627,135 +753,186 @@ function getUserGroup () {
 }
 
 
-
-
 #FUNCBEG###############################################################
 #NAME:
-#  initPackages
+#  checkConsole
 #
 #TYPE:
 #  bash-function
 #
 #DESCRIPTION:
-#  Helper for shift 1 of an ordinary string
+#  Checks whether running on console.
 #
-#  spaces not removed
+#  Therefore some simplification is assumed due to the specific environment:
 #
+#   1. ctys supports only SSH connections
+#   2  the client and a server could be identified unambiguously by evaluation 
+#      the SSH environment variable "SSH_CONNECTION" only, which is on the
+#      "originating" client not set.
+#
+#      The originating client is the very first client, from where the session
+#      is started. Any intermediate server, serving as a client in case of 
+#      chained sessions, has this variable set.
+#
+#      But anyhow, it is no longer called from a CONSOLE, thus the criteria 
+#      of detection the very-first call is sufficient.
+
+#  
 #EXAMPLE:
 #
 #PARAMETERS:
 #
 #OUTPUT:
 #  RETURN:
-#
+#    0: IsCONSOLE
+#    1: NOT
 #  VALUES:
 #
 #FUNCEND###############################################################
-function initPackages () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
+function checkConsole () {
+    test -z "${SSH_CONNECTION}"
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getPathName
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Due to some wrappers, e.g. "consolehelper" for CentOS/RHEL, the 
+#  function evaluates the PATH variable only when run from a console,
+#  else hard-coded paths are checked. The paths has to be specifically
+#  adapted to the different platforms of course.
+#
+#  This approach includes support for pre-configured authorization by 
+#  usage of PAM modules for specific console-wrappers.1
+#  
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: LINENO of caller
+#  $2: BASH_SOURCE of caller
+#  $3: ERROR|WARNING|WARNINGEXT
+#       ERROR
+#        Prints an error message and exits.
+#       WARNING  
+#        Prints a warning and continues.
+#       WARNINGEXT
+#        Prints a warning-extended when activated by "-w" and continues.
+#  $4: exec callee
+#  $5: default path
+#
+#
+#OUTPUT:
+#  RETURN:
+#    0: Success
+#    1: Failure
+#  VALUES:
+#    pathname
+#     With absolute path
+#
+#FUNCEND###############################################################
+function getPathName () {
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:<$@>"
+    local _pname=;
     local _ret=1;
-    local _myRootHook=${MYINSTALLPATH}/plugins/hook
 
-    if [ -n "${MYINSTALLPATH}" -a -f ${_myRootHook} ];then 
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Packages: hook=${_myRootHook}"
-	. ${_myRootHook}
-        _ret=0;
+    #if not on console trouble is caused by several console-wrappers
+    checkConsole 2>/dev/null >/dev/null
+    if [ $? -eq 0 ];then
+	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "running from CONSOLE"
+        #try whether access is permitted, else continue with usual business
+	_pname=`gwhich $4 2>/dev/null`
+	_ret=$?
     fi
-
-    #set it up
-    if((_ret==0));then
-        for n in 1 2 3 4 5;do
-  	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Packages: entering init(${n})..."
-            initPACKAGES $n
-        done
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "Packages: ...init finished."
-    else
-	printWNG $LINENO $BASH_SOURCE 1 "Packages: NOT LOADED"
-	printWNG $LINENO $BASH_SOURCE 1 "INFO:Check for \"hook\""
-	printWNG $LINENO $BASH_SOURCE 1 "INFO:  LD_PLUGIN_PATH =\"${LD_PLUGIN_PATH}\""
-	printWNG $LINENO $BASH_SOURCE 1 "INFO:  DEFAULT        :\"${_myRootHook}\""
+    if [ $_ret -ne 0 ];then
+        #try the system specific path
+	if [ -n "${5}" ];then
+	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "try \"${5}/${4}\""
+	    _pname=`gwhich ${5}/${4} 2>/dev/null`
+	    _ret=$?
+	else
+	    case $3 in
+		ERROR)printERR $1 $2 1  "Missing required default path";gotoHell 1;;
+		WARNING)printWNG 1 $1 $2 1  "Missing required default path";;
+		WARNINGEXT|*)printWNG 2 $1 $2 1  "Missing required default path";;
+	    esac
+	fi
     fi
+    if [ $_ret -ne 0 ];then
+	case $3 in
+	    ERROR)printERR $1 $2 1  "Can not evaluate exec-access to \"`setSeverityColor ERR ${4}`\"";gotoHell 1;;
+	    WARNING)printWNG 1 $1 $2 1  "Can not evaluate exec-access to \"`setSeverityColor WNG ${4}`\"";;
+	    WARNINGEXT|*)printWNG 2 $1 $2 1  "Can not evaluate exec-access to \"`setSeverityColor WNG ${4}`\"";;
+	esac
+	
+    fi
+    [ -n "${_pname}" -a $_ret -eq 0 ]&&_disp=`setSeverityColor INF ${_pname}`||_disp=`setSeverityColor WNG ABSENT`;
+    printDBG $S_LIB ${D_SYS} $1 "$2" "$FUNCNAME:`setSeverityColor TRY \"eval(${4})\"` => [ ${_disp} ]"
+    if [ $_ret -eq 0 ];then
+	echo "$_pname"	
+    fi
+    return $_ret
 }
+
+
 
 
 #FUNCBEG###############################################################
 #NAME:
-#  getMyMAC
+#  setSeverityColor
 #
 #TYPE:
 #  bash-function
 #
 #DESCRIPTION:
+#  Encapsulates the input-string with appropriate escape sequences for
+#  colored output. Therefore it is checked whether XTERM is set, and 
+#  only than proceeded.
 #
+#  Operates on STATEs rather than explicitly defined colors. 
+#
+#  REMARK:
+#    Due to performance reasons for parts of common trace-output the 
+#    values are hardcoded within the whole module.
+#  
 #EXAMPLE:
 #
 #PARAMETERS:
+#  $1: ERR|WNG|INF|TRY
 #
+#      ERR: Error, initally:        red(31)
+#      WNG: Warning, initially:     magenta(35)
+#      INF: Information, initially: green(32)
+#      TRY: Trial input, initially: blue(34)
+#
+#  $2-*
 #OUTPUT:
 #  RETURN:
-#
+#    0: OK
+#    1: NOK
 #  VALUES:
+#    "<esc-color>$2-*<esc-color-reset>"
 #
 #FUNCEND###############################################################
-function getMyMAC () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
-    local _mac=;
-    case ${MYOS} in
-	Linux)
-	    _mac=`ifconfig |awk '/Link encap:Ethernet/{if(p==0){p=1;print $NF}}'`;
-	    ;;
-	OpenBSD)
-	    _mac=`ifconfig |awk '
-            /flags=/&&$1!~/lo0/ {if(p==0){p=1;}}
-            /lladdr /&&p==1      {print $2;p=2;}
-            '`;
-	    ;;
+function setSeverityColor () {
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:<$@>"
+    local col=$1;shift
+    [ "$CTYS_XTERM" != 0 ]&&echo -n -e "$*"||\
+    case $col in
+	ERR)echo -n -e "\033[31m${*}\033[m";;
+	WNG)echo -n -e "\033[35m${*}\033[m";;
+	INF)echo -n -e "\033[32m${*}\033[m";;
+	TRY)echo -n -e "\033[34m${*}\033[m";;
+	*)    echo -n -e "$*";;
     esac
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_mac=$_mac"
-    echo -n $_mac
-}
-
-
-#FUNCBEG###############################################################
-#NAME:
-#  getMyIP
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#
-#OUTPUT:
-#  RETURN:
-#
-#  VALUES:
-#
-#FUNCEND###############################################################
-function getMyIP () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
-    local _ip=;
-    case ${MYOS} in
-	Linux)
-	    _ip=`ifconfig |awk '/inet /{if(p==0){p=1;print $2}}'|awk -F':' '{print $2}'`;
-
-	    ;;
-	OpenBSD)
-	    _ip=`ifconfig |awk '
-            /flags=/&&$1!~/lo0/ {if(p==0){p=1;}}
-            /inet /&&p==1        {print $2;p=2;}
-            '`;
-	    ;;
-    esac
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ip=$_ip"
-    echo -n $_ip
 }
 
 
 MYINSTALLPATH=`getRealPathname ${MYCALLPATHNAME}`
 MYINSTALLPATH=${MYINSTALLPATH%/*/*}
-printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "MYINSTALLPATH=${MYINSTALLPATH}"
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "MYINSTALLPATH=${MYINSTALLPATH}"
 

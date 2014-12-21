@@ -1,15 +1,0 @@
-
- 11. Application Examples
- ========================
-
-   Even though this chapter should contain generic examples only, this
-   is not possible due to the bare character of the basic framework
-   when missing and plugin. So specific examples of a initial standard
-   subset is provided. Even though in some examples the "-t" option is
-   not set, this just causes the default type, which is e.g. VNC for
-   CREATE and CANCEL action, will be used.
-
-   For additional information and examples refer to the previous
-   sections for embedded examples within the plugins own documentation.
-
-

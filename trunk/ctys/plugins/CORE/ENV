@@ -41,12 +41,12 @@ hookInfoAdd "$_myPKGNAME_ENV" "$_myPKGVERS_ENV"
 #
 #FUNCEND###############################################################
 function _showEnv () {
-  local _level=${1:-$DBG_LVL_UID};shift
+  local _level=${1:-$D_UID};shift
   local _linePrefix="${1}";shift
 
 
 
-awk -v _r=${_level} '{if(_r!=-2)printf("printVerboseDebug %d $LINENO $BASH_SOURCE \"%s\"\n",_level,$0)}'<< END0
+awk -v _r=${_level} '{if(_r!=-2)printf("printDBG $S_CORE %d $LINENO $BASH_SOURCE \"%s\"\n",_level,$0)}'<< END0
  
 ------------------------------------------------------------
 |                   Current Environment                    |
@@ -56,7 +56,7 @@ END0
 
 awk -v _r=${_level} -v _p="${_linePrefix}"  '
   {
-    if(_r!=-2) printf("printVerboseDebug %d $LINENO $BASH_SOURCE \" %s\"\n",_level,$0);
+    if(_r!=-2) printf("printDBG $S_CORE %d $LINENO $BASH_SOURCE \" %s\"\n",_level,$0);
     else       printf("%s%s\n",_p,$0);
   }
 '<< END1 
@@ -73,54 +73,69 @@ VERSION                          =
 
 _SUPRESSVERBOSESTARTUP           = ${_SUPRESSVERBOSESTARTUP}
 
-CTRL_ALLOWAMBIGIOUS              = ${CTRL_ALLOWAMBIGIOUS}
-CTRL_ASYNC                       = ${CTRL_ASYNC}
-CTRL_CLIENTLOCATION              = ${CTRL_CLIENTLOCATION}
-CTRL_EXECLOCAL                   = ${CTRL_EXECLOCAL}
-CTRL_FORCE                       = ${CTRL_FORCE}
-CTRL_GEOMETRY                    = ${CTRL_GEOMETRY}
-CTRL_LISTSES                     = ${CTRL_LISTSES}
-CTRL_MDESK                       = ${CTRL_MDESK}
-CTRL_MODE                        = ${CTRL_MODE}
-CTRL_MODE_ARGS                   = ${CTRL_MODE_ARGS}
-CTRL_NOEXEC                      = ${CTRL_NOEXEC}
-CTRL_PRINTINFO                   = ${CTRL_PRINTINFO}
-CTRL_REMOTE                      = ${CTRL_REMOTE}
-CTRL_REMOTERESOLUTION            = ${CTRL_REMOTERESOLUTION}
-CTRL_SCOPE                       = ${CTRL_SCOPE}
-CTRL_SCOPE_ARGS                  = ${CTRL_SCOPE_ARGS}
-CTRL_SCOPE_CONCAT                = ${CTRL_SCOPE_CONCAT}
-CTRL_SESSIONFLAG                 = ${CTRL_SESSIONFLAG}
-CTRL_SESSIONID                   = ${CTRL_SESSIONID}
-CTRL_SESSIONIDARGS               = ${CTRL_SESSIONIDARGS}
-CTRL_SESSIONTYPE                 = ${CTRL_SESSIONTYPE}
-CTRL_SSH                         = ${CTRL_SSH}
-CTRL_SSH_PSEUDOTTY               = ${CTRL_SSH_PSEUDOTTY}
-CTRL_TERSE                       = ${CTRL_TERSE}
-CTRL_VERBOSE                     = ${CTRL_VERBOSE}
-CTRL_WARNING                     = ${CTRL_WARNING}
-CTRL_WMCTRL_DESK                 = ${CTRL_WMCTRL_DESK}
-CTRL_XTOOLKITOPTS                = ${CTRL_XTOOLKITOPTS}
+CALLERCACHE                      = $CALLERCACHE
+CALLERCACHEREUSE                 = $CALLERCACHEREUSE
+CALLERDATETIME                   = $CALLERDATETIME
+CALLERJOBID                      = ${CALLERJOBID}
+CALLERJOB_IDX                    = $CALLERJOB_IDX
+C_ALLOWAMBIGIOUS              = ${C_ALLOWAMBIGIOUS}
+C_ASYNC                       = ${C_ASYNC}
+C_CACHEAUTO                   = $C_CACHEAUTO
+C_CACHEDOP                    = $C_CACHEDOP
+C_CACHEKEEP                   = $C_CACHEKEEP
+C_CACHERAW                    = $C_CACHERAW
+C_CACHEONLY                   = $C_CACHEONLY
+C_CACHEPROCESSED              = $C_CACHEPROCESSED
+C_CLIENTLOCATION              = ${C_CLIENTLOCATION}
+C_EXECLOCAL                   = ${C_EXECLOCAL}
+C_FORCE                       = ${C_FORCE}
+C_GEOMETRY                    = ${C_GEOMETRY}
+C_LISTSES                     = ${C_LISTSES}
+C_MDESK                       = ${C_MDESK}
+C_MODE                        = ${C_MODE}
+C_MODE_ARGS                   = ${C_MODE_ARGS}
+C_NOEXEC                      = ${C_NOEXEC}
+C_PARALLEL                    = $C_PARALLEL
+C_PRINTINFO                   = ${C_PRINTINFO}
+C_REMOTE                      = ${C_REMOTE}
+C_REMOTERESOLUTION            = ${C_REMOTERESOLUTION}
+C_SCOPE                       = ${C_SCOPE}
+C_SCOPE_ARGS                  = ${C_SCOPE_ARGS}
+C_SCOPE_CONCAT                = ${C_SCOPE_CONCAT}
+C_SESSIONFLAG                 = ${C_SESSIONFLAG}
+C_SESSIONID                   = ${C_SESSIONID}
+C_SESSIONIDARGS               = ${C_SESSIONIDARGS}
+C_SESSIONTYPE                 = ${C_SESSIONTYPE}
+C_SSH                         = ${C_SSH}
+C_SSH_PSEUDOTTY               = ${C_SSH_PSEUDOTTY}
+C_TERSE                       = ${C_TERSE}
+C_DARGS                       = ${C_DARGS}
+DBG                           = ${WNG}
+INF                           = ${INF}
+WNG                           = ${WNG}
+M                             = ${M}
+C_WMC_DESK                       = ${C_WMC_DESK}
+C_XTOOLKITOPTS                   = ${C_XTOOLKITOPTS}
 CTYS_GROUPS_PATH                 = ${CTYS_GROUPS_PATH}
+CTYS_MULTITYPE                   = ${CTYS_MULTITYPE}
+CTYS_SUBCALL                     = ${CTYS_SUBCALL}
 
 DATE                             = ${DATE}
 DATETIME                         = ${DATETIME}
 DAYOFWEEK                        = ${DAYOFWEEK}
-DBG_LVL_UI                       = ${DBG_LVL_UI}
-DBG_LVL_UIE                      = ${DBG_LVL_UIE}
-DBG_LVL_UID                      = ${DBG_LVL_UID}
-DBG_LVL_SUPPORT                  = ${DBG_LVL_SUPPORT}
-DBG_LVL_MAINT                    = ${DBG_LVL_MAINT}
-DBG_LVL_OVERKILL                 = ${DBG_LVL_OVERKILL}
-DBG_LVL_HAYSTACK                 = ${DBG_LVL_HAYSTACK}
-DBG_RANGE_MIN                    = ${DBG_RANGE_MIN}
-DBG_RANGE_MAX                    = ${DBG_RANGE_MAX}
+D_UI                       = ${D_UI}
+D_FLOW                      = ${D_FLOW}
+D_UID                      = ${D_UID}
+D_DATA                  = ${D_DATA}
+D_MAINT                    = ${D_MAINT}
+D_FRAME                 = ${D_FRAME}
+D_BULK                 = ${D_BULK}
 DBPATHLST                        = ${DBPATHLST}
-DEFAULT_CTRL_MODE_ARGS           = ${DEFAULT_CTRL_MODE_ARGS}
-DEFAULT_CTRL_MODE_ARGS_ENUMERATE = ${DEFAULT_CTRL_MODE_ARGS_ENUMERATE}
-DEFAULT_CTRL_MODE_ARGS_LIST      = ${DEFAULT_CTRL_MODE_ARGS_LIST}
-DEFAULT_CTRL_SCOPE               = ${DEFAULT_CTRL_SCOPE}
-DEFAULT_CTRL_SESSIONTYPE         = ${DEFAULT_CTRL_SESSIONTYPE}
+DEFAULT_C_MODE_ARGS           = ${DEFAULT_C_MODE_ARGS}
+DEFAULT_C_MODE_ARGS_ENUMERATE = ${DEFAULT_C_MODE_ARGS_ENUMERATE}
+DEFAULT_C_MODE_ARGS_LIST      = ${DEFAULT_C_MODE_ARGS_LIST}
+DEFAULT_C_SCOPE               = ${DEFAULT_C_SCOPE}
+DEFAULT_C_SESSIONTYPE         = ${DEFAULT_C_SESSIONTYPE}
 DEFAULT_DBPATHLST                = ${DEFAULT_DBPATHLST}
 DEFAULT_KILL_DELAY_POWEROFF      = ${DEFAULT_KILL_DELAY_POWEROFF}
 DEFAULT_LIST_CONTENT             = ${DEFAULT_LIST_CONTENT}
@@ -128,6 +143,8 @@ DEFAULT_LIST_CONTENT             = ${DEFAULT_LIST_CONTENT}
 EXECCALLBASE                     = ${EXECCALLBASE}
 EXECCALL                         = ${EXECCALL}
 EXECLINK                         = ${EXECLINK}
+
+DATETIME                         = $DATETIME
 
 L_VERS                           = ${L_VERS:-$VERSION}
 LOCAL_PORTREMAP                  = ${LOCAL_PORTREMAP}
@@ -177,6 +194,8 @@ VNCVIEWER                        = ${VNCVIEWER}
 VNCVIEWER_OPT                    = ${VNCVIEWER_OPT}
 
 
+
+
 END1
 
 (
@@ -187,12 +206,12 @@ checkPathElements     LD_LIBRARY_PATH   "$LD_LIBRARY_PATH";
 )|\
 awk -v _r=${_level} -v _p="${_linePrefix}"  '
   {
-    if(_r!=-2) printf("printVerboseDebug %d $LINENO $BASH_SOURCE \" %s\"\n",_level,$0);
+    if(_r!=-2) printf("printDBG $S_CORE %d $LINENO $BASH_SOURCE \" %s\"\n",_level,$0);
     else       printf("%s%s\n",_p,$0);
   }
 ' 
 
-awk -v _r=${_level} '{if(_r!=-2)printf("printVerboseDebug %d $LINENO $BASH_SOURCE \"%s\"\n",_level,$0)}'<< END2
+awk -v _r=${_level} '{if(_r!=-2)printf("printDBG $S_CORE %d $LINENO $BASH_SOURCE \"%s\"\n",_level,$0)}'<< END2
 ------------------------------------------------------------
 
 END2
@@ -221,10 +240,10 @@ END2
 #
 #FUNCEND###############################################################
 function showEnv () {
-  local _level="${1:-$DBG_LVL_UID}";shift
+  local _level="${1:-$D_UID}";shift
   local _linePrefix="${1}";shift
 
-  doDebug ${_level} $LINENO $BASH_SOURCE
+  doDebug $S_CORE  ${_level} $LINENO $BASH_SOURCE
   if [ "$?" -eq "0" ];then
     if [ "${_level}" == "-2" ];then 
       _showEnv ${_level} "${_linePrefix}";

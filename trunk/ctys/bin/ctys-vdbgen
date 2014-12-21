@@ -1,5 +1,35 @@
 #!/bin/bash
 
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a09
+#
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
 ################################################################
 #                   Begin of FrameWork                         #
 ################################################################
@@ -84,7 +114,7 @@ EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -162,6 +192,10 @@ if [ ! -d "${MYCONFPATH}" ];then
   exit 1
 fi
 
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
+fi
+
 MYMACROPATH=${MYCONFPATH}/macros
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
@@ -200,7 +234,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -234,8 +268,22 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 ################################################################
 #                     End of FrameWork                         #
 ################################################################
+
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux);;
+    OpenBSD);;
+    SunOS);;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
 if [ "${*}" != "${*//-X/}" ];then
-    CTRL_TERSE=1
+    C_TERSE=1
     if [ "${*}" != "${*//-V/}" ];then
 	echo -n ${VERSION}
 	exit 0
@@ -248,7 +296,7 @@ if [ -d "${HOME}/.ctys/db/default" ];then
 fi
 
 #path to directory containing the default mapping db
-if [ -d "${MYCONFPATH}/conf/db/default" ];then
+if [ -d "${MYCONFPATH}/db/default" ];then
     DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
 fi
 
@@ -259,23 +307,23 @@ if [ -f "${HOME}/.ctys/ctys.conf" ];then
 fi
 
 #Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
-  . "${MYCONFPATH}/conf/ctys.conf"
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+  . "${MYCONFPATH}/ctys.conf"
 fi
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
 else
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
 	else
 	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
 	    gotoHell ${ABORT}
 	fi
@@ -288,8 +336,8 @@ fi
 
 ###################
 #generic
-DEFAULT_CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE:-VNC}
-DEFAULT_CTRL_SCOPE=${DEFAULT_CTRL_SCOPE:-USER}
+DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
+DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
 DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,FULLPATH,BOTH}
 
@@ -299,17 +347,17 @@ DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,FULLPATH,BOTH}
 
 ###################
 #LIST
-DEFAULT_CTRL_MODE_ARGS_LIST=${DEFAULT_CTRL_MODE_ARGS_LIST:-"label,id,user,group,pid"}
-#DEFAULT_LIST_CTRL_SCOPE="USRLST"
-#DEFAULT_LIST_CTRL_SCOPE_ARGS="all"
+DEFAULT_C_MODE_ARGS_LIST=${DEFAULT_C_MODE_ARGS_LIST:-"label,id,user,group,pid"}
+#DEFAULT_LIST_C_SCOPE="USRLST"
+#DEFAULT_LIST_C_SCOPE_ARGS="all"
 
 ###################
 #ENUMERATE
-DEFAULT_CTRL_MODE_ARGS_ENUMERATE=${DEFAULT_CTRL_MODE_ARGS_ENUMERATE:-'.'}
+DEFAULT_C_MODE_ARGS_ENUMERATE=${DEFAULT_C_MODE_ARGS_ENUMERATE:-'.'}
 
 ###################
 #CREATE
-DEFAULT_CTRL_MODE_ARGS=${DEFAULT_CTRL_MODE_ARGS_CREATE:-'1,DEFAULT,REUSE'}
+DEFAULT_C_MODE_ARGS=${DEFAULT_C_MODE_ARGS_CREATE:-'1,DEFAULT,REUSE'}
 
 
 
@@ -327,7 +375,7 @@ DEFAULT_CTRL_MODE_ARGS=${DEFAULT_CTRL_MODE_ARGS_CREATE:-'1,DEFAULT,REUSE'}
 #Existing ports are not reused anyway, because the next tunnel-request
 #increments the highest present for a new tunnel.
 #
-#APPLY:Increment when clients do not connect with ConnectionForwarding.
+#APPLY:Increment when clients do not connect with CONNECTIONFORWARDING.
 SSH_ONESHOT_TIMEOUT=${SSH_ONESHOT_TIMEOUT:-20}
 
 
@@ -340,7 +388,7 @@ R_CLIENT_DELAY=${R_CLIENT_DELAY:-2}
 #started. Due to problems with reliability a shift of distinguished 
 #windows seems not to work(at least in my environment on CentOS-5.0/Gnome).
 #So current desktop is switched for default pop-up on target desktop
-#which could take some time until the window actually is displayed.
+#gwhich could take some time until the window actually is displayed.
 #When the desktop is meanwhile switched the window will be positioned 
 #on the current if not yet displayed.
 #Depends on actual base, it seems that at least 5seconds are required,
@@ -372,60 +420,40 @@ R_CREATE_TIMEOUT=${R_CREATE_TIMEOUT:-5}
 R_CREATE_MAX=${R_CREATE_MAX:-20}
 
 
-#######wrapper for vncviewer
-export VNCVIEWER=${VNCVIEWER:-$MYCALLPATH/ctys-callVncviewer}
-#viewer default parameters
-#keep "hextile" for being generic for VMware-WS6 too(see pg. 183).
-export VNCVIEWER_OPT=${VNCVIEWER_OPT:-"-AutoSelect=0 -PreferredEncoding hextile -FullColour"}
-#ffs.:"copyrect"
-
-#######wrapper for vncserver
-export VNCSERVER=${VNCSERVER:-$MYCALLPATH/ctys-callVncserver}
-#server default parameters
-export VNCSERVER_OPT=${VNCSERVER_OPT:-"-depth 24 -geometry 1280x1024 -nohttpd -localhost -nolisten tcp "}
-
-
-
-################################################################
-#Basic-Package Settings: XEN
-#ffs.
-
-
-
 ################################################################
 #      Internal control flow - do not change these!            #
 ################################################################
-CTRL_SESSIONTYPE=DEFAULT
+C_SESSIONTYPE=DEFAULT
 PACKAGES_KNOWNTYPES=
 
-unset CTRL_XTOOLKITOPTS;
+unset C_XTOOLKITOPTS;
 
-unset CTRL_SESSIONID;
-unset CTRL_SESSIONIDARGS;
-unset CTRL_SESSIONFLAG;
-CTRL_MODE=CREATE
-#unset CTRL_MODE_ARGS
-#CTRL_MODE_ARGS="1,DEFAULT,REUSE"
-CTRL_MODE_ARGS=DEFAULT
-CTRL_SCOPE=DEFAULT
-unset CTRL_SCOPE_ARGS
-unset CTRL_SCOPE_CONCAT
-CTRL_SSH=1
-unset CTRL_EXECLOCAL;
-unset CTRL_NOEXEC;
-unset CTRL_LISTSES;
-unset CTRL_TERSE;
-CTRL_PRINTINFO=0;
-CTRL_ASYNC=DEFAULT;
+unset C_SESSIONID;
+unset C_SESSIONIDARGS;
+unset C_SESSIONFLAG;
+C_MODE=CREATE
+#unset C_MODE_ARGS
+#C_MODE_ARGS="1,DEFAULT,REUSE"
+C_MODE_ARGS=DEFAULT
+C_SCOPE=DEFAULT
+unset C_SCOPE_ARGS
+unset C_SCOPE_CONCAT
+C_SSH=1
+unset C_EXECLOCAL;
+unset C_NOEXEC;
+unset C_LISTSES;
+unset C_TERSE;
+C_PRINTINFO=0;
+C_ASYNC=DEFAULT;
 
-unset CTRL_WMCTRL_DESK
-unset CTRL_MDESK;
+unset C_WMC_DESK
+unset C_MDESK;
 
-unset CTRL_GEOMETRY;
-unset CTRL_REMOTERESOLUTION;
-unset CTRL_FORCE;
-unset CTRL_ALLOWAMBIGIOUS;
-#CTRL_WARNING=1;
+unset C_GEOMETRY;
+unset C_REMOTERESOLUTION;
+unset C_FORCE;
+unset C_ALLOWAMBIGIOUS;
+#WNG=1;
 
 unset R_HOSTS;
 unset R_OPTS;
@@ -438,10 +466,10 @@ PR_OPTS=${PR_OPTS:--o 5 -l 76}
 
 #Using this as a ready to use option, some lengthy keywords for now,
 #but recognition has priority over string replace-functions!
-CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION:-"-L DisplayForwarding"};
+C_CLIENTLOCATION=${C_CLIENTLOCATION:-"-L DISPLAYFORWARDING"};
 
 
-#Base for remapping of local client access ports for ConnectionForwarding
+#Base for remapping of local client access ports for CONNECTIONFORWARDING
 LOCAL_PORTREMAP=${LOCAL_PORTREMAP:-5950}
 
 #Is defined to be used when set, so it is foreseen as test-path for remote call
@@ -456,18 +484,18 @@ LOCAL_PORTREMAP=${LOCAL_PORTREMAP:-5950}
 ################################################################
 #                    Initial call trace                        #
 ################################################################
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "TRACE:CALL-PARAMS:"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<${0} ${*}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "TRACE:ENV-PARAMS:"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<PATH=${PATH}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<LD_PLUGIN_PATH=${LD_PLUGIN_PATH}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<RS_PREFIX_L=${RS_PREFIX_L}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<RS_PREFIX_R=${RS_PREFIX_R}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE ""
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "TRACE:CALL-PARAMS:"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<${0} ${*}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "TRACE:ENV-PARAMS:"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<PATH=${PATH}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<LD_PLUGIN_PATH=${LD_PLUGIN_PATH}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<RS_PREFIX_L=${RS_PREFIX_L}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<RS_PREFIX_R=${RS_PREFIX_R}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE ""
 
 
 
@@ -501,6 +529,7 @@ printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
 . ${MYLIBPATH}/lib/help/help
 . ${MYLIBPATH}/lib/geometry/geometry
 . ${MYLIBPATH}/lib/wmctrlEncapsulation
+. ${MYLIBPATH}/lib/network/network
 
 
 
@@ -540,6 +569,12 @@ PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/GUESTs
 LD_PLUGIN_PATH=${LD_PLUGIN_PATH}:${PLUGINPATHS}
 
 
+echo
+echo "Prepare execution-call:"
+echo
+_cliorg=${*};
+
+
 if [ "${*}" != "${*//-h}" ];then
     showToolHelp
     gotoHell 0
@@ -551,72 +586,73 @@ if [ "${*}" != "${*//-V}" ];then
 fi
 
 #
-#  This function analyses an ARGV for occurance of "-t" option, which 
-#  is the type of session to be handeled. If not found the pre-set
-#  default will be assumed.
-#
-#  Once the decision is made, the appropriate module will be loaded
-#  by source-ing. Therefore the Name of the plugin will be returned to be 
-#  "sourced" in global namespace.
-#
-#  The former approach of automatic sourcing all available modules during
-#  startup will still be possible, when setting the environment variable
-#  "CTYS_MULTITYPE". This is more flexible due to possibility of combined
-#  and intermixed calls, but requires some "stripping" of the sources to
-#  reduce resource requirements when loading multiple plugins. 
-#
-#  CTYS_MULTITYPE may contain ALL or a ":"/colon separated list with
-#  plugins to be loaded.
-#
-#
-#  However, the next version is planned to be reworked or written in Perl.
-#  A scripting language at all seems to be most appropriate to this task.
 #
 _t=`echo "$*"| sed -n 's/(.*)//g;s/^.* -T/-T/;s/-T \([a-zA-Z0-9:]*[^ ]\).*$/\1/p'`
 if [ -n "${_t}" ];then
     CTYS_MULTITYPE=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_MULTITYPE=$CTYS_MULTITYPE"
+    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_MULTITYPE=$CTYS_MULTITYPE"
 fi
 if [ -z "${CTYS_MULTITYPE}" ];then
     _t=`echo "$*"| sed -n 's/^.* -t/-t/;s/-t \([a-zA-Z0-9]*\) .*$/\1/p'`
     if [ -n "${_t}" ];then
-	CTRL_SESSIONTYPE=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
+	C_SESSIONTYPE=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
     else
-        CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE}
+        C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE}
     fi
-    CTYS_MULTITYPE=${CTRL_SESSIONTYPE}
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTRL_SESSIONTYPE=$CTRL_SESSIONTYPE"
+    CTYS_MULTITYPE=${C_SESSIONTYPE}
+    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:C_SESSIONTYPE=$C_SESSIONTYPE"
 fi
-
-
 
 #
 #Perform the initialization according and based on LD_PLUGIN_PATH.
 #
-initPackages
-
-
-
-#Make functions available 
-#acue:4testAndDebugOnly:export -f `typeset -F|awk '{print $3}'`
+MYROOTHOOK=${MYINSTALLPATH}/plugins/hook
+if [ ! -f "${MYROOTHOOK}" ];then 
+    ABORT=2
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing packages hook: hook=${MYROOTHOOK}"
+    gotoHell ${ABORT}
+fi
+. ${MYROOTHOOK}
+initPackages "${MYROOTHOOK}"
 
 
 #################################################################################
 #prepare execution                                                              #
 #################################################################################
 
-echo
-echo "Prepare execution-call:"
-echo
+#extract basepath
+_t=`echo " $* "| sed -n 's/.*--base=["'\'']*\([^ "'\'']*\)[ "'\'']*.*/\1/p;'`
+if [ -n "${_t}" ];then
 
-_t=`echo "$*"| sed -n 's/(.*)//g;s/^.* -p/-p/;s/-p \([/.a-zA-Z0-9:]*[^ ]\).*$/\1/p'`
+    BASEPATHLST="${_t}"
+    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:BASEPATHLST=$BASEPATHLST"
 
-if [ -z "$_t" ];then
-    _dbfilepath=${DEFAULT_DBPATHLST}
-    echo "Require DB-PATH,        USE: DEFAULT=\"${_dbfilepath}\""
+    #clear remaining
+    _cli=`echo " $* "| sed -n 's/--base=["'\'']*\([^ "'\'']*\)[ "'\'']//p;'`
+    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:clear \"--base\" => _cli=\"$_cli\""
 else
+    _cli=$*;
+fi
+
+#extract cacheDB
+_t=`echo " $_cli "| sed -n 's/.*--cacheDB=["'\'']*\([^ "'\'']*\)[ "'\'']*.*/\1/p;'`
+if [ -z "$_t" ];then
+    if [ -n "${DEFAULT_VDBGEN_DB}" ];then
+	_dbfilepath=${DEFAULT_VDBGEN_DB}
+	echo "Require DB-PATH,        USE: DEFAULT_VDBGEN_DB=\"${_dbfilepath}\""
+    else
+	if [ -n "${DEFAULT_DBPATHLST}" ];then
+	    _dbfilepath=${DEFAULT_DBPATHLST}
+	    echo "Require DB-PATH,        USE: DEFAULT_DBPATHLST=\"${_dbfilepath}\""
+	fi
+    fi
+else
+    #clear remaining
+    _cli=`echo " $_cli "| sed -n 's/--cacheDB=["'\'']*\([^ "'\'']*\)[ "'\'']//p;'`
+    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:clear \"--cacheDB\" => _cli=\"$_cli\""
     _dbfilepath=${_t}
-    echo "Require DB-PATH,        USE: -p \"${_dbfilepath}\""
+    echo "Require DB-PATH,        USE: -o => \"${_dbfilepath}\""
+    echo "Stripped CLI            CLI:    => \"${_cli}\""
 fi
 
 if [ -z "$_dbfilepath" ];then
@@ -633,18 +669,42 @@ if [ -z "$_dbfilepath" ];then
     gotoHell ${ABORT}
 fi
 
+if [ ! -d "${_dbfilepath}" ];then
+    if [ ! -d "${_dbfilepath%/*}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing BASE directory, required to be present."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  _dbfilepath=${_dbfilepath%/*}"
+	gotoHell ${ABORT}
+    fi
+
+    if [ -f "${_dbfilepath%/*}/enum.fdb" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "The choosen BASE directory is a cacheDB directory itself,"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "nested databases are not supported."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Present cacheDB:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  _dbfilepath=${_dbfilepath%/*}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  ENUM-DB    =${_dbfilepath%/*}/enum.fdb"
+	gotoHell ${ABORT}
+    fi
+
+    if [ ! -d "${_dbfilepath}" ];then
+	echo "Require DB-PATH      CREATE: \"${_dbfilepath##*/}\""
+	mkdir ${_dbfilepath}
+    fi
+fi
+
+
 if [ ! -d "$_dbfilepath" ];then
     ABORT=1;
     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory, required to be present."
     printERR $LINENO $BASH_SOURCE ${ABORT} "  _dbfilepath=${_dbfilepath}"
     gotoHell ${ABORT}
 fi
-
 _dbfilepath=$_dbfilepath/enum.fdb
 
+printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_cli=$_cli"
+NEWARGS1=$_cli
 
-
-NEWARGS1=$*
 NEWARGS=${NEWARGS1//--append/}
 if [ "${NEWARGS}" != "${NEWARGS1}" ];then
     _appendmode=1;
@@ -652,58 +712,207 @@ if [ "${NEWARGS}" != "${NEWARGS1}" ];then
 else
     unset _appendmode;
     echo "APPEND mode off => REPLACE : OFF(0)"
+    NEWARGS=${NEWARGS1//--replace/}
+    if [ "${NEWARGS}" != "${NEWARGS1}" ];then
+	_replacemode=1;
+	echo "REPLACE mode on            : ON(1)"
+    else
+	unset _replacemode;
+	echo "REPLACE mode off           : OFF(0)"
+	NEWARGS=${NEWARGS1//--stdio/}
+	if [ "${NEWARGS}" != "${NEWARGS1}" ];then
+	    _stdiomode=1;
+	    echo "STDIO mode on              : ON(1)"
+	else
+	    unset _stdiomode;
+	    echo "STDIO mode off             : OFF(0)"
+	    echo "IMPLICIT REPLACE mode on   : ON(0)"
+	    if [ -e "${_dbfilepath}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "\"IMPLICIT REPLACE\" is only allowed when \"enum.fdb\" is absent,"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "if you actually want to replace, choose \"--replace\""
+		gotoHell ${ABORT}
+	    fi
+	fi
+    fi
+fi
+
+if [ "${_cliorg//--filecontext/}" != "${_cliorg}"  ];then
+    echo "Set for Filecontext     ON: "
+    filecontext=1;
+    NEWARGS="${NEWARGS//--filecontext/ }"
 fi
 
 
-NEWARGS1=$*
-NEWARGS=${NEWARGS1//--stdio/}
-if [ "${NEWARGS}" != "${NEWARGS1}" ];then
-    _stdiomode=1;
-    echo "STDIO mode on              : ON(1)"
-else
-    echo "STDIO mode off             : OFF(0)"
-    unset _stdio;
+if [ -z "${filecontext}" ];then
+    if [ "${_cliorg//-t}" == "${_cliorg}"  ];then
+	echo "Set TYPE scope          ADD: DEFAULT=\"-t ALL\""
+	NEWARGS="-t ALL ${NEWARGS}"
+    fi
+
+    if [ "${_cliorg//-T}" == "${_cliorg}"  ];then
+	echo "Preload TYPE set        ADD: DEFAULT=\"-T ALL\""
+	NEWARGS="-T ALL ${NEWARGS}"
+    fi
+
+    if [ "${_cliorg//-b}" == "${_cliorg}"  ];then
+	echo "Should speed-up         ADD: DEFAULT=\"-b sync,parallel \""
+	NEWARGS="-b sync,parallel ${NEWARGS}"
+    fi
+
+    if [ "${_cliorg// -c }" == "${_cliorg}"  ];then
+	echo "Nameservice cache       OFF: DEFAULT=\"-c off \""
+	NEWARGS="-c off ${NEWARGS}"
+    fi
+
+    if [ "${_cliorg// -C }" == "${_cliorg}" ];then
+	echo "Data cache              OFF: DEFAULT=\"-C off \""
+	NEWARGS="-C off ${NEWARGS}"
+    fi
+fi
+
+progressFilter=0;
+if [ "${_cliorg//--progressall/}" != "${_cliorg}"  ];then
+    echo "Set Progress Trace All  ON: DEFAULT=\"\""
+    echo "  Requires on targets     :\"(-d 2,s:16:w:0,p)\""
+    NEWARGS="${NEWARGS//--progressall/ }"
+    progressFilter=1;
+fi
+
+if [ "${_cliorg//--progress/}" != "${_cliorg}"  ];then
+    echo "Set Progress Final      ON: DEFAULT=\"\""
+    echo "  Requires on targets     :\"(-d 2,s:16,w:0,p)\""
+    NEWARGS="${NEWARGS//--progress/ }"
+    progressFilter=2;
 fi
 
 
 
-if [ "${*//-T}" == "${*}"  ];then
-    echo "Require TYPE,           ADD: DEFAULT=\"-T ALL\""
-    NEWARGS="-T ALL ${NEWARGS}"
-fi
 
+echo
 _t=`echo "${NEWARGS}"| sed -n '/[eE][nN][uU][mM][eE][rR][aA][tT][eE]/p'`
 if [ -z "${_t}" ];then
     _srchpath=;
-    echo -n "Require ctys-ENUMERATE, ADD: DEFAULT=\""
-    _srcpath="${BASEPATHLST:-$DEFAULT_ENUM_BASE}";
-    _srcpath="${_srcpath}${BASEAPPENDLST:+%$BASEAPPENDLST}";
+    echo -n "Resulting ENUMERATE     ADD: DEFAULT=\""
+    if [ -z "${BASEPATHLST}" ];then
+	_srcpath="${DEFAULT_ENUM_BASE}";
+    else
+	_srcpath="${BASEPATHLST}";
+    fi
 
-    NEWARGS="-a enumerate=machine${_srcpath:+,b:$_srcpath} ${NEWARGS}"
+    if [ -n "${_srcpath}" ];then
+	_srcpath="${_srcpath} ${BASEAPPENDLST}";
+    else
+	_srcpath="${BASEAPPENDLST}";
+    fi
+    _srcpath="${_srcpath//  / }";
+
+#Reminder:for OBSD    _srcpath="`echo ${_srcpath}|sed -n 's/^ *\([^ ].*[^ ]\) *$/\1/;s/ \+/\%/g;p'`";
+    _srcpath="`echo ${_srcpath}|sed -n 's/^ *\([^ ].*[^ ]\) *$/\1/;s/  */%/g;p'`";
+
+    if [ -z "${filecontext}" ];then
+	NEWARGS="-a enumerate=matchvstat:active%empty,machine${_srcpath:+,b:$_srcpath} ${NEWARGS}"
+    else
+	NEWARGS=" ${NEWARGS}"
+    fi
     echo "${NEWARGS}\""
 fi
 
 
-
-echo
-echo "RESULTING CALL:\"${MYCALLPATH}/ctys ${NEWARGS}>${_dbfilepath}\""
-echo
-echo "-> generate DB..."
-echo "------"
-if [ -n "$_stdiomode" ];then
-    ${MYCALLPATH}/ctys ${NEWARGS}
+#prepare stats
+if [ -n "${_appendmode}" -a -z "$_stdiomode" ];then
+    preappend=`wc -l ${_dbfilepath}`
+    preappend=${preappend%% *}
 else
-    ${MYCALLPATH}/ctys ${NEWARGS}>${_appendmode:+>}${_dbfilepath}
+    preappend=0;
 fi
+
+_ssumtime=`getCurTime`;
+echo
+{
+    if [ -n "$_stdiomode" ];then
+	echo "RESULTING CALL:\"${MYCALLPATH}/ctys ${NEWARGS}\""
+	echo
+	echo "-> generate DB(may take a while)..."
+	echo "-----------------------------------"
+	echo "START:${_ssumtime}"
+	echo "------"
+    else
+	echo "RESULTING CALL:\"${MYCALLPATH}/ctys ${NEWARGS}${_appendmode:+>}>${_dbfilepath}\""
+	echo
+	echo "-> generate DB(may take a while)..."
+	echo "-----------------------------------"
+	echo "START:${_ssumtime}"
+	echo "------"
+    fi
+}
+{
+    if [ -n "$_stdiomode" ];then
+	${MYCALLPATH}/ctys ${NEWARGS}
+    else
+	if [ -n "${_appendmode}" ];then
+	    ${MYCALLPATH}/ctys ${NEWARGS}>>${_dbfilepath}
+	else
+	    ${MYCALLPATH}/ctys ${NEWARGS}>${_dbfilepath}
+	fi
+    fi
+} 2>&1|\
+if [ -z "$_stdiomode" ];then
+  awk -F'-' -v prog="$progressFilter" '
+    BEGIN{
+        printf("%05s|%-35s|%-10s|%-8s|%-8s|%-8s\n","Index","Machine","SType","Start","End","Duration");
+        printf("-----+-----------------------------------+----------+--------+--------+--------\n");
+        idx=0;
+      }
+    $1~/:scan4sessions:START$/{
+      if(prog==1){
+        x=$1;
+        gsub("^[^:]*:","",x);
+        gsub(":.*","",x);
+        printf("%05s|%-35s|%-10s|%-8s|%-8s|%-8s\n",idx++,x,$(NF-3),$(NF-2),$(NF-1),$NF);
+      }
+      next;
+    }
+    $1~/:scan4sessions:FINISH$/{
+      if(prog==1||(prog==2&&$(NF-3)!="machine")){
+        x=$1;
+        gsub("^[^:]*:","",x);
+        gsub(":.*","",x);
+        printf("%05s|%-35s|%-10s|%-8s|%-8s|%-8s\n",idx++,x,$(NF-3),$(NF-2),$(NF-1),$NF);
+      }
+      next;
+    }
+    {print;}
+    END{
+      print "";
+    }'
+else
+  cat
+fi
+
+_fsumtime=`getCurTime`;
+_sumduration=`getDiffTime $_fsumtime $_ssumtime`;
 echo "------"
+echo "END:${_fsumtime}"
+echo "DURATION:${_sumduration}"
+echo "-----------------------------------"
 echo "RET=$?"
-echo "------"
+echo "-----------------------------------"
+echo
+if [ -z "$_stdiomode" ];then
+    final=`wc -l ${_dbfilepath}`
+    final=${final%% *};
+    echo "Cached data:"
+    echo
+    if [ -n "${_appendmode}" ];then
+	delta=$((final-preappend));
+	echo "  Pre-Appended: ${preappend} records"
+	echo "  Appended:     ${delta} records"
+	echo "  Final:        ${final} records"
+    else
+	echo "  Created:      ${final} records"
+    fi
+    echo
+    echo "-----------------------------------"
+fi
 echo "   ...finished."
-
-
-
-
-
-
-
-

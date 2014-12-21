@@ -16,7 +16,7 @@
 
 
 function perror(inp){
-    if(dbg<=d){
+    if(!d){
         print line ":" inp | "cat 1>&2"
     }
 }  
@@ -33,7 +33,6 @@ BEGIN{
     error="";
     perror("************");
     perror("d=  " d);
-    perror("dbg=" dbg);
     perror("0=  " $0);
 }
 
@@ -137,7 +136,10 @@ NF==2&&$2~/^.*[a-zA-Z].*$/{
     cli|getline x;
     perror("x=" x);
     if(x~/^$/){
-        error="ERROR:Parameters my be faulty, check matching of labels!!!\n";
+        error="ERROR:missing value for parameters:\n";
+        error=error"ERROR: ->"xorgconf"\n";
+        error=error"ERROR: ->geometry:"d"  ScreenSection:"$2"\n";
+#        error="ERROR:Parameters my be faulty, check matching of labels!!!\n";
         exit 1;
     }
     splitExpansion(x);
@@ -147,7 +149,6 @@ NF==2&&$2~/^.*[a-zA-Z].*$/{
 #<geometry>:<ScreenIndex>:<ServerLayout>
 NF==3&&$2~/^[0-9]*$/{
     perror("3a-<geometry>:<ScreenIndex>:<ServerLayout>");
-#   cli="getScreenOffset " d " \"\" \"\" " $2 " " xorgconf;
     cli="getScreenOffset " d " \"" $3 "\" \"\" " $2 " " xorgconf;
     perror("cli=" cli);
     cli|getline x;
@@ -159,24 +160,21 @@ NF==3&&$2~/^[0-9]*$/{
 #<geometry>:<ScreenSection>:<ServerLayout>
 NF==3&&$3~/^.*[a-zA-Z].*$/{
     perror("3b-<geometry>:<ScreenSection>:<ServerLayout>");
-#   cli="getScreenOffset " d " \"\" \"" $2 "\" -1 " xorgconf;
     cli="getScreenOffset " d " \"" $3 "\" \"" $2 "\" -1 " xorgconf;
     perror("cli=" cli);
     cli|getline x;
     perror("x=" x);
     if(x~/^$/){
-        error="ERROR:Parameters my be faulty, check matching of labels!!!\n";
+        error="ERROR:missing value for parameters:\n";
+        error=error"ERROR: ->"xorgconf"\n";
+        error=error"ERROR: ->geometry:"d"  ScreenSection:"$3"  ServerLayout:"$2"\n";
         exit 1;
     }
     splitExpansion(x);
 }
 
 
-
-
 #       <geometry>[:[<ScreenSection>|<ScreenIndex>][:[ServerLayout]:[Workspace]]]
-
-
 
 END{
     if(error~/^$/){

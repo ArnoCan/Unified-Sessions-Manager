@@ -21,8 +21,6 @@ _myPKGVERS_VMW_INFO="01.02.001b01"
 hookInfoAdd $_myPKGNAME_VMW_INFO $_myPKGVERS_VMW_INFO
 _myPKGBASE_VMW_INFO="`dirname ${_myPKGNAME_VMW_INFO}`"
 
-_VMW_INFO="${_myPKGNAME_VMW_INFO}"
-
 
 #FUNCBEG###############################################################
 #NAME:
@@ -47,14 +45,17 @@ _VMW_INFO="${_myPKGNAME_VMW_INFO}"
 function infoVMW4Action () {
     local _allign=$1
 
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "VMW:" "Plugin Version:${_myPKGVERS_VMW}"
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "Operational State:${VMW_STATE}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " \
+        "`setStatusColor ${VMW_STATE} VMW`:" "Plugin Version:${_myPKGVERS_VMW}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "" \
+        "Operational State:`setStatusColor ${VMW_STATE} ${VMW_STATE}`"
 
 
     if [ -n "${VMW_VERSTRING}" ];then
 	printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "VMW version:"
   	printf "%"$((2*_allign))"s%-"${_label}"s ->%"$((2*_allign))"s\n" " " " " "${VMW_VERSTRING}"
-   	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Magic-Number:${VMW_MAGIC}"
+   	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " \
+            "Magic-Number:`setStatusColor ${VMW_STATE} ${VMW_MAGIC}`"
 	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Verified Prerequisites:"
 
 	local i2=;
@@ -94,11 +95,11 @@ function infoVMW4Action () {
 #        Current type "VMW".
 #
 #      <plug-vers>
-#        The version of current plugin, which is the value 
+#        The version of current plugin, gwhich is the value 
 #        of _myPKGVERS_VMW.
 #
 #      <plug-magic>
-#        The magic ID, which is the shortform of the version of 
+#        The magic ID, gwhich is the shortform of the version of 
 #        current plugin stored in VMW_MAGIC.
 #
 #      <plug-state>
@@ -158,7 +159,7 @@ function infoVMW () {
 	    infoVMW4MACHINE $*
 	    ;;
 	[0-9]*)
-            if [ -n "${CTRL_TERSE}" ];then
+            if [ -n "${C_TERSE}" ];then
 		infoVMW4MACHINE $*
 	    else
 		infoVMW4Action $*

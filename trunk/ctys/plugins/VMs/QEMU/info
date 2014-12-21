@@ -21,8 +21,6 @@ _myPKGVERS_QEMU_INFO="01.01.001a00pre"
 hookInfoAdd $_myPKGNAME_QEMU_INFO $_myPKGVERS_QEMU_INFO
 _myPKGBASE_QEMU_INFO="`dirname ${_myPKGNAME_QEMU_INFO}`"
 
-_QEMU_INFO="${_myPKGNAME_QEMU_INFO}"
-
 
 #FUNCBEG###############################################################
 #NAME:
@@ -47,13 +45,16 @@ _QEMU_INFO="${_myPKGNAME_QEMU_INFO}"
 function infoQEMU4Action () {
     local _allign=$1
 
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "QEMU:" "Plugin Version:${_myPKGVERS_QEMU}"
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "Operational State:${QEMU_STATE}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " \
+         "`setStatusColor ${QEMU_STATE} QEMU`:" "Plugin Version:${_myPKGVERS_QEMU}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "" \
+         "Operational State:`setStatusColor ${QEMU_STATE} ${QEMU_STATE}`"
 
     if [ -n "${QEMU_VERSTRING}" ];then
     printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "QEMU version:"
   	printf "%"$((2*_allign))"s%-"${_label}"s ->%"$((2*_allign))"s\n" " " " " "${QEMU_VERSTRING}"
-  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Magic-Number:${QEMU_MAGIC}"
+  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " \
+            "Magic-Number:`setStatusColor ${QEMU_STATE} ${QEMU_MAGIC}`"
   	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Verified Prerequisites:"
 
 	local i2=;
@@ -93,11 +94,11 @@ function infoQEMU4Action () {
 #        Current type "QEMU".
 #
 #      <plug-vers>
-#        The version of current plugin, which is the value 
+#        The version of current plugin, gwhich is the value 
 #        of _myPKGVERS_VMW.
 #
 #      <plug-magic>
-#        The magic ID, which is the shortform of the version of 
+#        The magic ID, gwhich is the shortform of the version of 
 #        current plugin stored in VMW_MAGIC.
 #
 #      <plug-state>
@@ -157,7 +158,7 @@ function infoQEMU () {
 	    infoQEMU4MACHINE $*
 	    ;;
 	[0-9]*)
-            if [ -n "${CTRL_TERSE}" ];then
+            if [ -n "${C_TERSE}" ];then
 		infoQEMU4MACHINE $*
 	    else
 		infoQEMU4Action $*

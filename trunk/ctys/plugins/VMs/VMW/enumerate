@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a09
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_ENUMERATE="01.02.001b01"
+_myPKGVERS_VMW_ENUMERATE="01.06.001a09"
 hookInfoAdd $_myPKGNAME_VMW_ENUMERATE $_myPKGVERS_VMW_ENUMERATE
 _myPKGBASE_VMW_ENUMERATE="`dirname ${_myPKGNAME_VMW_ENUMERATE}`"
 
@@ -52,395 +52,303 @@ _myPKGBASE_VMW_ENUMERATE="`dirname ${_myPKGNAME_VMW_ENUMERATE}`"
 #EXAMPLE:
 #
 #PARAMETERS:
-#  $1: For detailed interface descritpion refer to genric dispatcher.
+#  $1: <basename-list>=<basename>[%<basename-list>]
 #
 #GLOBALS:
-#  CTRL_TERSE
-#    Where <dname> is literally equal to the result of call 
-#    "fetchLabel4ID", and <filename/ID> is literally equal to 
-#    the result of call "fetchID4Label".
-#
-#    off   Formatted display-output, format:
-#
-#          Label       =>  ID/vmx-file  
-#          --------------------------------
-#          "<dname>    =>  <filename/ID>"
-#
-#    on    Formatted machine-output, format:
-#
-#          "<dname>:<filename/ID>"
-#
-#
 #OUTPUT:
 #  RETURN:
 #
 #  VALUES:
-#    output format
-#
-#      host;pname;type;label;id;uuid;mac;ip;vncport;vncbase;vncdisp;distro;os;verno;serno;category
-#
-#
+#    standard enumerate output format
+#    
 #
 #FUNCEND###############################################################
 function enumerateMySessionsVMW () {
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
 
-    #avoids of multiple rescans when MAPDB enabled.
-    local _curMACCache=;
+    local _myMAC=;
+    local _myMAClst=;
+    local _myIP=;
+    local _myIPlst=;
 
-    #This value is defined as anchor to be supported from VMs config file!!!
-    function getMAC () {
-        #might be cached already, don't forget to reset for each record!!!
-        if [ -n "$_curMACCache" ];then
-	    echo $_curMACCache
-	    return
-        fi
-
-	local X=$1
-	local _IP=;
-        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys";do
-            [ ! -f "$i" ]&&continue;
-	    _IP=`sed -n 's/\t//g;/^#/d;s/ethernet[0-9]*.address *= *"\([^"]*\)"/\1/p' "${i}"|\
-                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-            [ "$_IP" != "" ]&&break;
-	done
-        _curMACCache=$_IP
-	echo $_IP
-    }
-
-    function getIP () {
-	local X=$1
-	local _IP=;
-        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys";do
-            [ ! -f "$i" ]&&continue;
-	    _IP=`sed -n 's/#@#CTYS-IP[0-9]* *= *"\([^"]*\)"/\1/p' "${i}"|\
-                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-            [ "$_IP" != "" ]&&break;
-	done
-
-        #check macmap requirement
-        if [ -z "$_IP" -a -n "$_mapdb" ];then
-	    local _m=`getMAC $X`
-            _IP=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o TCP -S macmap -M first $_m`
-	fi
-	echo $_IP
-    }
-
-    function getUUID () {
-	local X=$1
-	local _IP=;
-	if [ -z "${X}" ];then
-	    which dmidecode 2>/dev/null >/dev/null
-	    if [ $? == 0 ];then
-		_IP=`dmidecode |awk '/UUID/{if(NF==2)print $2}'|sed 's/-//g'`
-	    fi
-	else
-            for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
-		[ ! -f "$i" ]&&continue;
-		_IP=`sed -n 's/[ -]//g;s/[^#]*uid.bios *= *"\([^"]*\)"/\1/p' "${i}"|\
-                     awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-  		[ "$_IP" != "" ]&&break;
-	    done
-	fi
-	echo $_IP
-    }
-
-    function getLABEL () {
-	local X=$1
-	local _IP=;
-	for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
-            [ ! -f "$i" ]&&continue;
-	    _IP=`sed -n 's/#@#LABEL *= *"\([^"]*\)"/\1/p' "${i}"|\
-                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-            [ "$_IP" != "" ]&&break;
-	    _IP=`sed -n 's/^[^#]*displayName *= *"\([^"]*\)"/\1/p' "${i}"|\
-                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-	done
-	echo $_IP
-    }
-
-    function getVNCport () {
-	local X=$1
-	local _IP=;
-        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys";do
-            [ ! -f "$i" ]&&continue;
-	    _IP=`sed -n 's/\t//g;/^#/d;s/RemoteDisplay.vnc.port *= *"\([^"]*\)"/\1/p' "${i}"|\
-                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
-            [ "$_IP" != "" ]&&break;
-	done
-	echo $_IP
-    }
-
- 
-    #UUID
-    local _base="`echo ${1}|sed 's/[uU][uU][iI][dD]//'`"
-    if [ "${1}" != "${_base}" ];then local _uuid=1;fi
-
-    #IP
-    local _base1="`echo ${_base}|sed 's/[iI][pP]//'`"
-    if [ "${_base1}" != "${_base}" ];then local _ip=1;fi
-
-    #MAC
-    _base="`echo ${_base1}|sed 's/[mM][aA][cC][^hH]//'`"
-    if [ "${_base1}" != "${_base}" ];then local _mac=1;fi
-
-    #TERSE
-    local _terse=$CTRL_TERSE;
-    _base1="`echo ${_base}|sed 's/[tT][eE][rR][sS][eE]//'`"
-    if [ "${_base1}" != "${_base}" ];then local _terse=1;CTRL_TERSE=$_terse;fi
-
-    #LABEL
-    _base="`echo ${_base1}|sed 's/[lL][aA][bB][eE][lL]//'`"
-    if [ "${_base1}" != "${_base}" ];then local _label=1;fi
-
-    #PNAME
-    _base1="`echo ${_base}|sed 's/[pP][nN][aA][mM][eE]//'`"
-    if [ "${_base}" != "${_base1}" ];then local _pname=1;fi
-
-    #TYPE
-    _base2="`echo ${_base1}|sed 's/[tT][yY][pP][eE]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _type=1;fi
-
-    #ALL
-    local _base1="`echo ${_base2}|sed 's/[aA][lL][lL]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _all=1;fi
-
-    #MACHINE
-    local _base2="`echo ${_base1}|sed 's/[mM][aA][cC][hH][iI][nN][eE]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _all=1;local _terse=1;CTRL_TERSE=$_terse;fi
-
-    #DISTRO
-    local _base1="`echo ${_base2}|sed 's/[dD][iI][sS][tT][rR][oO]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _distro=1;fi
-
-    #OS
-    local _base2="`echo ${_base1}|sed 's/[oO][sS]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _os=1;fi
-
-    #VERNO
-    local _base1="`echo ${_base2}|sed 's/[vV][eE][rR][nN][oO]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _verno=1;fi
-
-    #SERNO
-    local _base2="`echo ${_base1}|sed 's/[sS][eE][rR][nN][oO]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _serno=1;fi
-
-    #CATEGORY
-    local _base1="`echo ${_base2}|sed 's/[cC][aA][tT][eE][gG][oO][rR][yY]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _category=1;fi
-
-    #VNCPORT
-    local _base2="`echo ${_base1}|sed 's/[vV][nN][cC][pP][oO][rR][tT]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _vncport=1;fi
-
-    #VNCBASE
-    local _base1="`echo ${_base2}|sed 's/[vV][nN][cC][bB][aA][sS][eE]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _vncbase=1;fi
-
-    #VNCDISPLAY
-    local _base2="`echo ${_base1}|sed 's/[vV][nN][cC][dD][iI][sS][pP][lL][aA][yY]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _vncdisp=1;fi
-
-    #ID
-    local _base1="`echo ${_base2}|sed 's/[iI][dD]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _id=1;fi
-
-    #HOST
-    local _base2="`echo ${_base1}|sed 's/[hH][oO][sS][tT]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _host=1;fi
-
-    #MAPDB
-    local _base1="`echo ${_base2}|sed 's/[mM][aA][pP][dD][bB]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _mapdb=1;fi
-
-    #MAXKEY
-    local _base2="`echo ${_base1}|sed 's/[mM][aA][xX][kK][eE][yY]//'`"
-    if [ "${_base2}" != "${_base1}" ];then local _maxkey=1;local _terse=1;CTRL_TERSE=$_terse;fi
-
-
-
-    #update these two _smartXXX when extending above list!
-    local _smartLnk=$_base2
-    local _smartSet=$_base1
-
-    #quick-shot too for basepath, and nothing else
-    local _iba="";
-    _smartSet=${_smartLnk//,/ };
-    _base="";
-
-    if [ -n "$_all" ];then
-	_uuid=1;_ip=1;_mac=1;_label=1;_pname=1;_type=1;
-        _distro=1;_os=1;_verno=1;_serno=1;_category=1;
-        _vncport=1;_vncbase=1;_vncdisp=1;_id=1;_host=1;
-    fi
-
-    if [ -n "$_maxkey" ];then
-        _host=1;_type=1;_label=1;_id=1;_uuid=1;_mac=1;
-
-	unset _ip;unset _pname;unset _distro;unset _os;
-        unset _verno;unset _serno;unset _category;
-        unset _vncport;unset _vncbase;unset _vncdisp;
-    fi
-
-    for _iba in ${_smartSet};do
-	case ${_iba} in
-	    [bB]:*|[bB][aA][sS][eE]:*|[bB][aA][sS][eE][pP][aA][tT][hH]:*)   
-		_base="${_base} ${_iba#*:}";
-		;;
-            [tT][iI][tT][lL][eE]);;#temp workaround
-            *)
- 		ABORT=1
- 		printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown constraint for <vm-name> element.";
- 		printERR $LINENO $BASH_SOURCE ${ABORT} "  Given systax    :<${_iba}>";
-		gotoHell ${ABORT}
-		;;
-	esac
-    done
-
-    _base=${_base/,*};_base=${_base//\%/ };
+    local _base="${*//\%/ }"
     _base=${_base:-$HOME $RS_PREFIX_R $RS_PREFIX_L}
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_base=${_base}"
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_base=${_base}"
 
-    #just for sureness ...
+    #just for safety ...
     if [ -z "${_base}" ];then
  	ABORT=1
  	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing base for search: Check your path/file call-parameters.";
 	gotoHell ${ABORT}
     fi
 
+
+
+    #This value is defined as anchor to be supported from VMs config file!!!
+    function getMAClst_VMW () {
+        #might be cached already, don't forget to reset for each record!!!
+        if [ -n "${_myMAC}" ];then
+	    echo ${_myMAC}
+	    return
+        fi
+	local _IP=;
+	for i in `getConfFilesList "${1}"`;do
+	    _IP=`sed -n 's/\t//g;/^#/d;s/ethernet\([0-9]*\).address *= *"\([^"]*\)"/\1=\2/p' "${i}"`;
+            [ "$_IP" != "" ]&&break;
+	done
+ 	echo $_IP
+    }
+
+
+    function getUUID () {
+	local _IP=;
+	if [ -z "${1}" ];then
+	    gwhich dmidecode 2>/dev/null >/dev/null
+	    if [ $? == 0 ];then
+		_IP=`dmidecode |awk '/UUID/{if(NF==2)print $2}'|sed 's/-//g'`
+	    fi
+	else
+	    for i in `getConfFilesList "${1}"`;do
+		_IP=`sed -n '/uuid.bios/!d;s/[ -]//g;p' "${i}"|getConfValueOf "uuid.bios"`
+  		[ "$_IP" != "" ]&&break;
+	    done
+	fi
+	echo ${_IP##* }
+    }
+
+    function getLABELVMW () {
+	local _IP=;
+	for i in `getConfFilesList "${1}"`;do
+	    _IP=`cat  "${i}"|getConfValueOf "displayName"`
+  	    [ "$_IP" != "" ]&&break;
+	    _IP=`cat  "${i}"|getConfValueOf "#@#LABEL"`
+            [ "$_IP" != "" ]&&break;
+	done
+	echo ${_IP##* }
+    }
+
+    function getOSVMW () {
+	local _IP=;
+	for i in `getConfFilesList "${1}"`;do
+	    _IP=`sed -n 's/^[^#]*guestOS *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+  	    [ "$_IP" != "" ]&&break;
+	done
+	echo ${_IP##* }
+    }
+
+    function getVNCACCESSPORT_VMW () {
+	local _IP=;
+	for i in `getConfFilesList "${1}"`;do
+ 	    _IP=`cat "${i}"|getConfValueOf "RemoteDisplay.vnc.port"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+	if [ -n "${_IP// /}" ];then
+	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
+	    echo ${_IP##* }
+            return
+	fi
+	getVNCACCESSPORT "${1}"
+    }
+
+
+    function getGUESTVRAM_VMW () {
+	local _IP=;
+	for i in `getConfFilesList "${1}"`;do
+	    _IP=`cat  "${i}"|getConfValueOf "memsize"`
+            if [ "$_IP" != "" ];then
+		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+	if [ -n "${_IP// /}" ];then
+	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_IP=${_IP} from ${1}"
+	    echo ${_IP##* }
+            return
+	fi
+	getGUESTVRAM "${1}"
+    }
+
+
     #ID/PNAME should be shown as unique and unambiguos ID, ready to be used
     #Make each base absolut, if not yet
     local _i2=;
     local _baseabs=;
     for _i2 in ${_base};do
+	_i2="${_i2//\~/$HOME}"
 	if [ "${_i2#/}" == "${_i2}" ];then
 	    _baseabs="${_baseabs} ${PWD}/${_i2}"
 	else
 	    _baseabs="${_baseabs} ${_i2}"
 	fi
-    local X=;
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_baseabs=${_baseabs}"
-
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_baseabs=${_baseabs}"
-    if [ ! -f "${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk" ];then
- 	ABORT=1
- 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk";
-	gotoHell ${ABORT}
-    fi
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:Use MATCH-FILTER:${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk";
+	local X=;
+	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_baseabs=${_baseabs}"
+	if [ ! -f "${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk" ];then
+ 	    ABORT=1
+ 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk";
+	    gotoHell ${ABORT}
+	fi
+	printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Use MATCH-FILTER:${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk";
 
     done
+    checkPathElements FIND-PATH ${_baseabs// /:}
     {
 	find ${_baseabs} -name '*.vmx' \
             -exec awk -F'=' -v matchMin=5 -f ${_myPKGBASE_VMW_ENUMERATE}/enumfilter.awk {} \; \
             -print
     }|\
     while read X;do
-        _curMACCache="";
-    	printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH=${X}"
+        CURRENTENUM=${X};
+        local _out=;
+    	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:MATCH=${X}"
  	if [ -f "${X}" ];then
-
-            #host
-	    if [ -n "${_terse}" ];then
-		if [ -n "${_host}" ];    then printf "${MYHOST}"; fi
-            fi
-
-            #mandatory parts, which are known in any case
-	    if [ -z "${_terse}" ];then
-		printf "PNAME = %s\n" "${X}";
-		if [ -n "${_type}" ]; then printf "   TYPE       = VMW\n"; fi
-	    else
-		printf ";VMW";
-            fi
-
-            #optional parts
 	    if [ ! -r "${X}" ];then
-		if [ -z "${_terse}" ];then
-		    if [ -n "${_host}" ];     then printf "   HOST       = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_label}" ];    then printf "   LABEL      = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_id}" ];       then printf "   ID         = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_uuid}" ];     then printf "   UUID       = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_mac}" ];      then printf "   MAC        = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_ip}" ];       then printf "   IP         = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_vncport}" ];  then printf "   VNCPORT    = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_vncbase}" ];  then printf "   VNCBASE    = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_vncdisp}" ];  then printf "   VNCDISPLAY = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_distro}" ];   then printf "   DISTRO     = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_os}" ];       then printf "   OS         = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_verno}" ];    then printf "   VERNO      = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_serno}" ];    then printf "   SERNO      = %s\n" "${NOREAD}"; fi
-		    if [ -n "${_category}" ]; then printf "   CATEGORY   = %s\n" "${NOREAD}"; fi
-		else
-		    if [ -n "${_label}" ];    then printf ";";  fi
-		    if [ -n "${_id}" ];       then printf ";";  fi
-		    if [ -n "${_uuid}" ];     then printf ";";  fi
-		    if [ -n "${_mac}" ];      then printf ";";  fi
-		    if [ -n "${_ip}" ];       then printf ";";  fi
-		    if [ -n "${_vncport}" ];  then printf ";";  fi
-		    if [ -n "${_vncbase}" ];  then printf ";";  fi
-		    if [ -n "${_vncdisp}" ];  then printf ";";  fi
-		    if [ -n "${_distro}" ];   then printf ";";  fi
-		    if [ -n "${_os}" ];       then printf ";";  fi
-		    if [ -n "${_verno}" ];    then printf ";";  fi
-		    if [ -n "${_serno}" ];    then printf ";";  fi
-		    if [ -n "${_category}" ]; then printf ";";  fi
-                    echo
-                fi
+		_out="${MYHOST}";
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out}VMW";
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";  
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		_out="${_out};";
+		echo ${_out}
 	    else
-		if [ -z "${_terse}" ];then
-		    if [ -n "${_host}" ];     then printf "   HOST       = ${MYHOST}\n";          fi
-		    if [ -n "${_label}" ];    then printf "   LABEL      = `getLABEL    ${X}`\n"; fi
-		    if [ -n "${_id}" ];       then printf "   ID         = ${X}\n"; fi
-		    if [ -n "${_uuid}" ];     then printf "   UUID       = `getUUID     ${X}`\n"; fi
-		    if [ -n "${_mac}" ];      then printf "   MAC        = `getMAC      ${X}`\n"; fi
-		    if [ -n "${_ip}" ];       then printf "   IP         = `getIP       ${X}`\n"; fi
-		    if [ -n "${_vncport}" ];  then printf "   VNCPORT    = `getVNCport  ${X}`\n"; fi
-		    if [ -n "${_vncbase}" ];  then printf "   VNCBASE    = ${NOAPP}          \n"; fi
-		    if [ -n "${_vncdisp}" ];  then printf "   VNCDISPLAY = ${NOAPP}          \n"; fi
-		    if [ -n "${_distro}" ];   then printf "   DISTRO     = `getDIST     ${X}`\n"; fi
-		    if [ -n "${_os}" ];       then printf "   OS         = `getOS       ${X}`\n"; fi
-		    if [ -n "${_verno}" ];    then printf "   VERNO      = `getVERNO    ${X}`\n"; fi
-		    if [ -n "${_serno}" ];    then printf "   SERNO      = `getSERNO    ${X}`\n"; fi
-		    if [ -n "${_category}" ]; then printf "   CATEGORY   = `getCATEGORY ${X}`\n"; fi
-		else
-		    if [ -n "${_label}" ];    then printf ";`getLABEL    ${X}`";  fi
-		    if [ -n "${_id}" ];       then printf ";${X}";  fi
-		    if [ -n "${_uuid}" ];     then printf ";`getUUID     ${X}`";  fi
-		    if [ -n "${_mac}" ];      then printf ";`getMAC      ${X}`";  fi
-		    if [ -n "${_ip}" ];       then printf ";`getIP       ${X}`";  fi
-		    if [ -n "${_vncport}" ];  then printf ";`getVNCport  ${X}`";  fi
-		    if [ -n "${_vncbase}" ];  then printf ";";  fi
-		    if [ -n "${_vncdisp}" ];  then printf ";";  fi
-		    if [ -n "${_distro}" ];   then printf ";`getDIST     ${X}`"; fi
-		    if [ -n "${_os}" ];       then printf ";`getOS       ${X}`"; fi
-		    if [ -n "${_verno}" ];    then printf ";`getVERNO    ${X}`"; fi
-		    if [ -n "${_serno}" ];    then printf ";`getSERNO    ${X}`"; fi
-		    if [ -n "${_category}" ]; then printf ";`getCATEGORY ${X}`"; fi
-                    echo
+                local _out1=;
+		_out1="${MYHOST}"; 
+		_out1="${_out1};`getLABELVMW ${X}`";
+		_out1="${_out1};${X}";
+		_out1="${_out1};`getUUID ${X}`";
+		#_out="${_out};`getMAC ${X}`";
+                local _out2=;
+		_out2="${_out2};";
+		_out2="${_out2};`getVNCACCESSPORT_VMW  ${X}`";
+		_out2="${_out2};";
+		_out2="${_out2};";
+		#_out="${_out};`getIP ${X}`";
+                local _out3=;
+		_out3="${_out3};VMW";
+		_out3="${_out3};`getDIST ${X}`";
+		_out3="${_out3};`getDISTREL ${X}`";
+
+                local _ostrial=`getOS ${X}`;
+                if [ -z "$_ostrial" ];then
+                    #even though might be something like "other"
+		    _ostrial="`getOSVMW ${X}`";
 		fi
+		_out3="${_out3};${_ostrial}";
+
+		_out3="${_out3};`getOSREL ${X}`";
+		_out3="${_out3};`getVERNO ${X}`";
+		_out3="${_out3};`getSERNO ${X}`";
+		_out3="${_out3};`getCATEGORY ${X}`";
+		_out3="${_out3};`getVMSTATE ${X}`";
+		_out3="${_out3};`getHYPERREL ${X}`";
+		_out3="${_out3};`getSTACKCAP ${X}`";
+		_out3="${_out3};`getSTACKREQ ${X}`";
+		_out3="${_out3};`getHWCAP ${X}`";
+		_out3="${_out3};`getHWREQ ${X}`";
+		_out3="${_out3};`getEXECLOCATION ${X}`";
+		_out3="${_out3};`getRELOCCAP ${X}`";
+		#_out3="${_out3};`getSSHPORT  ${X}`";
+                local _out4=;
+		#NETNAME:_out4="${_out4};";
+		_out4="${_out4};";
+		_out4="${_out4};";
+		_out4="${_out4};";
+		_out4="${_out4};";
+                 #_out="${_out};`getGUESTIFNAME ${X}`";
+                local _out5=;
+		_out5="${_out5};`getCTYSRELEASE ${X}`";
+                 #_out="${_out};`getGUESTNETMASK ${X}`";
+                local _out6=;
+		#_out6="${_out6};`getGATEWAY ${X}`";
+		#_out5="${_out5};`getRELAY ${X}`";
+                local _out7=;
+		_out7="${_out7};`getGUESTARCH ${X}`";
+		_out7="${_out7};`getGUESTPLATFORM ${X}`";
+		_out7="${_out7};`getGUESTVRAM_VMW ${X}`";
+		_out7="${_out7};`getGUESTVCPU ${X}`";
+		_out7="${_out7};`getCONTEXTSTRING ${X}`";
+		_out7="${_out7};`getUSERSTRING ${X}`";
+
+		local i=0;
+		_myMAC=`getMAClst_VMW ${X}`;
+		printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myMAC=${_myMAC}";
+
+		_myIP=`getIPlst ${X}`;
+		printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myIP=${_myIP}";
+
+		local _myIFlst=`getIFlst INTERFACES "${_myMAC}" "${_myIP}"`
+		local i3=;
+		local _out=;
+
+		printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myIFlst=<${_myIFlst}>";
+		if [ -n "${_myIFlst// /}" ];then
+		    for i3 in $_myIFlst;do
+			_out="${_out1};${i3%=*}${_out2}";
+			i3=${i3#*=};
+
+			local A[0]=${i3%%\%*};i3=${i3#*\%};
+			A[1]=${i3%%\%*};i3=${i3#*\%};
+			A[2]=${i3%%\%*};i3=${i3#*\%};
+			A[3]=${i3%%\%*};i3=${i3#*\%};
+			A[4]=${i3%%\%*};i3=${i3#*\%};
+			A[5]=${i3%%\%*};
+
+			local _myNetName=`netGetNetName "${A[0]}"`
+			_out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}"
+			printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
+			echo -e "${_out}"
+		    done
+		else
+		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}"
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
+		    echo -e "${_out}"
+		fi
+		_myMAC=; #reset cache
+		_myIP=;  #reset cache
 	    fi
 	fi
     done
 }
 
 
-#
-#Enumerate-Output-Format:
-#========================
-#
-#  0 - host
-#  1 - label
-#  2 - id
-#  3 - uuid
-#  4 - mac
-#  5 - IP
-#  6 - VNCPORT
-#  7 - VNCBASE
-#  8 - VNCDISPLAY
-#  9 - DISTRO
-# 10 - OS
-# 11 - VERNO
-# 12 - SERNO
-# 13 - CATEGORY
-#
-#
+

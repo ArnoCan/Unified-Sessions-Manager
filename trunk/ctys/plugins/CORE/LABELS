@@ -41,9 +41,6 @@ CACHE1=""
 #  fetchs the ID for a given session label on local host.
 #  first match will win.
 #
-#  Therefore the following input format for records is required:
-#    "<hostname>:<label>:<id>[:<pid>:<user>:<group>:<type>]"
-#
 #  The internal usage of the PLUGIN-dispatch function
 #
 #    listMySessions
@@ -59,6 +56,13 @@ CACHE1=""
 #     addressed by it's DNS name as filter criteria for
 #     search key.
 #
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
+#
+#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -72,14 +76,15 @@ CACHE1=""
 #    <ID>
 #FUNCEND###############################################################
 function fetchID4Label () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "CACHE1=\"${CACHE1}\""
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "MYHOST=\"${MYHOST}\""
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "\$1=\"$1\""
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:${1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:CACHE1=\"${CACHE1}\""
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:CACHE1=\"${CACHE1}\""
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:MYHOST=\"${MYHOST}\""
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:\$1=\"$1\""
   for i in ${CACHE1}; do
-    local MATCH=`echo $i|awk -F';' -v _h=${MYHOST} -v _s=${1} '$1~_h&&$3==_s{print $4;}'`
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "i=\"${i}\" =>MATCH=\"${MATCH}\""
+    local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1}" '$1~_h&&$3==_s&&$15!~ji{print $4;}'`
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:i=\"${i}\" =>MATCH=\"${MATCH}\""
     if [ -n "${MATCH}" ];then
       echo ${MATCH};
       return 0;
@@ -104,15 +109,17 @@ function fetchID4Label () {
 #  fetchs the label for the session given by ID on local host.
 #  first match will win.
 #
-#  Therefore the following input format for records is required:
-#    "<hostname>:<label>:<id>[:<pid>:<user>:<group>:<type>]"
-#
 #  This is generated for current host by the usage of:
 #    ${MYCALLNAME} -X -a enum=all,full ${MYHOST}
 #
 #     The current host is the "localhost" but must be 
 #     addressed by it's DNS name as filter criteria for
 #     search key.
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
 #
 #EXAMPLE:
 #
@@ -128,12 +135,12 @@ function fetchID4Label () {
 #
 #FUNCEND###############################################################
 function fetchLabel4ID () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "CACHE1=${CACHE1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   for i in ${CACHE1}; do
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "i=${i}"
-    local MATCH=`echo $i|awk -F';' -v _h=${MYHOST} -v _s=${1} '$1~_h&&$4~_s{print $3;}'`
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
+    local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1}" '$1~_h&&$4~_s&&$15!~ji{print $3;}'`
     if [ -n "${MATCH}" ];then
       echo ${MATCH};
       return 0;
@@ -156,6 +163,12 @@ function fetchLabel4ID () {
 #
 #  Therefore "ctys-wizzard" listMySessions will be utilized.
 #
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
+#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -170,17 +183,37 @@ function fetchLabel4ID () {
 #
 #FUNCEND###############################################################
 function fetchLabel4PID () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" ];then CACHE1=`listMySessions BOTH,TERSE,FULLPATH,LABEL,PID`;fi
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "CACHE1=${CACHE1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions BOTH,TERSE,MACHINE,FULLPATH`;fi
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   for i in ${CACHE1}; do
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "i=${i}"
-    local MATCH=`echo $i|awk -F';'  -v _pid=${1} '$2~_pid{print $1;}'`
-    if [ -n "${MATCH}" ];then
-      echo ${MATCH};
-      return 0;
-    fi
-  done 
+      printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
+      local TRIAL=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _pid="${1}" '$11~_pid&&$15!~ji{print $3";"$4;}'`
+      if [ -n "${TRIAL}" ];then
+	  MATCH=${TRIAL}
+	  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MATCH=\"${MATCH}\""
+	  if [ -n "${MATCH%;*}" ];then
+	      echo ${MATCH%;*};
+	      return 0;
+	  fi
+      fi
+  done
+
+  #not label itself, try to map CS-peer 
+  if [ -n "${MATCH}" ];then
+      printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "Map peer for:${1} - \"${MATCH}\""
+      local _id=${MATCH#*;};_id=${_id%%;*};
+      for i in ${CACHE1}; do
+	  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "peer:i=${i} - ${_id}"
+	  local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _id="${_id}" '$2~_id&&$15!~ji{print $1;}'`
+	  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MATCH=\"${MATCH}\""
+	  if [ -n "${MATCH}" ];then
+	      echo ${MATCH};
+	      return 0;
+	  fi
+      done 
+  fi
+
   return 1;
 }
 
@@ -196,6 +229,12 @@ function fetchLabel4PID () {
 #
 #  Therefore "ctys-wizzard" listMySessions will be utilized.
 #
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
+#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -210,12 +249,12 @@ function fetchLabel4PID () {
 #
 #FUNCEND###############################################################
 function fetchID4PID () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" ];then CACHE1=`listMySessions BOTH,TERSE,FULLPATH,ID,PID`;fi
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "CACHE1=${CACHE1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions BOTH,TERSE,MACHINE,FULLPATH`;fi
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   for i in ${CACHE1}; do
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "i=${i}"
-    local MATCH=`echo $i|awk -F';' -v _pid=${1} '$2~_pid{print $1;}'`
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
+    local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _pid="${1}" '$11~_pid&&$15!~ji{print $4;}'`
     if [ -n "${MATCH}" ];then
       echo ${MATCH};
       return 0;
@@ -243,6 +282,12 @@ function fetchID4PID () {
 #  assures the standard format by calling specific interfaces
 #  for generation of required record format.
 #
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
+#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -256,13 +301,13 @@ function fetchID4PID () {
 #    <ID>
 #FUNCEND###############################################################
 function fetchDisplay4Label () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "CACHE1=${CACHE1}"
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
   for i in ${CACHE1}; do
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "i=${i}"
-    local MATCH=`echo $i|awk -F';' -v _h=${MYHOST} -v _s=${1// } '$1~_h&&$3==_s{print $7;}'`
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
+    local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s&&$15!~ji{print $8;}'`
     if [ -n "${MATCH}" ];then
       echo ${MATCH};
       return 0;
@@ -293,6 +338,12 @@ function fetchDisplay4Label () {
 #  assures the standard format by calling specific interfaces
 #  for generation of required record format.
 #
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
+#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -306,13 +357,13 @@ function fetchDisplay4Label () {
 #    <ID>
 #FUNCEND###############################################################
 function fetchCport4Label () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "CACHE1=${CACHE1}"
-  printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
   for i in ${CACHE1}; do
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_LABELS "i=${i}"
-    local MATCH=`echo $i|awk -F';' -v _h=${MYHOST} -v _s=${1// } '$1~_h&&$3==_s{print $8;}'`
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
+    local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s&&$15!~ji{print $9;}'`
     if [ -n "${MATCH}" ];then
       echo ${MATCH};
       return 0;
@@ -333,6 +384,13 @@ function fetchCport4Label () {
 #  bash-function
 #
 #DESCRIPTION:
+#  Checks whether a running ctys instance already occupied the requested
+#  label.
+#
+#  ***ATTENTION***: 
+#     The SCOPE is the set of current LOADED-PLUGINS, which could
+#     vary even within one call, when subprocesses load a different
+#     set of context specific plugins due to manual load.
 #
 #EXAMPLE:
 #
@@ -347,13 +405,13 @@ function fetchCport4Label () {
 #
 #FUNCEND###############################################################
 function checkUniqueness4Label () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME ${1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
 
   if [ -z "`fetchID4Label ${1}`" ];then
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME Label available:${1}"
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME Label available:${1}"
     return 0;
   fi
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_LABELS "$FUNCNAME Label already in use:${1}"
+  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME Label already in use:${1}"
   return 1;
 }
 

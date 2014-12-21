@@ -6,11 +6,24 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001a01
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 ########################################################################
 
@@ -19,6 +32,26 @@
 
 Release Notes:
 ==============
+
+01.07.001a01 / 20080803
+-----------------------
+
+  1. This version is almost contains almost completely tested base
+     functionality.
+     Currently missing some VMSTACK constellations with QEMU within a
+     VMware VM, due to difficulties with configuration of a VDE-Switch
+     within a VMware based GuestOS. Xen works fined.
+
+  2. Several performance issues solved, a considerable number of bugs
+     corrected.
+
+  3. The manual is extended from about 200 pages to more than 600
+     pages. It is expected to add about 100-200 more pages.
+
+  4. The next version is expected to be the base for CVS as a stable
+     version. A minor bugfix version is foreseen to be released close
+     to current version.
+
 
 01.03.03a01
 -----------
@@ -32,7 +65,7 @@ Release Notes:
      So some minor format errors might cause severe operational errors
      at the end, what hopefully will not happen.
 
-     The thoroughly tested environment is CentOS-5.0, for which it
+     The thoroughly tested environment is CentOS-5.0, for gwhich it
      works perfectly.
 
   2. The main distribution site is sourceforge.net, whereas some

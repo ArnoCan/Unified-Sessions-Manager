@@ -21,7 +21,7 @@
 # with additional whitespaces.
 #
 # The given semantics of decision is of course based on my own convention,
-# which could change.
+# gwhich could change.
 #
 # So, for your own modifications, just add or remove lines with keywords you 
 # define as mandatory for a Xen-Configuration file, sufficient for deciding 

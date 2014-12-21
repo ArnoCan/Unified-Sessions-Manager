@@ -1,5 +1,35 @@
 #!/bin/bash
 
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_05_001a01
+#
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
 ################################################################
 #                   Begin of FrameWork                         #
 ################################################################
@@ -29,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_01_001b02
+VERSION=01_01_001b04
 #DESCRIPTION:
 #  Generated a sorted list of 3-column table containing:
 #
@@ -130,7 +160,7 @@ EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -208,6 +238,10 @@ if [ ! -d "${MYCONFPATH}" ];then
   exit 1
 fi
 
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
+fi
+
 MYMACROPATH=${MYCONFPATH}/macros
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
@@ -246,7 +280,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -282,6 +316,21 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 ################################################################
 
 
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux);;
+    OpenBSD);;
+    SunOS);;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
+
+
 . ${MYLIBPATH}/lib/help/help
 
 #path to directory containing the default mapping db
@@ -290,7 +339,7 @@ if [ -d "${HOME}/.ctys/db/default" ];then
 fi
 
 #path to directory containing the default mapping db
-if [ -d "${MYCONFPATH}/conf/db/default" ];then
+if [ -d "${MYCONFPATH}/db/default" ];then
     DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
 fi
 
@@ -301,24 +350,24 @@ if [ -f "${HOME}/.ctys/ctys.conf" ];then
 fi
 
 #Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
-  . "${MYCONFPATH}/conf/ctys.conf"
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+  . "${MYCONFPATH}/ctys.conf"
 fi
 
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
 else
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
 	else
 	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
 	    gotoHell ${ABORT}
 	fi
@@ -337,11 +386,13 @@ sortKey='-n';
 
 for i in $*;do
     case $1 in
+	'-E')_ethers=0;shift;;
 	'-n'|'-i'|'-m')sortKey=$1;shift;;
 	'-p')shift;_dbfilepath=$1;shift;;
 	'-P')shift;_dbfilepath=${DEFAULT_DBPATHLST};;
 	'-V')printVersion;exit 0;;
-	'-X')CTRL_TERSE=1;shift;;
+	'-d')shift;DBG=$1;shift;;
+	'-X')C_TERSE=1;shift;;
 	'-h')showToolHelp;exit 0;;
     esac
 done
@@ -349,6 +400,7 @@ done
 if [ -n "$1" ];then
     infile=$*
 fi
+
 
 
 if [ -n "$_dbfilepath" ];then
@@ -362,16 +414,62 @@ if [ -n "$_dbfilepath" ];then
 fi
 
 
+if [ "$_dbfilepath" == "$infile" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "For safety reasons the input and the output file has to be different!"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  _dbfilepath=${_dbfilepath}"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  infile     =${infile}"
+    gotoHell ${ABORT}
+fi
+
+
 
 cat $infile|\
+case ${MYOS} in
+Linux)
 sed -n '
-#  s/\([^#]*\)#.*$/\1/
-#  /^ *group *{/p
-  s/^ *host *\([^ \t]*\)[ \t]*{/\n_hn=\1\n<\n/p
-  s/.*hardware ethernet *\([^; \t]*\)[ \t]*;/\n\_ma=\1\n/p
-  s/.*fixed-address *\([^ \t]*\)[ \t]*;/\n_ip=\1\n/p
-  s/[^}]*}.*/\n>\n/p
-  ' $infile |\
+  s/^ *host *\([^ \t]*\)[ \t]*{/\n_hn=\1\n<\n/p;
+  s/.*hardware ethernet *\([^\; \t]*\)[ \t]*\;/\n\_ma=\1\n/p;
+  s/.*fixed-address *\([^ \t]*\)[ \t]*\;/\n_ip=\1\n/p;
+  s/[^}]*}.*/\n>\n/p;
+  '
+;;
+OpenBSD)
+#don't touch this
+sed -n '
+   s/^ *host *\([^ \t]*\)[ \t]*{/\
+_hn=\1\
+<\
+/p;
+   s/.*hardware ethernet *\([^\; \t]*\)[ \t]*\;/\
+\_ma=\1\
+/p;
+   s/.*fixed-address *\([^ \t]*\)[ \t]*\;/\
+_ip=\1\
+/p;
+   s/[^}]*}.*/\
+>\
+/p;
+  '
+;;
+SunOS)
+sed -n '
+   s/^ *host *\([^ \t]*\)[ \t]*{/\
+_hn=\1\
+<\
+/p;
+   s/.*hardware ethernet *\([^\; \t]*\)[ \t]*\;/\
+\_ma=\1\
+/p;
+   s/.*fixed-address *\([^ \t]*\)[ \t]*\;/\
+_ip=\1\
+/p;
+   s/[^}]*}.*/\
+>\
+/p;
+  '
+;;
+esac|\
 awk -F'=' '
   $1~/_hn/{printf("%s;",$2);}
   /</{block=1;}
@@ -382,15 +480,28 @@ awk -F'=' '
 '|\
 sed '/^$/d'|\
 case $sortKey in
-  '-i')awk -F';' '{printf("%s;%s;%s;\n",$3,$1,$2);}';;
+  '-i')awk -F';' '{printf("%s;%s;%3s;\n",$3,$1,$2);}';;
   '-m')awk -F';' '{printf("%s;%s;%s;\n",$2,$3,$1);}';;
   '-n'|*)awk -F';' '{printf("%s;%s;%s;\n",$1,$2,$3);}';;
 esac|\
 sort|\
 {
-    if [ -n "${_dbfilepath}" ];then
-	cat >"${_dbfilepath}"
+    if [ -n "${_ethers}" ];then
+	case $sortKey in
+	    '-i')awk -F';' '{print $3" "$1}';;
+	    '-n')awk -F';' '{print $2" "$1}';;
+	    '-m'|*)
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "\"-m\" Not supported for generation of /etc/ethers"
+		gotoHell ${ABORT}                
+		;;
+	esac
+	
     else
-	cat
+	if [ -n "${_dbfilepath}" ];then
+	    cat >"${_dbfilepath}"
+	else
+	    cat
+	fi
     fi
 }

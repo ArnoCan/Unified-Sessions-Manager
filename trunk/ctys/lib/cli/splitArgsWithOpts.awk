@@ -15,9 +15,6 @@
 ########################################################################
 
 
-#    echo "${*}"|awk -v dbg=${DBG_LVL_OVERKILL} -v d=$D  
-
-
 function perror(inp){
     if(!d){
         print line ":" inp | "cat 1>&2"
@@ -25,14 +22,14 @@ function perror(inp){
 }
 
 BEGIN{
-    ripCord=10;
+    ripCord=1000;
     curind=1;
     buf1="";
     ind=a;
 
     line=0;
     perror("Start record with AWK:splitArgsWithOpts");
-    perror("dbg=   " dbg);
+    perror("D=     " D);
     perror("d=     " d);
     perror("ind=   " ind);
 }
@@ -43,11 +40,8 @@ BEGIN{
     buf1=$0;
     perror("buf1-raw  =<" buf1 ">");
     #canonize somewhat...
-#    buf1=gensub(" *\\( *","\\(","g",buf1);
-#    buf1=gensub(" *\\)","\\)","g",buf1);
-     gsub(" *[(] *","(",buf1);
-     gsub(" *[)]",")",buf1);
-
+    gsub(" *[\"]* *[(] *","(",buf1);
+    gsub(" *[)] *[\"]* *",")",buf1);
     perror("buf1-canon=<" buf1 ">");
 
     while(buf1&&ripCord&&curind<=ind){
@@ -62,12 +56,10 @@ BEGIN{
             p=match(buf1,"^[^ ]*");
             if(curind==ind){
                 out=substr(buf1,RSTART,RLENGTH);
-#                out=gensub(" *","","g",out);
                 gsub(" *","",out);
                 perror("out("ind")=" out);
                 print out;
             }
-#            print "";
 
             buf1=substr(buf1,RLENGTH+1);
             if((p=match(buf1,"^ *"))==1){

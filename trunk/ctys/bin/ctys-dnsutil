@@ -1,4 +1,33 @@
 #!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_05_001a01
+#
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
 
 ################################################################
 #                   Begin of FrameWork                         #
@@ -85,7 +114,7 @@ EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -163,6 +192,10 @@ if [ ! -d "${MYCONFPATH}" ];then
   exit 1
 fi
 
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
+fi
+
 MYMACROPATH=${MYCONFPATH}/macros
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
@@ -201,7 +234,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -235,8 +268,25 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 ################################################################
 #                     End of FrameWork                         #
 ################################################################
+
+
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux);;
+    OpenBSD);;
+    SunOS);;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
+
+
 if [ "${*}" != "${*//-X/}" ];then
-    CTRL_TERSE=1
+    C_TERSE=1
 fi
 
 . ${MYLIBPATH}/lib/help/help
@@ -258,23 +308,23 @@ if [ -f "${HOME}/.ctys/ctys.conf" ];then
 fi
 
 #Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
-  . "${MYCONFPATH}/conf/ctys.conf"
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+  . "${MYCONFPATH}/ctys.conf"
 fi
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
 else
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
 	else
 	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
 	    gotoHell ${ABORT}
 	fi
@@ -285,13 +335,31 @@ fi
 ################################################################
 #    Default definitions - User-Customizable  from shell       #
 ################################################################
+case "${MYOS}" in
+    Linux)
+	CTYS_HOST=`getPathName  $LINENO $BASH_SOURCE ERROR host  /usr/bin`
+	CTYS_PING=`getPathName  $LINENO $BASH_SOURCE ERROR ping  /bin`
+	;;
+    OpenBSD)
+	CTYS_HOST=`getPathName  $LINENO $BASH_SOURCE ERROR host  /usr/sbin`
+	CTYS_PING=`getPathName  $LINENO $BASH_SOURCE ERROR ping  /sbin`
+	;;
+    SunOS)
+	CTYS_HOST=`getPathName  $LINENO $BASH_SOURCE ERROR host  /usr/sbin`
+	CTYS_PING=`getPathName  $LINENO $BASH_SOURCE ERROR ping  /usr/sbin`
+	;;
+    *)  
+ 	printERR $LINENO $BASH_SOURCE 1 "Unsupported OS=$MYOS"
+ 	printERR $LINENO $BASH_SOURCE 1 "Might fail, but continue..."
+	;;
+esac
 
 argLst=;
 while [ -n "$1" ];do
     case $1 in
 	'-c')_vhost=1;shift;;
 	'-C')_VHOST=1;shift;;
-	'-d')shift;CTRL_VERBOSE=$1;shift;;
+	'-d')shift;shift;;
 	'-l')shift;CTYS_NETACCOUNT=$1;shift;;
 	'-i')_ip=1;shift;;
 	'-n')_name=1;shift;;
@@ -314,8 +382,8 @@ while [ -n "$1" ];do
 			    PTIME=1
 			    PCNT=1
 			fi
-			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:PCNT =$PCNT"
-			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:PTIME=$PTIME"
+			printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:PCNT =$PCNT"
+			printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:PTIME=$PTIME"
 			;;
 		    [sS][sS][hH])_ssh=1;;
 		    [pP][mM])_pm=1;;
@@ -335,7 +403,7 @@ while [ -n "$1" ];do
 	    argLst="${argLst} $1";
 	    argLst="${argLst## }";
 	    argLst="${argLst%% }";
-	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:argLst=$argLst"
+	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:argLst=$argLst"
 	    shift;
 	    ;;
     esac
@@ -364,6 +432,7 @@ fi
 
 
 export CALLFILE=$0
+#CONTINUE=0;
 function check4ret () {
   RET=$(($?));
   if [ "${RET}" != "0" ] ; then
@@ -385,9 +454,9 @@ function check4ret () {
 
 [ -z "$_terse" ]&&echo "Check DNS database..."
 
-DOMAIN=`dnsdomainname`;
+DOMAIN=`uname -n`;DOMAIN=${DOMAIN#*.}
 check4ret $LINENO "" "DOMAIN=${DOMAIN}"
-DOMAINLIST="`host -l $DOMAIN`"
+DOMAINLIST="`${CTYS_HOST} -l $DOMAIN`"
 check4ret $LINENO "" "host:DOMAINLIST=${DOMAINLIST}"
 DOMAINLIST=`echo "${DOMAINLIST}"|sed -n -e 's/\([^.]\.'$DOMAIN'\) .*/\1/p'`
 check4ret $LINENO "" "sed:DOMAINLIST=${DOMAINLIST}"
@@ -397,7 +466,7 @@ check4ret $LINENO "" "sed:DOMAINLIST=${DOMAINLIST}"
 if [ -n "$_name" ];then
     DOMAINLIST=`echo ${DOMAINLIST}`
 else
-    DOMAINLIST=`for i in ${DOMAINLIST};do host $i;done|awk '{printf(" %s",$NF);}'`
+    DOMAINLIST=`for i in ${DOMAINLIST};do ${CTYS_HOST} $i;done|awk '{printf(" %s",$NF);}'`
 fi
 #unique sort applies when names are displayed for hosts with multiple interfaces
 DOMAINLIST=`for i in ${DOMAINLIST};do echo $i;done|sort -u`
@@ -412,8 +481,8 @@ if [ -n "$_ping" ];then
     idx=0;
     success=0;
     for i in ${DOMAINLIST};do
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i"
-	ping -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>&1 >/dev/null
+	printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i"
+	${CTYS_PING} -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>&1 >/dev/null
 	if [ $? -eq 0 ];then           
 	    [ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
 	    ((success++))
@@ -445,10 +514,10 @@ if [ -n "$_ssh" -o -n "$_pm" -o -n "$_vm" ];then
     success=0;
     ret=;
     for i in ${DOMAINLIST};do
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i"
+	printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i"
         dossh=1;
         if [ -z "${_ping}" -a -z "${_VHOST}" ];then
-	    ping -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>&1 >/dev/null
+	    ${CTYS_PING} -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>&1 >/dev/null
 	    [ $? -ne 0 ]&&dossh=0
 	fi
 	[ $dossh -eq 1 -a -z "${_VHOST}" ]&&( ssh ${CTYS_NETACCOUNT}@${i} echo 1 ) 2>&1 >/dev/null
@@ -461,26 +530,26 @@ if [ -n "$_ssh" -o -n "$_pm" -o -n "$_vm" ];then
                 #ssh success, now check PM/VM
 		if [ -n "$_pm" ];then
 		    ret=1
-		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Check PM"
+		    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "Check PM"
 
 		    if [ -z "$_vhost"  -a -z "${_VHOST}" ];then
 			ssh ${CTYS_NETACCOUNT}@${i} ls /etc/ctys.d/pm.conf 2>&1 >/dev/null
 			ret=$?
 		    else
                         #try nodename
-			_M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '^'${i}';.\*PM' 2>/dev/null`
+			_M=`${MYCALLPATH}/ctys-vhost ${C_DARGS} -o V -M all '^'${i}';.\*PM' 2>/dev/null`
 			if [ -z "$_M" ];then
                             #try IP address
-			    IP=`host $i|awk '{printf("%s",$NF);}'`
-			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i <-> IP=$IP"
-			    _M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '^'${IP}';.\*PM' 2>/dev/null`
+			    IP=`${CTYS_HOST} $i|awk '{printf("%s",$NF);}'`
+			    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i <-> IP=$IP"
+			    _M=`${MYCALLPATH}/ctys-vhost ${C_DARGS} -o V -M all '^'${IP}';.\*PM' 2>/dev/null`
 			    if [ -n "$_M" ];then
 				ret=0
 			    fi
 			else
 			    ret=0
 			fi
-			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_M=$_M"
+			printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_M=$_M"
 		    fi
     	            if [ "$ret" == "0" ];then           
 			[ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
@@ -491,25 +560,25 @@ if [ -n "$_ssh" -o -n "$_pm" -o -n "$_vm" ];then
 
 		if [ "$ret" != "0" -a -n "$_vm" ];then
                     ret=1;
-		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Check VM"
+		    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "Check VM"
 		    if [ -z "$_vhost"  -a -z "${_VHOST}" ];then
 			ssh ${CTYS_NETACCOUNT}@${i} ls /etc/ctys.d/vm.conf 2>&1 >/dev/null
 			ret=$?
 		    else
                         #try nodename
-			_M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '.\*;'${i}';.\*VM' 2>/dev/null`
+			_M=`${MYCALLPATH}/ctys-vhost ${C_DARGS} -o V -M all '.\*;'${i}';.\*VM' 2>/dev/null`
 			if [ -z "$_M" ];then
                             #try IP address
-			    IP=`host $i|awk '{printf("%s",$NF);}'`
-			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i <-> IP=$IP"
-			    _M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '.\*;'${IP}';.\*VM' 2>/dev/null`
+			    IP=`${CTYS_HOST} $i|awk '{printf("%s",$NF);}'`
+			    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i <-> IP=$IP"
+			    _M=`${MYCALLPATH}/ctys-vhost ${C_DARGS} -o V -M all '.\*;'${IP}';.\*VM' 2>/dev/null`
 			    if [ -n "$_M" ];then
 				ret=0
 			    fi
 			else
 			    ret=0
 			fi
-			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_M=$_M"
+			printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_M=$_M"
 		    fi
     	            if [ "$ret" == "0" ];then           
 			[ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
@@ -545,7 +614,7 @@ else
     idx=0;
     if [ -n "$_name" -a -n "$_ip" ];then
 	for i in ${DOMAINLIST};do
-            IP=`host $i|awk '{printf("%s",$NF);}'`
+            IP=`${CTYS_HOST} $i|awk '{printf("%s",$NF);}'`
 	    printf "%04d   %-15s %s\n" $idx $IP $i
 	    ((idx++))
 	done

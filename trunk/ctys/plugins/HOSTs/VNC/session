@@ -8,23 +8,18 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a15
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VNC_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VNC_SESSION="01.02.001b01"
+_myPKGVERS_VNC_SESSION="01.06.001a15"
 hookInfoAdd $_myPKGNAME_VNC_SESSION $_myPKGVERS_VNC_SESSION
 _myPKGBASE_VNC_SESSION="`dirname ${_myPKGNAME_VNC_SESSION}`"
-
-_VNC_SESSION="${_myPKGBASE_VNC_SESSION}session"
-
-
-
 
 
 #FUNCBEG###############################################################
@@ -37,11 +32,11 @@ _VNC_SESSION="${_myPKGBASE_VNC_SESSION}session"
 #DESCRIPTION:
 #
 # GENERIC-IF-DESCRIPTION:
-#  Gives the termination points port number, to which a client could be 
+#  Gives the termination points port number, to gwhich a client could be 
 #  attachhed. This port is forseen to be used in port-forwarding e.g.
 #  by OpenSSH.
 #
-#  The port is the local port number, which in general has to be mapped 
+#  The port is the local port number, gwhich in general has to be mapped 
 #  on remote site, when already in use. Therefore the application has
 #  to provide a port-number-independent client access protocol in order 
 #  to be used by connection forwarding. In any other case display 
@@ -54,7 +49,7 @@ _VNC_SESSION="${_myPKGBASE_VNC_SESSION}session"
 #  While others require for each channel a seperate litenning port.
 #
 #  So it is up to the specific package to support a function returning 
-#  the required port number which could be used to attach an forwarded 
+#  the required port number gwhich could be used to attach an forwarded 
 #  port. 
 #  
 #  The applications client has to support a remapped port number.
@@ -63,11 +58,11 @@ _VNC_SESSION="${_myPKGBASE_VNC_SESSION}session"
 #
 #PARAMETERS:
 #  <label>
-#    The <label> to which the client will be attached.
+#    The <label> to gwhich the client will be attached.
 #
 #GLOBALS:
 #  VBASEPORT
-#    The baseport for calculations of VNC display number, which is 
+#    The baseport for calculations of VNC display number, gwhich is 
 #    5900. This will be used to calculate the client TP.
 #
 #OUTPUT:
@@ -77,31 +72,28 @@ _VNC_SESSION="${_myPKGBASE_VNC_SESSION}session"
 #
 #  VALUES:
 #    <TP-port>
-#      The TP port, to which a client could be attached.
+#      The TP port, to gwhich a client could be attached.
 #
 #FUNCEND###############################################################
 function getClientTPVNC () {
-    local _arg0=${1%%,*}
-    local _arg1=${1##*,}
+    local _arg0=${1}
 
-    if [ -z "${_arg1}" ];then
- 	local _port=`fetchID4Label ${_arg0}`;
-	if [ -z "${_port}" ];then
-            _port=`fetchLabel4ID ${_arg0}`;
-	fi
-	if [ -z "${_port}" ];then
-	    ABORT=2
-	    printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:Error, can not get port number for label:${1}"
-	    gotoHell ${ABORT}
-	fi
-    else
-	_port=${_arg1};
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME Label=$_arg0"
+
+    local _port=`fetchID4Label ${_arg0}`;
+    if [ -z "${_port}" ];then
+        _port=`fetchLabel4ID ${_arg0}`;
+    fi
+    if [ -z "${_port}" ];then
+	ABORT=2
+	printINFO 2 $LINENO $BASH_SOURCE 0 "${FUNCNAME}:Cannot get port number for label:${1}"
+	gotoHell ${ABORT}
     fi
 
     local _ret=;
     let _ret=VNC_BASEPORT+_port;
     
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "$FUNCNAME port number=$_ret from ID=$_port"
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=$_port"
     echo ${_ret}
 }
 
@@ -118,6 +110,7 @@ function getClientTPVNC () {
 #EXAMPLE:
 #
 #PARAMETERS:
+#  $1: label
 #
 #OUTPUT:
 #  RETURN:
@@ -126,80 +119,106 @@ function getClientTPVNC () {
 #
 #FUNCEND###############################################################
 function startSessionVNC () {
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "$FUNCNAME"
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
     local _name=${1:-DEFAULT-`date +%y%m%d%H%M%S`}
-    printVerboseDebug ${DBG_LVL_UI} $LINENO $_VNC_SESSION "${VNCSERVER} <session-label>:${_name}"
+    printDBG $S_VNC ${D_UI} $LINENO $BASH_SOURCE "${VNCSERVER} <session-label>:${_name}"
     checkUniqueness4Label ${_name};
     if [ $? -eq 0 ];then
 	local _unique=1
     else
-	if [ -z "${CTRL_ALLOWAMBIGIOUS}" ];then
+	if [ -z "${C_ALLOWAMBIGIOUS}" ];then
 	    ABORT=2
-	    printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:Ambigious <session-label>:${_name}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Ambigious <session-label>:${_name}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:VNC is as default in \"shared\" mode, use \"-A\" if required."
 	    gotoHell ${ABORT}
 	else 
-	    printWNG $LINENO $_VNC_SESSION ${RET} "${FUNCNAME}:Label is ambigious:${_name}"
+	    printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Reuse ambigious label:${_name}"
 	fi
     fi
 
     #prepare server-opts, particulary servers display resolution.
     local CURSES=""
     local _serveropt="-name ${_name} ${VNCSERVER_OPT}"
-    if [ -n "${CTRL_REMOTERESOLUTION}" ];then
+    if [ -n "${C_REMOTERESOLUTION}" ];then
         #use explicityl given
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC_SESSION "CTRL_REMOTERESOLUTION=${CTRL_REMOTERESOLUTION}"
-	local _servergeo=${CTRL_REMOTERESOLUTION}
+	printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "C_REMOTERESOLUTION=${C_REMOTERESOLUTION}"
+	local _servergeo=${C_REMOTERESOLUTION}
 	_serveropt=`echo ${_serveropt}|sed 's/-geometry [0-9]*x[0-9x]*//g'`
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC_SESSION "_servergeo=${_servergeo}"
+	printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "_servergeo=${_servergeo}"
 
     else
-	if [ -n "${CTRL_GEOMETRY}" ];then
+	if [ -n "${C_GEOMETRY}" ];then
             #use same as given for client
-	    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC_SESSION "CTRL_GEOMETRY=${CTRL_GEOMETRY}"
-	    local _servergeo=`echo ${CTRL_GEOMETRY}|sed -n 's/[^0-9]*\([0-9x]*\).*$/\1/gp'`
+	    printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "C_GEOMETRY=${C_GEOMETRY}"
+	    local _servergeo=`echo ${C_GEOMETRY}|sed -n 's/+.*$//;s/[^0-9]*\([0-9x]*\).*$/\1/gp'`
 	    _serveropt=`echo ${_serveropt}|sed 's/-geometry [0-9]*x[0-9x]*//g'`
-	    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC_SESSION "_servergeo=${_servergeo}"
+	    printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "_servergeo=${_servergeo}"
 	fi
     fi
     _serveropt="${_serveropt}  ${_servergeo:+ -geometry $_servergeo} "
 
-    local _vieweropt="${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry $CTRL_GEOMETRY} "
+    local _vieweropt="${VNCVIEWER_OPT} ${C_GEOMETRY:+ -geometry $C_GEOMETRY} "
 
-    if [ -z "${CTRL_NOEXEC}" ];then
-	if [ "${CTRL_CLIENTLOCATION}" !=  "-L ConnectionForwarding" ];then
-	    SERVER="${VNCSERVER} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} ${_serveropt}"
-	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "SERVER=${SERVER}"
+    if [ -z "${C_NOEXEC}" ];then
+	if [ "${C_CLIENTLOCATION}" !=  "-L CONNECTIONFORWARDING" ];then
+	    SERVER="${VNCSERVER} ${C_DARGS} ${_serveropt}"
+	    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "SERVER=${SERVER}"
+
 	    CURSES=`eval ${SERVER}`
-	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "CURSES=${CURSES}"
+	    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "CURSES=${CURSES}"
 	    if [ -z "${CURSES}" -o -n "`echo ${CURSES}|sed 's/[0-9]*//g'`" ];then
 		ABORT=2
-		printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:Error when starting VNCSERVER:"
-		printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:  ${VNCSERVER} ${_serveropt}"
-		printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:  => CURSES=${CURSES}"
-		printERR $LINENO $_VNC_SESSION ${ABORT} "."
-		printERR $LINENO $_VNC_SESSION ${ABORT} "A common reason for this is an error for platform depency of passwd file."
-		printERR $LINENO $_VNC_SESSION ${ABORT} "Call \"vncpasswd\" on the target machine and try creation of the session again."
-		printERR $LINENO $_VNC_SESSION ${ABORT} "."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Error when starting VNCSERVER:"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  ${VNCSERVER} ${_serveropt}"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  => CURSES=${CURSES}"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "A common reason for this is an error for platform depency "
+		printERR $LINENO $BASH_SOURCE ${ABORT} "of default passwd file."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Call \"vncpasswd\" on the target machine and try creation "
+		printERR $LINENO $BASH_SOURCE ${ABORT} "of the session again."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "This should already have be done anyhow."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "."
 		gotoHell ${ABORT}
 	    else
-		printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "VNC:Current vncserver Xsession detected as successfull CURSES=<${CURSES}>"
+		printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "VNC:Current vncserver Xsession detected as successfull CURSES=<${CURSES}>"
 	    fi   
+
+	    cacheStoreWorkerPIDData SERVER VNC "${CURSES}" "${_name}" 0 "" 
+	    if [ $? -ne 0 ];then
+		printERR $LINENO $BASH_SOURCE 2 "$FUNCNAME:VNC:Failed to store runtime JobData for SERVER:\"${_name}\""
+		printERR $LINENO $BASH_SOURCE 2 "$FUNCNAME:VNC: =>Continue for now, but further actions may be required!"
+	    fi
 	fi
     else
         #Dummy-value for display only
 	CURSES=9999999
     fi
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "CURSES=$CURSES"
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "CTRL_CLIENTLOCATION=<$CTRL_CLIENTLOCATION>"
-    if [ "${CTRL_CLIENTLOCATION}" !=  "-L ServerOnly" ];then
-	local CALLER="export CTRL_ASYNC;${VNCVIEWER}  "
-	local CALLER="${CALLER} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -name \"${_name}:${CURSES}\" "
-	local CALLER="${CALLER} ${_vieweropt} localhost:${CURSES} "
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "${CTRL_NOEXEC:-CALL:}${CALLER}"
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "CURSES=$CURSES"
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=<$C_CLIENTLOCATION>"
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "CALLERJOB=<$CALLERJOB>"
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "JOB_IDXSUB=<$JOB_IDXSUB>"
+    if [ "${C_CLIENTLOCATION}" !=  "-L SERVERONLY" ];then
+	local CALLER=;
+	CALLER="export C_ASYNC=${C_ASYNC}&&${VNCVIEWER}  "
+	CALLER="${CALLER} ${C_DARGS} "
+	CALLER="${CALLER} -name \"${_name}:${CURSES}\" "
+	CALLER="${CALLER} ${_vieweropt} localhost:${CURSES} "
+	printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "${C_NOEXEC:-CALL:}${CALLER}"
         #don't exec here, it could be one of a set!
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC_SESSION "VNCVIEWER_DELAY=${VNCVIEWER_DELAY}"
-	sleep ${VNCVIEWER_DELAY:-2}
-	[ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER}
+	printDBG $S_VNC ${D_UID} $LINENO $BASH_SOURCE "WAITS=${WAITS}"
+	sleep ${WAITS:-2}
+	if [ -z "${C_NOEXEC}" ];then
+	    eval ${CALLER} &
+	    sleep ${WAITS:-1}
+ 	    cacheStoreWorkerPIDData CLIENT VNC "${CURSES}" "${_name}" 0 "" 
+	    if [ $? -ne 0 ];then
+		printWNG 1 $LINENO $BASH_SOURCE 0  "$FUNCNAME:VNC:Failed to store runtime JobData for CLIENT:\"${_name}\""
+		printWNG 1 $LINENO $BASH_SOURCE 0  "$FUNCNAME:VNC: =>Restart of CLIENT should be sufficient."
+	    fi
+	    if [ "${C_ASYNC}" == 0 ];then
+		wait
+	    fi
+	fi
     fi
 }
 
@@ -231,50 +250,50 @@ function startSessionVNC () {
 #
 #FUNCEND###############################################################
 function connectSessionVNC () {
-  local _id0=${1}
-  local _id=`removeLeadZeros ${1}`
-  local _label=${2}
-  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC_SESSION "$FUNCNAME ${_id0}->${_id} ${_label}"
+    local _id0=${1}
+    local _id=`removeLeadZeros ${1}`
+    local _label=${2}
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME ${_id0}->${_id} ${_label}"
 
-  if [ -z "${_label}" -a -z "${_id}" ];then
-    ABORT=1
-    printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:At least one parameter required:<session-id> or <session-label>"
-    gotoHell ${ABORT}
-  fi
-
-  #not-having could be tolerated, even though something might be basically wrong.
-  if [ -z "${_label}" -a -n "${_id}"   ]; then 
-    _label=`fetchLabel4ID ${_id}`;
-    if [ -z "${_label}" ];then
-      _label=DEFAULT;
+    if [ -z "${_label}" -a -z "${_id}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:At least one parameter required:<session-id> or <session-label>"
+	gotoHell ${ABORT}
     fi
-  fi
 
-  #missing could definitely NOT be tolerated, so abort if fails.
-  if [ -n "${_label}" -a -z "${_id}" ]; then 
-    _id=`fetchID4Label ${_label}`;
-    if [ -z "${_id}" ];then
-      ABORT=1
-      printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:Fetch of <session-id> failed:_label=${_label}"
-      gotoHell ${ABORT}
+    #not-having could be tolerated, even though something might be basically wrong.
+    if [ -z "${_label}" -a -n "${_id}"   ]; then 
+	_label=`fetchLabel4ID ${_id}`;
+	if [ -z "${_label}" ];then
+	    _label=DEFAULT;
+	fi
     fi
-  fi
 
-  #even though this condition might be impossible now, let it beeeee ...
-  if [ -z "${_label}" -a -z "${_id}" ];then
-    ABORT=1
-    printERR $LINENO $_VNC_SESSION ${ABORT} "${FUNCNAME}:Fetch of peer entry failed:_id=${_id} - _label=${_label}"
-    gotoHell ${ABORT}
-  fi
+    #missing could definitely NOT be tolerated, so abort if fails.
+    if [ -n "${_label}" -a -z "${_id}" ]; then 
+	_id=`fetchID4Label ${_label}`;
+	if [ -z "${_id}" ];then
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Fetch of <session-id> failed:_label=${_label}"
+	    gotoHell ${ABORT}
+	fi
+    fi
 
-  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $_VNC_SESSION "OK:_id=${_id} - _label=${_label}"
-  #
-  #Now shows name+id in title, id could not be set for server as default.
-  local _vieweropt="-name ${_label}:${_id} ${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry $CTRL_GEOMETRY} "
-  local CALLER="${VNCVIEWER} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} ${_vieweropt} localhost:${_id}"
-  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $_VNC_SESSION "${CALLER}"
-  export CTRL_ASYNC;
-  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER}
+    #even though this condition might be impossible now, let it beeeee ...
+    if [ -z "${_label}" -a -z "${_id}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Fetch of peer entry failed:_id=${_id} - _label=${_label}"
+	gotoHell ${ABORT}
+    fi
+
+    printDBG $S_VNC ${D_FRAME} $LINENO $BASH_SOURCE "OK:_id=${_id} - _label=${_label}"
+    #
+    #Now shows name+id in title, id could not be set for server as default.
+    local _vieweropt="-name ${_label}:${_id} ${VNCVIEWER_OPT} ${C_GEOMETRY:+ -geometry $C_GEOMETRY} "
+    local CALLER="${VNCVIEWER} ${C_DARGS} ${_vieweropt} localhost:${_id}"
+    printDBG $S_VNC ${D_FRAME} $LINENO $BASH_SOURCE "${CALLER}"
+    export C_ASYNC;
+    [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
 }
 
 

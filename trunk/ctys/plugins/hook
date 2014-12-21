@@ -36,7 +36,7 @@ PACKAGES_KNOWNTYPES=""
 
 
 #actually loadad application specific feature plugins
-#which are not operable, these might not be an error, but just caused by installing
+#gwhich are not operable, these might not be an error, but just caused by installing
 #a generic superset.
 #
 #The philosophy of installing supersets has definitive advantages, e.g. when chaning the 
@@ -44,17 +44,30 @@ PACKAGES_KNOWNTYPES=""
 #to be manually configured, the plugin of "deactivated type" just does now nothing (giving 
 #a warning of course), whereas the plugin of activated "kernel type" not performs.
 #
-#The following variable supports a list of all known plugings, which are detected as 
+#The following variable supports a list of all known plugings, gwhich are detected as 
 #disabled when starting.
 #
 PACKAGES_DISABLED=""
 
 
-#The following variable supports a list of all known plugings, which are ignored 
+#The following variable supports a list of all known plugings, gwhich are ignored 
 #due to configuration of variable "<plugin>_IGNORE". 
 #
 PACKAGES_IGNORED=""
 
+
+
+#
+#The current init state, gwhich is quite similar to the UNIX init states.
+#The plugings have to handle state stanges if required. This is particularly true
+#when specific changes to the runtime environment has been made, blocking 
+#functionalities for for handling individual and overall states.
+#
+#REMINDER: One example is the WoL feature, when running Xen-3.0.2, where the bridge
+#          of pethX has to be shutdown first, and probably the pethX has to be reset
+#          to ethX, in order to handle teh ethtool call successfully.
+#
+INITSTATE=0;
 
 #
 #List of packages, CORE and plugins-hooks plus subpackages.
@@ -94,12 +107,12 @@ PACKAGES_IGNORED=""
 function hookGetPathname () {
     local _curName=$1
     local _f=;
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Package:${_curName}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Package:${_curName}"
 
     #attach my hook..
-    #..which should remain as the only and one hard-coded.
+    #..gwhich should remain as the only and one hard-coded.
     for _f in ${LD_PLUGIN_PATH//:/ } ${MYINSTALLPATH}/plugins ;do
-        printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Check:${_f}/${_curName}"
+        printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Check:${_f}/${_curName}"
         #Ooooops...
         if [ -z "${_f}" ];then 
             ABORT=2;
@@ -110,14 +123,14 @@ function hookGetPathname () {
 
         #look for filename only
         if [ -f ${_f}/${_curName} ];then 
-  	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Package: hook=${_f}/${_curName}"
+  	    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Package: hook=${_f}/${_curName}"
             echo -n "${_f}/${_curName}"
             return 0;
         fi
 
         #look for directory
         if [ -f ${_f}/${_curName}/hook ];then 
-  	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Package: hook=${_f}/${_curName}"
+  	    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Package: hook=${_f}/${_curName}"
             echo -n "${_f}/${_curName}"
             return 0;
         fi
@@ -143,7 +156,7 @@ function hookGetPathname () {
 #  There are two cases handled:
 #
 #  1.) Argument given:
-#      Enumerate anything contained within that directories, which theirself
+#      Enumerate anything contained within that directories, gwhich theirself
 #      are contained within each search path. Particularly helpful for 'CORE'.
 #
 #  2.) No arguments provided
@@ -168,10 +181,10 @@ function hookGetPathname () {
 #
 #FUNCEND###############################################################
 function hookEnumeratePackages () {
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Enumerate plugins:${*}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Enumerate plugins:${*}"
 
     if [ "${1// /}" == "IGNORED" ];then
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:IGNORED-mactch:${1// /}"
+	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:IGNORED-mactch:${1// /}"
 	local _lstIgnored=1;shift
     fi
     local _curNames=$@;
@@ -186,12 +199,16 @@ function hookEnumeratePackages () {
 	    _tmp1="${_tmp1} `echo -n ${_f}/[A-Z0-9]*[^~#]`"
 	done
 
-        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:ENUM=${_tmp1}"
+        printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:ENUM=${_tmp1}"
 	for _f in ${_tmp1} ;do
+ 	    if [  -f "${_f}" ];then
+		continue
+	    fi
 	    local _type=${_f##*/}
+
 	    if [ -n "`eval echo \\\${${_type}_IGNORE}`" ];then
 		if [ -n "${_lstIgnored}" ];then
-		    printWNG $LINENO $BASH_SOURCE 0 "IGNORE-CONFIGURED:${_type}->\"${_f}\""
+		    printWNG 2 $LINENO $BASH_SOURCE 0 "IGNORE-CONFIGURED:${_type}->\"${_f}\""
 		    _curEnum="${_curEnum} ${_type}"
 		fi
 		continue
@@ -208,7 +225,7 @@ function hookEnumeratePackages () {
 	    local _type=${_f##*/}
 	    if [ -n "`eval echo \\\${${_type}_IGNORE}`" ];then
 		if [ -n "${_lstIgnored}" ];then
-		    printWNG $LINENO $BASH_SOURCE 0 "IGNORE-CONFIGURED:${_type}->\"${_f}\""
+		    printWNG 2 $LINENO $BASH_SOURCE 0 "IGNORE-CONFIGURED:${_type}->\"${_f}\""
 		    _curEnum="${_curEnum} ${_type}"
 		fi
 		continue
@@ -229,7 +246,7 @@ function hookEnumeratePackages () {
 	done
     fi
     _curEnum="`echo ${_curEnum}|sort -u`"
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:ENUM=${_curEnum}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:ENUM=${_curEnum}"
     echo -n "${_curEnum}"
     return 0;
 }
@@ -287,11 +304,11 @@ function hookInfoCheck () {
 #
 #FUNCEND###############################################################
 function hookInfoCheckPKG () {
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME \$@ $@"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME \$@ $@"
     
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
     local _present=`echo " ${PACKAGES_KNOWNTYPES} "|sed -n 's/^.* \('$1'\) .*$/\1/p'`
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME _present=${_present}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME _present=${_present}"
     echo "${_present}"
     if [ -n "${_present}" ];then
 	return 0
@@ -326,7 +343,7 @@ function hookInfoCheckPKG () {
 #
 #FUNCEND###############################################################
 function hookGetPluginType () {
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Search:${*}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Search:${*}"
     if [ -z "$1" ];then
 	ABORT=1;
 	printERR $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Missing argument"
@@ -335,7 +352,7 @@ function hookGetPluginType () {
     fi
 
     local _present=`hookEnumeratePackages`
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_present:${_present}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_present:${_present}"
     local _f=;
     for _f in ${_present} ;do
         if [ "${1//$_f}" != "${1}" ];then
@@ -404,11 +421,11 @@ function hookPackage () {
     local _f=;
     local _ret=0;
 
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Loading plugins:${*}"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:Loading plugins:${*}"
 
     function loadIt () {
 	local _f=$1
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${1}"
+	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${1}"
 
         #native trial - assume path given
 	if [ -f "${_f}" ]; then
@@ -417,7 +434,7 @@ function hookPackage () {
 		. ${_f}
                 #only need to be updated when not yet present
 		local _type=`hookGetPluginType "${_f}"`
-		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:loaded:${_type}"
+		printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:loaded:${_type}"
 		if [ "${PACKAGES_KNOWNTYPES//$_type}" == "${PACKAGES_KNOWNTYPES}" ];then
                     #not yet known
 		    PACKAGES_KNOWNTYPES="${PACKAGES_KNOWNTYPES} ${_type}"
@@ -431,7 +448,7 @@ function hookPackage () {
 		    . ${_f}/hook
                     #only need to be updated when not yet present
 		    local _type=`hookGetPluginType "${_f}"`
-		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:loaded:${_type}"
+		    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:loaded:${_type}"
 		    if [ "${PACKAGES_KNOWNTYPES//$_type}" == "${PACKAGES_KNOWNTYPES}" ];then
                         #not yet known
 			PACKAGES_KNOWNTYPES="${PACKAGES_KNOWNTYPES} ${_type}"
@@ -440,12 +457,12 @@ function hookPackage () {
 		return
 	    fi
 	fi
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:missing:${1}"
+	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:missing:${1}"
 	return 1
     }
 
     for _f in $@;do
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Source:$_f"
+	printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Source:$_f"
         #native trial - assume path given
 	loadIt "${_f}"
 	if [ $? != 0 ];then 
@@ -471,7 +488,7 @@ function hookPackage () {
         _features="${_features} ${_f##/*/}"
     done
 
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Loaded plugins:_features=\"${_features}\""
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Loaded plugins:_features=\"${_features}\""
     return ${_ret}
 }
 
@@ -500,7 +517,7 @@ function hookPackage () {
 #
 #FUNCEND###############################################################
 function hookPackages () {
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME"
 
     local _ignored=`hookEnumeratePackages IGNORED`
     local _core=`hookEnumeratePackages CORE`
@@ -513,39 +530,40 @@ function hookPackages () {
 
 
     PACKAGES_IGNORED=${_ignored}
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "PACKAGES_IGNORED=\"${PACKAGES_IGNORED}\""
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "PACKAGES_IGNORED=\"${PACKAGES_IGNORED}\""
 
     for _j in ${_core};do
         PACKAGES_CORE="${PACKAGES_CORE} ${_j##/*/}"
     done
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "Hook core plugins:PACKAGES_CORE=\"${PACKAGES_CORE}\"..."
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Hook core plugins:_core=\"${_core}\"..."
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Hook core plugins:PACKAGES_CORE=\"${PACKAGES_CORE}\"..."
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Hook core plugins:_core=\"${_core}\"..."
     hookPackage ${_core}
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "...loaded."
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "...loaded."
 
     for _g in ${_generic};do
         PKGPATH_GENERIC="${PKGPATH_GENERIC} ${_g##/*/}"
     done
-    printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Hook core plugins:PACKAGES_GENERIC=\"${PACKAGES_GENERIC}\"..."
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Hook generic plugins:_generic=\"${_generic}\"..."
+
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Hook core plugins:PACKAGES_GENERIC=\"${PACKAGES_GENERIC}\"..."
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Hook generic plugins:_generic=\"${_generic}\"..."
     hookPackage ${_generic}
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "...loaded."
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "...loaded."
 
 
     if [ -n "${CTYS_MULTITYPE}" -a "${CTYS_MULTITYPE}" == DEFAULT ];then 
-	MCHK=${DEFAULT_CTRL_SESSIONTYPE}
+	MCHK=${DEFAULT_C_SESSIONTYPE}
     else
 	MCHK=${CTYS_MULTITYPE}
     fi
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "CTYS_MULTITYPE  =${CTYS_MULTITYPE} - MCHK(${MCHK})"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "CTYS_MULTITYPE  =${CTYS_MULTITYPE} - MCHK(${MCHK})"
 
-    if [ -n "${CTRL_SESSIONTYPE}" -a "${CTRL_SESSIONTYPE}" == DEFAULT ];then 
-	SCHK=${DEFAULT_CTRL_SESSIONTYPE}
+    if [ -n "${C_SESSIONTYPE}" -a "${C_SESSIONTYPE}" == DEFAULT ];then 
+	SCHK=${DEFAULT_C_SESSIONTYPE}
     else
 	SCHK=${CTYS_MULTITYPE}
     fi
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE} - SCHK(${SCHK})"
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_availFeatures=${_availFeatures})"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE} - SCHK(${SCHK})"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "_availFeatures=${_availFeatures})"
 
     for _j in ${_availFeatures};do
         #This is due to resource limits when loading multiple plugins,
@@ -555,10 +573,10 @@ function hookPackages () {
 	if [ -n "${MCHK}" ];then 
             if [ "${MCHK}" != ALL ];then 
 		for _i in ${MCHK//,/ };do
-		    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "try: ${_j##/*/} == ${_i}"
+		    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "try: ${_j##/*/} == ${_i}"
 		    if [ "${_j##/*/}" == "${_i}" ];then 
 			local _matchP=1;
-			printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "match..."
+			printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "match..."
 		    fi
 		done
 		if [ -z "${_matchP}" ];then continue;fi
@@ -571,11 +589,13 @@ function hookPackages () {
 	fi
 	_loadFeatures="${_loadFeatures} ${_j}"
     done
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Hook feature plugins:_availFeatures =\"${_availFeatures}\""
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "Hook feature plugins:_loadFeatures  =\"${_loadFeatures}\""
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Hook feature plugins:_availFeatures =\"${_availFeatures}\""
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "Hook feature plugins:_loadFeatures  =\"${_loadFeatures}\""
     hookPackage ${_loadFeatures}
-    printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Hook feature plugins:PACKAGES_KNOWNTYPES  =\"${PACKAGES_KNOWNTYPES}\""
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "...loaded."
+    PACKAGES_KNOWNTYPES="${PACKAGES_KNOWNTYPES//+( |\t)/ }"
+    PACKAGES_KNOWNTYPES="${PACKAGES_KNOWNTYPES##+( |\t)}"
+    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "Hook feature plugins:PACKAGES_KNOWNTYPES=\"${PACKAGES_KNOWNTYPES}\""
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "...loaded."
 }
 
 
@@ -694,7 +714,7 @@ function hookGetIgnoredTypes () {
 #
 #DESCRIPTION:
 #  Adds an entry to info array, where all plugins will be registered
-#  with basic information, which is for now:
+#  with basic information, gwhich is for now:
 #
 #  <pkg-name> <pkg-version>
 #
@@ -734,7 +754,7 @@ function hookInfoAdd () {
 #EXAMPLE:
 #
 #GLOBALS:
-#  CTRL_PRINTINFO
+#  C_PRINTINFO
 #
 #PARAMETERS:
 #
@@ -755,7 +775,7 @@ function hookInfoList () {
     for((_i=0;_i<_s;_i++));do
         if [ "${PKG_NAME[$_i]%%/*}" != "${_cur}" ];then local _cur="${PKG_NAME[$_i]%%/*}";echo;fi
 	printf "  %02d   %-43s%s" $_i ${PKG_NAME[$_i]} ${PKG_VERS[$_i]}
-	[ "${CTRL_PRINTINFO}" == 2 ]&&printf " %s" "${PKG_FILES[$_i]}"
+	[ "${C_PRINTINFO}" == 2 ]&&printf " %s" "${PKG_FILES[$_i]}"
 	printf "\n"
     done
     echo
@@ -777,7 +797,7 @@ function hookInfoList () {
 #  more or less allways related to some system functionality or even init-states.
 #
 #  In addition the generic on-the-fly load concept of libraries and plugins only
-#  by presence opens some potential interaction faults, which might be avoided or
+#  by presence opens some potential interaction faults, gwhich might be avoided or
 #  limited at least when having a global reliable init state - by convention of 
 #  course.
 #
@@ -798,7 +818,7 @@ function hookInfoList () {
 #     2: OPSTATE_EXTCALLABLE
 #        After this the current file could be accessed by external interfaces.
 #
-#        Any initialization which requires more than basic external prerequisites for 
+#        Any initialization gwhich requires more than basic external prerequisites for 
 #        initial operational state.
 #
 #        This call is optional, if that any specific action is required at all. But if 
@@ -821,6 +841,12 @@ function hookInfoList () {
 #        requiring any kind of GUI related initialization is finished.
 #        Validation of reliabilty of this state is included.
 #
+#     6: OPSTATE_PREPREBOOT
+#        This indicates the plugins to prepare for a reboot.
+#
+#     7-9: 
+#        not supported.
+#
 # $2: [NOEXIT]
 #     When this literal is set no exit will be performed in case of an init-error.
 #     Else current process will be terminated.
@@ -836,17 +862,69 @@ function initPACKAGES () {
     local _curInit=$1;shift
     local _initConsequence=$1;
 
-    case $_curInit in
-	0);;#NOP - Done by shell
-	1)
-	    hookPackages;
-	    hookInitPropagate ${_curInit} ${_initConsequence}
-	    ;;
-	2)hookInitPropagate ${_curInit} ${_initConsequence};;
-	3)hookInitPropagate ${_curInit} ${_initConsequence};;
-	4)hookInitPropagate ${_curInit} ${_initConsequence};;
-	5)hookInitPropagate ${_curInit} ${_initConsequence};;
-    esac
+    local _raise=$((INITSTATE<_curInit));
+
+    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
+
+    if [ "$_raise" == "1" ];then
+      #for raise of INITSTATE do not touch the OS's decisions, just expand.
+
+	case $_curInit in
+	    0);;#NOP - Done by shell
+	    1)
+		hookPackages;
+		hookInitPropagate ${_curInit} ${_initConsequence}
+		;;
+	    2)hookInitPropagate ${_curInit} ${_initConsequence};;
+	    3)hookInitPropagate ${_curInit} ${_initConsequence};;
+	    4)hookInitPropagate ${_curInit} ${_initConsequence};;
+	    5)hookInitPropagate ${_curInit} ${_initConsequence};;
+	    6)hookInitPropagate ${_curInit} ${_initConsequence};;
+	esac
+    else
+        #currently passthrough only
+	case $_curInit in
+	    *)hookInitPropagate ${_curInit} ${_initConsequence};;
+	esac
+
+    fi
+
+    INITSTATE=$_curInit
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  initPackages
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Helper for shift 1 of an ordinary string
+#
+#  spaces not removed
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function initPackages () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME"
+    local _ret=1;
+    local MYROOTHOOK=${1};
+
+    for n in 1 2 3 4 5;do
+  	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "Packages: entering init(${n})..."
+        initPACKAGES $n
+    done
+    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "Packages: ...init finished."
 }
 
 

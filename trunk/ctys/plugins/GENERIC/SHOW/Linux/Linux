@@ -71,7 +71,7 @@ function SHOWLinux () {
 
     printf "%"${_allign}"s%-"${_label}"s\n" " " "HEALTH" 
 
-    if [ -n "`which ${CTYS_SENSORS} 2>/dev/null`" ];then
+    if [ -n "`gwhich ${CTYS_SENSORS} 2>/dev/null`" ];then
 	${CTYS_SENSORS}|\
       awk -F':' -v a=${_allign} '
         BEGIN{

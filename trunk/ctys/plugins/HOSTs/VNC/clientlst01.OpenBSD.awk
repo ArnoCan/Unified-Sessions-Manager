@@ -14,16 +14,35 @@
 #
 ########################################################################
 
-#    output format: "host:label:id:uuid:pid:uid:gid:sessionType:clientServer"
-#                     +    +     +  +    +   +   +       +          +
+#    output format: "label:id:uuid:pid:uid:gid:sessionType:clientServer:JobID"
+
+
+function ptrace(inp){
+      if(!d){
+          print line ":" inp | "cat 1>&2"
+      }
+}
+
+BEGIN{
+    line=0;
+    ptrace("Start record with AWK:VNC:CLIENTLST");
+}
+
 {
+    line++;
+    ptrace("input=<"$0">")
+}
+
+{
+    res="";
     found=0;
+
     #label
     if($12){
         lbl=$12
         gsub(";", "_", lbl);
         gsub(":[^:]*", "", lbl);
-        printf("%s", lbl);
+        res=lbl;        
         found=1;  
     }
 
@@ -32,43 +51,45 @@
     if($NF!~/^$/){
         id=$NF;
         gsub("[^:]*:", "", id);
-        printf(";%s", id);
+        res=res";"id;
         found=1;  
+    }else{
+        res=res";";
     }
                      
     if(found!=0){
-        if(machine==0){
-            printf(";NO-UUID");
-            printf(";NO-MAC");
-            if(id=="")
-                printf(";NO-DISP");
-            else
-                printf(";%s", id);
-            printf(";NO-CPORT");
-            printf(";NO-SPORT");
-        }else{
-            if(id=="")
-                printf(";;;;;",id);           
-            else
-                printf(";;;%s;;",id);           
-        }
+        if(id=="")
+            res=res";;;;;";
+        else
+            res=res";;;"id";;";
         
         #pid+uid
-        printf(";%s;%s;", $2, $1);
+        res=res";"$2";"$1";";
         {
             #gid
             cll="id " $1 "|sed -n \"s/.*gid=[0-9]*(\\([^)]*\\)).*/\\1/p\"";
-            cll|getline x1;printf("%s", x1);
-            printf(";");
+            cll|getline x1;
+            res=res""x1";";
         }
 
         #sessioType
-        printf("VNC");
+        res=res"VNC";
 
         #clientServer
-        printf(";CLIENT");
+        res=res";CLIENT;";
+        j=$0;
+        jm=gsub("^.*-j *","",j);
+        if(jm!=0){
+            gsub(" .*$","",j);
+            res=res";"j;
+            ptrace("j=<"j">")
+        }else{
+            ptrace("j=<>")
+            res=res";";
+        }
 
-        printf(" ");
+        printf("%s ",res);
+        ptrace("output=<"res">")
     }
     found=0;
 }

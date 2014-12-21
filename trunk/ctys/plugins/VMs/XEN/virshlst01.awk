@@ -6,11 +6,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a13
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -73,9 +73,8 @@ BEGIN{
 
 
 /<domain type=/{
-#    sessType=getAttrVal("type");
     sessType="XEN";
-#not for ctys:    id=getAttrVal("id");
+    pid=getAttrVal("id");
     next;    
 }
 
@@ -112,9 +111,9 @@ BEGIN{
 }
 
 
-
 END{
-    res=label";"id";"uuid";"mac";"disp";"cport";"sport";"pid";"ugid";"sessType";"cstype;    
+    if(pid==0){ugid="root;root";}
+    res=label";"id";"uuid";"mac";"disp";"cport";"sport";"pid";"ugid";"sessType";"cstype";;";    
     perror("res="res);
     print res;    
 }

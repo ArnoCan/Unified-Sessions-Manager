@@ -54,7 +54,7 @@ export _myLIBBASE_geometry="`dirname ${_myLIBNAME_geometry}`"
 #
 #PARAMETERS:
 #
-# $1: DEBUG:        0=off, else on
+# $1: DEBUG:        0=on, else off
 # $2: SECTIONNAME:  Literal name of LayoutSection to use, if empty first is taken.
 # $3: SCREENALIAS:  Literal name of Screen section (used in LayoutSection), if
 #                   empty SCREENNR is used
@@ -76,12 +76,9 @@ export _myLIBBASE_geometry="`dirname ${_myLIBNAME_geometry}`"
 function getScreenOffset () {
   local XORGCFG=${5:-/etc/X11/xorg.conf}
   local D=$1
-
-#printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<${0} ${*}>"
-
   cat ${XORGCFG}|\
     sed 's/"//g'|\
-    awk -v dbg=${DBG_LVL_OVERKILL} -v d=$D -v sect=${2} -v nr=${4} -v alias=${3} -f ${_myLIBBASE_geometry}/geometry01.awk
+    awk -v d="$D" -v sect="${2}" -v nr="${4}" -v alias="${3}" -f ${_myLIBBASE_geometry}/geometry01.awk
 }
 export -f getScreenOffset
 
@@ -101,7 +98,7 @@ export -f getScreenOffset
 #
 #
 # Reminder/hints:
-#   CTRL_GEOMETRY=`expandGeometry "${OPTARG}"`;
+#   C_GEOMETRY=`expandGeometry "${OPTARG}"`;
 #   "<x-size>x<y-size>[[+,-]<x-offset>[+,-]<y-offset>]"
 #   "<x-size>x<y-size>[:[<ScreenSection>|<ScreenIndex>][:[ServerLayout:]]]
 #
@@ -122,7 +119,7 @@ export -f getScreenOffset
 #PARAMETERS:
 #
 # $1: DEBUG:       
-#     0=off, else on
+#     0=on, else off
 # $2: GEOMETRYX:    
 #     Extended geometry option.
 #
@@ -152,11 +149,9 @@ function expandGeometry () {
   local XORGCFG=${3:-/etc/X11/xorg.conf}
   local D=$1
 
-  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $BASH_SOURCE "$FUNCNAME $*"
-
+  printDBG $S_LIB ${D_DATA} $LINENO $BASH_SOURCE "$FUNCNAME $*"
   echo $2|\
-    awk -F':' -v dbg=${DBG_LVL_OVERKILL} -v d=${D} -v xorgconf=${XORGCFG} -f ${_myLIBBASE_geometry}/geometry02.awk
-
+    awk -F':'  -v d="${D}" -v xorgconf=${XORGCFG} -f ${_myLIBBASE_geometry}/geometry02.awk
 }
 
 

@@ -14,7 +14,7 @@
 #
 ########################################################################
 
-function perror(inp){
+function ptrace(inp){
     if(!d){
         print line ":" inp | "cat 1>&2"
     }
@@ -22,10 +22,9 @@ function perror(inp){
 
 BEGIN{
     line=0;
-    perror("Start record with AWK:CLIENTLST");
-    perror("_c1=\"" _c1 "\"");
-    perror("_c2=\"" _c2 "\"");
-    perror("machine="machine);
+    ptrace("Start record with AWK:VMW:CLIENTLST");
+    ptrace("_c1=\"" _c1 "\"");
+    ptrace("_c2=\"" _c2 "\"");
 }
 
 {
@@ -43,85 +42,69 @@ BEGIN{
     #fetch label, if given from CLI of running process
     if($9~/^$/){
         call=_c1 " "  $8 " 2>/dev/null";
+        x="";        
         call|getline x;
         close(call);        
     }else{
         x=$9;
     }
-    if(x~/^$/&&machine==0){
-        #Was not the best solution!!!
-        #   at least use fname as ID 
-        #   x1= gensub(".vmx$","","g",$NF);x2=match(x1,"[^/]*$");
-        #   x=substr(x1,x2);
-        #=>CHANGED for transparency and easy post-processing
-        x="NO-VMX-PERMISSION";
-    }
-    perror("LABEL="x" for "$8);
+    ptrace("LABEL="x" for "$8);
 
     curEntry=curEntry x ";";
-    if(f==1){
-        curEntry=curEntry $8;
-    }else{
-        x1= gensub(".vmx$","","g",$8);x2=match(x1,"[^/]*$");
-        x3=substr(x1,x2);
-        curEntry=curEntry ".../" x3;
-    }
+    curEntry=curEntry $8;
 
     #UUID
     curEntry=curEntry ";";
     if(_c2!~/^$/){
         call=_c2 " "  $8 " 2>/dev/null";
+        u="";
         call|getline u;
         close(call);        
-        if(u~/^$/&&machine==0){
-            u="NO-VMX-PERMISSION";            
-        }
         curEntry=curEntry u;               
     }
         
-    if(machine==0){
-        curEntry=curEntry ";NO-MAC";
-    }
-    else{
-        curEntry=curEntry ";"; 
+    #currently just ONE - the first "0" indexed - is supported
+    curEntry=curEntry ";";
+    if(_c3!~/^$/){
+        call=_c3 " " $8 " 2>/dev/null";
+        u="";
+        call|getline u;
+        close(call);
+        if(u~/^$/){
+            if(_c4!~/^$/){
+                call=_c4 " " $8 " 2>/dev/null";
+                call|getline u;
+                close(call);
+            }
+        }
+        curEntry=curEntry u;               
+        ptrace("MAC-ethernet0.address="u);
     }
 
     #cport - proprietary and VNC -> could vary for each!!!
     cu="";
     call="getClientTPVMW " x " " $8;
     call|getline cu;
-    perror("clientTP="cu);
+    ptrace("clientTP="cu);
     close(call);        
     if(cu~/^$/){
-        if(machine==0){
-            curEntry=curEntry ";NO-DISP";
-            curEntry=curEntry ";NO-VMX-PERMISSION";            
-        }
-        else{
-            curEntry=curEntry ";;"; 
-        }
+        curEntry=curEntry ";;"; 
     }else{
         #even though redundant keep it for now seperate, Xen at least could change.
         curEntry=curEntry ";" cu ";" cu;
     }
 
-    if(machine==0){
-        curEntry=curEntry ";NO-SPORT";
-    }
-    else{
-        curEntry=curEntry ";"; 
-    }
-
+    curEntry=curEntry ";"; 
     curEntry=curEntry ";" $2 ";" $1;
     {
         call="id " $1 "|sed -n \"s/.*gid=[0-9]*(\\([^)]*\\)).*/\\1/p\"" " 2>/dev/null";
+        x1="";
         call|getline x1;
         close(call);        
         curEntry=curEntry ";" x1;
     }
     curEntry=curEntry ";VMW";
-    if(machine==0)curEntry=curEntry "-" s;
-    curEntry=curEntry ";CLIENT ";
+    curEntry=curEntry ";CLIENT;; ";
     printf("%s", curEntry);
     found=0;
 }

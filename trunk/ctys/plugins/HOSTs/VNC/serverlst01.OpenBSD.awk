@@ -17,78 +17,88 @@
 #    output format: "host:label:id:uuid:pid:uid:gid:sessionType:clientServer"
 #                     +    +     +  +    +   +   +       +          +
 
+function ptrace(inp){
+    if(!d){
+        print line ":" inp | "cat 1>&2"
+    }
+}
+
+BEGIN{
+    line=0;
+    ptrace("Start record with AWK:VNC:SERVERLST");
+}
+
 {
+    line++;
+    ptrace("input=<"$0">")
+}
+
+{
+    res="";
     found=0;
 
     #label
     if($11){
-#        printf("%s", gensub(";", "_", "g", $11));
         lbl=$14
         gsub(";", "_", lbl);
-        printf("%s", lbl);
+        res=lbl;
         found=1;  
     }
 
     #id
     id=0;
     if($12!~/^$/){
-#        id=gensub(":", "", "g", $9);
         id=$12;
         gsub("[^:]*:", "", id);
-        printf(";%s", id);
+        res=res";"id;
         found=1;  
     }
 
     if(found!=0){
-        if(machine==0){
-            printf(";NO-UUID");
-            printf(";NO-MAC");
-            if(id=="")
-                printf(";NO-DISP");
-            else
-                printf(";%s", id);
-        }else{
-            if(id=="")
-                printf(";;;");
-            else
-                printf(";;;%s",id);           
-        }
+        if(id=="")
+            res=res";;;";
+        else
+            res=res";;;"id;
 
         #CPORT
-#        cp=gensub("^.*rfbport *","","g");
         cp=$0;
         gsub("^.*rfbport *","",cp);
         m=match(cp,"[0-9]*");
         if(m)
-            printf(";%s", substr(cp,RSTART,RLENGTH));
+            res=res";"substr(cp,RSTART,RLENGTH);
         else{            
-            if(machine==0){
-                printf(";NO-CPORT");
-            }else{
-                printf(";");
-            }
+            res=res";";
         }
-        if(machine==0){
-            printf(";NO-SPORT");
-        }else{
-            printf(";");
-        }
+        res=res";";
     
         #pid+uid
-        printf(";%s;%s;", $2, $1);
+        res=res";"$2";"$1";";
         {
             #gid
             cll="id " $1 "|sed -n \"s/.*gid=[0-9]*(\\([^)]*\\)).*/\\1/p\"";
-            cll|getline x1;printf("%s", x1);
-            printf(";");
+            cll|getline x1;
+            res=res""x1";";
         }
 
         #sessioType
-        printf("VNC");
+        res=res"VNC";
 
         #clientServer
-        printf(";SERVER");
-        printf(" ");
+        res=res";SERVER;";
+
+        j=$0;
+        jm=gsub("^.*-j *","",j);
+        if(jm!=0){
+            gsub(" .*$","",j);
+            ptrace("j=<"j">");
+            res=res";"j;
+        }else{
+            ptrace("j=<>");
+            res=res";";
+        }
+
+        printf("%s ",res);
+        ptrace("output=<"res">")
     }
     found=0;
 }

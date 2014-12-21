@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a11
 #
 ########################################################################
 #
@@ -20,8 +20,6 @@ _myPKGNAME_X11_LIST="${BASH_SOURCE}"
 _myPKGVERS_X11_LIST="01.01.001a00"
 hookInfoAdd $_myPKGNAME_X11_LIST $_myPKGVERS_X11_LIST
 _myPKGBASE_X11_LIST="`dirname ${_myPKGNAME_X11_LIST}`"
-
-_X11_LIST="${_myPKGNAME_X11_LIST}"
 
 
 #FUNCBEG###############################################################
@@ -47,50 +45,28 @@ _X11_LIST="${_myPKGNAME_X11_LIST}"
 function listMySessionsX11 () {
     local _site=$1 #only this is relevant for X11
 
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME ${*}"
-    if [ "${CTRL_SESSIONTYPE}" != "X11" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
+
+    printDBG $S_X11 ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME ${*}"
+    if [ "${C_SESSIONTYPE}" != "X11" -a "${C_SESSIONTYPE}" != "ALL" ];then 
         ABORT=2
-        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:C_SESSIONTYPE=${C_SESSIONTYPE}"
         gotoHell ${ABORT}
     fi
 
-#    if [ "${_site}" == S -o "${_site}" == B ];then
-	    local SERVERLST=`listProcesses|grep ' CREATE='|grep ' X11 '|grep -v grep`
-            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=${SERVERLST}"
-            local SERVERLST1=`echo "${SERVERLST}"|awk -f ${_myPKGBASE_X11}/serverlst01.${MYOS}.awk`
-	    local SERVERLST2=;
-	    for i7 in ${SERVERLST1};do
-		local PID=`echo ${i7}|awk -F';' '{print $8}'`
-		case ${MYOS} in
-		    Linux)
-			local BTCH=`${PS} ${PSEF} |grep $PID|grep -v "-e -F ${VERSION}"|grep -v grep |awk '{print $2}'`
-			;;
-		    OpenBSD)
-			local BTCH=`${PS} ${PSL} |grep $PID|grep -v "-e -F ${VERSION}"|grep -v grep |awk '{print $2}'`
-			;;
-		esac
-		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "PID=${PID} - BTCH=${BTCH}"
-		if [ -n "${BTCH}" ];then
-		    local S2=`echo ${i7}|awk -F ';' -v p=${BTCH} ' \
-                          { \
-                              printf("%s",$1); \
-                              for(i=2;i<=NF;i++){ \
-                                  if(i!=8)printf(";%s",$i); \
-                                  else printf(";%s",p); \
-                              } \
-                              printf("\n"); \
-                          }'`
-		    SERVERLST2="${SERVERLST2} ${S2}"
-		fi
-	    done
-#    fi
+    #the XClient is now actually a client.
+    if [ "$_site" == B -o "$_site" == C ];then
+        #controls debugging for awk-scripts
+	doDebug $S_GEN  ${D_MAINT} $LINENO $BASH_SOURCE
+	local D=$?
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "SESLST(PROCESSED)=\"${SERVERLST2}\""
-    for i in ${SERVERLST2};do
-	i="${MYHOST};${i}"
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CURSES=${i}"
-	echo "${i}"
-    done
+	local SERVERLST=`listProcesses|awk '/CTYS-X11-/&&!/awk/{print;}'`
+	printDBG $S_X11 ${D_BULK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=${SERVERLST}"
+	local SERVERLST1=`echo "${SERVERLST}"|awk -v d="${D}" -f ${_myPKGBASE_X11}/serverlst01.${MYOS}.awk`
+	printDBG $S_X11 ${D_MAINT} $LINENO $BASH_SOURCE "SESLST(PROCESSED)=\"${SERVERLST1}\""
+	for i in ${SERVERLST1};do
+	    i="${MYHOST};${i}"
+	    printDBG $S_X11 ${D_UID} $LINENO $BASH_SOURCE "MATCH=${i}"
+	    echo "${i}"
+	done
+    fi
 }
-
-

@@ -179,69 +179,7 @@ END2
 #FUNCEND###############################################################
 function _printHelpEx () {
   local i=;
-#  printHelp
-
-
-  [ -n "${MYHELPPATH}" ]&&for i in ${MYHELPPATH}/[0][012345678]*[^~];do
+  [ -n "${MYHELPPATH}" ]&&for i in ${MYHELPPATH}/[0][0123456789]*[^~];do
       [ -n "$i" -a -f "$i" ]&&cat ${i};
   done
-
-
-  cat ${MYHELPPATH}/0900_*[^~]
-
-  cat ${MYHELPPATH}/0920_*[^~]
-  for i in ${MYPKGPATH}/HOSTs/*/help/${MYLANG}/*[^~];do
-      [ -n "$i" -a -f "$i" ]&&cat ${i};echo ""
-  done
-
-
-  cat ${MYHELPPATH}/0930_*[^~]
-  for i in ${MYPKGPATH}/PMs/*/help/${MYLANG}/*[^~];do
-      cat ${i};echo ""
-  done
-
-
-  cat ${MYHELPPATH}/0940_*[^~]
-  for i in ${MYPKGPATH}/VMs/*/help/${MYLANG}/*[^~];do
-      [ -n "$i" -a -f "$i" ]&&cat ${i};echo ""
-  done
-
-
-  cat ${MYHELPPATH}/0950_*[^~]
-
-
-
-  [ -n "${MYHELPPATH}" ]&&for i in ${MYHELPPATH}/[1][0]*[^~];do
-      [ -n "$i" -a -f "$i" ]&&cat ${i};
-  done
-
-  [ -n "${MYHELPPATH}" ]&&for i in ${MYHELPPATH}/[1][1]*[^~];do
-      [ -n "$i" -a -f "$i" ]&&cat ${i};
-  done
-
-
-  [ -n "${MYHELPPATH}" ]&&for i in ${MYHELPPATH}/[1][2][012]*[^~];do
-      [ -n "$i" -a -f "$i" ]&&cat ${i};
-  done
-  ctys -T all -v
-#  printLegal
-
-  [ -n "${MYHELPPATH}" ]&&for i in ${MYHELPPATH}/[1][2][3456789]*[^~];do
-      [ -n "$i" -a -f "$i" ]&&cat ${i};
-  done
-
-
-# cat << END2
-
-
-# CURRENT-ENVIRONMENT:
-# ====================
-#  This shows where default values exist. Some of the variables
-#  are checked for existence as pure or semi binary values.
-
-# END2
-
-#   showEnv "-2" "  "
-
-
 }

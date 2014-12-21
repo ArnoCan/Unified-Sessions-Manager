@@ -46,13 +46,16 @@ hookInfoAdd $_myPKGNAME_PM_INFO $_myPKGVERS_PM_INFO
 function infoPM4Action () {
     local _allign=$1
 
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "PM:" "Plugin Version:${_myPKGVERS_PM}"
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "Operational State:${PM_STATE}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " \
+        "`setStatusColor ${PM_STATE} PM`:" "Plugin Version:${_myPKGVERS_PM}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "" \
+        "Operational State:`setStatusColor ${PM_STATE} ${PM_STATE}`"
 
     if [ -n "${PM_VERSTRING}" ];then
     printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "PM version:"
   	printf "%"$((2*_allign))"s%-"${_label}"s ->%"$((2*_allign))"s\n" " " " " "${PM_VERSTRING}"
-  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Magic-Number:${PM_MAGIC}"
+  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " \
+            "Magic-Number:`setStatusColor ${PM_STATE} ${PM_MAGIC}`"
   	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Verified Prerequisites:"
 
 	local i2=;
@@ -92,11 +95,11 @@ function infoPM4Action () {
 #        Current type "PM".
 #
 #      <plug-vers>
-#        The version of current plugin, which is the value 
+#        The version of current plugin, gwhich is the value 
 #        of _myPKGVERS_VMW.
 #
 #      <plug-magic>
-#        The magic ID, which is the shortform of the version of 
+#        The magic ID, gwhich is the shortform of the version of 
 #        current plugin stored in VMW_MAGIC.
 #
 #      <plug-state>
@@ -154,8 +157,9 @@ function infoPM () {
     case ${MYOS} in
 	Linux);;
 	OpenBSD);;
+	SunOS);;
 	*)
-	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:OS not supported by PM:${MYOS}";
+	    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:OS not supported by PM:${MYOS}";
 	    return;
 	    ;;
     esac
@@ -165,7 +169,7 @@ function infoPM () {
 	    infoPM4MACHINE $*
 	    ;;
 	[0-9]*)
-            if [ -n "${CTRL_TERSE}" ];then
+            if [ -n "${C_TERSE}" ];then
 		infoPM4MACHINE $*
 	    else
 		infoPM4Action $*
