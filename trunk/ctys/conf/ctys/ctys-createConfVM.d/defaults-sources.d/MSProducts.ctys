@@ -33,7 +33,7 @@
 
 function set-MSProducts () {
     DEFAULTINSTMODE=CD;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	WNT4WS)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-wnt4ws-XEN;;
@@ -75,7 +75,7 @@ function set-MSProducts () {
 #
 #
 function set-wnt4ws-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WNT-4.0/nt40-ws.iso
     case ${ACCELERATOR} in
@@ -122,7 +122,7 @@ function set-wnt4ws-QEMU () {
 #
 #
 function set-wnt4s-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WNT-4.0/nt40-s-u.iso
     case ${ACCELERATOR} in
@@ -171,7 +171,7 @@ function set-wnt4s-QEMU () {
 #
 #
 function set-w2kws-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/W2K/w2kp-license-1.iso
     case ${ACCELERATOR} in
@@ -218,7 +218,7 @@ function set-w2kws-QEMU () {
 #
 #
 function set-w2ks-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/W2K/w2k-all-license-2/w2k-all/w2ks.iso
     case ${ACCELERATOR} in
@@ -266,7 +266,7 @@ function set-w2ks-QEMU () {
 #
 #
 function set-wxp-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/Microsoft/WXP/wxp/german/winxp/pro.iso
     case ${ACCELERATOR} in

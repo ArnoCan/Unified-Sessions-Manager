@@ -763,6 +763,7 @@ function cacheReplaceCtysAddress () {
 
     _maddr=$(cacheGetMachineAddressFromCall MACHINEADDRESS FROMCALL $@)
     _ret=$?
+
     printINFO 2 $LINENO $BASH_SOURCE 0 "($_stime):Resolved <machine-address>=\"${_maddr}\""
     if [ -n "${_maddr// /}" ];then
 	_org=${_org//\//\\\/};

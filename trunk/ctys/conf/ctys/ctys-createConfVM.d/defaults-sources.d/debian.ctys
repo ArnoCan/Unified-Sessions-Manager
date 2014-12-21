@@ -31,7 +31,7 @@
 
 function set-debian () {
     DEFAULTINSTMODE=CD;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	4.0_r3)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-debian-40r3-XEN;;
@@ -55,7 +55,7 @@ function set-debian () {
 #
 #
 function set-debian-40r3-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/4.0_r3/raw/i386/debian-40r3-i386-DVD-1
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/4.0_r3/raw/i386/debian-40r3-i386-DVD-1.iso
     case ${ACCELERATOR} in
@@ -119,7 +119,7 @@ function set-debian-40r3-QEMU () {
 #        to the current 'sub-release'.
 #
 function set-debian-50-XEN () {
-#    local R=${RELEASE}
+#    local R=${DISTREL}
     local R=5.0.0
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/debian/$R/raw/$R/amd64/iso-dvd/debian-${R//./}-amd64-DVD-1
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/debian/$R/raw/$R/amd64/iso-dvd/debian-${R//./}-amd64-DVD-1.iso

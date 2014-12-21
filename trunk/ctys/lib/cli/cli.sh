@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -18,7 +18,7 @@
 
 
 _myLIBNAME_cli="${BASH_SOURCE}"
-_myLIBVERS_cli="01.11.003"
+_myLIBVERS_cli="01.11.005"
 libManInfoAdd "${_myLIBNAME_cli}" "${_myLIBVERS_cli}"
 _myLIBBASE_cli="`dirname ${_myLIBNAME_cli}`"
 
@@ -82,7 +82,6 @@ function splitArgsWithOpts () {
     #controls debugging for awk-scripts
     doDebug $S_LIB  ${D_MAINT} $LINENO $BASH_SOURCE
     local D=$?
-
     echo "${*}"|\
       awk -v d=${D} -v a="$A" -f ${_myLIBBASE_cli}/splitArgsWithOpts.awk|\
       sed 's/["](/(/;s/)["]/)/;'|sed "s/['](/(/;s/)[']/)/;"
@@ -1096,3 +1095,4 @@ function cliOptionsClearRedundant () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "OUT=${OUT}"
     echo "${OUT}"
 }
+

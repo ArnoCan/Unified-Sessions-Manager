@@ -367,15 +367,12 @@ function fetchDisplay4Label () {
 #    <ID>
 #FUNCEND###############################################################
 function fetchCport4Label () {
-echo "4TEST:$LINENO:1=$1">&2
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
   if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE`;fi
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
-echo "4TEST:$LINENO:CACHE1=$CACHE1">&2
   for i in ${CACHE1}; do
     printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
-echo "4TEST:$LINENO:i=$i">&2
     local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s&&$15!~ji{print $9;}'`
     if [ -n "${MATCH}" ];then
       echo ${MATCH};

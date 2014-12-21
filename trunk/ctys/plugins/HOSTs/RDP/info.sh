@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_RDP_INFO="${BASH_SOURCE}"
-_myPKGVERS_RDP_INFO="01.02.001b01"
+_myPKGVERS_RDP_INFO="01.11.006alpha"
 hookInfoAdd $_myPKGNAME_RDP_INFO $_myPKGVERS_RDP_INFO
 _myPKGBASE_RDP_INFO="`dirname ${_myPKGNAME_RDP_INFO}`"
 
@@ -67,6 +67,7 @@ function infoRDP4Action () {
 
     return
 }
+
 
 
 #FUNCBEG###############################################################

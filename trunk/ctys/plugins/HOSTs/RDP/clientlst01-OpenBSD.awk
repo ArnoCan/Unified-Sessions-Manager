@@ -6,11 +6,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -38,30 +38,30 @@ BEGIN{
     found=0;
 
     #label
-    if($12){
-        lbl=$12
-        gsub(";", "_", lbl);
-        gsub(":[^:]*", "", lbl);
+    lbl=$0;
+    gsub("^.*-T  *","",lbl);
+    gsub("[^ ]*$","",lbl);
+    ptrace("match=<"lbl">");
+    cport=lbl;
+    gsub(":.*$","",lbl);
+    gsub("^.*:","",cport);
+    gsub(" *$","",cport);
+    ptrace("lbl=<"lbl">");
+    ptrace("cport=<"cport">");
+    
+    if(lbl!~/^$/){
         res=lbl;        
         found=1;  
     }
 
     #id
-    id=0;
-    if($NF!~/^$/){
-        id=$NF;
-        gsub("[^:]*:", "", id);
-        res=res";"id;
-        found=1;  
-    }else{
-        res=res";";
-    }
-                     
+    res=res";";
+
     if(found!=0){
         if(id=="")
-            res=res";;;;;";
+            res=res";;;;"cport";";
         else
-            res=res";;;"id";;";
+            res=res";;;"id";"cport";";
         
         #pid+uid
         res=res";"$2";"$1";";

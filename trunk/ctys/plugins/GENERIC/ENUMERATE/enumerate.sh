@@ -146,7 +146,8 @@ function enumerateMySessions () {
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MODE=${C_MODE}"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MODE_ARGS=${_args}"
 
-  local _mstat='ACTIVE|^$'; #ACTIVE|EMPTY
+  #could be ACTIVATEd on the fly, e.g. VBOX/VMW
+  local _mstat='ACTIVE|DISABLED|^$'; #ACTIVE|DISABLED|EMPTY
 #  _mstat=;
 
   local _prologue=0;
@@ -268,6 +269,7 @@ function enumerateMySessions () {
 		  local _stime=`getCurTime`;
 		  printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-${y}-${_stime}--"
 		  _matched=1;
+
 		  if [ -n "$_base" ];then
 		      SESLST="${SESLST} `enumerateMySessions${y} \"${_base}\"`"
 		  else
@@ -453,6 +455,9 @@ function enumerateMySessions () {
 				   ;;
 			       [aA][cC][tT][iI][vV][eE])
 				   _mstat="${_mstat}|ACTIVE";
+				   ;;
+			       [dD][iI][sS][aA][bB][lL][eE][dD])
+				   _mstat="${_mstat}|DISABLED";
 				   ;;
 			       [tT][eE][mM][pP][lL][aA][tT][eE])
 				   _mstat="${_mstat}|TEMPLATE";

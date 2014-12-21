@@ -365,6 +365,7 @@ _RUSER0=;
 
 printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "Let's go..."
 
+_uppercase=;
 argLst=;
 while [ -n "$1" ];do
     case $1 in
@@ -373,6 +374,8 @@ while [ -n "$1" ];do
 	'-n')_name=1;;
 	'-p')shift;_dbfilepath=$1;;
 
+	'-u')_uppercase=1;;
+	
 	'-d')shift;;
 
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
@@ -443,7 +446,12 @@ fi
 #change this a.s.a.p.
 #anyhow, priorities for now...!
 for i in $argLst;do
-    cat ${_fdblst}|\
+    if [ -n "$_uppercase" ];then
+      cat ${_fdblst}|\
+      tr 'a-z' 'A-Z'
+    else
+      cat ${_fdblst}
+    fi |\
     sort|\
     awk -F';' -v s="${i}" -v i=$_ip -v m=$_mac -v n=$_name \
           '

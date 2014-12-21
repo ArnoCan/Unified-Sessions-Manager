@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -31,7 +31,7 @@
 
 function set-FreeBSD () {
     DEFAULTINSTMODE=KS;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	7.*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-FreeBSD-7x-XEN;;
@@ -54,7 +54,7 @@ function set-FreeBSD () {
 #DIST: FreeBSD-7.1
 #
 function set-FreeBSD-7x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/FreeBSD/$R/releases/amd64/ISO-IMAGES/$R/$R-RELEASE-amd64-dvd1/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/FreeBSD/$R/releases/amd64/ISO-IMAGES/$R/$R-RELEASE-amd64-dvd1.iso
     case ${ACCELERATOR} in
@@ -76,7 +76,7 @@ function set-FreeBSD-7x-XEN () {
 }
 
 function set-FreeBSD-7x-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_BOOTLOADER=;
 
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/FreeBSD/$R/releases/amd64/ISO-IMAGES/$R/$R-RELEASE-amd64-dvd1/
@@ -85,12 +85,12 @@ function set-FreeBSD-7x-QEMU () {
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
-	HVM)
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.
@@ -107,7 +107,7 @@ function set-FreeBSD-7x-QEMU () {
 #DIST: FreeBSD-8.0
 #
 function set-FreeBSD-8x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/FreeBSD/$R/releases/amd64/ISO-IMAGES/$R/$R-RELEASE-amd64-dvd1/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/FreeBSD/$R/releases/amd64/ISO-IMAGES/$R/$R-RELEASE-amd64-dvd1.iso
     case ${ACCELERATOR} in
@@ -129,7 +129,7 @@ function set-FreeBSD-8x-XEN () {
 }
 
 function set-FreeBSD-8x-QEMU () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_BOOTLOADER=;
 
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/FreeBSD/$R/releases/amd64/ISO-IMAGES/$R/$R-RELEASE-amd64-dvd1/
@@ -138,12 +138,12 @@ function set-FreeBSD-8x-QEMU () {
 #ffs.	KQEMU)
 # 	    DEFAULT_BOOTLOADER=
 # 	    ;;
-	PARA)
+	QEMU)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by primary call-wrapper
 	    #so NOP here.
 	    ;;
-	HVM)
+	KVM)
 	    _MATCHED=1;
 	    #due to widely distributed legacy handeled by secondary call-wrapper
 	    #so NOP here.

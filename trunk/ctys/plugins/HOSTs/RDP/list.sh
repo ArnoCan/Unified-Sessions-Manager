@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b05
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_RDP_LIST="${BASH_SOURCE}"
-_myPKGVERS_RDP_LIST="01.11.005alpha"
+_myPKGVERS_RDP_LIST="01.11.006alpha"
 hookInfoAdd $_myPKGNAME_RDP_LIST $_myPKGVERS_RDP_LIST
 _myPKGBASE_RDP_LIST="`dirname ${_myPKGNAME_RDP_LIST}`"
 
@@ -57,13 +57,10 @@ function listMySessionsRDP () {
 	printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "SERVERLST:Not applicable"
     fi
 
-#    if [ "${_site}" == C -o "${_site}" == B -a -z "$CTYSLIST79RECCNT" ];then
     if [ "${_site}" == S -o "${_site}" == C -o "${_site}" == B -a -z "$CTYSLIST79RECCNT" ];then
 	local CLIENTLST=`listProcesses|egrep '(rdesktop|tsclient)'|grep -v grep`
         printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "CLIENTLST(RAW)=<${CLIENTLST}>"
-
         CLIENTLST=`echo "${CLIENTLST}"|awk -v d="${D}" -f ${_myPKGBASE_RDP}/clientlst01-${MYOS}.awk`
-
         printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "CLIENTLST(PROCESSED-0)=<${CLIENTLST}>"
         case $RDP_MAGIC in
 	    RDPT)

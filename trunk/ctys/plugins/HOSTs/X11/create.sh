@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_006
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2009,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_X11_CREATE="${BASH_SOURCE}"
-_myPKGVERS_X11_CREATE="01.01.001a01"
+_myPKGVERS_X11_CREATE="01.11.006"
 hookInfoAdd $_myPKGNAME_X11_CREATE $_myPKGVERS_X11_CREATE
 _myPKGBASE_X11_CREATE="`dirname ${_myPKGNAME_X11_CREATE}`"
 
@@ -81,11 +81,6 @@ function createConnectX11 () {
                         \) \
 			];then
 			case $KEY in
-                            REUSE|CONNECT|RECONNECT|RESUME)
-				ABORT=1
-				printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
-				gotoHell ${ABORT}
-				;;
 
 			    SHELL|S)
                                 local _shell="${ARG}";
@@ -124,11 +119,6 @@ function createConnectX11 () {
                           #####################
                           # <machine-address> #
                           #####################
-			    BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|ID|PATHNAME|PNAME|P)
-				ABORT=1
-				printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
-				gotoHell ${ABORT}
-				;;
 
 			    LABEL|L)
 				local _label="${ARG}";
@@ -386,7 +376,6 @@ function createConnectX11 () {
 	    _xp=${_xp:-$X11_WM_OPTPRE}
 	    printDBG $S_X11 ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_xp=\"${_xp}\" _sh=\"${_sh}\" _dh=\"${_dh}\""
 
-#4TEST:20100618:
             if [ -n "${_notitle}" -a -z "${_titlekey}" ];then
 		_label=NOTITLE
 	    fi

@@ -15,6 +15,7 @@ ctys-macmap
    [-h]
    [-H <help-options>]
    [-p <db-dir-path-list>]
+   [-u]
    [-V]
    [-X]
    <simple awk-regexpr>

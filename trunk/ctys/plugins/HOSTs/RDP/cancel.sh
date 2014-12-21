@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005alpha
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_RDP_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_RDP_CANCEL="01.11.005alpha"
+_myPKGVERS_RDP_CANCEL="01.11.006alpha"
 hookInfoAdd $_myPKGNAME_RDP_CANCEL $_myPKGVERS_RDP_CANCEL
 _myPKGBASE_RDP_CANCEL="`dirname ${_myPKGNAME_RDP_CANCEL}`"
 
@@ -80,6 +80,7 @@ function cancelRDP () {
         #first kill clients in any case
         #multiple clients for a shared server will be handled by default as one logical unit
  	local _cx=;
+#	local _clientPid=`for _cx in ;do echo ${_cx}|sed -n 's/^.* *'$ID';\([0-9]*\) *.*$/\1/gp';done`
 	local _clientPid=`for _cx in ${_clientPidCache};do echo ${_cx}|sed -n 's/^.* *'$ID';\([0-9]*\) *.*$/\1/gp';done`
 	printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_clientPid=$_clientPid"
 	if [ -n "${_clientPid}" ];then
@@ -92,64 +93,6 @@ function cancelRDP () {
 		    *)kill ${_cx};;
 		esac
 	    done
-	fi
-
-
-        #now the backends if not CLIENT only.
-	if [ "${_CSB}" != CLIENT ];then
-	    printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:SERVER:vncserver -kill :${ID}"
-            case ${ACT} in
-		POWEROFF*)
-		    local _poweroffdelay=${ACT//*:}
-                    local _serverPid=`echo ${_serverPidCache}|sed -n 's/^.* *'$ID';\([0-9]*\) *.*$/\1/p'`
-
-		    ABORT=1
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "POWEROFF could even require a reboot due to open-dengling resources"
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "of RDP server, blocking(!!!???...ffs.) any further RDP starts."
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "So now trying a graceful \"vncserv -kill\" first with a timeout afterwards."
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " "
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "When requiring a list or all to POWEROFF, call each seperately,"
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "now they will be processed sequentially."
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} " "
-		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "BECAUSE we DO NOT WANT \"sleeping killers\" for a reused PID!!!"
-
-		    echo -n "server:<id:${ID}=>pid:${_serverPid}>:"
-
- 		    echo "first-call-vncserver-kill=>"
- 		    vncserver -kill :"${ID}"
-
-                    local _idPid="`fetchID4PID ${_serverPid}`"
-                    if [ -n "${_idPid}" ];then
-			if [ "${_idPid}" == "${ID}" ];then
-			    echo "final-kill-9:"
-			    if [ -z "${_poweroffdelay}" ];then
-  				printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Delayed \"kill -9\" now: DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF} seconds"
-				sleep ${DEFAULT_KILL_DELAY_POWEROFF}
-			    else
-  				printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Delayed \"kill -9\" now: KILL_DELAY_POWEROFF=${_poweroffdelay} seconds"
-				sleep ${_poweroffdelay}
-			    fi
-			    local _idPid="`fetchID4PID ${_serverPid}`"
-			    if [ -n "${_idPid}" ];then
-				if [ "${_idPid}" == "${ID}" ];then
-				    kill -9  ${_serverPid}
-				else
-				    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not apply kill, target changed or disappeared:"
-				    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}   ${_serverPid} != ${ID}"
-				fi
-			    fi
-			else
-			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Can not apply kill, target changed or disappeared:"
-			    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}   ${_serverPid} != ${ID}"
-			fi
-		    fi
-		    echo " OK, POWEROFF finished."
-		    ;;
-		*)
-		    echo -n "server:kill-vncserver=>${ID}:"
-		    vncserver -kill :"${ID}"
-		    ;;
-	    esac
 	fi
     }
 

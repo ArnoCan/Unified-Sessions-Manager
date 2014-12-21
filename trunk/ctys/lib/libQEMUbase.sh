@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_11_005
 #
 ########################################################################
 #
@@ -427,8 +427,7 @@ function getSTARTERCALL_QEMU4CONF () {
     if [ ! -f "$1" ];then
 	return
     fi
-    local myStarter=$(awk -F'=' 'BEGIN{x="";}/STARTERCALL/{x=$2;}END{printf("%s",x);}' ${1});
-    myStarter=$(eval echo $myStarter);
+    local myStarter=$(source ${1}&& echo $STARTERCALL);
     myStarter=$(bootstrapGetRealPathname ${myStarter})
     if [ -z "$myStarter" ];then
 	return

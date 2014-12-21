@@ -31,7 +31,7 @@
 
 function set-Scientific () {
     DEFAULTINSTMODE=KS;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	5.*)
 
 	    case ${C_SESSIONTYPE} in
@@ -49,7 +49,7 @@ function set-Scientific () {
 #
 function set-Scientific-5x-XEN () {
 
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/scientific/$R/x86_64/dvd/SL.${R//./}.110309.DVD.x86_64.disc1
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/scientific/5.4/raw/iso/x86_64/dvd/SL.${R//./}.110309.DVD.x86_64.disc1.iso
     case ${ACCELERATOR} in

@@ -31,7 +31,7 @@
 
 function set-openSUSE () {
     DEFAULTINSTMODE=KS;
-    case ${RELEASE} in
+    case ${DISTREL} in
 	11.*)
 	    case ${C_SESSIONTYPE} in
 		XEN)  set-openSUSE-11x-XEN;;
@@ -48,7 +48,7 @@ function set-openSUSE () {
 #DIST: openSUSE-11.x
 #
 function set-openSUSE-11x-XEN () {
-    local R=${RELEASE}
+    local R=${DISTREL}
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64}
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/SuSE/$R/iso/openSUSE-$R-DVD-x86_64.iso
     case ${ACCELERATOR} in

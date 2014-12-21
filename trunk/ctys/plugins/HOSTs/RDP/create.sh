@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005alpha
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_RDP_CREATE="${BASH_SOURCE}"
-_myPKGVERS_RDP_CREATE="01.11.005"
+_myPKGVERS_RDP_CREATE="01.11.006alpha"
 hookInfoAdd $_myPKGNAME_RDP_CREATE $_myPKGVERS_RDP_CREATE
 _myPKGBASE_RDP_CREATE="`dirname ${_myPKGNAME_RDP_CREATE}`"
 
@@ -64,15 +64,6 @@ function createConnectRDP () {
 		KEY=`cliGetKey ${i}`
 		ARG=`cliGetArg ${i}`
 		case $KEY in
-                    REUSE)
-			local _reuse=1;
-			if [ -n "${ARG}" ]; then
-			    ABORT=1;
-			    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments are supported for \"$KEY\""
- 			    gotoHell ${ABORT}
-			fi
-			;;
-
                     CONNECT)
 			local _connect=1;
 			if [ -n "${ARG}" ]; then
@@ -91,22 +82,11 @@ function createConnectRDP () {
 			fi
 			;;
 
-                    RESUME)
-			ABORT=1
-			printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
-			gotoHell ${ABORT}
-			;;
 
 
         #####################
         # <machine-address> #
         #####################
-
-		    BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|PATHNAME|PNAME|P)
-			ABORT=1
-			printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
-			gotoHell ${ABORT}
-			;;
 
                     L|LABEL)
 			_LABEL="${ARG}";
@@ -153,20 +133,6 @@ function createConnectRDP () {
 			;;
 
 
-                    RDPBASE)
-			if [ -n "${_RDP_BASEPORT}" ];then
-			    ABORT=1
-			    printERR $LINENO $BASH_SOURCE ${ABORT} "Suboption ${i} has to be unique."
-			    gotoHell ${ABORT}
-			fi
-                        _RDP_BASEPORT="${ARG}";
-			if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
-			    ABORT=1
-			    printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
-			    gotoHell ${ABORT}
-			fi
-			;;
-
                     RDPPORT)
 			if [ -n "${_VNATIVE}" ];then
 			    ABORT=1
@@ -179,15 +145,6 @@ function createConnectRDP () {
 			    gotoHell ${ABORT}
 			fi
 			_VNATIVE="${ARG}";
-			;;
-
-                    WAITS)
-			WAITS=${ARG};
-			if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
-			    ABORT=1
-			    printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
-			    gotoHell ${ABORT}
-			fi
 			;;
 
 		    *)
@@ -237,10 +194,6 @@ function createConnectRDP () {
 		KEY=`cliGetKey ${i}`
 		ARG=`cliGetArg ${i}`
 		case $KEY in
-                    REUSE)
-			local _reuse=1;
-			;;
-
                     CONNECT)
 			local _connect=1;
 			;;
@@ -248,12 +201,6 @@ function createConnectRDP () {
                     RECONNECT)
 			hookPackage "${_myPKGBASE_RDP}/cancel.sh"
 			local _reconnect=1;
-			;;
-
-                    RESUME)
-			ABORT=1
-			printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
-			gotoHell ${ABORT}
 			;;
 
          #########
@@ -308,21 +255,10 @@ function createConnectRDP () {
 			INSECURE="${ARG}";
 			;;
 
-                    RDPBASE)
-			_RDP_BASEPORT="${ARG}";
-			printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "RDP_BASEPORT=${RDP_BASEPORT}"
-			;;
-
                     RDPPORT)
 			_VNATIVE="${ARG}";
 			printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "_VNATIVE=${_VNATIVE// /}"
 			;;
-
-                    WAITS)
-			WAITS=${ARG};
-			printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "WAITS=${WAITS}"
-			;;
-
 
          #########
 		    *)

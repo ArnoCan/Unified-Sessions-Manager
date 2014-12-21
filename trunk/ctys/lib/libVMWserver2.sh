@@ -53,7 +53,7 @@ export VMW_DATASTORE=${VMW_DATASTORE:-$VMW_DATASTORE_DEFAULT}
 #FUNCEND###############################################################
 function ctysVMWS2ListVmInventory () {
     printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
-    cat ${VMW_INVENTORY}|\
+[ -r "${VMW_INVENTORY}" ]&&cat ${VMW_INVENTORY}|\
 awk '
   BEGIN{
     e=0;
@@ -207,7 +207,7 @@ function ctysVMWS2FetchRemoteVMWPath4ObjID () {
 function ctysVMWS2ListDatastores () {
     printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
     printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:VMW_DATASTORE=<$VMW_DATASTORE>"
-    cat ${VMW_DATASTORE}|\
+[ -r "${VMW_DATASTORE}" ]&&cat ${VMW_DATASTORE}|\
 sed -n '/<LocalDatastores>/,/<\/LocalDatastores>/p'|\
 awk -v d=${DBG} -v dx=${D_MAINT} '
 function ptrace(inp){

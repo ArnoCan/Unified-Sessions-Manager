@@ -6,11 +6,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a11
+#VERSION:      01_06_001a11alpha
 #
 ########################################################################
 #
-# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 

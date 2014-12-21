@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_006alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_RDP_SESSION="${BASH_SOURCE}"
-_myPKGVERS_RDP_SESSION="01.11.005"
+_myPKGVERS_RDP_SESSION="01.11.006alpha"
 hookInfoAdd $_myPKGNAME_RDP_SESSION $_myPKGVERS_RDP_SESSION
 _myPKGBASE_RDP_SESSION="`dirname ${_myPKGNAME_RDP_SESSION}`"
 
@@ -36,24 +36,6 @@ _myPKGBASE_RDP_SESSION="`dirname ${_myPKGNAME_RDP_SESSION}`"
 #  attachhed. This port is forseen to be used in port-forwarding e.g.
 #  by OpenSSH.
 #
-#  The port is the local port number, gwhich in general has to be mapped 
-#  on remote site, when already in use. Therefore the application has
-#  to provide a port-number-independent client access protocol in order 
-#  to be used by connection forwarding. In any other case display 
-#  forwarding has to be choosen.
-#
-#  Some applications support only one port for access by multiple 
-#  sessions, dispatching and bundling the communications channels
-#  by their own protocol. 
-#
-#  While others require for each channel a seperate litenning port.
-#
-#  So it is up to the specific package to support a function returning 
-#  the required port number gwhich could be used to attach an forwarded 
-#  port. 
-#  
-#  The applications client has to support a remapped port number.
-#
 #EXAMPLE:
 #
 #PARAMETERS:
@@ -61,9 +43,6 @@ _myPKGBASE_RDP_SESSION="`dirname ${_myPKGNAME_RDP_SESSION}`"
 #    The <label> to gwhich the client will be attached.
 #
 #GLOBALS:
-#  VBASEPORT
-#    The baseport for calculations of RDP display number, gwhich is 
-#    5900. This will be used to calculate the client TP.
 #
 #OUTPUT:
 #  RETURN:
@@ -135,64 +114,7 @@ function startSessionRDP () {
 	    printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Reuse ambigious label:${_name}"
 	fi
     fi
-
-#     #prepare server-opts, particulary servers display resolution.
-#     local CURSES=""
-#     local _serveropt="-name ${_name} ${RDPSERVER_OPT}"
-#     if [ -n "${C_REMOTERESOLUTION}" ];then
-#         #use explicityl given
-# 	printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "C_REMOTERESOLUTION=${C_REMOTERESOLUTION}"
-# 	local _servergeo=${C_REMOTERESOLUTION}
-# 	_serveropt=`echo ${_serveropt}|sed 's/-geometry [0-9]*x[0-9x]*//g'`
-# 	printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "_servergeo=${_servergeo}"
-
-#     else
-# 	if [ -n "${C_GEOMETRY}" ];then
-#             #use same as given for client
-# 	    printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "C_GEOMETRY=${C_GEOMETRY}"
-# 	    local _servergeo=`echo ${C_GEOMETRY}|sed -n 's/+.*$//;s/[^0-9]*\([0-9x]*\).*$/\1/gp'`
-# 	    _serveropt=`echo ${_serveropt}|sed 's/-geometry [0-9]*x[0-9x]*//g'`
-# 	    printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "_servergeo=${_servergeo}"
-# 	fi
-#     fi
-#     _serveropt="${_serveropt}  ${_servergeo:+ -geometry $_servergeo} "
-
     local _vieweropt="${RDPC_OPT} ${C_GEOMETRY:+ -g $C_GEOMETRY} "
-
-#     if [ -z "${C_NOEXEC}" ];then
-# 	if [ "${C_CLIENTLOCATION}" !=  "-L CONNECTIONFORWARDING" ];then
-# 	    SERVER="${RDPSERVER} ${C_DARGS} ${_serveropt} "
-# 	    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "SERVER=${SERVER}"
-# 	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-RDP:SERVER(${_label})" "${SERVER}"
-# 	    CURSES=`eval ${SERVER}`
-# 	    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "CURSES=${CURSES}"
-# 	    if [ -z "${CURSES}" -o -n "`echo ${CURSES}|sed 's/[0-9]*//g'`" ];then
-# 		ABORT=2
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Error when starting RDPSERVER:"
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  ${RDPSERVER} ${_serveropt}"
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  => CURSES=${CURSES}"
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "."
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "A common reason for this is an error for platform depency "
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "of default passwd file."
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "Call \"vncpasswd\" on the target machine and try creation "
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "of the session again."
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "This should already have be done anyhow."
-# 		printERR $LINENO $BASH_SOURCE ${ABORT} "."
-# 		gotoHell ${ABORT}
-# 	    else
-# 		printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "RDP:Current vncserver Xsession detected as successfull CURSES=<${CURSES}>"
-# 	    fi   
-
-# 	    cacheStoreWorkerPIDData SERVER RDP "${CURSES}" "${_name}" 0 "" 
-# 	    if [ $? -ne 0 ];then
-# 		printERR $LINENO $BASH_SOURCE 2 "$FUNCNAME:RDP:Failed to store runtime JobData for SERVER:\"${_name}\""
-# 		printERR $LINENO $BASH_SOURCE 2 "$FUNCNAME:RDP: =>Continue for now, but further actions may be required!"
-# 	    fi
-# 	fi
-#     else
-#         #Dummy-value for display only
-# 	CURSES=9999999
-#     fi
     printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "CURSES=$CURSES"
     printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=<$C_CLIENTLOCATION>"
     printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "CALLERJOB=<$CALLERJOB>"
@@ -333,7 +255,12 @@ function connectSessionRDP () {
 	    ;;
     esac
 
-    [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
+    if [ -z "${C_NOEXEC}" ];then
+	eval ${CALLER}&
+	if [ "${C_ASYNC}" == 0 ];then
+ 	    wait
+	fi
+    fi
     return
 }
 
