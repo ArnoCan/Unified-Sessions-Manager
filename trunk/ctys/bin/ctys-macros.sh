@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_008
 #DESCRIPTION:
 #  See manual.
 #
@@ -474,8 +474,8 @@ fi
 
 if [ -z "$_atom" -a -z "$_combined" -a -z "$_mfiles" ];then
     _mfiles=1;
-    _atom=1;
-    _combined=1;
+#    _atom=1;
+#    _combined=1;
 fi
 
 #set for later list "-l"
@@ -632,9 +632,9 @@ function listFormatMultiple () {
 
 if [ "$_dirtree" == "1" -o "$_filetree" == "1" ];then
     if [ "$_dirtree" == "1" ];then
-	echo "----------------------------------------"
+	echo "---------------------------------------------------------"
 	echo "List of Macros Directroy Trees:"
-	echo "----------------------------------------"
+	echo "---------------------------------------------------------"
 
 echo "_mySearchPath=${_mySearchPath}"
 #echo "_mySearchPath=${_mySearchPath}"
@@ -658,9 +658,9 @@ echo "_mySearchPath=${_mySearchPath}"
     fi
 
     if [ "$_filetree" == "1" ];then
-	echo "----------------------------------------"
+	echo "---------------------------------------------------------"
 	echo "List of Macros File Trees:"
-	echo "----------------------------------------"
+	echo "---------------------------------------------------------"
 	for j in ${argLst//\%/ };do
 	    for i in ${_mySearchPath//:/ };do
 		if [ -e "$i/$j" ];then
@@ -675,37 +675,59 @@ fi
 
 
 if [ -n "$_mfiles" ];then
-    echo 
-    echo "#################################################################"
-    echo "available files - Standalone Macro Files"
-    echo "#################################################################"
+    if [ -z "$C_TERSE" ];then
+	echo 
+	echo "---------------------------------------------------------"
+	echo "available files - Standalone Macro Files"
+	echo "---------------------------------------------------------"
+
+	echo
+	echo "Current macros files of:"
+	echo
+	splitPath 20 "SearchPath" "${_mySearchPath}"
+	echo
+	echo
+    fi
+
     for i in ${_mySearchPath//:/ };do
-	echo "$i:"
+	if [ -z "$C_TERSE" ];then
+	    echo "$i:"
+	fi
 	if [ -d "${i}" ];then
 	    for fx in ${i}/*;do
-		echo " ->${fx##*/}"
+		if [ -z "$C_TERSE" ];then
+		    echo " ->${fx##*/}"
+		else
+		    echo "${fx##*/}"
+		fi
 	    done
 	fi
+	if [ -z "$C_TERSE" ];then
+	    echo
+	fi
     done
-
 fi
 
 
 if [ -n "$_atom" -o -n "$_combined" ];then
-    echo "#################################################################"
-    echo "current selected file:"
-    echo " => ${_myFilePath}"
-    echo "#################################################################"
+    if [ -z "$C_TERSE" ];then
+	echo "---------------------------------------------------------"
+	echo "current selected file:"
+	echo " => ${_myFilePath}"
+	echo "---------------------------------------------------------"
+    fi
 fi
 
 
 
 
 if [ -n "$_atom" ];then
-    echo 
-    echo "---------------------------------------------------------"
-    echo "atoms - Single Level"
-    echo "---------------------------------------------------------"
+    if [ -z "$C_TERSE" ];then
+	echo 
+	echo "---------------------------------------------------------"
+	echo "atoms - Single Level"
+	echo "---------------------------------------------------------"
+    fi
     if [ -n "$_defines" -o  -n "$_expand" ];then
 	cat ${_myFilePath}|fetchMacroDefinesAtoms|sed 's/\(^[^=]*\)=/\1:/'|listFormatMultiple|sort
     else
@@ -717,10 +739,12 @@ fi
 
 
 if [ -n "$_combined" ];then
-    echo
-    echo "---------------------------------------------------------"
-    echo "combined - Nested Multiple Levels"
-    echo "---------------------------------------------------------"
+    if [ -z "$C_TERSE" ];then
+	echo
+	echo "---------------------------------------------------------"
+	echo "combined - Nested Multiple Levels"
+	echo "---------------------------------------------------------"
+    fi
     if [ -n "$_expand" ];then
 	ALL=`cat ${_myFilePath}|fetchMacros`
 	for i in $ALL;do echo "${i%%:*}:`replaceMacro macro:${i%%:*}%${_myFilePath}`"; done\
@@ -732,5 +756,10 @@ if [ -n "$_combined" ];then
 	    ALL=`cat ${_myFilePath}|fetchMacros`
 	    for i in $ALL;do echo $i; done |listFormatMultiple|sed 's/} *$//;'|sort
 	fi
+    fi|\
+    if [ -z "$C_TERSE" ];then
+        cat
+    else
+        sed 's/ *=/=/g'
     fi
 fi

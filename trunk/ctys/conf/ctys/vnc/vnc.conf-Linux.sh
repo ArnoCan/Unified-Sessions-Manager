@@ -8,17 +8,17 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 ########################################################################
 #
-#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -55,6 +55,25 @@ VNCPORTSEED=10;
 #
 case ${MYDIST} in
     CentOS)
+	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
+	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
+	[ -z "$VNCPEXE" ]&&VNCPEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncpasswd /usr/bin`
+
+        #vncviewer - passed through by wrapper
+	VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-$VNCVEXE}
+	VNCVIEWER_OPT_RealVNC4="   -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	VNCVIEWER_OPT_RealVNC="    -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
+	VNCVIEWER_OPT_TightVNC="   -encodings         hextile  -truecolour  -shared "
+	VNCVIEWER_OPT_GENERIC=""
+
+        #vncserver - passed through by wrapper
+	VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-$VNCSEXE}
+	VNCSERVER_OPT_RealVNC4="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	VNCSERVER_OPT_RealVNC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
+	VNCSERVER_OPT_TightVNC="   -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	VNCSERVER_OPT_GENERIC="    -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
+	;;
+    EnterpriseLinux)
 	[ -z "$VNCVEXE" ]&&VNCVEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncviewer /usr/bin`
 	[ -z "$VNCSEXE" ]&&VNCSEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncserver /usr/bin`
 	[ -z "$VNCPEXE" ]&&VNCPEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vncpasswd /usr/bin`

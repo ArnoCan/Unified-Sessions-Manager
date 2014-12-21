@@ -7,16 +7,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b01alpha
+#VERSION:      01_11_008alpha
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VBOX_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_VBOX_CANCEL="01.07.001b01alpha"
+_myPKGVERS_VBOX_CANCEL="01.11.008alpha"
 hookInfoAdd $_myPKGNAME_VBOX_CANCEL $_myPKGVERS_VBOX_CANCEL
 
 
@@ -41,11 +41,6 @@ hookInfoAdd $_myPKGNAME_VBOX_CANCEL $_myPKGVERS_VBOX_CANCEL
 #
 #FUNCEND###############################################################
 function cutCancelSessionVBOX () {
-    printWNG 0 $LINENO $BASH_SOURCE ${ABORT} "#############################"
-    printWNG 0 $LINENO $BASH_SOURCE ${ABORT} "#CANCEL not yet implemented.#"
-    printWNG 0 $LINENO $BASH_SOURCE ${ABORT} "#############################"
-    return
-
     local OPMODE=$1;shift
     local ACTION=$1;shift
 

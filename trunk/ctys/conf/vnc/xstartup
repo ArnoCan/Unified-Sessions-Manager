@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -38,7 +38,6 @@
 
 CUROS=`${HOME}/bin/getCurOS.sh`
 CURDIST=`${HOME}/bin/getCurDistribution.sh`
-
 
 ########################################################################
 #Addons
@@ -101,21 +100,17 @@ function defaultWM () {
 	    fvwm &
 	    ;;
 	SunOS)
-	    case "${CUROS}" in
-		SunOS)
- 		    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
- 		    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
-		    xsetroot -solid grey
-		    /usr/dt/bin/dtwm&
-		    ;;
-		*OpenSolaris)
-		    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
-		    xsetroot -solid grey
-		    vncconfig -iconic &
-		    xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
-		    gnome-session &
-		    ;;
-	    esac
+ 	    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+ 	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	    xsetroot -solid grey
+	    /usr/dt/bin/dtwm&
+	    ;;
+	*OpenSolaris)
+	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	    xsetroot -solid grey
+	    vncconfig -iconic &
+	    xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+	    gnome-session &
 	    ;;
 	Ubuntu)
 	    unset SESSION_MANAGER
@@ -276,16 +271,12 @@ case "${VNCWM}" in
 
 		gnome-session &
 		;;
-	    SunOS)
-		case "${CUROS}" in
-		    *OpenSolaris)
-			[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
-			xsetroot -solid grey
-			vncconfig -iconic &
-			xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
-			gnome-session &
-			;;
-		esac
+	    *OpenSolaris)
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		vncconfig -iconic &
+		xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+		gnome-session &
 		;;
 	    *)
 		defaultWM

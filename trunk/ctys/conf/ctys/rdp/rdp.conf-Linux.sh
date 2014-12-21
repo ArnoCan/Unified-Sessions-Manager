@@ -64,6 +64,8 @@ case ${MYDIST} in
 # 	RDPTSC_OPT_GENERIC=""
 	;;
 
+#     EnterpriseLinux)
+# 	;;
 #     Scientific)
 # 	;;
 #     Fedora)

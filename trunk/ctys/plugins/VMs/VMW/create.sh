@@ -1005,6 +1005,8 @@ function createConnectVMW () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
+#4TEST:01_11_008
+		_VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
 
 		case ${C_NSCACHELOCATE} in
 		    0)#off

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -160,6 +160,27 @@ if [ -n "$C_EXECLOCAL" ];then
 
     case ${MYDIST} in
 	CentOS)
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    [ -z "$CTYS_NETCAT" ]&&CTYS_NETCAT=`getPathName $LINENO $BASH_SOURCE WARNING nc /usr/bin`
+	    [ -z "$CTYS_LSOF" ]&&CTYS_LSOF=`getPathName $LINENO $BASH_SOURCE WARNING lsof /usr/sbin`
+
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/local/bin`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/bin`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /usr/libexec`
+	    [ -z "$QEMUKVM" ]&&QEMUKVM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT qemu-kvm /opt/qemu/bin`
+
+
+            #
+            #To be set when required, the actual path may vary.
+            #
+            #Sets the virtual switch for interconnection of QEMU-VMs with the
+            #external NIC of current container, which could be VM itself.
+	    #QEMUBIOS=${QEMUBIOS:-/usr/share/kvm}
+	    ;;
+
+	EnterpriseLinux)
 	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
 	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
 	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`

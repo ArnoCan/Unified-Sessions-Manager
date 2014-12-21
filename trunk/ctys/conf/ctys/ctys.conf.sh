@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b01
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -329,7 +329,7 @@ CTYS_MAXRECURSEBASECALLS=${CTYS_MAXRECURSEBASECALLS:-200};
 #If not, sometimes the client tries to attach too fast, before the server is ready.
 #This leads to immediate termination of the client only with "BadAccess" Error, an 
 #following connect will succeed. 
-VNCVIEWER_DELAY=${VNCVIEWER_DELAY:-3}
+VNCVIEWER_DELAY=${VNCVIEWER_DELAY:-4}
 
 #######wrapper for vncviewer
 VNCVIEWER="${MYLIBEXECPATH}/ctys-callVncviewer.sh "
@@ -568,6 +568,24 @@ fi
 
 
 
+#################################################################
+#
+#Scripts
+#
+
+#
+#The storage for pre-configured access-groups
+#
+CTYS_SCRIPT_TMPPATH=${CTYS_SCRIPT_TMPPATH:-$MYTMP/scripts} 
+if [ -z "${CTYS_SCRIPT_PATH}" ];then
+    CTYS_SCRIPT_PATH="${CTYS_SCRIPT_PATH}:${HOME}/.ctys/scripts"
+    CTYS_SCRIPT_PATH="${CTYS_SCRIPT_PATH}:${MYCONFPATH}/scripts"
+    CTYS_SCRIPT_PATH="${CTYS_SCRIPT_PATH}:${CTYS_SCRIPT_TMPPATH}"
+    CTYS_SCRIPT_PATH="${CTYS_SCRIPT_PATH}:${CTYS_PRIVATE}/tst/scripts"
+fi
+
+
+
 
 #################################################################
 #
@@ -712,3 +730,9 @@ NET_WAIT_BOND_WORKAROUND=${NET_WAIT_BOND_WORKAROUND:-8}
 NET_PORTRANGE_MIN=20000
 NET_PORTRANGE_MAX=21000
 NET_PORTSEED=100
+
+
+#
+#Number of cincurrent execution of scanning by ctys-vdbgen on remote targets.
+#
+CTYS_VDBGEN_PARTARGETS=${CTYS_VDBGEN_PARTARGETS:-10}

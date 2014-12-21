@@ -24,6 +24,7 @@ ctys-vping
    [--ssh-trials=<#count>]
    [--ssh-timeout=<#secs-delay-for-next>]
    [-t]
+   [--threads=<#max-threads-count>]
    [-V]
    [-X]
    <group/machine-address>

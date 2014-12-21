@@ -873,6 +873,7 @@ if [ -z "${_ARGS}" ];then
               $5~/VMW_WS6/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="W6";next;}
               $5~/VMW_WS7/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="W7";next;}
               $5~/VMW_W/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="W";next;}
+              $5~/VMW_RC/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw="C2";next;}
               $2~/VMW/&&$6~/ENABLED/{vmw=acc;if(vmw~/^$/)vmw=V;next;}
 
               $2~/XEN/&&$6~/ENABLED/{xen=acc;if(xen~/^$/)xen=V;next;}

@@ -27,9 +27,18 @@ case $CUROS in
   Linux) 
         #Tested for:CentOS 5
         #Tested for:Scientific Linux 5
-        #Tested for:Fedore 8
+        #Tested for:Fedora 8
 	if [ -z "$CURDIST" -a -f /etc/redhat-release ];then
 	    CURDIST=`cat /etc/redhat-release|head -n 1|awk '{print $1;}'`
+	fi
+
+	#Tested for Oracle-Entreprise Linux 5
+	if [ -n "$CURDIST" -a  "$CURDIST" == Red ];then
+	    if [ -f /etc/redhat-release ];then
+		CURDIST=`cat /etc/redhat-release|head -n 1|awk '{print $3""$4;}'`
+	    else
+		CURDIST=""
+	    fi
 	fi
 
         #Tested for:SuSE 9.3+10.3

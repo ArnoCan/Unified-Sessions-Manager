@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_008alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_RDP_SESSION="${BASH_SOURCE}"
-_myPKGVERS_RDP_SESSION="01.11.006alpha"
+_myPKGVERS_RDP_SESSION="01.11.008alpha"
 hookInfoAdd $_myPKGNAME_RDP_SESSION $_myPKGVERS_RDP_SESSION
 _myPKGBASE_RDP_SESSION="`dirname ${_myPKGNAME_RDP_SESSION}`"
 
@@ -74,93 +74,6 @@ function getClientTPRDP () {
     
     printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=$_port"
     echo ${_ret}
-}
-
-
-#FUNCBEG###############################################################
-#NAME:
-#  startSessionRDP
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#  $1: label
-#
-#OUTPUT:
-#  RETURN:
-#
-#  VALUES:
-#
-#FUNCEND###############################################################
-function startSessionRDP () {
-    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
-    local _name=${1:-DEFAULT-`date +%y%m%d%H%M%S`}
-    printDBG $S_RDP ${D_UI} $LINENO $BASH_SOURCE "${RDPSERVER} <session-label>:${_name}"
-    checkUniqueness4Label ${_name};
-    if [ $? -eq 0 ];then
-	local _unique=1
-    else
-	if [ -z "${C_ALLOWAMBIGIOUS}" ];then
-	    ABORT=2
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Ambigious <session-label>:${_name}"
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:RDP is as default in \"shared\" mode, use \"-A\" if required."
-	    gotoHell ${ABORT}
-	else 
-	    printWNG 1 $LINENO $BASH_SOURCE ${RET} "${FUNCNAME}:Reuse ambigious label:${_name}"
-	fi
-    fi
-    local _vieweropt="${RDPC_OPT} ${C_GEOMETRY:+ -g $C_GEOMETRY} "
-    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "CURSES=$CURSES"
-    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=<$C_CLIENTLOCATION>"
-    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "CALLERJOB=<$CALLERJOB>"
-    printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "JOB_IDXSUB=<$JOB_IDXSUB>"
-    if [ "${C_CLIENTLOCATION}" !=  "-L SERVERONLY" ];then
-	local CALLER=;
-	CALLER="export C_ASYNC=${C_ASYNC}&&${RDPC}  "
-#	CALLER="${CALLER} ${C_DARGS} "
-	CALLER="${CALLER} -T \"${_name}:${CURSES}\" "
-	CALLER="${CALLER} ${_vieweropt} localhost:${CURSES} "
-
-	printDBG $S_RDP ${D_MAINT} $LINENO $BASH_SOURCE "${C_NOEXEC:-CALL:}${CALLER}"
-        #don't exec here, it could be one of a set!
-	printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "WAITS=${WAITS}"
-	printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:vncserver(${_label},WAITS)" "sleep ${WAITS}"
-	printFINALCALL $LINENO $BASH_SOURCE "FINAL-RDP-CONSOLE:STARTER(${_label})" "${CALLER}"
-	if [ -z "${C_NOEXEC}" ];then
-
-	    if [ -n "${C_DISPLAY}" ];then
-		DISPLAY=":${C_DISPLAY}";
-		export DISPLAY;
-	    fi
-	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-RDP-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
-
-	    case ${C_DISPLAY// /} in
-		*[a-z][A-Z]*)
-		    export DISPLAY=":$(C_SESSIONTYPE=ALL fetchDisplay4Label ALL ${C_DISPLAY})";
-		    ;;
-		'')
-		    ;;
-		*)
-		    export DISPLAY=":${C_DISPLAY}";
-		    ;;
-	    esac
-	    eval ${CALLER} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
-	    sleep ${WAITS:-1}
- 	    cacheStoreWorkerPIDData CLIENT RDP "${CURSES}" "${_name}" 0 "" 
-	    if [ $? -ne 0 ];then
-		printWNG 1 $LINENO $BASH_SOURCE 0  "$FUNCNAME:RDP:Failed to store runtime JobData for CLIENT:\"${_name}\""
-		printWNG 1 $LINENO $BASH_SOURCE 0  "$FUNCNAME:RDP: =>Restart of CLIENT should be sufficient."
-	    fi
-	    if [ "${C_ASYNC}" == 0 ];then
-		wait
-	    fi
-	fi
-    fi
 }
 
 
@@ -255,12 +168,7 @@ function connectSessionRDP () {
 	    ;;
     esac
 
-    if [ -z "${C_NOEXEC}" ];then
-	eval ${CALLER}&
-	if [ "${C_ASYNC}" == 0 ];then
- 	    wait
-	fi
-    fi
+    [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
     return
 }
 

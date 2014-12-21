@@ -107,7 +107,8 @@ PKILL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT pkill /usr/bin`
 #WMCTRL
 #Required for desktop/workspace switching, has to be installed manually and be present 
 #on DISPLAY target machines only.
-CTYS_WMCTRL=${CTYS_WMCTRL:-wmctrl}
+[ -z "$CTYS_WMCTRL" ]&&CTYS_WMCTRL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT wmctrl /usr/bin`
+#CTYS_WMCTRL=${CTYS_WMCTRL:-wmctrl}
 
 
 

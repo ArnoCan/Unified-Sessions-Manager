@@ -20,5 +20,6 @@
 #
 #FUNCEND###############################################################
 
-uname -m|sed 's/ //'|tr '\n' ' '
-
+#avoid errors on OpenSolaris
+xarch=$(uname -m|tr '\n' ' ')
+echo -n -e ${xarch// /}

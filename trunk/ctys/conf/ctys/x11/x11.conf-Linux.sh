@@ -8,17 +8,17 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_09_001
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 ########################################################################
 #
-#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -47,6 +47,19 @@ printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 
 case ${MYDIST} in
     CentOS)
+	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
+	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
+	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`
+	[ -z "$X11KDMEXE" ]&&X11KDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kdm /usr/bin`
+	[ -z "$X11FVWMEXE" ]&&X11FVWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT fvwm /usr/bin`
+	[ -z "$X11XFCE4EXE" ]&&X11XFCE4EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT startxfce4 /usr/bin`
+	[ -z "$X11XFCE4SESEXE" ]&&X11XFCE4SESEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xfce4-session /usr/bin`
+
+	[ -z "$X11XTERMEXE" ]&&X11XTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xterm /usr/bin`
+	[ -z "$X11GTERMEXE" ]&&X11GTERMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+	[ -z "$X11EMACXEXE" ]&&X11EMACXEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+	;;
+    EnterpriseLinux)
 	[ -z "$X11EXE" ]&&X11EXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT X /usr/bin`
 	[ -z "$X11GDMEXE" ]&&X11GDMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gdm /usr/bin`
 	[ -z "$X11MWMEXE" ]&&X11MWMEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT mwm /usr/bin`

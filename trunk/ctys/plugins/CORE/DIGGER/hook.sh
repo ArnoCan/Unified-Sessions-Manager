@@ -481,3 +481,62 @@ function digGetSSHTarget () {
     fi
     return 1
 }
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  digGetSSHUser
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns the target user of a ssh-call, if not matched current $USER 
+#  is provided.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: matched
+#    1: else
+#  VALUES:
+#    [<exec-target>]
+#       If present, the variants of "localhost" are treated as fully 
+#       recognized remote machines here.
+#
+#FUNCEND###############################################################
+function digGetSSHUser () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
+    local _x="${@}"
+
+    if [ -z "$_x" ];then
+	return 1
+    fi
+
+    _x=${_x#*ssh };
+    if [ "${*}" != "${_x}" ];then
+	local _x1=${_x%%@*}
+	if [ "${_x1}" != "${_x}" ];then
+	    _x1=${_x1##* }
+	    echo -n -e "${_x1}"
+	    return 0
+	fi
+    fi
+
+    #not yet tested
+    if [ "${_x// -l /}" != "${_x}" ];then
+	_x=${_x#* -l }
+	_x=${_x%% *}
+	echo -n -e "${_x}"
+	return 0
+    fi
+
+    return 1
+}
+
+

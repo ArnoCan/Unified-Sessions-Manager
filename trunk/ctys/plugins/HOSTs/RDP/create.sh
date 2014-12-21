@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_008alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_RDP_CREATE="${BASH_SOURCE}"
-_myPKGVERS_RDP_CREATE="01.11.006alpha"
+_myPKGVERS_RDP_CREATE="01.11.008alpha"
 hookInfoAdd $_myPKGNAME_RDP_CREATE $_myPKGVERS_RDP_CREATE
 _myPKGBASE_RDP_CREATE="`dirname ${_myPKGNAME_RDP_CREATE}`"
 
@@ -55,6 +55,7 @@ function createConnectRDP () {
     local ARG;
 
     unset _VNATIVE;
+    local _console=RDESKTOP;
 
     case ${OPMODE} in
         CHECKPARAM)
@@ -124,7 +125,7 @@ function createConnectRDP () {
  				gotoHell ${ABORT}
 				;;				  
 			esac
-			local _console=$_conty;
+			_console=$_conty;
 			printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "CONSOLE=${ARG}"
 			;;
 
@@ -206,7 +207,6 @@ function createConnectRDP () {
          #########
 
                     L|LABEL)
-#			_LABEL="${_LABEL} ${ARG}";
 			_LABEL="${ARG}";
 			;;
 
@@ -247,7 +247,7 @@ function createConnectRDP () {
  				gotoHell ${ABORT}
 				;;				  
 			esac
-			local _console=$_conty;
+			_console=$_conty;
 			printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "CONSOLE=${ARG}"
 			;;
 
@@ -342,9 +342,6 @@ function createConnectRDP () {
 			printERR $LINENO $BASH_SOURCE ${ABORT} "- No access permissions, check for process ownership"
 			gotoHell ${ABORT}
 		    fi
-
-#  		    printDBG $S_RDP ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
-# 		    startSessionRDP "${i}"
 		else
                     #
                     #So, this is executed on the client site, different from server site,
@@ -383,9 +380,6 @@ function createConnectRDP () {
                     #kill of clients closes tunnel, gwhich is due to security reasons in "one-shot-mode"
 		    if [ -n "${_reconnect}" -o -n "${_connect}" -o -n "${_IDx}" ];then
  			connectSessionRDP "${_IDx}" "${i}"
-# 		    else
-# 			printWNG 2 $LINENO $BASH_SOURCE 0 "Create a new tunnel in \"one-shot-mode\" again."
-# 			startSessionRDP "${i}"
 		    fi			    
 		fi
 	    fi

@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_018
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_GENERIC_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_GENERIC_ENUMERATE="01.10.013"
+_myPKGVERS_GENERIC_ENUMERATE="01.11.008"
 hookInfoAdd "$_myPKGNAME_GENERIC_ENUMERATE" "$_myPKGVERS_GENERIC_ENUMERATE"
 _myPKGBASE_GENERIC_ENUMERATE="`dirname ${_myPKGNAME_GENERIC_ENUMERATE}`"
 
@@ -25,7 +25,7 @@ _titleENUM=;
 _machineENUM=;
 
 #NF of internal record-if
-C_ENUMNF=43;
+C_ENUMNF=45;
 #
 #This is the currently processed ENUMERATE configuration, gwhich
 #has been detected as valid.
@@ -148,7 +148,9 @@ function enumerateMySessions () {
 
   #could be ACTIVATEd on the fly, e.g. VBOX/VMW
   local _mstat='ACTIVE|DISABLED|^$'; #ACTIVE|DISABLED|EMPTY
-#  _mstat=;
+
+  #scans actually executable only by default.
+  local _chkEnabled=1;
 
   local _prologue=0;
   local _epilogue=0;
@@ -177,6 +179,9 @@ function enumerateMySessions () {
 
   local _tcp=0;
   local _dns=0;
+
+  local _uid=0;
+  local _gid=0;
 
   local _base=;
   local _tab=;
@@ -248,7 +253,7 @@ function enumerateMySessions () {
       printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-machine-${_ssumtime}--"
       for y in ${PACKAGES_KNOWNTYPES};do
 	  [ "$y" == "CLI" -o "$y" == "X11" -o "$y" == "RDP" -o "$y" == "VNC" ]&&continue;
-	  if [ -n "`typeset -f enumerateMySessions${y}`" ];then
+ 	  if [ -n "`typeset -f enumerateMySessions${y}`" ];then
 	      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE} => ${y}"
 	      if [ "${C_SESSIONTYPE}" == "${y}" -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == "DEFAULT" ];then
 
@@ -267,9 +272,15 @@ function enumerateMySessions () {
 		      fi
 		  fi
 		  local _stime=`getCurTime`;
-		  printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-${y}-${_stime}--"
 		  _matched=1;
 
+		  local _curServer=`eval echo \\\${${y}_SERVER}`
+ 		  if [ -n "$_chkEnabled" -a "$_curServer" != ENABLED ];then
+		      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "IGNORED:\"${_pkg}\"!=\"${y}\""
+		      continue;
+		  fi
+
+		  printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-${y}-${_stime}--"
 		  if [ -n "$_base" ];then
 		      SESLST="${SESLST} `enumerateMySessions${y} \"${_base}\"`"
 		  else
@@ -344,6 +355,7 @@ function enumerateMySessions () {
           -v distrel="$_distrel" -v osrel="$_osrel" -v sport="$_SPORT" \
           -v cat="$_cat" -v l=$_L -v i=$_ID -v t=$_T -v uu=$_UU  \
 	  -v mac=$_MAC  -v dsp=$_VDSP -v cp=$_VCP  \
+	  -v uid=$_uid  -v gid=$_gid \
 	  -v h=$MYHOST -v tcp=$_tcp -v dns=$_dns \
 	  -v enumnf=$C_ENUMNF \
 	  -v d=$D  -v dargs="${C_DARGS}" -v callp="${MYLIBEXECPATH}/" \
@@ -368,6 +380,9 @@ function enumerateMySessions () {
 	  VMSTATE|VSTAT)    _vmstate=1;;
 	  STACKCAP|SCAP)    _stackcap=1;;
 	  STACKREQ|SREQ)    _stackreq=1;;
+
+          USERID|UID)       _uid=1;;
+          GROUPID|GID)      _gid=1;;
 
 	  ARCH)             _arch=1;;
 	  PLATFORM|PFORM)   _platform=1;;
@@ -447,7 +462,7 @@ function enumerateMySessions () {
 				   break;
 				   ;;
 			       [aA][lL][lL])
-				   _mstat=".|^$";
+				   _chkEnabled=;
 				   break;
 				   ;;
 			       [eE][mM][pP][tT][yY])
@@ -455,6 +470,13 @@ function enumerateMySessions () {
 				   ;;
 			       [aA][cC][tT][iI][vV][eE])
 				   _mstat="${_mstat}|ACTIVE";
+				   ;;
+			       [iI][gG][nN][oO][rR][eE])
+				   _mstat="${_mstat}|IGNORE";
+				   ;;
+			       [eE][nN][aA][bB][lL][eE][dD])
+				   _mstat="${_mstat}|ACTIVE";
+				   _chkEnabled=1;
 				   ;;
 			       [dD][iI][sS][aA][bB][lL][eE][dD])
 				   _mstat="${_mstat}|DISABLED";
@@ -611,6 +633,8 @@ function enumerateMySessions () {
       _exep=1;
       _hrx=1;
       _acc=1;
+      _uid=1;
+      _gid=1;
   fi
 
   if((_none==1));then
@@ -655,6 +679,8 @@ function enumerateMySessions () {
       _exep=0;
       _hrx=0;
       _acc=0;
+      _uid=0;
+      _gid=0;
   fi
 
   if((_maxkey==1));then
@@ -681,6 +707,7 @@ function enumerateMySessions () {
       _sshport=1; _hwcap=1; _hwreq=1; _execloc=1; _reloccap=1;
       _netname=1; _ifname=1; _ctysrel=1; _netmask=1; _gateway=1;
       _relay=1; _exep=1; _hrx=1; _acc=1;
+      _uid=1; _gid=1;
 
       _reserv1=1; _reserv2=1; _reserv3=1; _reserv4=1; _reserv5=1; _reserv6=1; 
       _reserv7=1; _reserv8=1; _reserv9=1; _reserv10=1; _reserv11=1; 
@@ -688,7 +715,7 @@ function enumerateMySessions () {
   fi
 
   #set content default
-  if((_SPORT+_VCP+_VB+_VDSP+_L+_ID+_UU+_MAC+_T+_dist+_distrel+_os+_osrel+_ver+_ser+_cat+_IP+_vmstate+_hyperrel+_stackcap+_stackreq+_arch+_platform+_vram+_vcpu+_contextstrg+_userstr+_sshport+hwcap+hwreq+execloc+reloccap+netname+ifname+ctysrel+netmask+gateway+relay+_exep+_acc+_hrx));then
+  if((_SPORT+_VCP+_VB+_VDSP+_L+_ID+_UU+_MAC+_T+_dist+_distrel+_os+_osrel+_ver+_ser+_cat+_IP+_vmstate+_hyperrel+_stackcap+_stackreq+_arch+_platform+_vram+_vcpu+_contextstrg+_userstr+_sshport+hwcap+hwreq+execloc+reloccap+netname+ifname+ctysrel+netmask+gateway+relay+_exep+_acc+_hrx+_gid+_uid));then
       printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "Force of ID"
       _ID=1;
   fi
@@ -707,6 +734,7 @@ function enumerateMySessions () {
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "hwcap=$_hwcap hwreq=$_hwreq execloc=$_execloc"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "reloccap=$_reloccap netname=$_netname ifname=$_ifname"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "ctysrel=$_ctysrel netmask=$_netmask gateway=$_gateway"
+  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "uid=$_uid _gid=$_gid"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "relay=$_relay _exep=$_exep _acc=$_acc _hrx=$_hrx"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "mstat=$_mstat"
 
@@ -912,6 +940,9 @@ function enumerateCheckParam () {
             case $KEY in
 		PROLOGUE|EPILOGUE)_argsX1="${_argsX1},${KEY}";;
 
+                USERID|UID)_argsX1="${_argsX1},${KEY}";;
+                GROUPID|GID)_argsX1="${_argsX1},${KEY}";;
+
                 TITLE|TITLEIDXASC|TITLEIDX)_argsX1="${_argsX1},${KEY}";;
                 TERSE|MACHINE|MAXKEY)_argsX1="${_argsX1},${KEY}";;
                 SERVERACCESS|SPORT|S|VNCDISPLAY|DISP|VNCBASE|VNCPORT|CPORT)_argsX1="${_argsX1},${KEY}";;
@@ -941,7 +972,6 @@ function enumerateCheckParam () {
 
                 PKG)_argsX1="${_argsX1},${KEY}${ARG:+:$ARG}";;
                 TAB_GEN)_argsX1="${_argsX1},${KEY}${ARG:+:$ARG}";;
-
 
                 SPEC_GEN|SPEC)_argsX1="${_argsX1},${KEY}${ARG:+:$ARG}";;
                 REC_GEN|REC)_argsX1="${_argsX1},${KEY}${ARG:+:$ARG}";;

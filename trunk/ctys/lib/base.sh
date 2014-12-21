@@ -102,7 +102,6 @@ if [ -z "${MYMANPATH}" ];then
     esac
 fi
 
-
 MYDOCPATH=${MYDOCPATH:-$MYDOCBASE/$MYLANG}
 if [ ! -d "${MYDOCPATH}" ];then
     echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYDOCPATH=${MYDOCPATH}"
@@ -160,7 +159,6 @@ fi
 
 MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
 
-
 #The only compromise for bootstrap, calling it explicit 
 #from anywhere. 
 function baseRegisterLib () {
@@ -173,6 +171,7 @@ function baseRegisterLib () {
 MYLIBEXECPATH=${MYLIBEXECPATH:-`dirname $0`}
 
 MYHOST=`uname -n`
+
 
 #Basic OS info for variant decisions.
 MYOS=${MYOS:-`$MYLIBEXECPATH/getCurOS.sh`}

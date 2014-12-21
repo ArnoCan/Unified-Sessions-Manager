@@ -233,6 +233,7 @@ fi
 . ${MYLIBPATH}/lib/libManager.sh
 . ${MYLIBPATH}/lib/misc.sh
 . ${MYLIBPATH}/lib/network/network.sh
+. ${MYLIBPATH}/lib/security.sh
 
 
 #register libraries
@@ -439,15 +440,14 @@ if [ -z "$INITMODEONLY" ];then
     #Should be set in conf-file
     #
     STARTERCALL=${STARTERCALL:-$XEN}
-    STARTERCALL=${STARTERCALL:-xen-kvm}
     STARTERCALL=$(gwhich ${STARTERCALL})
     if [ $? -ne 0 ];then
 	ABORT=127
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:STARTERCALL=${STARTERCALL}"
 	gotoHell ${ABORT}
     fi
-
-
+    checkedSetSUaccess  "${BASH_SOURCE}" XENCALL XM info
+    STARTERCALL="${XENCALL} ${STARTERCALL}"
 
     #
     #Should be set in conf-file
@@ -605,6 +605,23 @@ fi
 #
 #Network
 #
+_XB=$XENBRDG
+XENBRDG=$(${MYLIBEXECPATH}/ctys-getNetInfo.sh -X --bcx=${XENBRDG})
+if [  -z "$XENBRDG" ];then
+    printWNG 1 $LINENO $BASH_SOURCE 1 "Configured bridge(${_XB}) is no Xen bridge, scan for others."
+    XENBRDG=$(${MYLIBEXECPATH}/ctys-getNetInfo.sh -X --blx)
+    if [ -n "${XENBRDG// /}" ];then
+	printWNG 1 $LINENO $BASH_SOURCE 1 "WARNING:Multiple Xen bridges(${XENBRDG})"
+	XENBRDG="${XENBRDG## }"
+	XENBRDG="${XENBRDG%% *}"
+	printWNG 1 $LINENO $BASH_SOURCE 1 "WARNING:Take the first(${XENBRDG})"
+    else
+	ABORT=127
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing bridge."
+#	gotoHell ${ABORT}
+    fi
+fi
+
 VIF=;
 if [ -n "${CLI_CONF}" ];then
     if [ "${ACCELERATOR}" == HVM ];then
@@ -624,6 +641,8 @@ if [ -n "${CLI_CONF}" ];then
     if [ -n "$VIF" ];then
 	EXECALL="${EXECALL} vif=\"[${VIF}]\""
     fi
+else
+    EXECALL="${EXECALL} ${XENBRDG:+ bridge=$XENBRDG}"
 fi
 #
 #Kernel from CLI has higher priority

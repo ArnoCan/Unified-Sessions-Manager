@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_07_001b01
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_CACHE="${BASH_SOURCE}"
-_myPKGVERS_CACHE="01.07.001b01"
+_myPKGVERS_CACHE="01.11.008"
 hookInfoAdd "$_myPKGNAME_CACHE" "$_myPKGVERS_CACHE"
 
 #
@@ -116,8 +116,6 @@ function cacheGetUniquePname () {
 	    ;;
     esac
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:exectarget=<${_exehost}>"
-
-
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:Nameservice is in cached mode"
     local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -C MACMAP -o IDS -p ${DBPATHLST} -s -M unique"
     printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=$_VHOST"
@@ -214,6 +212,75 @@ function cacheGetUniquePname () {
 }
 
 
+#FUNCBEG###############################################################
+#NAME:
+#  cacheGetActionUserFromCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This fuction requires the cacheDB mandatorily.
+#
+#EXAMPLE:
+#PARAMETERS:
+# $1:   Requested Component in accordance to <machine-address>
+#
+#        <user>@<host>                :USER
+#        -l <user>                    :USER
+#
+# $2:   Container address for location of data for requested VM.
+#       Current version supports TCP/IP addresses only, which will be matched literally 
+#       only as stored within the cacheDB.
+#       The following three variants are supported:
+#
+#       -> "FROMCALL"
+#          Extracts the execution target from the call.
+#          This results in MYHOST when executed locally, which has to be matched
+#          literally within the cacheDB.
+#
+# $3-*: <complete-call>
+#        Evaluates the plugins:
+#          QEMU,XEN,VMW,PM
+#        Replaces the suboptions for:
+#          CREATE, CANCEL
+#
+#
+#OUTPUT:
+#  RETURN:
+#  
+#  VALUES:
+#   <exec-user>
+#
+#FUNCEND###############################################################
+function cacheGetActionUserFromCall () {
+    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=<${@}>"
+    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:C_NSCACHELOCATE=${C_NSCACHELOCATE}"
+    local _myRequest=$1;shift
+    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:REQUEST=${_myRequest}"
+    local _origin=$1;shift
+    local _org=$*;
+
+    #################
+    #fetch host
+    #
+    local _exeuser=;
+    case "$_origin" in
+	FROMCALL)
+	    _exeuser=`digGetSSHUser ${_org}`
+	    if [ -z "${_exeuser}" ];then
+		_exeuser=${MYUID}
+	    fi
+	    ;;
+    esac
+
+    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_exeuser      =<${_exeuser}>"
+    if [ -z "${_exeuser}" ];then
+	_exeuser=$MYUID;
+    fi
+    echo -n -e ${_exeuser}
+}
+
 
 #FUNCBEG###############################################################
 #NAME:
@@ -295,6 +362,11 @@ function cacheGetMachineAddressFromCall () {
     local _exehost=$1;shift
     [ "$_exehost" == NONE ]&&_exehost=;
 
+    local _org="${*}"
+
+#4TEST:01_11_008
+    local _actionuser=$(cacheGetActionUserFromCall USER FROMCALL $_org)
+
     #################
     #fetch host
     #
@@ -344,7 +416,7 @@ function cacheGetMachineAddressFromCall () {
     fi
 
     case ${_exeplugin//\"} in
-	[vV][nN][cC]|[cC][lL][iI]|[xX]11)
+	[vV][nN][cC]|[cC][lL][iI]|[rR][dD][pP]|[xX]11)
 	    echo -n "$_org"
 	    return 1
 	    ;;
@@ -470,7 +542,9 @@ function cacheGetMachineAddressFromCall () {
 
  		local _klist="${_exehost} ${_exeplugin} ${_pname}  ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname}"
   		_klist="${_klist//\'}"
-		_pname=`cacheGetUniquePname "${_base}" ${_exehost:-NONE} "${_exeplugin}" ${_klist//\"}`
+#4TEST:01_11_008
+#		_pname=`cacheGetUniquePname "${_base}" ${_exehost:-NONE} "${_exeplugin}" ${_klist//\"}`
+		_pname=`cacheGetUniquePname "${_base}" ${_exehost:-NONE} "${_exeplugin}" ${_klist//\"}  ${_actionuser:+ F:44:$_actionuser}`
 		if [ $? -ne 0 ];then
 		    _ret=1;
 		    printERR $LINENO $BASH_SOURCE ${_ret} "$FUNCNAME:Cannot fetch unique pathname, analyse with "
@@ -499,11 +573,15 @@ function cacheGetMachineAddressFromCall () {
 	if [ -z "${_tcp}" ];then
 	    if [ -n "${_mac}" ];then
 		_VHOST="${_VHOST} ${C_DARGS} -C MACMAP  -o TCP ${_mac}"
+#4TEST:01_11_008
+		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
  		_tcp=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
 		_lret=$?;
 	    else
 		_VHOST="${_VHOST} ${C_DARGS} -o TCP E:28:1 ${_klist}"
+#4TEST:01_11_008
+		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
  		_tcp=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
 		_lret=$?;
@@ -523,11 +601,15 @@ function cacheGetMachineAddressFromCall () {
 	if [ -z "${_mac}" ];then
 	    if [ -n "${_tcp}" ];then
 		_VHOST="${_VHOST} ${C_DARGS} -o MAC E:28:1 ${_tcp}"
+#4TEST:01_11_008
+		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
  		_mac=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
 		_lret=$?;
 	    else
 		_VHOST="${_VHOST} ${C_DARGS} -o MAC E:28:1 ${_klist}"
+#4TEST:01_11_008
+		_VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 		printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
  		_mac=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
 		_lret=$?;
@@ -546,6 +628,8 @@ function cacheGetMachineAddressFromCall () {
 	local _lret=0;
 	if [ -z "${_uuid}" ];then
 	    _VHOST="${_VHOST} ${C_DARGS} -o UUID E:28:1 ${_klist}"
+#4TEST:01_11_008
+	    _VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
  	    _uuid=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
 	    _lret=$?;
@@ -563,6 +647,8 @@ function cacheGetMachineAddressFromCall () {
 	local _lret=0;
 	if [ -z "${_label}" ];then
 	    _VHOST="${_VHOST} ${C_DARGS} -o UUID E:28:1 ${_klist}"
+#4TEST:01_11_008
+	    _VHOST="${_VHOST} ${_actionuser:+ F:44:$_actionuser}"
 	    printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:_VHOST=<${_VHOST}>"
  	    _label=`callErrOutWrapper $LINENO $BASH_SOURCE ${_VHOST}`
 	    _lret=$?;
@@ -618,6 +704,7 @@ function cacheGetMachineAddressFromCall () {
 	    _rf=`_getPATHNAME`;  if [ -n "$_rf" ];then _resultBuf="${_resultBuf},P:${_rf}"; fi
 	    _rf=`_getFILENAME`;  if [ -n "$_rf" ];then _resultBuf="${_resultBuf},F:${_rf}"; fi
 	    _resultBuf="${_resultBuf#,}";
+
 	    if [ $_ret -eq 0 ];then
 		echo -n -e "${_resultBuf}"
 	    fi
@@ -719,7 +806,7 @@ function cacheReplaceCtysAddress () {
     fi
 
     case ${_exeplugin//\"} in
-	[vV][nN][cC]|[cC][lL][iI]|[xX]11)
+	[vV][nN][cC]|[cC][lL][iI]|[rR][dD][pP]|[xX]11)
 	    echo -n "$_org"
 	    return
 	    ;;

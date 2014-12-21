@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_11_008
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_QEMU_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_QEMU_ENUMERATE="01.10.008"
+_myPKGVERS_QEMU_ENUMERATE="01.11.008"
 hookInfoAdd $_myPKGNAME_QEMU_ENUMERATE $_myPKGVERS_QEMU_ENUMERATE
 _myPKGBASE_QEMU_ENUMERATE="`dirname ${_myPKGNAME_QEMU_ENUMERATE}`"
 
@@ -231,7 +231,8 @@ function enumerateMySessionsQEMU () {
 		_out3="${_out3};`getOSREL ${X}`";
 		_out3="${_out3};`getVERNO ${X}`";
 		_out3="${_out3};`getSERNO ${X}`";
-		_out3="${_out3};`getCATEGORY ${X}`";
+                #_out3="${_out3};`getCATEGORY ${X}`";
+		_out3="${_out3};VM";
 		_out3="${_out3};`getVMSTATE ${X}`";
 		_out3="${_out3};`getHYPERREL ${X}`";
 		_out3="${_out3};`getSTACKCAP ${X}`";
@@ -301,12 +302,12 @@ function enumerateMySessionsQEMU () {
 
 			local _myNetName=$(netGetNetName "${A[0]}")
 
-			_out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}"
+			_out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7};${MYUID};${MYGID}"
 			printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 			echo -e "${_out}"
 		    done
 		else
-		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}"
+		    _out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7};${MYUID};${MYGID}"
 		    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		    echo -e "${_out}"
 		fi

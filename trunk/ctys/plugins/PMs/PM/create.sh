@@ -93,6 +93,8 @@ function createConnectPM () {
     function checkPMAddressConsistency () {
 	function getMACFromCache () {
 	    local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -C MACMAP -o MAC -p ${DBPATHLST} -s "
+#4TEST:01_11_008
+		local _VHOST="${_VHOST} ${_actionuserPM:+ F:44:$_actionuserPM}"
 	    if [ -n "${_tcp}" ];then
 		_myMAC=`${_VHOST} E:28:1 "${_tcp}"`
 	    else

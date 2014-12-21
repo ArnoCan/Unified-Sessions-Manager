@@ -432,7 +432,7 @@ function createConnectXEN () {
             fi
             if((_unambig==0&&_idgiven!=1));then
 		ABORT=1;
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing parameter for target entity of action"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing parameter for target entity of action($_unambig/$_idgiven)"
  		gotoHell ${ABORT}
             fi
 	    ;;
@@ -920,6 +920,8 @@ function createConnectXEN () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
+#4TEST:01_11_008
+		local _VHOST="${_VHOST} ${_actionuserXEN:+ F:44:$_actionuserXEN}"
 
 		case ${C_NSCACHELOCATE} in
 		    0)#off

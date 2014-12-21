@@ -17,6 +17,7 @@ ctys-genmconf
    [-k <ctys-vhost-search-key>]
    [-l <remote-user>]
    [-M <MAC-address>]
+   [--no-progress]
    [-P]
    [--progress]
    [-r [(WITHIP|WITHMAC|ALL)]]

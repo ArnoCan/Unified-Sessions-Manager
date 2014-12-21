@@ -1058,6 +1058,8 @@ function createConnectQEMU () {
 
 	    if [ -z "${_tcp}" ];then
 		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s -M unique "
+#4TEST:01_11_008
+		local _VHOST="${_VHOST} ${_actionuserQEMU:+ F:44:$_actionuserQEMU}"
 
 		case ${C_NSCACHELOCATE} in
 		    0)#off

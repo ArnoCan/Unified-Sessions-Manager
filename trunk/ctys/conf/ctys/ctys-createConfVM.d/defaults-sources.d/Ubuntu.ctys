@@ -121,7 +121,7 @@ function set-ubuntu-910-XEN () {
     case ${ACCELERATOR} in
 	PARA)
 	    _MATCHED=1;
-	    printNotSupported "OpenBSD on XEN-PARA"
+	    printNotSupported "Ubuntu on XEN-PARA"
 
 # 	    DEFAULT_DOMU_KERNEL=${DEFAULT_DOMU_KERNEL:-/boot/vmlinuz-2.6.26-2-xen-amd64};
 # 	    DEFAULT_DOMU_INITRD=${DEFAULT_DOMU_INITRD:-/boot/initrd.img-2.6.26-2-xen-amd64};

@@ -24,6 +24,8 @@ QEMU_STATE=DISABLED
 QEMU_DEFAULTOPTS=
 QEMU_PREREQ=;
 
+QEMU_SERVER=;
+
 QEMU_PRODVERS=;
 QEMU_PRODVERS_QEMUBASE=;
 QEMU_PRODVERS_QEMUKVM=;
@@ -287,6 +289,7 @@ function setVersionQEMU () {
     fi
     if [ -z "$C_EXECLOCAL" ];then
 	QEMU_STATE=ENABLED
+	QEMU_SERVER=;
 	QEMU_PREREQ="${QEMU_PREREQ} <LocalXserverDISPLAY>"
 	QEMU_PREREQ="${QEMU_PREREQ} <delayedValidationOnFinalTarget>"
 	QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
@@ -476,6 +479,7 @@ function setVersionQEMU () {
 	    QEMU_PREREQ="${_buf1}%${_vdebuf} ${QEMU_PREREQ}"
 	else
 	    QEMU_STATE=DISABLED
+	    QEMU_SERVER=;
 	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} MISSING`:vde_switch>"
 
 	    ABORT=2
@@ -495,6 +499,7 @@ function setVersionQEMU () {
 	if [ -z "${VDE_TUNCTL}" ];then
 	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
 	    QEMU_STATE=DISABLED
+	    QEMU_SERVER=;
 	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} MISSING`:vde_tunctl>"
 
 	    ABORT=2
@@ -515,6 +520,7 @@ function setVersionQEMU () {
 		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "=> failed to perform \"${VDECALL} ${VDE_TUNCTL} -xyz\""
 		QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
 		QEMU_STATE=DISABLED
+		QEMU_SERVER=;
 		QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:${VDECALL// /_}_${VDE_TUNCTL}_info-USER=${USER}-NO-ACCESS>"
 	    fi
 	fi
@@ -539,6 +545,7 @@ function setVersionQEMU () {
 	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "=> failed to perform \"${VDECALL} ${VDE_SWITCH} -v\""
 	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
 	    QEMU_STATE=DISABLED
+	    QEMU_SERVER=;
 	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:${VDECALL// /_}_${VDE_SWITCH}_info-USER=${USER}-NO-ACCESS>"
 	else
 	    QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_SWITCH}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
@@ -652,6 +659,7 @@ function setVersionQEMU () {
 	if [ $_rdisp -ne 0  -a \( ! -e "${QEMUSOCK}" -o ! -e "${QEMUMGMT}" \) ];then
 	    ABORT=2
 	    if [ ! -e "${QEMUSOCK}" ];then
+		QEMU_SERVER=;
 		QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:QEMUSOCK=${QEMUSOCK}_info-USER=${USER}-SOCK-NON-EXISTENT>"
 		if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing socket for \"vde_switch\" QEMUSOCK=${QEMUSOCK}"
@@ -666,6 +674,7 @@ function setVersionQEMU () {
 
 	    if [ ! -e "${QEMUMGMT}" ];then
 		QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:QEMUMGMT=${QEMUMGMT}_info-USER=${USER}-SOCK-NON-EXISTENT>"
+		QEMU_SERVER=;
 		if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing management socket for \"vde_switch\" QEMUMGMT=${QEMUMGMT}"
 		else
@@ -700,6 +709,7 @@ function setVersionQEMU () {
 	${CTYS_SETUPVDE} -X -s "${QEMUSOCK}" -S "${QEMUMGMT}" check
 	if [ $? -ne 0 ];then
 	    ABORT=127
+	    QEMU_SERVER=;
 	    if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing VDE-switch, is at least erroneous."
 		printERR $LINENO $BASH_SOURCE ${ABORT} "  QEMUSOCK  = ${QEMUSOCK}"
@@ -718,6 +728,7 @@ function setVersionQEMU () {
 		return ${ABORT}
 	    fi
 	fi
+	QEMU_SERVER=ENABLED;
 	QEMU_PREREQ="${QEMU_PREREQ} <QEMUSOCK=${QEMUSOCK}_info-USER=${USER}-ACCESS-GRANTED>"
 	QEMU_PREREQ="${QEMU_PREREQ} <QEMUMGMT=${QEMUMGMT}_info-USER=${USER}-ACCESS-GRANTED>"
     fi

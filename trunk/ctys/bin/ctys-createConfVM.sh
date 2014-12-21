@@ -1801,8 +1801,13 @@ function displaySystemValues () {
     esac
     echo
 
-    CATEGORYinfo=$(getVMinfo.sh)
+    #CATEGORYinfo=$(getVMinfo.sh)
+    case ${C_SESSIONTYPE} in
+	PM)CATEGORYinfo=PM;;
+	*)CATEGORYinfo=VM;;
+    esac
     echo "${_prefix1}""CATEGORY                       = $(getVMinfo.sh)"
+
     PLATFORMinfo=$(getPLATFORM)
     echo "${_prefix1}""PLATFORM                       = ${PLATFORMinfo}"
     VMSTATEinfo=ACTIVE

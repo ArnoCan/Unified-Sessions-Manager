@@ -14,10 +14,15 @@ ctys-vdbgen
    [--base=<base-path-list>]
    [--cacheDB=<output-db-directory-path>]
    [--filecontext]
+   [--no-splitted]
    [--progress]
    [--progressall]
    [--replace]
+   [--scan-all-states]
+   [--splitted]
+   [--splitted-keep-files]
    [--stdio]
+   [--threads=<#max-number-of-parallel-scans>]
 
    [-b]
    [-c]
@@ -29,7 +34,7 @@ ctys-vdbgen
    [-T]
    [-V]
    [-X]
-   <target-list>
+   -- <target-list>
 
 
 

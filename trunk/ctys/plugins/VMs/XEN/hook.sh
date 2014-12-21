@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_11_008
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -24,9 +24,10 @@ XEN_DEFAULTOPTS="-x -q"
 XEN_PREREQ=;
 XEN_PRODVERS=;
 XEN_ACCELERATOR=;
+XEN_SERVER=;
 
 _myPKGNAME_XEN="${BASH_SOURCE}"
-_myPKGVERS_XEN="01.10.013"
+_myPKGVERS_XEN="01.11.008"
 hookInfoAdd $_myPKGNAME_XEN $_myPKGVERS_XEN
 
 _myPKGBASE_XEN="`dirname ${_myPKGNAME_XEN}`"
@@ -577,6 +578,7 @@ function setVersionXEN () {
 	    fi
 	else
 	    XEN_PREREQ="${XEN_PREREQ} ${XENCALL// /_}_${XM}_info-HYPERVISOR-STATE=ENABLED"
+	    XEN_SERVER=ENABLED;
 	fi
     fi
 
