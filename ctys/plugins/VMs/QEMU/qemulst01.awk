@@ -6,17 +6,15 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a13
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
-
-
-function perror(inp){
+function ptrace(inp){
       if(!d){
           print line ":" inp | "cat 1>&2"
       }
@@ -24,117 +22,146 @@ function perror(inp){
 
 BEGIN{
     line=0;
-    perror("Start record with AWK:SERVERLST");
-    perror("_c1=\"" _c1 "\"");
-    perror("_c2=\"" _c2 "\"");
-    perror("machine="machine);
+    ptrace("QEMU:Start record with AWK:QEMU:SERVERLST");
+    ptrace("d="d);
+    ptrace("mycallpath="mycallpath);
+    ptrace("cdargs="cdargs);
+    ptrace("myProc="myProc);
+    ptrace("d="d);
+    ptrace("s="s);
+    ptrace("f="f);
+    ptrace("vncbase="vncbase);
+    ptrace("exclude="exclude);
+    ptrace("_c1=\"" _c1 "\"");
+    ptrace("_c2=\"" _c2 "\"");
 }
 
 {
     line++;
+    ptrace("input=<"$0">");
+    
 }
 
-$8!~/^$/&&$8~/vdeq/{
+$8!~/^$/&&$8~myProc{
     curEntry="";
 
     x1=$NF;
     gsub("/[^/]*$","",x1);
     x2=match(x1,"[^/]*$");
     x3=substr(x1,x2);
-    ctys=x1"/"x3".ctys";
-    perror("config="ctys);
 
-    call=_c1 " "  ctys " 2>/dev/null";
-    call|getline x;
+    ctys=x1"/"x3".conf";
+    ctys1=x1"/"x3".ctys";
+    ptrace("config0="ctys);
+    ptrace("config1="ctys1);
+
+
+    x3=$0;
+    gsub("^.*-name *","",x3);
+    gsub(" .*$","",x3);
+    
+    ptrace("LABEL="x3" for "ctys);
+    curEntry=curEntry""x3";";
+    curEntry=curEntry""ctys";";
+
+    #uuid
+    call=_c2 " " ctys " 2>/dev/null";
+    call|getline u;
     close(call);
-    if(x~/^$/&&machine==0){
-        x="NO-CONF-PERMISSION";        
-    }
-
-    perror("LABEL="x3" for "ctys);
-    curEntry=curEntry x3 ";";
-    if(f==1){
-        curEntry=curEntry ctys;
-    }else{
-        x1=ctys;
-        gsub(".*$","",x1);
-        x2=match(x1,"[^/]*$");
-        x3=substr(x1,x2);
-        curEntry=curEntry ".../" x3;
-    }
-    curEntry=curEntry ";";
-    if(_c2!~/^$/){
-        call=_c2 " " ctys " 2>/dev/null";
+    if(u~/^$/){
+        call=_c2 " " ctys1 " 2>/dev/null";
         call|getline u;
         close(call);
-        if(u~/^$/&&machine==0){
-            u="NO-VMX-PERMISSION";            
-        }
-        curEntry=curEntry u;               
-        perror("UUID="u);
     }
+    curEntry=curEntry""u";";
+    ptrace("UUID="u);
+    
 
     y1=$0;
     gsub("^.*macaddr=","",y1);
     p2=match(y1,"[0-9a-fA-F].:..:..:[0-9a-fA-F][0-9a-fA-F]:..:.[0-9a-fA-F]");
     y3=substr(y1,RSTART,RLENGTH);
-    perror("MAC="y3);
+    ptrace("MAC="y3);
+    curEntry=curEntry""y3";";
 
-    if(machine==0&&x~/^$/){
-        curEntry=curEntry ";NO-MAC";
-    }
-    else{
-        curEntry=curEntry ";"y3;
-    }
-
-    x2=match(x1," -vnc *");
-    if(RSTART!=0){
-        x=substr(x2,RSTART+RLENGTH);
-        x2=match(x," [^ ]*");
-        x3=substr(x2,RSTART,RLENGTH);        
-    }
-    perror("DISPLAY="x3);
-    if(machine==0){
-        if(x3~/^$/){            
-            curEntry=curEntry ";NO-DISP";
-        }
-        else{
-            curEntry=curEntry ";" x3;            
-        }
-        curEntry=curEntry ";NO-VMX-PERMISSION";            
-    }
-    else{
-        curEntry=curEntry ";;";            
+    x2=match($0," -vnc *");
+    ptrace("x2="x2);
+    x3="";
+    if(x2!=0){
+        x=substr($0,RSTART+RLENGTH);
+        x2=match(x,":[0-9]*");
+        x3=substr(x,RSTART+1,RLENGTH-1);
     }
 
-    if(machine==0){
-        curEntry=curEntry ";NO-SPORT";
+    ptrace("DISPLAY=<"x3">");
+    if(x3~/^$/){            
+        curEntry=curEntry";";
     }
     else{
-        curEntry=curEntry ";"; 
+        curEntry=curEntry""x3";";            
     }
-            
-    curEntry=curEntry ";" $2 ";" $1;
-    perror("pid="$2);
-    perror("uid="$1);
+
+    #cport
+    if(x3!=""&&vncbase!=""){
+        curEntry=curEntry""x3+vncbase";";
+    }else{
+        curEntry=curEntry";";
+    }
+    
+
+    #sport
+    {
+        x1=$0;
+        gsub("^.*mon:unix:","",x1);
+        gsub(",server,nowait.*$","",x1);
+
+        curEntry=curEntry""x1";";
+        ptrace("masterPid="x1);
+    }
+
+    curEntry=curEntry""$2";";
+    ptrace("pid="$2);
+    curEntry=curEntry""$1";";
+    ptrace("uid="$1);
     {
         call="id " $1 "|sed -n \"s/.*gid=[0-9]*(\\([^)]*\\)).*/\\1/p\"" " 2>/dev/null";
-        perror(call);
+        ptrace(call);
         call|getline x1;
         close(call);
-        curEntry=curEntry ";" x1;
-        perror("guid="x1);
+        curEntry=curEntry""x1";";
+        ptrace("guid="x1);
     }
-    curEntry=curEntry ";QEMU";
 
+    curEntry=curEntry"QEMU";
     sys=$9;
     gsub("qemu","",sys);
     if(sys!~/^$/&&sys!=$9){
         gsub("^-system-","",sys);
-        curEntry=curEntry "-" sys ;
+        curEntry=curEntry"-"sys ;
     }
-    
-    curEntry=curEntry ";SERVER ";
-    printf("%s", curEntry);
+    curEntry=curEntry ";SERVER;";
+
+    #tcp
+    call=_c3 " " ctys " 2>/dev/null";
+    call|getline u;
+    close(call);
+    if(u~/^$/){
+        call=_c3 " " ctys1 " 2>/dev/null";
+        call|getline u;
+        close(call);
+    }
+    curEntry=curEntry""u";";
+    ptrace("TCP="u);
+
+    #job
+    j=$0;
+    jm=gsub("^.* -j *","",j);
+    if(jm!=0){
+        gsub(" .*$","",j);
+        curEntry=curEntry""j;
+    }
+
+    printf("%s ", curEntry);
+    ptrace("output=<"curEntry">")
     found=0;
 }

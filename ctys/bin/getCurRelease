@@ -23,17 +23,52 @@ CALLDIR=`dirname $0`
 CUROS=`${CALLDIR}/getCurOS`
 CURREL=;
 case $CUROS in
-  Linux) 
-        #Tested for CentOS 5 + SuSE 9.3
+    Linux) 
+        #Tested for:CentOS 5
+	if [ -z "$CURREL" -a -f /etc/redhat-release ];then
+	    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
+	fi
+
+        #Tested for:Fedora 8
+	if [ -z "$CURREL" -a -f /etc/redhat-release ];then
+	    CURREL=`cat /etc/redhat-release|head -n 1|awk '{print $3;}'`
+	fi
+
+        #Tested for:SuSE 9.3+10.3
+	if [ -z "$CURREL" -a -f /etc/SuSE-release ];then
+	    CURREL=`cat /etc/SuSE-release|awk -F'=' '/VERSION/{print $2;}'`
+	fi
+
+        #Tested for:
+        #debian 4.0r3,
+        #Ubuntu 6.06,
+        #Ubuntu 8.04,
+	if [ -z "$CURREL" -a -f /etc/debian_version ];then
+	    if [ ! -f /etc/lsb-release ];then
+		CURREL="`cat /etc/debian_version`"
+                CURREL=${CURREL// /}
+	    else
+		CURREL=`awk -F'=' '/DISTRIB_RELEASE/{printf("%s",$2);}' /etc/lsb-release`
+		if [ -z "$CURREL" ];then
+		    CURREL="x.x"
+		fi
+	    fi
+	fi
+
         #Might work for more ...
-	ls /etc/*-release 2>&1 >/dev/null
-	if [ $? -eq 0  ];then
-	  CURREL=`cat /etc/*-release|head -n 1|awk '{print $3;}'`
-        else
-	  CURREL="Linux"
-        fi
+	if [ -z "$CURREL" ];then
+	    CURF=`ls -1 /etc/*-release 2>/dev/null|grep -v 'lsb-release'`
+	    if [ $? -eq 0  ];then
+		CURREL=`cat ${CURF}|head -n 1|awk '{print $3;}'`
+            else
+		CURREL="Linux"
+            fi
+	fi
 	;;
   OpenBSD)
+	CURREL="`uname -r`"
+	;;
+  SunOS)
 	CURREL="`uname -r`"
 	;;
   *)

@@ -21,8 +21,6 @@ _myPKGVERS_QEMU_LIST="01.00.001a00pre"
 hookInfoAdd $_myPKGNAME_QEMU_LIST $_myPKGVERS_QEMU_LIST
 _myPKGBASE_QEMU_LIST="`dirname ${_myPKGNAME_QEMU_LIST}`"
 
-_QEMU_LIST="${_myPKGNAME_QEMU_LIST}"
-
 
 #FUNCBEG###############################################################
 #NAME:
@@ -42,9 +40,6 @@ _QEMU_LIST="${_myPKGNAME_QEMU_LIST}"
 #     C: clients
 #     S: servers
 #     B: both
-# $2: 1=MACHINE|0=HUMAN
-# $3: 'FULLPATH'
-# $4: 'UUID'
 #
 #OUTPUT:
 #  RETURN:
@@ -54,69 +49,76 @@ _QEMU_LIST="${_myPKGNAME_QEMU_LIST}"
 #FUNCEND###############################################################
 function listMySessionsQEMU () {
     local _site=$1;shift
-    local _machine=$1;shift
 
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "QEMU_MAGIC  =${QEMU_MAGIC}"
+    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "QEMU_MAGIC  =${QEMU_MAGIC}"
     local CLIENTLST=;
     local SERVERLST=;
 
     #controls debugging for awk-scripts
-    doDebug ${DBG_LVL_MAINT} $LINENO $_QEMU_LIST
+    doDebug $S_QEMU  ${D_MAINT} $LINENO $BASH_SOURCE
     local D=$?
 
     local _ugid=;
     _ugid=${_ugid:-;}
 
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "${_site} ${_site}"
+    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "${_site} ${_site}"
 
     case ${QEMU_MAGIC} in
 	QEMU_*)
-
             #get-call for LABEL
 	    local _call1="sed -n 's/\t//g;/^#[^@]/d;s/#@#LABEL *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
 
-
             #get-call for UUID
-	    if [ -n "$_U" ];then
-		local _call2="sed -n 's/[ -]//g;s/#@#UUID *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
-	    fi
+	    local _call2="sed -n 's/[ -]//g;s/#@#UUID *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+
+            #get-call for TCP
+	    local _call3="sed -n 's/[ -]//g;s/#@#IP0 *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+
 	    if [ "${_site}" == S -o "${_site}" == B ];then
-		SERVERLST=`listProcesses|awk '$8!=""&&$8~/vdeq/{print}'|awk -v _c1="$_call1" -v _c2="$_call2" -v f=$_F -v d=$D -v s=$SUBTYPE -v machine="$_machine" -f ${_myPKGBASE_QEMU}/qemulst01.awk`
-
+		SERVERLST=`listProcesses|awk -v myProc="qemu" -v mycallpath="${MYCALLPATH}" -v _c1="$_call1" -v _c2="$_call2" -v _c3="$_call3" -v f=$_F -v d=$D -v cdargs="${C_DARGS}" -v s=$SUBTYPE -v vncbase="${VNC_BASEPORT}" -f ${_myPKGBASE_QEMU}/qemulst01.awk`
 	    fi
-
  	    if [ "${_site}" == C -o "${_site}" == B ];then
-		printWNG $LINENO $_QEMU_LIST 0 "Sorry, LIST for clients is not supported, these are managed"
-		printWNG $LINENO $_QEMU_LIST 0 "by their specific plugin:VNC|X11|CLI"
+		printWNG 3 $LINENO $BASH_SOURCE 0 "Sorry, LIST for clients is not supported, these are managed"
+		printWNG 3 $LINENO $BASH_SOURCE 0 "by their specific plugin:VNC|X11|CLI"
  		CLIENTLST=;
  	    fi
   	    ;;
+        RELAY)#no own client support, see hosts plugins
+            ;;
 	*)  #ooooops!!!!!!
 	    ABORT=2
-	    printERR $LINENO $_QEMU_LIST ${ABORT} "mismatch:QEMU_MAGIC=${QEMU_MAGIC}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:QEMU_MAGIC=${QEMU_MAGIC}"
 	    gotoHell ${ABORT}
 	    ;;
     esac
 
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "SERVERLST(RAW)=<${SERVERLST}>"
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "CLIENTLST(RAW)=<${CLIENTLST}>"
+    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=<${SERVERLST}>"
+    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "CLIENTLST(RAW)=<${CLIENTLST}>"
 
     if [ -z "${SERVERLST}" -a -z "${CLIENTLST}" ];then
-        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_QEMU_LIST "No sessions yet."
+        printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "No sessions yet."
 	return
     fi
 
     export -f getClientTPQEMU
-    export -f printVerboseDebug
+    export -f printDBG
     export -f printERR
     export -f gotoHell
     export QEMU_MAGIC
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_QEMU_LIST "SERVERLST(PROCESSED)=\"${SERVERLST}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_QEMU_LIST "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "SERVERLST(PROCESSED)=\"${SERVERLST}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
     for i in ${SERVERLST} ${CLIENTLST};do
+	_myPid=${i#*;*;*;*;*;*;*;}
+	_myPid=${_myPid%%;*}
+	printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "_myPid=${_myPid}"
+	if [ -n "${_myPid}" ];then
+	    _myJobID=`cacheGetAttrFromPersistent LAZY "${_myPid}" JOBID`
+	    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "_myJobID=${_myJobID}"
+	    i="${i}${_myJobID}";
+ 	fi
         i="${MYHOST};${i}"
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $_QEMU_LIST "CURSES=${i}"
+	printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "MATCH=${i}"
 	echo "${i}"
     done
 }

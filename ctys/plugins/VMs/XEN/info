@@ -21,9 +21,6 @@ _myPKGVERS_XEN_INFO="01.01.001a00"
 hookInfoAdd $_myPKGNAME_XEN_INFO $_myPKGVERS_XEN_INFO
 _myPKGBASE_XEN_INFO="`dirname ${_myPKGNAME_XEN_INFO}`"
 
-_XEN_INFO="${_myPKGNAME_XEN_INFO}"
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  infoXEN4Action
@@ -47,13 +44,16 @@ _XEN_INFO="${_myPKGNAME_XEN_INFO}"
 function infoXEN4Action () {
     local _allign=$1
 
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "XEN:" "Plugin Version:${_myPKGVERS_XEN}"
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "Operational State:${XEN_STATE}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " \
+        "`setStatusColor ${XEN_STATE} XEN`:" "Plugin Version:${_myPKGVERS_XEN}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "" \
+        "Operational State:`setStatusColor ${XEN_STATE} ${XEN_STATE}`"
 
     if [ -n "${XEN_VERSTRING}" ];then
     printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "XEN version:"
   	printf "%"$((2*_allign))"s%-"${_label}"s ->%"$((2*_allign))"s\n" " " " " "${XEN_VERSTRING}"
-  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Magic-Number:${XEN_MAGIC}"
+  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " \
+            "Magic-Number:`setStatusColor ${XEN_STATE} ${XEN_MAGIC}`"
   	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Verified Prerequisites:"
 
 	local i2=;
@@ -93,11 +93,11 @@ function infoXEN4Action () {
 #        Current type "XEN".
 #
 #      <plug-vers>
-#        The version of current plugin, which is the value 
+#        The version of current plugin, gwhich is the value 
 #        of _myPKGVERS_VMW.
 #
 #      <plug-magic>
-#        The magic ID, which is the shortform of the version of 
+#        The magic ID, gwhich is the shortform of the version of 
 #        current plugin stored in VMW_MAGIC.
 #
 #      <plug-state>
@@ -157,7 +157,7 @@ function infoXEN () {
 	    infoXEN4MACHINE $*
 	    ;;
 	[0-9]*)
-            if [ -n "${CTRL_TERSE}" ];then
+            if [ -n "${C_TERSE}" ];then
 		infoXEN4MACHINE $*
 	    else
 		infoXEN4Action $*

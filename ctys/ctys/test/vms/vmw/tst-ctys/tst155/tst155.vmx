@@ -1,0 +1,51 @@
+#!/usr/bin/vmware
+
+#---------------------------------------------
+#@#MAGICID-IGNORE
+#--------------------------------------------
+
+config.version = "8"
+virtualHW.version = "4"
+scsi0.present = "TRUE"
+memsize = "256"
+ide0:0.present = "TRUE"
+ide0:0.fileName = "tst155.vmdk"
+ide0:0.writeThrough = "TRUE"
+ide1:0.present = "TRUE"
+ide1:0.fileName = "/dev/cdrom"
+ide1:0.deviceType = "atapi-cdrom"
+floppy0.startConnected = "FALSE"
+floppy0.fileName = "/dev/fd0"
+displayName = "tst155"
+guestOS = "other"
+priority.grabbed = "normal"
+priority.ungrabbed = "normal"
+powerType.powerOff = "hard"
+powerType.powerOn = "hard"
+powerType.suspend = "hard"
+powerType.reset = "hard"
+
+ide0:0.redo = ""
+
+
+#Ethernet-Interface
+ethernet0.present = "TRUE"
+ethernet0.addressType = "static"
+ethernet0.address = "00:50:56:13:11:77"
+
+#UUID
+#uuid.action = "keep"
+uuid.location = "56 4d ee 26 77 f2 f3 fa-3d 2f 47 df ac 56 18 05"
+uuid.bios = "56 4d ee 26 77 f2 f3 fa-3d 2f 47 df ac 56 18 05"
+
+#@#IP0="192.168.1.109"
+#@#DIST="OpenBSD"
+#@#DISTREL="4.3"
+#@#OS="OpenBSD"
+#@#OSREL="4.3"
+#@#SERNO="20080526184800"
+#@#VERSION="01.01.001"
+#@#CATEGORY="VM"
+
+#@#VMSTATE            = "TEMPLATE"
+#

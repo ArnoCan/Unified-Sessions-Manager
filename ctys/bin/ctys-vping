@@ -1,5 +1,35 @@
 #!/bin/bash
 
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a15
+#
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
 ################################################################
 #                   Begin of FrameWork                         #
 ################################################################
@@ -29,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_01_001a01
+VERSION=01_06_001a15
 #DESCRIPTION:
 #  Ping by cts-address.
 #
@@ -92,53 +122,53 @@ MYCALLPATH=`dirname $MYCALLPATHNAME`
 ###################################################
 MYBOOTSTRAP=${MYCALLPATH}/bootstrap
 if [ ! -d "${MYBOOTSTRAP}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
-cat <<EOF  
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
 
 DESCRIPTION:
-  This directory contains the common mandatory bootstrap functions.
-  Your installation my be erroneous.  
+This directory contains the common mandatory bootstrap functions.
+Your installation my be erroneous.  
 
 SOLUTION-PROPOSAL:
-  First of all check your installation, because an error at this level
-  might - for no reason - bypass the final tests.
+First of all check your installation, because an error at this level
+might - for no reason - bypass the final tests.
 
-  If this does not help please send a bug-report.
+If this does not help please send a bug-report.
 
 EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
-cat <<EOF  
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+    cat <<EOF  
 
 DESCRIPTION:
-  This file contains the common mandatory bootstrap functions required
-  for start-up of any shell-script within this package.
+This file contains the common mandatory bootstrap functions required
+for start-up of any shell-script within this package.
 
-  It seems though your installation is erroneous or you detected a bug.  
+It seems though your installation is erroneous or you detected a bug.  
 
 SOLUTION-PROPOSAL:
-  First of all check your installation, because an error at this level
-  might - for no reason - bypass the final tests.
+First of all check your installation, because an error at this level
+might - for no reason - bypass the final tests.
 
-  When your installation seems to be OK, you may try to set a TEMPORARY
-  symbolic link to one of the files named as "bootstrap.<highest-version>".
-  
-    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+When your installation seems to be OK, you may try to set a TEMPORARY
+symbolic link to one of the files named as "bootstrap.<highest-version>".
 
-  in order to continue for now. 
+ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
 
-  Be aware, that any installation containing the required file will replace
-  the symbolic link, because as convention the common boostrap files are
-  never symbolic links, thus only recognized as a temporary workaround to 
-  be corrected soon.
+in order to continue for now. 
 
-  If this does not work you could try one of the other versions.
+Be aware, that any installation containing the required file will replace
+the symbolic link, because as convention the common boostrap files are
+never symbolic links, thus only recognized as a temporary workaround to 
+be corrected soon.
 
-  Please send a bug-report.
+If this does not work you could try one of the other versions.
+
+Please send a bug-report.
 
 EOF
   exit 1
@@ -182,20 +212,24 @@ bootstrapCheckInitialPath
 
 MYCONFPATH=${MYLIBPATH}/conf/ctys
 if [ ! -d "${MYCONFPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+    exit 1
+fi
+
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
 fi
 
 MYMACROPATH=${MYCONFPATH}/macros
 if [ ! -d "${MYMACROPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+    exit 1
 fi
 
 MYPKGPATH=${MYLIBPATH}/plugins
 if [ ! -d "${MYPKGPATH}" ];then
-  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
-  exit 1
+    echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+    exit 1
 fi
 
 MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
@@ -224,7 +258,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -259,7 +293,52 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 #                     End of FrameWork                         #
 ################################################################
 
+
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux);;
+    OpenBSD);;
+    SunOS);;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+    . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+    . "${MYCONFPATH}/ctys.conf"
+fi
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
+else
+
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
 #assure for append...
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\""
 if [ -n "$CTYS_GROUPS_PATH" ];then
     mstr=$HOME/.ctys/groups
     CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH//$mstr}
@@ -286,9 +365,11 @@ if [ ! -d "${MYCONFPATH}/groups" ];then
 fi
 
 CTYS_GROUPS_PATH="${HOME}/.ctys/groups:${MYCONFPATH}/groups${CTYS_GROUPS_PATH:+:$CTYS_GROUPS_PATH}"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "CTYS_GROUPS_PATH=\"${CTYS_GROUPS_PATH}\""
 
 
 
+. ${MYLIBPATH}/lib/misc
 . ${MYLIBPATH}/lib/help/help
 . ${MYLIBPATH}/lib/groups
 
@@ -299,35 +380,35 @@ if [ -d "${HOME}/.ctys/db/default" ];then
 fi
 
 #path to directory containing the default mapping db
-if [ -d "${MYCONFPATH}/conf/db/default" ];then
+if [ -d "${MYCONFPATH}/db/default" ];then
     DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
 fi
 
 
 #Source pre-set environment from user
 if [ -f "${HOME}/.ctys/ctys.conf" ];then
-  . "${HOME}/.ctys/ctys.conf"
+    . "${HOME}/.ctys/ctys.conf"
 fi
 
 #Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
-  . "${MYCONFPATH}/conf/ctys.conf"
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+    . "${MYCONFPATH}/ctys.conf"
 fi
 
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
 else
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
 	else
 	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
 	    gotoHell ${ABORT}
 	fi
@@ -339,19 +420,41 @@ fi
 #    Default definitions - User-Customizable  from shell       #
 ################################################################
 
+case "${MYOS}" in
+    Linux)
+	CTYS_PING=`getPathName  $LINENO $BASH_SOURCE ERROR ping  /bin`
+	;;
+    OpenBSD)
+	CTYS_PING=`getPathName  $LINENO $BASH_SOURCE ERROR ping  /sbin`
+	;;
+    SunOS)
+	CTYS_PING=`getPathName  $LINENO $BASH_SOURCE ERROR ping  /usr/sbin`
+	;;
+    *)  
+ 	printERR $LINENO $BASH_SOURCE 1 "Unsupported OS=$MYOS"
+ 	printERR $LINENO $BASH_SOURCE 1 "Might fail, but continue..."
+	;;
+esac
+
 
 #DO NOT CHANGE!!!
 #Default order for ctys-tools.
 sortKey='-n';
-
+outform=TCP;
+_machine=1;
 for i in $*;do
     case $1 in
-#	'-q')shift;_quiet=1;;
-	'-X')CTRL_TERSE=1;shift;;
-	'-s')shift;_ssh=1;;
-	'-l')shift;_user=$1;shift;;
-	'-V')printVersion;exit 0;;
+	'-d')shift;shift;;
 	'-h')showToolHelp;exit 0;;
+	'-i')shift;raw=1;;
+	'-l')shift;_user=$1;shift;;
+	'-m')shift;outform=MACHINE;;
+	'-n')shift;_nocheck=1;;
+	'-r')shift;_recurse=1;;
+	'-s')shift;_ssh=1;;
+	'-t')shift;outform=TCP;_machine=0;;
+	'-V')printVersion;exit 0;;
+	'-X')shift;C_TERSE=1;_machine=0;;
     esac
 done
 
@@ -372,15 +475,14 @@ fi
 
 
 #OK-first let's expand ctys-groups
-printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
-hostlist=`expandGroups ${*}`
+printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
 
-#OK-second let's resolve ctys <machine-address>-es
-#printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
-#hostlist=`resolveMachineAddresses TCP ... ${hostlist}`
+if [ "$raw" == 1 ];then
+    inhostlist=$(expandGroups ${*});
+fi
 
-#NOW-That's it, this should be a pure TCP/IP-List
-#printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
+hostlist=$(fetchGroupMemberHosts ${*});
+printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
 
 if [ -n "$_dbfilepath" ];then
     if [ ! -d "$_dbfilepath" ];then
@@ -397,40 +499,133 @@ fi
 _STAT=6;
 _PING=6;
 _SSH=6;
-_TCP=25;
+_TCP=27;
+_TCP0=$_TCP;
 _MACH=;
-_FRM1="%-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n"
-
-
+_idx=4;
+_lvl=3;
+_FRM1="%-${_idx}s %-${_lvl}s%s %-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
 _user=${_user:-$USER}
-echo
-echo -n "Check access permission by: \"ping"
-if [ -n "${_ssh}" ];then
-    echo -n "+ssh(SSO)\" "
-else
-    echo -n "\" "
-fi
-echo "  for USER=${_user}"
-echo
 
-printf "${_FRM1}"  "TCP/IP"  "ping"  "ssh"  "<machine-address>(ctys-vhost first-match!)"
-echo "----------------------------------------------------------------------------------"
-for i in ${hostlist};do
-    M=`ctys-vhost -o CTYS $i`
-    ping -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>/dev/null >/dev/null
-    if [ $? -eq 0 ];then
-	if [ -n "${_ssh}" ];then
-	    ssh ${_user}@${i} echo 2>/dev/null >/dev/null
-	    if [ $? -eq 0 ];then
-		printf "${_FRM1}" "${i}" "+"  "+"  "${M}"
+
+if [ "${C_TERSE}" != 1 ];then
+    echo
+    echo -n "Check access permission by: \"ping"
+    if [ -n "${_ssh}" ];then
+	echo -n "+ssh(SSO)\" "
+    else
+	echo -n "\" "
+    fi
+    echo "  for USER=${_user}"
+    echo
+    if [ "$raw" == 1 ];then
+	echo "Input list is:"
+	echo
+	echo "------------->>"
+	echo "${inhostlist}"
+	echo "<<-------------"
+	echo
+    fi
+    printf "${_FRM1}" "idx" "lvl" "" "TCP/IP"  "ping"  "ssh"  "<machine-address>(ctys-vhost first-match!)"
+    echo "------------------------------------------------------------------------------------------"
+fi
+
+function processHostList () {
+    idx=${idx:-0};
+    local pidx=$idx;
+    local  _currec544=${1:-0};shift
+    local hlst=$*;
+    local _h=;
+    local _u=;
+    local _ia=;
+    local M=;
+    local res=;
+
+    if((CTYS_MAXRECURSE<_currec544));then
+	return 1
+    fi
+
+    for _ia in ${hlst};do
+	if [ "$_recurse" == 1 ];then
+	    local _memb=$(fetchGroupMemberHosts "${_ia}")
+	    if [ -n "${_memb// /}" ];then
+		pidx=*;
+		let idx--;
 	    else
-		printf "${_FRM1}" "${i}" "+"  "-"  "${M}"
+		pidx=$idx;
+	    fi
+	    if [ "$_currec544" == 0 ];then
+		_FRM1="%-${_idx}s %-${_lvl}s%s%-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
+	    else
+		_FRM1="%-${_idx}s %-${_lvl}s%-$((1+2*_currec544))s%-$((_TCP0-2*_currec544))s %-${_PING}s %-${_SSH}s %${_MACH}s\n" 
+	    fi
+	fi
+
+	_h=${_ia#*@}
+	_u=${_ia%@*}
+	if [ "${_u}" == "${_ia}" ];then
+	    _u=${USER};
+	fi
+
+	if [ "$_machine" == 1 ];then
+	    M=`${MYCALLPATH}/ctys-vhost -o CTYS F:1:$_h E:28:1`
+	fi
+	if [ -n "${_nocheck}" ];then
+	    if [ "${C_TERSE}" != 1 ];then
+		printf "${_FRM1}"  "${pidx}" "${_currec544}" " "  "${_ia}" "-"  "?"  "${M}"
+	    else
+		case ${outform} in
+		    TCP)res="${res} ${_ia}";;
+		    MACHINE)res="${res} ${M}";;
+		esac
 	    fi
 	else
-            printf "${_FRM1}" "${i}" "+"  "?"  "${M}"
+	    ${CTYS_PING} -c ${PCNT:-1} -w ${PTIME:-1} ${_h} 2>/dev/null >/dev/null
+	    if [ $? -eq 0 ];then
+		if [ -n "${_ssh}" ];then
+		    _mtx=${_u:-$_user}@${_h}
+		    ssh ${_mtx} echo 2>/dev/null >/dev/null
+		    if [ $? -eq 0 ];then
+			if [ "${C_TERSE}" != 1 ];then
+			    printf "${_FRM1}" "${pidx}" "${_currec544}" " " "${_mtx}" "+"  "+"  "${M}"
+			else
+			    case ${outform} in
+				TCP)res="${res} ${_ia}";;
+				MACHINE)res="${res} ${M}";;
+			    esac
+			fi
+		    else
+			printf "${_FRM1}" "${pidx}" "${_currec544}" " "  "${_mtx}" "+"  "-"  "${M}"
+		    fi
+		else
+		    if [ "${C_TERSE}" != 1 ];then
+			printf "${_FRM1}" "${pidx}" "${_currec544}" " "  "${_ia}" "+"  "?"  "${M}"
+		    else
+			case ${outform} in
+			    TCP)res="${res} ${_ia}";;
+			    MACHINE)res="${res} ${M}";;
+			esac
+		    fi
+		fi
+	    else
+		printf "${_FRM1}" "${pidx}" "${_currec544}" " " "${_ia}" "-"  "?"  "${M}"
+	    fi
+	fi
+	let idx++;
+
+	if [ "$_recurse" == 1 ];then
+	    if [ -n "$_memb" -o "$_memb" == "$_ia" ];then
+		processHostList $((_currec544+1)) $(fetchGroupMemberHosts "${_ia}")
+	    fi
+	fi
+    done
+    if [ "${C_TERSE}" != 1 ];then
+	if((_currec544==0));then
+	    echo
 	fi
     else
-        printf "${_FRM1}"  "${i}" "-"  "?"  "${M}"
+	echo -n -e "${res}"
     fi
-done
-echo
+}
+
+processHostList 0 ${hostlist}

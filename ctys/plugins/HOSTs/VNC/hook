@@ -21,7 +21,7 @@ VNC_VERSTRING=;
 VNC_STATE=DISABLED;
 VNCSERVER_OPT=;
 VNCVIEWER_OPT=;
-VNC_PREREQ="vncserver,vncviewer";
+VNC_PREREQ=;
 
 
 export VNC_BASEPORT=${VNC_BASEPORT:-5900}
@@ -30,8 +30,114 @@ _myPKGNAME_VNC="${BASH_SOURCE}"
 _myPKGVERS_VNC="01.02.001b01"
 hookInfoAdd $_myPKGNAME_VNC $_myPKGVERS_VNC
 _myPKGBASE_VNC="${_myPKGNAME_VNC%/hook}"
-_VNC="${_myPKGBASE_VNC}hook"
 
+
+VNC_VERSTRING=${_myPKGVERS_VNC};
+VNC_PREREQ="HOST-CAPABILITY:VNC-${VNC_VERSTRING}-${MYARCH}";
+
+
+if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vnc" ];then
+    if [ -f "${HOME}/.ctys/vnc/vnc.conf.${MYOS}" ];then
+	. "${HOME}/.ctys/vnc/vnc.conf.${MYOS}"
+    fi
+fi
+
+if [ -d "${MYCONFPATH}" -a -d "${MYCONFPATH}/vnc" ];then
+    if [ -f "${MYCONFPATH}/vnc/vnc.conf.${MYOS}" ];then
+	. "${MYCONFPATH}/vnc/vnc.conf.${MYOS}"
+    fi
+fi
+
+
+
+_waitcVNC=${VNC_INIT_WAITC:-2}
+_waitsVNC=${VNC_INIT_WAITS:-2}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getFirstFreeVNCPort
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Gets the first free port above a given base, thus multiple regions
+#  could be managed
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <MIN>
+#  $2: [<MAX>]
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    <first-port>
+#
+#FUNCEND###############################################################
+function getFirstFreeVNCPort () {
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CALL=<${*}>"
+    local MIN=${1:-$VNC_BASEPORT};
+    local MAX=$2;
+    [ -z "$MAX" ]&&let MAX=MIN+1000;
+    local _seed=$((RANDOM%VNCPORTSEED));
+    doDebug $S_XEN  ${D_MAINT} $LINENO $BASH_SOURCE
+    local D=$?
+
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MIN=${MIN} MAX=${MAX} seed=${_seed}"
+    case ${MYOS} in
+	Linux)
+	    local localClientAccess=`${CTYS_NETSTAT} -n -l -t|awk -v d="${D}" -v min="${MIN}" -v max="${MAX}" -v seed="${_seed}" -f ${_myPKGBASE_VNC}/getFirstFreeVNCPort.${MYOS}.awk`
+	    ;;
+	OpenBSD)
+	    local localClientAccess=`${CTYS_NETSTAT} -n -l -t|awk -v d="${D}" -v min="${MIN}" -v max="${MAX}" -v seed="${_seed}" -f ${_myPKGBASE_VNC}/getFirstFreeVNCPort.${MYOS}.awk`
+	    ;;
+	SunOS)
+	    local localClientAccess=`${CTYS_NETSTAT} -n -l -t|awk -v d="${D}" -v min="${MIN}" -v max="${MAX}" -v seed="${_seed}" -f ${_myPKGBASE_VNC}/getFirstFreeVNCPort.${MYOS}.awk`
+	    ;;
+    esac
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:localClientAccess=<${localClientAccess}>"
+    echo -n -e "${localClientAccess}";
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  getFirstFreeVNCDisplay
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Gets the first free display above a given base, thus multiple regions
+#  could be managed
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <MIN>
+#  $2: [<MAX>]
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    <first-port>
+#
+#FUNCEND###############################################################
+function getFirstFreeVNCDisplay () {
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CALL=<${*}>"
+    local MIN=${1:-$VNC_BASEPORT};
+    local MAX=$2;
+    [ -z "$MAX" ]&&let MAX=VNC_PORT+1000;
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:MIN=${MIN} MAX=${MAX}"
+    local _myPort=`getFirstFreeVNCPort ${@}`
+    local _myDisplay=$((_myPort-MIN));
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_myPort=<${_myPort}>"
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_myDisplay=<${_myDisplay}>"
+    echo -n -e "${_myDisplay}";
+}
 
 
 #FUNCBEG###############################################################
@@ -62,25 +168,36 @@ _VNC="${_myPKGBASE_VNC}hook"
 #
 #FUNCEND###############################################################
 function serverRequireVNC () {
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
-    local _CS_SPLIT=${*};
-    _CS_SPLIT=${_CS_SPLIT//ConnectionForwarding/ServerOnly}
-    _CS_SPLIT=${_CS_SPLIT//*LocalOnly*/}
-    _CS_SPLIT=${_CS_SPLIT//*ClientOnly*/}
-
-    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
-    local _A=`getActionResulting ${*}`;
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
     local _ret=1;
     local _res=;
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+    local _S=`getSessionType ${*}`;_S=${_S:-$C_SESSIONTYPE};
+    local _A=`getActionResulting ${*}`;
+    case $_A in
+	GETCLIENTPORT)
+	    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${*}\""
+	    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"0\""
+	    echo -n "${*}";
+	    return 0
+	    ;;
+    esac
+
+    local _CS_SPLIT=${*};
+    _CS_SPLIT=${_CS_SPLIT//CONNECTIONFORWARDING/SERVERONLY}
+    _CS_SPLIT=${_CS_SPLIT//*LOCALONLY*/}
+    _CS_SPLIT=${_CS_SPLIT//*CLIENTONLY*/}
     if [ -n "${_CS_SPLIT}" ];then
 	_res="${_CS_SPLIT}";_ret=0;
     fi
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+
+
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
     echo -n "${_res}";
     return ${_ret};  
 }
@@ -115,24 +232,25 @@ function serverRequireVNC () {
 #
 #FUNCEND###############################################################
 function clientRequireVNC () {
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
-    local _CS_SPLIT=${*};
-    _CS_SPLIT=${_CS_SPLIT//*DisplayForwarding*/}
-    _CS_SPLIT=${_CS_SPLIT//*ServerOnly*/}
-
-    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
-    local _A=`getActionResulting ${*}`;
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
     local _ret=1;
     local _res=;
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
-    if [ -n "${_CS_SPLIT}" ];then
+    local _A=`getActionResulting ${*}`;
+
+    local _S=`getSessionType ${*}`;_S=${_S:-$C_SESSIONTYPE};
+    local _CS_SPLIT=${*};
+    _CS_SPLIT=${_CS_SPLIT//*DISPLAYFORWARDING*/}
+    _CS_SPLIT=${_CS_SPLIT//*SERVERONLY*/}
+    if [ "${_CS_SPLIT}" == "${*}" ];then
 	_res="${_CS_SPLIT}";_ret=0;
     fi
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
     echo -n "${_res}";
     return ${_ret};  
 }
@@ -175,104 +293,142 @@ function clientRequireVNC () {
 #FUNCEND###############################################################
 function setVersionVNC () {
     local _checkonly=;
+    local _ret=0;
     if [ "$1" == "NOEXIT" ];then
 	local _checkonly=1;        
     fi
 
     local _verstrg=;
-    _CALLEXE=`which vncserver`;
-    if [ -z "${_CALLEXE}" ];then
-	ABORT=2
-	printERR $LINENO $_VNC ${ABORT} "Missing executable for VNCserver"
-	printERR $LINENO $_VNC ${ABORT} "can not find:"
-	printERR $LINENO $_VNC ${ABORT} " -> vncserv"
-	printERR $LINENO $_VNC ${ABORT} ""
-	printERR $LINENO $_VNC ${ABORT} "Check your PATH"
-	printERR $LINENO $_VNC ${ABORT} " -> PATH=${PATH}"
-	printERR $LINENO $_VNC ${ABORT} ""
-	if [ "${CTRL_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
+    if [ -z "${VNCSEXE}" ];then
+	ABORT=2;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VNCserver"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} " -> vncserv"
+	printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
+	printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	if [ "${C_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
 	    gotoHell ${ABORT}
 	else
 	    return ${ABORT}
 	fi
-    fi
-
-    _CALLEXE=`which vncviewer`;
-    if [ -z "${_CALLEXE}" ];then
-	ABORT=2
-	printERR $LINENO $_VNC ${ABORT} "Missing executable for VNCviewer"
-	printERR $LINENO $_VNC ${ABORT} "can not find:"
-	printERR $LINENO $_VNC ${ABORT} " -> vncviewer"
-	printERR $LINENO $_VNC ${ABORT} ""
-	printERR $LINENO $_VNC ${ABORT} "Check your PATH"
-	printERR $LINENO $_VNC ${ABORT} " -> PATH=${PATH}"
-	printERR $LINENO $_VNC ${ABORT} ""
-	if [ "${CTRL_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-    fi
-
-
-    if [ -n "`vncviewer --help 2>&1|egrep '(RealVNC)'`" ];then
-	_verstrg=`vncviewer --help 2>&1|egrep '(VNC Viewer)'|awk -v a=${_allign} '{printf("%s\n",$5);}'`
-        _verstrg="RealVNC-${_verstrg}"
+	_ret=${ABORT};
     else
-	if [ -n "`vncviewer --help 2>&1|egrep '(TightVNC)'`" ];then
-	    _verstrg=`vncviewer --help 2>&1|egrep '(viewer version)'|awk -v a=${_allign} '{printf("%s\n",$4);}'`
-            _verstrg="TightVNC-${_verstrg}"
+	local _vsexe=`${VNCSEXE} --help 2>&1|egrep '(Usage:|usage:)'`
+	ABORT=2;
+	if [ -n "$_vsexe" ];then
+	    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCSEXE} --help)\"` => [ `setSeverityColor INF OK` ]"
+	    _ret=0;
 	else
-	    printWNG $LINENO $_VNC 0  "USO - Unidentified Software Object - VNCx..."
-	    printWNG $LINENO $_VNC 0  "."
-	    printWNG $LINENO $_VNC 0  "Can not evaluate version for \"which-ed vncviewer\"."
-	    printWNG $LINENO $_VNC 0  "."
-	    printWNG $LINENO $_VNC 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
-	    printWNG $LINENO $_VNC 0  "    option. Even for the utilized check by \"vncviewer --help\" "
-	    printWNG $LINENO $_VNC 0  "    option a display is required."
-	    printWNG $LINENO $_VNC 0  " 2. Another common cause for the initial usage is the missing "
-	    printWNG $LINENO $_VNC 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
-
-  	    _verstrg=GENERIC
+	    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCSEXE} --help)\"` => [ `setSeverityColor ERR NOK` ]"
+	    _ret=${ABORT};
 	fi
     fi
 
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "VNC"
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "  _verstrg=${_verstrg}"
+    if [ -z "${VNCVEXE}" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing executable for VNCviewer"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} " -> vncviewer"
+	printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"
+	printERR $LINENO $BASH_SOURCE ${ABORT} " -> PATH=${PATH}"
+	printERR $LINENO $BASH_SOURCE ${ABORT} ""
+	if [ "${C_SESSIONTYPE}" == "VNC" -a -z "${_checkonly}" ];then
+	    gotoHell ${ABORT}
+	else
+	    return ${ABORT}
+	fi
+	_ret=${ABORT};
+    fi
+
+
+    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(RealVNC)'`" ];then
+#	_verstrg=`${VNCVEXE} --help 2>&1|awk '/VNC [Vv]iewer/{printf("%s\n",$5);}'`
+	_verstrg=`${VNCVEXE} --help 2>&1|sed -n 's/VNC [Vv]iewer[^0-9]*\([0-9]*.[0-9]*.[0-9]*\).*/\1/p'`
+	ABORT=2;
+	if [ -n "$_verstrg" ];then
+            _verstrg="RealVNC-${_verstrg}"
+	    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
+	    _ret=0;
+	else
+	    printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} --version)\"` => [ `setSeverityColor ERR NOK` ]"
+	    _ret=${ABORT};
+	fi
+    else
+	if [ -n "`${VNCVEXE} --help 2>&1|egrep '(TightVNC)'`" ];then
+	    _verstrg=`${VNCVEXE} --help 2>&1|awk -v a=${_allign} '/[vV]iewer [vV]ersion/{printf("%s\n",$4);}'`
+	    ABORT=2;
+	    if [ -n "$_verstrg" ];then
+		_verstrg="TightVNC-${_verstrg}"
+		printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} -version)\"` => [ `setSeverityColor INF OK` ]"
+		_ret=0;
+	    else
+		printDBG $S_LIB ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VNCVEXE} --version)\"` => [ `setSeverityColor ERR NOK` ]"
+		_ret=${ABORT};
+	    fi
+	else
+	    if [ -n "`${VNCVEXE} --help 2>&1|egrep '(open display:)'`" ];then
+		printWNG 1 $LINENO $BASH_SOURCE 0  "DISPLAY is not available"
+		printWNG 1 $LINENO $BASH_SOURCE 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
+		printWNG 1 $LINENO $BASH_SOURCE 0  "    option. Even for the utilized check by \"vncviewer --help\" "
+		printWNG 1 $LINENO $BASH_SOURCE 0  "    option a display is required."
+  		_verstrg=GENERIC
+		_ret=0;
+	    else
+		printWNG 1 $LINENO $BASH_SOURCE 0  "Can not evaluate version for \"which-ed\" vncviewer."
+		printWNG 1 $LINENO $BASH_SOURCE 0  "."
+		printWNG 1 $LINENO $BASH_SOURCE 0  " 1. One common cause is the call of \"ssh\" without the \"-X\""
+		printWNG 1 $LINENO $BASH_SOURCE 0  "    option. Even for the utilized check by \"vncviewer --help\" "
+		printWNG 1 $LINENO $BASH_SOURCE 0  "    option a display is required."
+		printWNG 1 $LINENO $BASH_SOURCE 0  " 2. Another common cause for the initial usage is the missing "
+		printWNG 1 $LINENO $BASH_SOURCE 0  "    permission \"X11Forwarding yes\" in \"/etc/ssh/sshd_conf\"."
+  		_verstrg=GENERIC
+		_ret=0;
+	    fi
+	fi
+    fi
+
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNC"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "  _verstrg=${_verstrg}"
 
 
     #currently somewhat restrictive to specific versions.
     case ${_verstrg} in
 	"TightVNC"*)
 	    VNC_MAGIC=VNCT;
-	    VNC_VERSTRING=${_verstrg};
 	    VNC_STATE=ENABLED;
-	    VNC_PREREQ="vncserver,vncviewer";
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} vncserver,vncviewer";
 	    VNCSERVER_OPT="${VNCSERVER_OPT_TightVNC}";
 	    VNCVIEWER_OPT="${VNCVIEWER_OPT_TightVNC}";
+	    _ret=0;
 	    ;;
 
 	"RealVNC"*)
 	    VNC_MAGIC=VNCR;
-	    VNC_VERSTRING=${_verstrg};
 	    VNC_STATE=ENABLED;
-	    VNC_PREREQ="vncserver,vncviewer";
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH} vncserver,vncviewer";
             VNCSERVER_OPT="${VNCSERVER_OPT_RealVNC}";
             VNCVIEWER_OPT="${VNCVIEWER_OPT_RealVNC}";
+	    _ret=0;
 	    ;;
 
          *)
 	    VNC_MAGIC=VNCG;
             VNCSERVER_OPT="${VNCSERVER_OPT_GENERIC}";
             VNCVIEWER_OPT="${VNCVIEWER_OPT_GENERIC}";
+	    VNC_PREREQ="${VNC_PREREQ}%${_verstrg}-${MYARCH}";
+	    _ret=2;
 	    ;;
     esac
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_MAGIC       = ${VNC_MAGIC}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_VERSTRING   = ${VNC_VERSTRING}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_STATE       = ${VNC_STATE}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNC_PREREQ      = ${VNC_PREREQ}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNCSERVER_OPT   = ${VNCSERVER_OPT}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VNC "VNCVIEWER_OPT   = ${VNCVIEWER_OPT}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNC_MAGIC       = ${VNC_MAGIC}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNC_VERSTRING   = ${VNC_VERSTRING}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNC_STATE       = ${VNC_STATE}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNC_PREREQ      = ${VNC_PREREQ}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNCSERVER_OPT   = ${VNCSERVER_OPT}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "VNCVIEWER_OPT   = ${VNCVIEWER_OPT}"
+    return $_ret;
 }
 
 
@@ -300,8 +456,12 @@ function setVersionVNC () {
 #
 #FUNCEND###############################################################
 function noClientServerSplitSupportedMessageVNC () {
-    printERR $LINENO $_VMW_SESSION ${ABORT} "Unexpected ERROR!!!"
-    printERR $LINENO $_VMW_SESSION ${ABORT} "VNC perfectly supports ClientServerSplit!!!"
+    ABORT=2
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected ERROR!!!"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "VNC perfectly supports ClientServerSplit!!!"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Check for process ownership, probably just missing permissions."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "On grave slow machines just a timeout may have occured."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Try a following connect, if so adapt TIMEOUT value, but for this target only."
 }
 
 
@@ -330,7 +490,7 @@ function noClientServerSplitSupportedMessageVNC () {
 #
 #FUNCEND###############################################################
 function clientServerSplitSupportedVNC () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC "$FUNCNAME $1"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME $1"
     case $1 in
 	CREATE)return 0;;
 	CANCEL)return 0;;
@@ -360,12 +520,12 @@ function clientServerSplitSupportedVNC () {
 #
 #FUNCEND###############################################################
 function enumerateMySessionsVNC () {
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "$FUNCNAME:\$@=${@}"
+    printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
 }
 
 
 #
-#Managed load of sub-packages which are required in almost any case.
+#Managed load of sub-packages gwhich are required in almost any case.
 #On-demand-loads will be performed within requesting action.
 #
 hookPackage "${_myPKGBASE_VNC}/session"
@@ -408,52 +568,71 @@ fi
 #
 #FUNCEND###############################################################
 function handleVNC () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "${FUNCNAME}:$*"
+  printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
   local OPMODE=$1;shift
   local ACTION=$1;shift
 
   case ${ACTION} in
 
       CREATE) 
-          hookPackage "${_myPKGBASE_VNC}/create"
-          createConnectVNC ${OPMODE} ${ACTION} 
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM|ASSEMBLE|EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/create"
+		  createConnectVNC ${OPMODE} ${ACTION} 
+		  ;;
+	  esac
           ;;
 
       CANCEL)
-          hookPackage "${_myPKGBASE_VNC}/cancel"
-          cutCancelSessionVNC ${OPMODE} ${ACTION} 
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM|ASSEMBLE|EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/cancel"
+		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
+		  ;;
+	  esac
           ;;
 
 
       GETCLIENTPORT)
 	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
               CHECKPARAM)
-		  if [ -n "$CTRL_MODE_ARGS" ];then
-                      printVerboseDebug ${DBG_LVL_UID} $LINENO $_VNC "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
-                      _CTRL_GETCLIENTPORT=$CTRL_MODE_ARGS
+		  if [ -n "$C_MODE_ARGS" ];then
+                      printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
+                      _C_GETCLIENTPORT=$C_MODE_ARGS
 		  else
 		      ABORT=1
-		      printERR $LINENO $_VNC ${ABORT} "Missing <session-label>|<session-id>"
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
 		      gotoHell ${ABORT}
 		  fi
 
-                      ;;
-	      ACTION)
-		  if [ -z "${CTRL_EXECLOCAL}" ];then
-		      assembleExeccall
-		  else
-		      printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VNC "Remote command:CTRL_MODE_ARGS=${CTRL_MODE_ARGS}"
-  		      echo "CLIENTPORT(VNC,${MYHOST},${_CTRL_GETCLIENTPORT})=`getClientTPVNC ${_CTRL_GETCLIENTPORT}`"
-		      gotoHell 0
-		  fi
-
+                  ;;
+	      EXECUTE)
+		  printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "Remote command:C_MODE_ARGS=${C_MODE_ARGS}"
+		  printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "CLIENTPORT(VNC,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPVNC ${_C_GETCLIENTPORT}`"
+  		  echo "CLIENTPORT(VNC,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPVNC ${_C_GETCLIENTPORT}`"
+		  gotoHell 0
+		  ;;
+ 	      ASSEMBLE)
+   		  ;;
           esac
 	  ;;
 
       *)
           #SUSPEND|RESUME|RESET
           ABORT=1;
-          printERR $LINENO $_VNC ${ABORT} "System Error, unsupported ACTION for VNC:ACTION=${ACTION} OPMODE=${OPMODE}"
+          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unsupported ACTION for VNC:ACTION=${ACTION} OPMODE=${OPMODE}"
           ;;
   esac
 
@@ -484,22 +663,34 @@ function initVNC () {
   local _initConsequences=$1
   local ret=0;
 
-  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $_VNC "$FUNCNAME ${_curInit}"
 
+  local _raise=$((INITSTATE<_curInit));
 
-  case $_curInit in
-      0);;#NOP - Done by shell
-      1)  #add own help to searchlist for options
-	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/HOSTs/VNC/help/${MYLANG}/010_vnc"
-          setVersionVNC $_initConsequences
+  printDBG $S_VNC ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
-          ret=$?
-	  ;;
-      2);;#Curently nothing todo.
-      3);;#Curently nothing todo.
-      4);;#Curently nothing todo.
-      5);;#Curently nothing todo.
-  esac
+  if [ "$_raise" == "1" ];then
+      #for raise of INITSTATE do not touch the OS's decisions, just expand.
+
+      case $_curInit in
+	  0);;#NOP - Done by shell
+	  1)  #add own help to searchlist for options
+	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_vnc"
+              setVersionVNC $_initConsequences
+
+              ret=$?
+	      ;;
+	  2);;
+	  3);;
+	  4);;
+	  5);;
+	  6);;
+      esac
+  else
+      case $_curInit in
+	  *);;
+      esac
+
+  fi
 
   return $ret
 }

@@ -7,63 +7,90 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a13
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
+#
+# output format: "label;id;uuid;pid;uid;gid;sessionType;clientServer;TCP;jobid"
+#                    +     +  +    +   +   +   +           +            +
 
-#old    output format: "host:label:id:uuid:pid:uid:gid:sessionType:clientServer"
-#    output format: "label:id:uuid:pid:uid:gid:sessionType:clientServer"
-#                    +     +  +    +   +   +   +           +
+function ptrace(inp){
+      if(!d){
+          print line ":" inp | "cat 1>&2"
+      }
+}
+
+BEGIN{
+    line=0;
+    ptrace("Start record with AWK:CLI-SERVERLST");
+    ptrace("_c1=\"" _c1 "\"");
+    ptrace("_c2=\"" _c2 "\"");
+}
+
+{
+    line++;
+    ptrace("input=<"$0">");
+}
 
 {
     found=0;
+    res="";
 
     #label
-    if($16){
-        x0=$16;        
+    if($0){
+        x0=$0;        
         gsub(".*l:","",x0);
         gsub(" .*","",x0);
         gsub(",.*","",x0);
-        
-        printf("%s", x0);
+        res=x0;
         found=1;  
     }
 
     #id
     if($2!~/^$/){
         id=$2;
-        printf(";%s", id);
+        res=res";"id;
         found=1;  
+    }else{
+        res=res";";
     }
+    
 
     if(found!=0){
-        if(id=="")
-            printf(";;;");
-        else
-            printf(";;;%s",id);           
-
-        printf(";");
-        printf(";");
+        res=res";;;;;";
     
         #pid+uid
-        printf(";%s;%s;", $2, $1);
+        res=res";"$2";"$1";";
         {
             #gid
             cll="id " $1 "|sed -n \"s/.*gid=[0-9]*(\\([^)]*\\)).*/\\1/p\"";
-            cll|getline x1;printf("%s", x1);
-            printf(";");
+            cll|getline x1;
+            res=res""x1";";
         }
 
-        #sessioType
-        printf("CLI");
+        #sessionType
+        res=res"CLI";
 
         #clientServer
-        printf(";CLIENT");
-        printf(" ");
+        res=res";CLIENT;";
+
+        j=$0;
+        jm=gsub("^.* -j *","",j);
+        if(jm!=0){
+            gsub(" .*$","",j);
+            res=res";"j;
+            ptrace("jobid="j);
+        }else{
+            ptrace("jobid=");
+            res=res";";
+        }
+
+        ptrace("output=<"res">")
+        printf("%s ",res);
     }
     found=0;
 }

@@ -79,11 +79,11 @@ function functionHeaders () {
 	    fetchFileList
 
             for i in $x;do
-                cat $i|sed -n '/^#FUNCBEG#*$/,/^#FUNCEND#*$/!d;p'|\
+                cat $i|\
                     awk -v fn=$i '
                        BEGIN{n=0;line=0}
                        {line++;}
-                       $1~/^#NAME:/{n=1;getline;}
+                       $1~/^#NAME:/{n=1;getline;line++;}
                        n==1{
                          n=0;
                          printf("%-35s",$2);
@@ -180,7 +180,7 @@ function functionHeaders () {
 function printHelpEx () {
   local _lst=${@//[, ]/ }
 
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_lst=${_lst}"
+  printDBG $S_LIB ${D_UID} $LINENO $BASH_SOURCE "_lst=${_lst}"
 
   for i in $_lst;do
     KEY=`echo ${1}|tr '[:lower:]' '[:upper:]'`
@@ -202,28 +202,30 @@ function printHelpEx () {
      ALL|'*'|"")  #this is literally "all=='*'==''"
                   _printHelpEx|sed 's///';;
 
-               *) #this is any "*", which is not to be recognized a keyword,
+     *)           #this is any "*", which is not to be recognized a keyword,
                   #but expected to be "search-keyword", refer to manual.
-                  if [ -z "${_prea}" ];then printVersion;local _prea=1;fi
+  		  if [ -z "${_prea}" ];then printVersion;local _prea=1;fi
+		  doDebug $S_LIB $D_BULK $LINENO $BASH_SOURCE
+                  local D=$?
 
 		  echo 
 		  echo "SEARCH-KEYWORD-SECTION:regexpr< *$1.*>"
 		  echo 
-                  {
-                      if [ -z "${i//[^-]}" ];then _printHelpEx;
-                      else   cat ${MYOPTSFILES}; fi
-                  }|\
-                  awk -v _a=$i -v dbg=${DBG_LVL_HAYSTACK} -v d="${CTRL_VERBOSE}" -f ${_myLIBBASE_help}/helpEx1.awk;
+		  {
+                    if [ -z "${i//[^-]}" ];then _printHelpEx;
+                    else   cat ${MYOPTSFILES} 2>/dev/null; fi
+                   }|\
+                  awk -v _a=$i -v d="${D}" -f ${_myLIBBASE_help}/helpEx1.awk;
                   ;;
-    esac
-  done
+		esac
+		done
 }
 
 
 
 #FUNCBEG###############################################################
 #NAME:
-#  showHelp
+#  showToolHelp
 #
 #TYPE:
 #  bash-function
@@ -250,9 +252,18 @@ function showToolHelp () {
 	cat ${_myhlp}
     else
 	ABORT=1;
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing help-file:\"${_myhlp}\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing online help-file:\"${_myhlp}\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Refer to the manual for required information"
 	gotoHell $ABORT
     fi
+    echo
+    echo "Due to reasons of consistency this version supports help by generated subchapters"
+    echo "from the User-Manual(meanwhile more than 400 pg.) only."
+    echo
+    echo "Some conversion problems from LaTex to ASC-II still lead to some unexpected"
+    echo "text changes. Particularly some difficulties with hyperlink marks still resist."
+    echo 
+    echo "Though when the online help seems to be too curious, refer to the PDF document."
 }
 
 #FUNCBEG###############################################################
@@ -275,13 +286,23 @@ function showToolHelp () {
 #
 #FUNCEND###############################################################
 function printVersion () {
-    if [ -n "$CTRL_TERSE" ];then
+    if [ -n "$C_TERSE" ];then
 	echo -n ${VERSION}
 	return
     fi
 
 
 cat <<EOF
+--------------------------------------------------------------------------
+
+UnifiedSessionsManager Copyright (C) 2007, 2008 Arno-Can Uestuensoez
+
+This program comes with ABSOLUTELY NO WARRANTY; for details  
+refer to provided documentation.
+This is free software, and you are welcome to redistribute it
+under certain conditions. For details refer to "GNU General Public 
+License - version 3" <http://www.gnu.org/licenses/>.
+
 --------------------------------------------------------------------------
 PROJECT          = ${FULLNAME} 
 --------------------------------------------------------------------------
@@ -295,7 +316,7 @@ DATE             = ${DATE}
 
 LOC              = ${LOC} CodeLines
 LOC-BARE         = ${LOCNET} BareCodeLines (no comments and empty lines)
-LOD              = ${LOD} DocLines
+LOD              = ${LOD} DocLines, include LaTeX-sources
 
 EOF
     cat ${MYCONFPATH}/versinfo.txt

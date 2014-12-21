@@ -1,0 +1,8 @@
+#
+#This groups contains all machines supporting access to user acue.
+#
+
+
+wol1@ws1'(-b sync,seq)'
+
+

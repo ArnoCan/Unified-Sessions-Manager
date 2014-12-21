@@ -24,15 +24,16 @@ QEMU_DEFAULTOPTS=
 QEMU_PREREQ=;
 
 _myPKGNAME_QEMU="${BASH_SOURCE}"
-_myPKGVERS_QEMU="01.01.001a00pre"
+_myPKGVERS_QEMU="01.06.001a09"
 hookInfoAdd $_myPKGNAME_QEMU $_myPKGVERS_QEMU
 
-_myPKGBASE_QEMU="`dirname ${_myPKGNAME_QEMU}`"
-_BASE_QEMU="${_myPKGBASE_QEMU}hook"
+QEMU_VERSTRING="${_myPKGVERS_QEMU}"
 
+_myPKGBASE_QEMU="`dirname ${_myPKGNAME_QEMU}`"
+
+_myTAP=;
 
 if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/qemu" ];then
-    #Source pre-set environment from user
     if [ -f "${HOME}/.ctys/qemu/qemu.conf.${MYOS}" ];then
 	. "${HOME}/.ctys/qemu/qemu.conf.${MYOS}"
     fi
@@ -44,6 +45,18 @@ if [ -d "${MYCONFPATH}/qemu" ];then
     fi
 fi
 
+_waitcQEMU=${QEMU_INIT_WAITC:-2}
+_waitsQEMU=${QEMU_INIT_WAITS:-2}
+
+_pingQEMU=${CTYS_PING_DEFAULT_QEMU:-1};
+_pingcntQEMU=${CTYS_PING_ONE_MAXTRIAL_QEMU:-20};
+_pingsleepQEMU=${CTYS_PING_ONE_WAIT_QEMU:-2};
+
+_sshpingQEMU=${CTYS_SSHPING_DEFAULT_QEMU:-0};
+_sshpingcntQEMU=${CTYS_SSHPING_ONE_MAXTRIAL_QEMU:-20};
+_sshpingsleepQEMU=${CTYS_SSHPING_ONE_WAIT_QEMU:-2};
+
+_actionuserQEMU="${MYUID}";
 
 
 
@@ -51,7 +64,7 @@ fi
 #FUNCBEG###############################################################
 #NAME:
 #  setVersionQEMU
-#
+
 #TYPE:
 #  bash-function
 #
@@ -89,6 +102,7 @@ fi
 #
 #FUNCEND###############################################################
 function setVersionQEMU () {
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<${@}>"
     local _checkonly=;
     if [ "$1" == "NOEXIT" ];then
 	local _checkonly=1;        
@@ -99,6 +113,8 @@ function setVersionQEMU () {
     hookPackage X11
     hookPackage VNC
 
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:loaded pre-requisites:CLI, X11, VNC"
+
     #
     #Check local components in any case, post-fetchin here puts them to init list
     #by the time.
@@ -108,15 +124,15 @@ function setVersionQEMU () {
     local _cliOK=`hookInfoCheckPKG CLI`
     if [ -z "${_cliOK}" ];then
 	ABORT=1;
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "This feature requires additional CLI plugin to be pre-loaded."
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "-> Set the option \"-T vnc,cli,...\" "
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "This feature requires additional CLI plugin to be pre-loaded."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T vnc,cli,...\" "
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-v\""
 	    gotoHell ${ABORT}
 	else
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "This feature reuqires additional CLI plugin to be pre-loaded."
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "-> Set the option \"-T vnc,cli,...\" "
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "This feature reuqires additional CLI plugin to be pre-loaded."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T vnc,cli,...\" "
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-v\""
 	    return ${ABORT}
 	fi
     else
@@ -127,15 +143,15 @@ function setVersionQEMU () {
     local _x11OK=`hookInfoCheckPKG X11`
     if [ -z "${_x11OK}" ];then
 	ABORT=1;
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "This feature requires additional X11 plugin to be pre-loaded."
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "-> Set the option \"-T vnc,x11,...\" "
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "This feature requires additional X11 plugin to be pre-loaded."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T vnc,x11,...\" "
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-v\""
 	    gotoHell ${ABORT}
 	else
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "This feature reuqires additional X11 plugin to be pre-loaded."
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "-> Set the option \"-T vnc,x11,...\" "
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "This feature reuqires additional X11 plugin to be pre-loaded."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T vnc,x11,...\" "
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-v\""
 	    return ${ABORT}
 	fi
     else
@@ -146,27 +162,28 @@ function setVersionQEMU () {
     local _vncOK=`hookInfoCheckPKG VNC`
     if [ -z "${_vncOK}" ];then
 	ABORT=1;
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "This feature requires additional VNC plugin to be pre-loaded."
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "-> Set the option \"-T vnc,xen,...\" "
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "This feature requires additional VNC plugin to be pre-loaded."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T vnc,xen,...\" "
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-v\""
 	    gotoHell ${ABORT}
 	else
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "This feature reuqires additional VNC plugin to be pre-loaded."
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "-> Set the option \"-T vnc,xen,...\" "
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "-> Check actually loaded plugins with option \"-v\""
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "This feature reuqires additional VNC plugin to be pre-loaded."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "-> Set the option \"-T vnc,xen,...\" "
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "-> Check actually loaded plugins with option \"-v\""
 	    return ${ABORT}
 	fi
     else
 	QEMU_PREREQ="${QEMU_PREREQ} VNC-ValidatedBy(hookInfoCheckPKG)"
     fi
 
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:verified pre-requisites:CLI, X11, VNC"
+
     #
     #if not final and though actual execution target just relay it,
     #so client and additional basic server-checks only on this node
     #
     QEMU_MAGIC=RELAY;
-    QEMU_VERSTRING="GenericClientCapabilityOnly";
     if [ -n "${_cliOK}" ];then
 	QEMU_PREREQ="${QEMU_PREREQ} <LocalClientCLI>"
     fi
@@ -176,118 +193,307 @@ function setVersionQEMU () {
     if [ -n "${_vncOK}" ];then
 	QEMU_PREREQ="${QEMU_PREREQ} <LocalClientVNC>"
     fi
-    QEMU_PREREQ="${QEMU_PREREQ} <LocalXserverDISPLAY>"
-    QEMU_PREREQ="${QEMU_PREREQ} <delayedValidationOnFinalTarget>"
-    if [ -z "$CTRL_EXECLOCAL" ];then
+    if [ -z "$C_EXECLOCAL" ];then
 	QEMU_STATE=ENABLED
-	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_MAGIC       = ${QEMU_MAGIC}"
-	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_STATE       = ${QEMU_STATE}"
-	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_VERSTRING   = ${QEMU_VERSTRING}"
-	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_PREREQ      = ${QEMU_PREREQ}"
-	printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_DEFAULTOPTS = ${QEMU_DEFAULTOPTS}"
+	QEMU_PREREQ="${QEMU_PREREQ} <LocalXserverDISPLAY>"
+	QEMU_PREREQ="${QEMU_PREREQ} <delayedValidationOnFinalTarget>"
+	QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_MAGIC       = ${QEMU_MAGIC}"
+	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_STATE       = ${QEMU_STATE}"
+	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_VERSTRING   = ${QEMU_VERSTRING}"
+	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_PREREQ      = ${QEMU_PREREQ}"
+	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_DEFAULTOPTS = ${QEMU_DEFAULTOPTS}"
 	return
     fi
 
     if [ -z "${QEMU}" ];then
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    ABORT=2
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "Cannot locate executable \"qemu\""
+	QEMU_PREREQ="${QEMU_PREREQ} <LocalXserverDISPLAY>"
+	QEMU_PREREQ="${QEMU_PREREQ} <delayedValidationOnFinalTarget>"
+	QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	ABORT=2
+	local _myLoc=`getLocation ${C_CLIENTLOCATION}`
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" -a "${_myLoc}" != CONNECTIONFORWARDING -a "${_myLoc}" != CLIENTONLY  ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"qemu\""
 	    gotoHell ${ABORT}
 	else
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"qemu\""
 	    return ${ABORT}
 	fi
     fi
-
-    if [ -z "${VDE_TUNCTL}" ];then
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    ABORT=2
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "Cannot locate executable \"vde_tunctl\""
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-    fi
-
-    if [ -z "${VDE_SWITCH}" ];then
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    ABORT=2
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "Cannot locate executable \"vde_switch\""
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-    fi
-
-    if [ ! -e "${QEMUSOCK}" ];then
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    ABORT=2
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "Missing socket for \"vde_switch\" QEMUSOCK=${QEMUSOCK}"
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-    fi
-
-
-
-#    checkedSetSUaccess  QEMUCALL    QEMU        "${MYCONFPATH}/qemu/qemu.conf.${MYOS}"
-#    checkedSetSUaccess  VDECALL     VDE_TUNCTL  "${MYCONFPATH}/qemu/qemu.conf.${MYOS}"
 
     local _verstrg=;
 
     #basic tool is qemu
-    local _res=`callErrOutWrapper $LINENO $BASH_SOURCE ${QEMUCALL} which ${QEMU}`
-    local _qemubase=`dirname $_res`
-    callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} which ${QEMU} >/dev/null
-    if [ $? -ne 0 ];then
-	ABORT=2
-	printERR $LINENO $_BASE_QEMU ${ABORT} "Missing executable for qemu check your QEMU installation."
-	printERR $LINENO $_BASE_QEMU ${ABORT} "  Checked by call of:\"${QEMUCALL} which ${QEMU}\""
-	printERR $LINENO $_BASE_QEMU ${ABORT} "   =>\"${_res}\""
-	printERR $LINENO $_BASE_QEMU ${ABORT} "  For call-prefix configuration see QEMUCALL"
-	printERR $LINENO $_BASE_QEMU ${ABORT} "PATH--->`echo;splitPath 10 PATH ${PATH}`"
-	printERR $LINENO $_BASE_QEMU ${ABORT} "<---PATH"
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-    else
-	_verstrg=`callErrOutWrapper $LINENO $BASH_SOURCE ${QEMUCALL} ${QEMU} -h|awk '$0~/version/&&$0~/Copyright/{printf("%s-%s",$1,$5);}'`
-        _verstrg=${_verstrg//,/};
-    fi
-
+    local _qemubase=`dirname ${QEMU}`
+    _verstrg=`callErrOutWrapper $LINENO $BASH_SOURCE ${QEMUCALL} ${QEMU} -h|awk '$0~/version/&&$0~/Copyright/{printf("qemu-%s",$5);}'`
+    _verstrg=${_verstrg//,/};
     if [ -z "${_verstrg}" ];then
+	QEMU_PREREQ="${QEMU_PREREQ} <LocalXserverDISPLAY>"
+	QEMU_PREREQ="${QEMU_PREREQ} <delayedValidationOnFinalTarget>"
+	QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
 	ABORT=2
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    printERR $LINENO $_BASE_QEMU ${ABORT} "Cannot evaluate version"
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot evaluate version of QEMU"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "A common reason is missing of the required shared libraries"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "e.g. libSDL"
 	    gotoHell ${ABORT}
 	else
-	    printWNGEXT $LINENO $_BASE_QEMU ${ABORT} "CHKONLY:QEMU seems not to be installed."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "CHKONLY:QEMU seems not to be installed."
 	    return ${ABORT}
 	fi
     fi
-    QEMU_PREREQ="${QEMU_PREREQ} <${_verstrg}>"
+
+    if [ -n "${VDE_SWITCH}" ];then
+	local _vdebuf=`callErrOutWrapper $LINENO $BASH_SOURCE ${VDE_SWITCH} -v|sed -n 's/VDE \([0-9.]\+\)[^0-9\.].*/\1/p'`
+	_vdebuf="vde-${_vdebuf}-`getExecArch ${VDE_SWITCH}`"
+	QEMU_PREREQ="VM-CAPABILITY:QEMU-${QEMU_VERSTRING}-${MYARCH}%${_verstrg}-`getExecArch ${QEMU}`%${_vdebuf} ${QEMU_PREREQ}"
+    else
+	QEMU_STATE=DISABLED
+	QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} MISSING`:vde_switch>"
+
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_tunctl\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_tunctl\""
+	    return ${ABORT}
+	fi
+    fi
 
 
-    #pre-requisite is vde
-    local _res=`callErrOutWrapper $LINENO $BASH_SOURCE ${VDECALL} which ${VDE_TUNCTL}`
-    callErrOutWrapper $LINENO $BASH_SOURCE  ${VDECALL} which ${VDE_TUNCTL} >/dev/null
+    ##########
+    if [ -z "${VDE_TUNCTL}" ];then
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_tunctl\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_tunctl\""
+	    return ${ABORT}
+	fi
+    fi
+    if [ -z "${VDE_TUNCTL}" ];then
+        local _tst=`${QEMUCALL} ${VDE_TUNCTL} -xyz 2>&1 |grep "tun-clone"`
+	if [ -n "${_tst}" ];then
+	    QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_TUNCTL}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+	else
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Final check of access for current USER=${USER} failed."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "=> failed to perform \"${VDECALL} ${VDE_TUNCTL} -xyz\""
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    QEMU_STATE=DISABLED
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:${VDECALL// /_}_${VDE_TUNCTL}_info-USER=${USER}-NO-ACCESS>"
+	fi
+    fi
+
+
+    ##########
+    if [ -z "${VDE_SWITCH}" ];then
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_switch\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_switch\""
+	    return ${ABORT}
+	fi
+    fi
+    callErrOutWrapper $LINENO $BASH_SOURCE  ${VDECALL}  ${VDE_SWITCH} -v >/dev/null
     if [ $? -ne 0 ];then
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Final check of access for current USER=${USER} failed."
+	printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "=> failed to perform \"${VDECALL} ${VDE_SWITCH} -v\""
+	QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	QEMU_STATE=DISABLED
+	QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:${VDECALL// /_}_${VDE_SWITCH}_info-USER=${USER}-NO-ACCESS>"
+    else
+	QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_SWITCH}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+    fi
+
+
+    ##########
+    if [ -z "${VDE_UNIXTERM}" ];then
 	ABORT=2
-	printERR $LINENO $_BASE_QEMU ${ABORT} "Missing executable for vde_tunctl of VDE package, this is seen as pre-requisite."
-	printERR $LINENO $_BASE_QEMU ${ABORT} "Check your QEMU installation."
-	printERR $LINENO $_BASE_QEMU ${ABORT} "  Checked by call of:\"${VDECALL} which ${VDE_TUNCTL}\""
-	printERR $LINENO $_BASE_QEMU ${ABORT} "   =>\"${_res}\""
-	printERR $LINENO $_BASE_QEMU ${ABORT} "  For call-prefix configuration see VDECALL"
-	printERR $LINENO $_BASE_QEMU ${ABORT} "PATH--->`echo;splitPath 10 PATH ${PATH}`"
-	printERR $LINENO $_BASE_QEMU ${ABORT} "<---PATH"
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_unixterm\""
+	    gotoHell ${ABORT}
+	else
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_unixterm\""
+	    return ${ABORT}
+	fi
+    fi
+    if [ -n "$VDE_UNIXTERM" ];then
+        local _tst=`${VDECALL} ${VDE_UNIXTERM} 2>&1 |grep connecting`
+	if [ -n "$_tst" ];then
+	    QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_UNIXTERM}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VDE_UNIXTERM})\"` => [ `setSeverityColor INF OK` ]"
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor TRY FAILED`:${VDECALL// /_}_${VDE_UNIXTERM}_info-USER=${USER}-NO-ACCESS>"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VDE_UNIXTERM})\"` => [ `setSeverityColor ERR NOK` ]"
+	fi
+    fi
+
+
+    ##########
+    if [ -z "${VDE_DEQ}" ];then
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_deq\""
+	    gotoHell ${ABORT}
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_deq\""
+	    return ${ABORT}
+	fi
+    fi
+    if [ -n "$VDE_DEQ" ];then
+        local _tst=`${VDECALL} ${VDE_DEQ} 2>&1 |grep qemu_executable`
+	if [ -n "$_tst" ];then
+	    QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_DEQ}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VDE_DEQ} --help)\"` => [ `setSeverityColor INF OK` ]"
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:${VDECALL// /_}_${VDE_DEQ}_info-USER=${USER}-NO-ACCESS>"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VDE_DEQ} --help)\"` => [ `setSeverityColor ERR NOK` ]"
+	fi
+    fi
+
+
+    ##########
+    if [ -z "${VDE_DEQEMU}" ];then
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_deqemu\""
+	    gotoHell ${ABORT}
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"vde_deqemu\""
+	    return ${ABORT}
+	fi
+    fi
+    if [ -n "$VDE_DEQEMU" ];then
+        local _tst=`callErrOutWrapper $LINENO $BASH_SOURCE ${VDE_DEQEMU} --help|grep "Fabrice Bellard" `
+	if [ -n "$_tst" ];then
+	    QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_DEQEMU}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VDE_DEQEMU} --help)\"` => [ `setSeverityColor INF OK` ]"
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:${VDECALL// /_}_${VDE_DEQEMU}_info-USER=${USER}-NO-ACCESS>"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"call(${VDE_DEQEMU} --help)\"` => [ `setSeverityColor ERR NOK` ]"
+	fi
+    fi
+
+
+
+    ##########
+    if [ -n "$CTYS_NETCAT" ];then
+	QEMU_PREREQ="${QEMU_PREREQ} ${CTYS_NETCAT// /_}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
+    else
+	QEMU_PREREQ="${QEMU_PREREQ} <`setSeverityColor WNG WARNING`:Missing:${CTYS_NETCAT// /_}_use:${VDE_UNIXTERM}>"
+    fi
+
+
+    ##########
+    if [ -z "${CTYS_IFCONFIG}" ];then
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"ifconfig\""
+	    gotoHell ${ABORT}
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"ifconfig\""
+	    return ${ABORT}
+	fi
+    fi
+
+
+    ##########
+    if [ -z "${CTYS_BRCTL}" ];then
+	ABORT=2
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"brctl\""
+	    gotoHell ${ABORT}
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Cannot locate executable \"brctl\""
+	    return ${ABORT}
+	fi
+    fi
+
+
+
+    ##########
+    if [ ! -e "${QEMUSOCK}" -o ! -e "${QEMUMGMT}" ];then
+	ABORT=2
+	if [ ! -e "${QEMUSOCK}" ];then
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:QEMUSOCK=${QEMUSOCK}_info-USER=${USER}-SOCK-NON-EXISTENT>"
+	    if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing socket for \"vde_switch\" QEMUSOCK=${QEMUSOCK}"
+	    else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+		printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"check(QEMUSOCK=${QEMUSOCK})\"` => [ `setSeverityColor ERR NOK` ]"
+		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Missing socket for \"vde_switch\" QEMUSOCK=${QEMUSOCK}"
+	    fi
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} INFO `:QEMUSOCK=${QEMUSOCK}_info-USER=${USER}-SOCK-EXISTS>"
+	fi
+
+	if [ ! -e "${QEMUMGMT}" ];then
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:QEMUMGMT=${QEMUMGMT}_info-USER=${USER}-SOCK-NON-EXISTENT>"
+	    if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing management socket for \"vde_switch\" QEMUMGMT=${QEMUMGMT}"
+	    else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+		printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor TRY \"check(QEMUMGMT=${QEMUMGMT})\"` => [ `setSeverityColor ERR NOK` ]"
+		printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Missing management socket for \"vde_switch\" QEMUMGMT=${QEMUMGMT}"
+	    fi
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} INFO `:QEMUMGMT=${QEMUMGMT}_info-USER=${USER}-SOCK-EXISTS>"
+	fi
+
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Call: \"ctys-setupVDE\" on \"${MYHOST}\""
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:`setSeverityColor ERR Call: \"ctys-setupVDE\"` ]"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Call: \"ctys-setupVDE\" on \"${MYHOST}\""
+	fi
+
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
 	    gotoHell ${ABORT}
 	else
 	    return ${ABORT}
 	fi
     fi
+
+    #
+    #Check presence of VDE switch, could be created on the fly too.
+    #
+    ${CTYS_SETUPVDE} -X -s "${QEMUSOCK}" -S "${QEMUMGMT}" check
+    if [ $? -ne 0 ];then
+	ABORT=127
+	if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing VDE-switch, is at least erroneous."
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "  QEMUSOCK  = ${QEMUSOCK}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "  QEMUMGMT  = ${QEMUMGMT}"
+	    gotoHell ${ABORT}
+	else
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAILED`:ctys-setupVDE%check-NO-ACCESS>"
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAIL-INFO`:QEMUSOCK=${QEMUSOCK}>"
+	    QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} FAIL-INFO`:QEMUMGMT=${QEMUMGMT}>"
+
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printDBG $S_QEMU ${D_SYS} $LINENO "$BASH_SOURCE" "$FUNCNAME:Missing VDE-switch."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "Missing VDE-switch, is at least erroneous."
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "  QEMUSOCK = ${QEMUSOCK}"
+	    printWNG 2 $LINENO $BASH_SOURCE ${ABORT} "  QEMUMGMT = ${QEMUMGMT}"
+	    return ${ABORT}
+	fi
+    fi
+
+
+    QEMU_PREREQ="${QEMU_PREREQ} <QEMUSOCK=${QEMUSOCK}_info-USER=${USER}-ACCESS-GRANTED>"
+    QEMU_PREREQ="${QEMU_PREREQ} <QEMUMGMT=${QEMUMGMT}_info-USER=${USER}-ACCESS-GRANTED>"
 
     #enable conditionally - disable-checks follow immediately
     QEMU_STATE=ENABLED
@@ -297,89 +503,58 @@ function setVersionQEMU () {
 	QEMU_PREREQ="${QEMU_PREREQ} <CPU-Emulation:${_tx##*/}>"
     done
 
-    #Check:CHECK-ACCESS-PERMISSIONS
-    callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} which which >/dev/null
-    if [ $? -ne 0 ];then
-	printWNG $LINENO $_BASE_QEMU ${ABORT} "Final check of check-access-permissions for current USER=${USER} failed."
-	printWNG $LINENO $_BASE_QEMU ${ABORT} "=> failed to perform \"${QEMUCALL} which which\""
-	printWNG $LINENO $_BASE_QEMU ${ABORT} "most common reason is required root permission => setting QEMU_STATE=DISABLED"
-	QEMU_PREREQ="${QEMU_PREREQ} <FAILED:${QEMUCALL// /_}_which_which-USER=${USER}-NO-CHECK-ACCESS-PERMISSION>"
-	QEMU_STATE=DISABLED
-    else
-	QEMU_PREREQ="${QEMU_PREREQ} ${QEMUCALL// /_}_which_which-USER=${USER}-CHECK-ACCESS-PERMISSION-GRANTED"
-    fi
-
-
-    #Check:ACCESS-PERMISSIONS-VDE switch
-    if [ -z "${QEMUSOCK}" ];then
-	ABORT=2
-	printERR $LINENO $_BASE_QEMU ${ABORT} "Missing definition of communication sock for VDE-switch:QEMUSOCK"
-	if [ "${CTRL_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" ];then
-	    gotoHell ${ABORT}
-	else
-	    return ${ABORT}
-	fi
-    fi
-
-    callErrOutWrapper $LINENO $BASH_SOURCE  ${VDECALL}  ${VDE_SWITCH} -v >/dev/null
-    if [ $? -ne 0 ];then
-	printWNG $LINENO $_BASE_QEMU ${ABORT} "Final check of access for current USER=${USER} failed."
-	printWNG $LINENO $_BASE_QEMU ${ABORT} "=> failed to perform \"${VDECALL} ${VDE_SWITCH} -v\""
-	QEMU_PREREQ="${QEMU_PREREQ} <FAILED:${VDECALL// /_}_${VDE_SWITCH}_info-USER=${USER}-NO-ACCESS>"
-	QEMU_STATE=DISABLED
-    else
-	QEMU_PREREQ="${QEMU_PREREQ} ${VDECALL// /_}_${VDE_SWITCH}_info-USER=${USER}-ACCESS-PERMISSION-GRANTED"
-    fi
-
 
     #currently somewhat restrictive to specific versions.
     case ${_verstrg} in
-	"QEMU-0.9.1"*)
+	[qQ][eE][mM][uU]-0.9.0*)
+	    QEMU_MAGIC=QEMU_090;
+	    QEMU_DEFAULTOPTS="";
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Setting QEMU_MAGIC=\"QEMU_090\", draft-tested, switch to QEMU-0.9.1"
+	    ;;
+
+	[qQ][eE][mM][uU]-0.9.1*)
 	    QEMU_MAGIC=QEMU_091;
-	    QEMU_VERSTRING=${_verstrg};
 	    QEMU_DEFAULTOPTS="";
 	    ;;
 
-
-	"QEMU-0.9"*)
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "Setting QEMU_MAGIC=\"QEMU_09x\" for an untested QEMU-0.9x version."
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "Might work perfectly, as long as compatible to QEMU-0.9.1, but is not verified."
+	[qQ][eE][mM][uU]-0.9*)
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Setting QEMU_MAGIC=\"QEMU_09x\" for an untested QEMU-0.9x version."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Might work perfectly, as long as compatible to QEMU-0.9.1, but is not verified."
 	    QEMU_MAGIC=QEMU_09x;
-	    QEMU_VERSTRING=${_verstrg};
 	    QEMU_DEFAULTOPTS="";
 	    ;;
 
-	"QEMU-"*)
+	[qQ][eE][mM][uU]-*)
 	    QEMU_MAGIC=QEMU_GENERIC;
-	    QEMU_VERSTRING=${_verstrg};
 	    QEMU_DEFAULTOPTS="";
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "Setting QEMU_GENERIC for unprepared version."
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "Somewhat risky due to feature evolution, but anyhow, setting it."
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "QEMU_GENERIC = \"${_verstrg}\""
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "KERNEL      = \"${MYOS} - ${MYOSREL}\""
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "."
-	    printWNG $LINENO $_BASE_QEMU ${ABORT} "Tested version is \"QEMU-0.9.1\"."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Setting QEMU_GENERIC for unprepared version."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Somewhat risky due to feature evolution, but anyhow, setting it."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "QEMU_GENERIC = \"${_verstrg}\""
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "KERNEL      = \"${MYOS} - ${MYOSREL}\""
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
+	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Tested version is \"QEMU-0.9.1\"."
 	    ;;
 
          *)
-	    printWNG $LINENO $_BASE_QEMU 0 "Not supported or misconfigured local version:"
-	    printWNG $LINENO $_BASE_QEMU 0 "  ctys    :<${VERSION}>"
-	    printWNG $LINENO $_BASE_QEMU 0 "  QEMU     :<${_myPKGVERS_QEMU}>"
-	    printWNG $LINENO $_BASE_QEMU 0 "  Product :<${_verstrg}>"
-	    printWNG $LINENO $_BASE_QEMU 0 "."
-	    printWNG $LINENO $_BASE_QEMU 0 "Remaining options:"
-	    printWNG $LINENO $_BASE_QEMU 0 "->remote: \"-L DisplayForwarding\""
-	    printWNG $LINENO $_BASE_QEMU 0 "->remote: \"-L ServerOnly\"(partial...)"
-	    printWNG $LINENO $_BASE_QEMU 0 "->local:  VNC-client"
-	    printWNG $LINENO $_BASE_QEMU 0 "."
+	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "Not supported or misconfigured local version:"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "  ctys    :<${VERSION}>"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "  QEMU    :<${_myPKGVERS_QEMU}>"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "  Product :<${_verstrg}>"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "."
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "Remaining options:"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "->remote: \"-L DISPLAYFORWARDING\""
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "->remote: \"-L SERVERONLY\"(partial...)"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "->local:  VNC-client"
+	    printWNG 1 $LINENO $BASH_SOURCE 0 "."
 	    QEMU_MAGIC=NOLOC;
 	    ;;
     esac
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_MAGIC       = ${QEMU_MAGIC}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_STATE       = ${QEMU_STATE}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_VERSTRING   = ${QEMU_VERSTRING}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_PREREQ      = ${QEMU_PREREQ}"
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_BASE_QEMU "QEMU_DEFAULTOPTS = ${QEMU_DEFAULTOPTS}"
+    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QEMU_MAGIC       = ${QEMU_MAGIC}"
+    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QEMU_STATE       = ${QEMU_STATE}"
+    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QEMU_VERSTRING   = ${QEMU_VERSTRING}"
+    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QEMU_PREREQ      = ${QEMU_PREREQ}"
+    printDBG $S_QEMU ${D_FLOW} $LINENO $BASH_SOURCE "QEMU_DEFAULTOPTS = ${QEMU_DEFAULTOPTS}"
 
     [ "${QEMU_STATE}" == ENABLED ];
     return $?;
@@ -417,20 +592,20 @@ function setVersionQEMU () {
 #
 #FUNCEND###############################################################
 function serverRequireQEMU () {
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
-    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/ServerOnly/p'`;
-    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/CONNECTIONFORWARDING/SERVERONLY/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$C_SESSIONTYPE};
     local _A=`getActionResulting ${*}`;
     local _ret=1;
     local _res=;
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
 
     #if split not supported server only could be used
     if [ -n "${_CS_SPLIT}" ];then
-        #check for consoles, which are one decisive for component location
+        #check for consoles, gwhich are one decisive for component location
 	local _myConsole=;
 	[ "${*}" != "${*//:[sS][dD][lL]}" ]&&_myConsole=SDL
 	[ "${*}" != "${*//:[cC][lL][iI]}" ]&&_myConsole=CLI
@@ -438,37 +613,41 @@ function serverRequireQEMU () {
 	[ "${*}" != "${*//:[xX][tT][eE][rR][mM]}" ]&&_myConsole=XTERM
 	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
 
+	if [ -z "${_myConsole}" ];then
+	    _myConsole=${QEMU_DEFAULT_CONSOLE}
+	fi
+
 	case $_A in 
  	    CONNECT)
 		case $_myConsole in
-		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, SERVERONLY allowed
 			ABORT=1;
-			printERR $LINENO $_BASE_QEMU ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
-			printERR $LINENO $_BASE_QEMU ${ABORT} "option: -L ConnectionForwarding"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L CONNECTIONFORWARDING"
 			gotoHell ${ABORT}
 			;;
 		    VNC)
 			_res=;_ret=1;
 			;;
 		    *)
-			printWNG $LINENO $_BASE_QEMU ${ABORT} "$FUNCNAME:Assume false:$_myConsole for $_A "
+			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume false:$_myConsole for $_A "
 			_res=;_ret=1;
 			;;
 		esac
 		;;
  	    CREATE)  
 		case $_myConsole in
-		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, SERVERONLY allowed
 			ABORT=1;
-			printERR $LINENO $_BASE_QEMU ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
-			printERR $LINENO $_BASE_QEMU ${ABORT} "option: -L ConnectionForwarding"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L CONNECTIONFORWARDING"
 			gotoHell ${ABORT}
 			;;
 		    VNC)
 			_res="${_CS_SPLIT}";_ret=0;
 			;;
 		    *)
-			printWNG $LINENO $_BASE_QEMU ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:Assume true:$_myConsole for $_A "
 			_res="${*}";_ret=0;
 			;;
 		esac
@@ -478,8 +657,8 @@ function serverRequireQEMU () {
  	_res="${*}";_ret=0;
     fi
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
     echo -n "${_res}";
     return ${_ret};  
 }
@@ -514,20 +693,20 @@ function serverRequireQEMU () {
 #
 #FUNCEND###############################################################
 function clientRequireQEMU () {
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
-    local _CS_SPLIT=`echo ${*}|sed -n 's/ConnectionForwarding/1/p;s/LocalOnly/1/p;s/ClientOnly/1/p'`;
-    local _S=`getSessionType ${*}`;_S=${_S:-$CTRL_SESSIONTYPE};
+    printDBG $S_QEMU ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME \$@=$@"
+    local _CS_SPLIT=`echo ${*}|sed -n 's/CONNECTIONFORWARDING/1/p;s/LOCALONLY/1/p;s/CLIENTONLY/1/p'`;
+    local _S=`getSessionType ${*}`;_S=${_S:-$C_SESSIONTYPE};
     local _A=`getActionResulting ${*}`;
     local _ret=1;
     local _res=;
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_CS_SPLIT=\"${_CS_SPLIT}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_S=\"${_S}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "_A=\"${_A}\""
 
     #if split not supported server only could be used
     if [ -n "${_CS_SPLIT}" ];then
-        #check for consoles, which are one decisive for component location
+        #check for consoles, gwhich are one decisive for component location
 	local _myConsole=;
 	[ "${*}" != "${*//:[sS][dD][lL]}" ]&&_myConsole=SDL
 	[ "${*}" != "${*//:[cC][lL][iI]}" ]&&_myConsole=CLI
@@ -535,37 +714,41 @@ function clientRequireQEMU () {
 	[ "${*}" != "${*//:[xX][tT][eE][rR][mM]}" ]&&_myConsole=XTERM
 	[ "${*}" != "${*//:[vV][nN][cC]}" ]&&_myConsole=VNC
 
+	if [ -z "${_myConsole}" ];then
+	    _myConsole=${QEMU_DEFAULT_CONSOLE}
+	fi
+
 	case $_A in 
  	    CONNECT)
 		case $_myConsole in
-		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, SERVERONLY allowed
 			ABORT=1;
-			printERR $LINENO $_BASE_QEMU ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
-			printERR $LINENO $_BASE_QEMU ${ABORT} "option: -L ConnectionForwarding"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L CONNECTIONFORWARDING"
 			gotoHell ${ABORT}
 			;;
 		    VNC)
 			_res=${*};_ret=0;
 			;;
 		    *)
-			printWNG $LINENO $_BASE_QEMU ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
 			_res=${*};_ret=0;
 			;;
 		esac
 		;;
  	    CREATE)  
 		case $_myConsole in
-		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, ServerOnly allowed
+		    SDL|CLI|GTERM|XTERM) #ERROR for CS-SPLIT, SERVERONLY allowed
 			ABORT=1;
-			printERR $LINENO $_BASE_QEMU ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
-			printERR $LINENO $_BASE_QEMU ${ABORT} "option: -L ConnectionForwarding"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "The console type $_myConsole for $_A cannot be combined with"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "option: -L CONNECTIONFORWARDING"
 			gotoHell ${ABORT}
 			;;
 		    VNC)
 			_res=${*};_ret=0;
 			;;
 		    *)
-			printWNG $LINENO $_BASE_QEMU ${ABORT} "$FUNCNAME:Assume true:$_myConsole for $_A "
+			printWNG 1 $LINENO $BASH_SOURCE 0 "$FUNCNAME:Assume true:$_myConsole for $_A "
 			_res=${*};_ret=0;
 			;;
 		esac
@@ -575,8 +758,8 @@ function clientRequireQEMU () {
  	_res=;_ret=1;
     fi
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_res=\"${_res}\""
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_ret=\"${_ret}\""
     echo -n "${_res}";
     return ${_ret};  
 }
@@ -595,10 +778,10 @@ function clientRequireQEMU () {
 #  This is just a hardcoded attribute and controls the application 
 #  matrix of following attribute values of option "-L" locality:
 #
-#   - ConnectionForwarding
-#   - DisplayForwarding
-#   - ServerOnly
-#   - LocalOnly
+#   - CONNECTIONFORWARDING
+#   - DISPLAYFORWARDING
+#   - SERVERONLY
+#   - LOCALONLY
 #
 #EXAMPLE:
 #
@@ -613,7 +796,7 @@ function clientRequireQEMU () {
 #
 #FUNCEND###############################################################
 function clientServerSplitSupportedQEMU () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_BASE_QEMU "$FUNCNAME $1"
+    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME $1"
     case $1 in
 	CREATE)return 0;;
 #	CANCEL)return 0;;
@@ -623,7 +806,7 @@ function clientServerSplitSupportedQEMU () {
 
 
 #
-#Managed load of sub-packages which are required in almost any case.
+#Managed load of sub-packages gwhich are required in almost any case.
 #On-demand-loads will be performed within requesting action.
 #
 hookPackage "${_myPKGBASE_QEMU}/config"
@@ -666,49 +849,76 @@ hookPackage "${_myPKGBASE_QEMU}/info"
 #
 #FUNCEND###############################################################
 function handleQEMU () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_BASE_QEMU "${FUNCNAME}:$*"
+  printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
   local OPMODE=$1;shift
   local ACTION=$1;shift
 
   case ${ACTION} in
       CREATE) 
-          hookPackage "${_myPKGBASE_QEMU}/create"
-          createConnectQEMU ${OPMODE} ${ACTION} 
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_QEMU}/create"
+		  createConnectQEMU ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  hookPackage "${_myPKGBASE_QEMU}/create"
+		  createConnectQEMU ${OPMODE} ${ACTION} 
+		  ;;
+	  esac
 	  ;;
 
       CANCEL)
-          hookPackage "${_myPKGBASE_QEMU}/cancel"
-          cutCancelSessionQEMU ${OPMODE} ${ACTION} 
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_QEMU}/cancel"
+		  cutCancelSessionQEMU ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  hookPackage "${_myPKGBASE_QEMU}/cancel"
+		  cutCancelSessionQEMU ${OPMODE} ${ACTION} 
+		  ;;
+	  esac
           ;;
 
       GETCLIENTPORT)
 	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
               CHECKPARAM)
-		  if [ -n "$CTRL_MODE_ARGS" ];then
-                      printVerboseDebug ${DBG_LVL_UID} $LINENO $_BASE_QEMU "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
-                      _CTRL_GETCLIENTPORT=$CTRL_MODE_ARGS
+		  if [ -n "$C_MODE_ARGS" ];then
+                      printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
+                      _C_GETCLIENTPORT=$C_MODE_ARGS
 		  else
 		      ABORT=1
-		      printERR $LINENO $_BASE_QEMU ${ABORT} "Missing <session-label>|<session-id>"
+		      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing <session-label>|<session-id>"
 		      gotoHell ${ABORT}
 		  fi
                   ;;
 
-	      ACTION)
-		  if [ -z "${CTRL_EXECLOCAL}" ];then
-		      assembleExeccall
-		  else
-		      printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_BASE_QEMU "Remote command:OPTARG=${OPTARG}"
-  		      echo "CLIENTPORT(QEMU,${MYHOST},${_CTRL_GETCLIENTPORT})=`getClientTPQEMU ${_CTRL_GETCLIENTPORT//,/ }`"
-		      gotoHell 0
-		  fi
+	      EXECUTE)
+		  printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
+  		  echo "CLIENTPORT(QEMU,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPQEMU ${_C_GETCLIENTPORT//,/ }`"
+		  gotoHell 0
 		  ;;
+
+ 	      ASSEMBLE)
+ 		  ;;
           esac
 	  ;;
 
       *)
           ABORT=1;
-          printERR $LINENO $_BASE_QEMU ${ABORT} "System Error, unexpected QEMU:OPMODE=${OPMODE} ACTION=${ACTION}"
+          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected QEMU:OPMODE=${OPMODE} ACTION=${ACTION}"
 	  gotoHell ${ABORT}
           ;;
   esac
@@ -741,23 +951,35 @@ function initQEMU () {
   local _initConsequences=$1
   local ret=0;
 
-  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $_BASE_QEMU "$FUNCNAME ${_curInit}"
+  local _raise=$((INITSTATE<_curInit));
 
-  case $_curInit in
-      0);;#NOP - Done by shell
-      1)
-          #adjust version specifics  
-          setVersionQEMU $_initConsequences
-          ret=$?
+  printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
 
-          #add own help to searchlist for options
-	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/VMs/QEMU/help/${MYLANG}/010_qemu"
-	  ;;
-      2);;#Curently nothing todo.
-      3);;#Curently nothing todo.
-      4);;#Curently nothing todo.
-      5);;#Curently nothing todo.
-  esac
+  if [ "$_raise" == "1" ];then
+      #for raise of INITSTATE do not touch the OS's decisions, just expand.
+
+      case $_curInit in
+	  0);;#NOP - Done by shell
+	  1)  
+              #adjust version specifics  
+              setVersionQEMU $_initConsequences
+              ret=$?
+
+              #add own help to searchlist for options
+	      MYOPTSFILES="${MYOPTSFILES} ${MYHELPPATH}/010_qemu"
+	      ;;
+	  2);;
+	  3);;
+	  4);;
+	  5);;
+	  6);;
+      esac
+  else
+      case $_curInit in
+	  *);;
+      esac
+
+  fi
 
   return $ret
 }

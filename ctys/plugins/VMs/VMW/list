@@ -21,7 +21,6 @@ _myPKGVERS_VMW_LIST="01.02.001b01"
 hookInfoAdd $_myPKGNAME_VMW_LIST $_myPKGVERS_VMW_LIST
 _myPKGBASE_VMW_LIST="`dirname ${_myPKGNAME_VMW_LIST}`"
 
-_VMW_LIST="${_myPKGNAME_VMW_LIST}"
 
 
 #FUNCBEG###############################################################
@@ -42,8 +41,6 @@ _VMW_LIST="${_myPKGNAME_VMW_LIST}"
 #     C: clients
 #     S: servers
 #     B: both
-# $2: 1=MACHINE|0=HUMAN
-# $*: FULLPATH|UUID
 #
 #OUTPUT:
 #  RETURN:
@@ -52,12 +49,11 @@ _VMW_LIST="${_myPKGNAME_VMW_LIST}"
 #
 #FUNCEND###############################################################
 function listMySessionsVMW () {
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_LIST "$FUNCNAME <$*>"
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME <$*>"
     local _site=$1;shift
-    local _machine=$1;shift
 
     #controls debugging for awk-scripts
-    doDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST
+    doDebug $S_VMW  ${D_MAINT} $LINENO $BASH_SOURCE
     local D=$?
 
     #controls marker for subtype, will be used for LIST-ACTION results:
@@ -70,17 +66,15 @@ function listMySessionsVMW () {
     #              version{1}
     local SUBTYPE=;
 
-    printVerboseDebug ${DBG_LVL_UIE} $LINENO $_VMW_LIST "$FUNCNAME $_site <$*>"
-#    if [ "${CTRL_SESSIONTYPE}" != "VMW" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
-    if [ "${CTRL_SESSIONTYPE}" != "VMW" -a "${CTRL_SESSIONTYPE}" != "ALL" -a "${CTRL_SESSIONTYPE}" != "DEFAULT" ];then 
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME $_site <$*>"
+    if [ "${C_SESSIONTYPE}" != "VMW" -a "${C_SESSIONTYPE}" != "ALL" -a "${C_SESSIONTYPE}" != "DEFAULT" ];then 
         ABORT=2
-        printERR $LINENO $_VMW_LIST ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:C_SESSIONTYPE=${C_SESSIONTYPE}"
         gotoHell ${ABORT}
     fi
 
     local _U=`echo $*|sed -n 's/^.* *UUID *.*$/1/p'`
 
-    local _F=`echo $*|sed -n 's/^.* *FULLPATH *.*$/1/p'`
     #Seems OK for now: supports VMware-WS + VMware-Server.
     #When errors occur, first check changes for their process-call-structure!
     #
@@ -100,7 +94,7 @@ function listMySessionsVMW () {
     # Currently that's it:
 
 
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "VMW_MAGIC  =${VMW_MAGIC}"
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "VMW_MAGIC  =${VMW_MAGIC}"
     local CLIENTLST=;
     local SERVERLST=;
 
@@ -122,7 +116,7 @@ function listMySessionsVMW () {
     #REMARK:
     #  For the client processes the parameters <label=displayName> and <uuid=uuid.bios>
     #  from the vmx-file are passed to the CLI when building the EXECCALL.
-    #  This has particularly in case of ConnectionForwarding the advantage, that later 
+    #  This has particularly in case of CONNECTIONFORWARDING the advantage, that later 
     #  no additional remote access is required.
     #
     case ${VMW_MAGIC} in
@@ -133,7 +127,7 @@ function listMySessionsVMW () {
 		SERVERLST=`listProcesses|sed -n 's/\(.*\)  *\/[^ ]*vmware-vmx *-@ *[^ ]* *\([^ ]*\)/\1 \2/p'`
 	    fi
 	    if [ "${_site}" == C -o "${_site}" == B ];then
-		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -v machine="$_machine" -f ${_myPKGBASE_VMW}/clientlst01p.awk`
+		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -f ${_myPKGBASE_VMW}/clientlst01p.awk`
 	    fi
             SUBTYPE=P1;
   	    ;;
@@ -144,7 +138,7 @@ function listMySessionsVMW () {
 		SERVERLST=`listProcesses|sed -n 's/\(.*\)  *\/[^ ]*vmware-vmx *-C *\([^ ]*\) .*/\1 \2/p'`
 	    fi
 	    if [ "${_site}" == C -o "${_site}" == B ];then
-		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -v machine="$_machine" -f ${_myPKGBASE_VMW}/clientlst01.awk`
+		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -f ${_myPKGBASE_VMW}/clientlst01.awk`
 	    fi
             SUBTYPE=S1;
   	    ;;
@@ -155,31 +149,39 @@ function listMySessionsVMW () {
  		SERVERLST=`listProcesses|sed -n 's/\(.*\)  *\/[^ ]*vmware-vmx .* \([^ ]*\)$/\1 \2/p'`
 	    fi
 	    if [ "${_site}" == C -o "${_site}" == B ];then
-		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -v machine="$_machine" -f ${_myPKGBASE_VMW}/clientlst01.awk`
+		CLIENTLST=`listProcesses|sed 's/--.*$//'|awk -v d=$D -f ${_myPKGBASE_VMW}/clientlst01.awk`
 	    fi
             SUBTYPE=W6;
  	    ;;
     esac
 
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "SERVERLST(RAW)=<${SERVERLST}>"
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "CLIENTLST(RAW)=<${CLIENTLST}>"
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=<${SERVERLST}>"
+    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "CLIENTLST(RAW)=<${CLIENTLST}>"
 
     if [ -z "${SERVERLST}" -a -z "${CLIENTLST}" ];then
-        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_VMW_LIST "No sessions yet."
+        printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "No sessions yet."
 	return
     fi
 
+
+    #################################
+    #This part is to be reworked!!!
+    #################################
 
     #get-call for displayName from vmx-file
     local _call1="sed -n 's/\t//g;/^#/d;s/displayName *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
 
     #get-call for UUID (uuid.bios) from vmx-file
-    if [ -n "$_U" ];then
-        local _call2="sed -n 's/[ -]//g;s/[^#]*uid.bios *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
-    fi
+    local _call2="sed -n 's/[ -]//g;s/[^#]*uid.bios *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+
+    #get-call for MAC (ethernet0.address) from vmx-file
+    local _call3="sed -n 's/[ -]//g;s/^[^#]*ethernet0.address *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
+
+    #get-call for MAC (ethernet0.generatedAddress) from vmx-file
+    local _call4="sed -n 's/[ -]//g;s/^[^#]*ethernet0.generatedAddress *= *\"\\\([^\"]*\\\)\"/\\\1/p' ";
 
     export -f getClientTPVMW
-    export -f printVerboseDebug
+    export -f printDBG
     export -f printERR
     export -f gotoHell
     export VMW_MAGIC
@@ -188,20 +190,77 @@ function listMySessionsVMW () {
     #ServerSessions
     ###################################
     [ -n "${SERVERLST}" ]&&SERVERLST=`echo "${SERVERLST}"|\
-      awk -v _c1="$_call1" -v _c2="$_call2"  -v f=$_F -v d=$D -v s=$SUBTYPE -v machine="$_machine" -f ${_myPKGBASE_VMW}/serverlst01.awk`
+      awk -v _c1="$_call1" -v _c2="$_call2" -v _c3="$_call3" -v _c4="$_call4" \
+          -v d=$D -v s=$SUBTYPE  \
+          -f ${_myPKGBASE_VMW}/serverlst01.awk`
+
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "SERVERLST(PROCESSED-0)=\"${SERVERLST}\""
+    case $VMW_MAGIC in
+	VMW_S[1]*)
+            #now in canonical format and does not need exported funcs
+            #correct reduced cli-footprint of forked vmw server
+	    local il=;
+	    local il0=;
+	    local il17=;
+	    local il8=;
+	    local il8x=;
+	    for il in ${SERVERLST};do
+		if [ -z "$_c" ];then
+		    local _c=1;
+		    SERVERLST=;
+		fi
+		printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "il=<${il}>"
+		il0=${il##;*};
+		il07=${il%;*;*;*;*;*;};
+                il17=${il07#*;};
+		il8x=${il#$il07;};
+ 		il8=${il8x%%;*;*};
+ 		il9x=${il8x#*;};
+		printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "il0=${il0}<>${il8}"
+		if [ -z "${il0}" ];then
+		    if [ -z "${recurDetect226VMWLIST}" ];then 
+			recurDetect226VMWLIST=1;
+			il0=`fetchLabel4PID ${il8}`
+		    fi
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "il0 =${il0}"
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "il17=${il17}"
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "il8 =${il8}"
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "il9x =${il9x}"
+		    SERVERLST="${SERVERLST} ${il0};${il17};${il8};${il9x}"
+		else
+		    SERVERLST="${SERVERLST} $il"
+		fi
+	    done
+	    ;;
+    esac
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "SERVERLST(PROCESSED)=\"${SERVERLST}\""
+    
 
 
     ###################################
     #ClientSessions
     ###################################
     [ -n "${CLIENTLST}" ]&&CLIENTLST=`echo "${CLIENTLST}"|\
-      awk -v _c1="$_call1" -v _c2="$_call2"  -v f=$_F -v d=$D -v s=$SUBTYPE -v machine="$_machine"  -f ${_myPKGBASE_VMW}/clientlst02.awk`
+      awk -v _c1="$_call1" -v _c2="$_call2"  -v _c3="$_call3" -v _c4="$_call4" \
+          -v d=$D -v s=$SUBTYPE  \
+          -f ${_myPKGBASE_VMW}/clientlst02.awk`
 
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST "SERVERLST(PROCESSED)=\"${SERVERLST}\""
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_VMW_LIST "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+    local i=;
+    local _myPid=;
+    local _myJobID=;
     for i in ${SERVERLST} ${CLIENTLST};do
+	_myPid=${i#*;*;*;*;*;*;*;}
+	_myPid=${_myPid%%;*}
+	printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "_myPid=${_myPid}"
+	if [ -n "${_myPid}" ];then
+	    _myJobID=`cacheGetAttrFromPersistent LAZY "${_myPid}" JOBID`
+	    printDBG $S_VMW ${D_BULK} $LINENO $BASH_SOURCE "_myJobID=${_myJobID}"
+	    i="${i}${_myJobID}";
+ 	fi
+
         i="${MYHOST};${i}"
-	printVerboseDebug ${DBG_LVL_UID} $LINENO $_VMW_LIST "CURSES=${i}"
+	printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "MATCH=${i}"
 	echo "${i}"
     done
 }

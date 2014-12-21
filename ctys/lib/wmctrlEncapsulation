@@ -46,36 +46,36 @@ export DESKTOPS_STARTING=
 #
 #OUTPUT:
 #  RETURN:
-#    0: OK, sets CTRL_MDESK=1
-#    1: NOK unsets CTRL_MDESK
+#    0: OK, sets C_MDESK=1
+#    1: NOK unsets C_MDESK
 #  VALUES:
 #  
 #FUNCEND###############################################################
 function desktopsSupportCheck () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME"
     local _wmctrl=${CTYS_WMCTRL}
     if [ -z "$_wmctrl" ];then
-	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
-	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${_wmctrl}\""
-	printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "So \"-D\" does not work on local console"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not set"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${_wmctrl}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-D\" does not work on local console"
 	unset DESKTOPS_STARTING;
-	unset CTRL_MDESK;
+	unset C_MDESK;
 	return 1;
     fi
 
-    which "$_wmctrl" 2>/dev/null >/dev/null
+    gwhich "$_wmctrl" 2>/dev/null >/dev/null
     if [ $? -ne 0 ];then
-	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not accessible"
-	printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${_wmctrl}\""
-	printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "So \"-D\" does not work on local console"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:wmctrl not accessible"
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME: wmctrl=\"${_wmctrl}\""
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "So \"-D\" does not work on local console"
 	unset DESKTOPS_STARTING;
-	unset CTRL_MDESK;
+	unset C_MDESK;
 	return 1;
     fi
 
-    export CTRL_MDESK=1;
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "wmctrl found at:${_wmctrl}"
-    printVerboseDebug ${DBG_LVL_UI} $LINENO $BASH_SOURCE "Multiple desktops are supported:CTRL_MDESK=1"
+    export C_MDESK=1;
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "wmctrl found at:${_wmctrl}"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "Multiple desktops are supported:C_MDESK=1"
     if [ -z "${DESKTOPS_STARTING}" ];then
         DESKTOPS_STARTING=`desktopsGetCurrentId`
     fi
@@ -103,23 +103,23 @@ function desktopsSupportCheck () {
 #  
 #FUNCEND###############################################################
 function desktopsCheckDesk () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
 
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
 
     local _idX=$1
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _idX=$_idX"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME _idX=$_idX"
     case "${_idX}" in
         #It should be an <desktopId> 
 	[0-9][0-9][0-9]|[0-9][0-9]|[0-9])
             local _lb=`desktopsGetLabel $_idX`;
-	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_lb"
+	    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_lb"
             if [ "`desktopsGetId ${_lb}`" == "${_idX}" ];then
-		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_lb"
+		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_lb"
               #OK it seems so be OK now.
 		return 0;
             fi
@@ -128,9 +128,9 @@ function desktopsCheckDesk () {
         #This could be a <desktopLabel>
 	*) 
             local _id=`desktopsGetId $_idX`;
-	    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_id"
+	    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_id"
             if [ "`desktopsGetLabel ${_id}`" == "${_idX}" ];then
-		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_id"
+		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_id"
                 #OK it seems so be OK now.
 		return 0;
             fi
@@ -165,20 +165,20 @@ function desktopsCheckDesk () {
 #  
 #FUNCEND###############################################################
 function desktopsGetId () {
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
 
     local _ret=`${CTYS_WMCTRL} -d|awk -v lb=${1} '$NF~lb{print $1}'`
-    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 
     case "${_ret}" in
 	[0-9][0-9][0-9]|[0-9][0-9]|[0-9])
             if [ "`${CTYS_WMCTRL} -d|awk -v id=${_ret} '$1~id{print $NF}'`" == "$1" ];then
-                printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+                printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 		echo ${_ret}
 		return 0;
             fi
@@ -187,7 +187,7 @@ function desktopsGetId () {
             #maybe it was an id already
 	     _ret=`${CTYS_WMCTRL} -d|awk -v id=${1} '$1~id{print $NF}'`
             if [ "`${CTYS_WMCTRL} -d|awk -v lbl=${_ret} '$NF~lbl{print $1}'`" == "$1" ];then
-                printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+                printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 		echo ${1}
 		return 0;
             fi
@@ -220,10 +220,10 @@ function desktopsGetId () {
 #  
 #FUNCEND###############################################################
 function desktopsGetLabel () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
 
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
@@ -233,7 +233,7 @@ function desktopsGetLabel () {
             #given an id 
             local _ret=`${CTYS_WMCTRL} -d|awk -v id=${1} '$1~id{print $NF}'`
             if [ "`desktopsGetId $_ret`" == "$1" ];then
-		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 		echo ${_ret}
 		return 0;
             fi
@@ -241,7 +241,7 @@ function desktopsGetLabel () {
             local _t=`desktopsGetId $1`;
 	    local _x=`${CTYS_WMCTRL} -d|awk -v id=${_t}'$1~id{print $NF}'`
             if [ "$_x" == "$1" ];then
-		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 		echo ${1}
 		return 0;
             fi
@@ -250,7 +250,7 @@ function desktopsGetLabel () {
             #might be a valid label already
             local _t=`desktopsGetId $1`;
             if [ "`${CTYS_WMCTRL} -d|awk -v id=${_t}'$1~id{print $NF}'`" == "$1" ];then
-		printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+		printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
 		echo ${1}
 		return 0;
             fi
@@ -281,16 +281,16 @@ function desktopsGetLabel () {
 #  
 #FUNCEND###############################################################
 function desktopsGetCurrentId () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
 
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
 
     local _ret=`${CTYS_WMCTRL} -d|awk '$2~/\*/{print $1}'`
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DesktopId=$_ret"
     case "${_ret}" in
 	[0-9][0-9][0-9]|[0-9][0-9]|[0-9])
 	    echo ${_ret}
@@ -331,10 +331,10 @@ function desktopsGetCurrentId () {
 #  
 #FUNCEND###############################################################
 function desktopsChange () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME \$*=$*"
 
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
@@ -374,15 +374,15 @@ function desktopsChange () {
 #FUNCEND###############################################################
 function desktopsSetStarting () {
 
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
 
     if [ -n "${DESKTOPS_STARTING}" ];then
 	desktopsChange "${DESKTOPS_STARTING}"
-        printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME DESKTOPS_STARTING=$DESKTOPS_STARTING"
+        printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME DESKTOPS_STARTING=$DESKTOPS_STARTING"
     fi
 }
 
@@ -411,14 +411,14 @@ function desktopsSetStarting () {
 #FUNCEND###############################################################
 function desktopsGetDeskList () {
 
-    if [ -z "${CTRL_MDESK}" ];then
-	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
+    if [ -z "${C_MDESK}" ];then
+	printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME wmctrl not available"
         desktopsSupportCheck
 	[ $? -ne 0 ]&&return 1
     fi
 
     local _ret=`${CTYS_WMCTRL} -d|awk '{print $1}'`
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME Current present desktops _ret=$_ret"
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME Current present desktops _ret=$_ret"
     echo $_ret
 }
 

@@ -14,7 +14,7 @@
 #
 ########################################################################
 
-function perror(inp){
+function ptrace(inp){
     if(!d){
         print line ":" inp | "cat 1>&2"
     }
@@ -22,7 +22,7 @@ function perror(inp){
 
 BEGIN{
     line=0;
-    perror("Start record with AWK:CLIENTLST-SERVER+WS");
+    ptrace("Start record with AWK:VMW:CLIENTLST-SERVER+WS");
 }
 
 {
@@ -32,18 +32,18 @@ BEGIN{
 $8~/.*\/bin\/vmware$/{
     curEntry=""
     #<UNIX process parameters>
-    for(i=1;i<=7;i++){curEntry=curEntry " " $i;perror("i("i")="$i);}
+    for(i=1;i<=7;i++){curEntry=curEntry " " $i;ptrace("i("i")="$i);}
 
     #<vmx-filepath>
     curEntry=curEntry " " $NF;
-    perror("vmx-filepath="$NF);
+    ptrace("vmx-filepath="$NF);
     #<label>
     pos=match($0, "displayName=");
     if(pos!=0){
         n=substr($0,RSTART+RLENGTH);
         x=gensub(" -[[:alnum:]]* .*$", "", "g", n);
         curEntry=curEntry " " x;
-        perror("displayName="x);
+        ptrace("displayName="x);
     }
 
     #<uuid> is enclosed in "" and in original format
@@ -55,14 +55,7 @@ $8~/.*\/bin\/vmware$/{
         #normalize uuid
         x=gensub("[ -]", "", "g", x);
         curEntry=curEntry " " x;
-        perror("uuid.bios="x);
+        ptrace("uuid.bios="x);
     }
-
-#     curEntry=curEntry " NO-MAC";
-#     curEntry=curEntry " NO-DISP";
-#     curEntry=curEntry " NO-CPORT";
-#     curEntry=curEntry " NO-SPORT";
-
-
     printf("%s\n",curEntry);
 }

@@ -8,39 +8,89 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a15
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
+printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 
 
 #Extend this when required, 
 #e.g. PATH=${PATH}:/usr/sbin
 
 #
+#Base path, where the xen packages for initial tests are stored
+XEN_BASE=${XEN_BASE:-$HOME/xen}
+
+
+#
 #Can do this with any user, so sould be the same for the following
 #access-permissions too.
 #
-XM=`which xm 2>/dev/null`
-if [ $? -ne 0 ];then
-    XM=`which /usr/sbin/xm 2>/dev/null`
-    if [ $? -ne 0 ];then
-	printWNG $LINENO $BASH_SOURCE 0  "Can not find \"xm\", check your PATH."
-    fi
+if [ -n "$C_EXECLOCAL" ];then
+    [ -z "$XM" ]&&XM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xm /usr/sbin`
+    [ -z "$VIRSH" ]&&VIRSH=`getPathName $LINENO $BASH_SOURCE WARNINGEXT virsh /usr/bin`
+    [ -z "$XENTRACE" ]&&XENTRACE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT xentrace /usr/bin`
+    [ -z "$CTYS_RPM" ]&&CTYS_RPM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT rpm /bin`
+
+    [ -z "$CTYS_HOST" ]&&CTYS_HOST=`getPathName $LINENO $BASH_SOURCE ERROR host /usr/bin`
+
+    [ -z "$CTYS_ETHTOOL" ]&&CTYS_ETHTOOL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT ethtool /sbin`
+    [ -z "$CTYS_IP" ]&&CTYS_IP=`getPathName $LINENO $BASH_SOURCE ERROR ip /sbin`
+    [ -z "$CTYS_IFCONFIG" ]&&CTYS_IFCONFIG=`getPathName $LINENO $BASH_SOURCE ERROR ifconfig /sbin`
+    [ -z "$CTYS_IFUP" ]&&CTYS_IFUP=`getPathName $LINENO $BASH_SOURCE ERROR ifup /sbin`
+    [ -z "$CTYS_IFDOWN" ]&&CTYS_IFDOWN=`getPathName $LINENO $BASH_SOURCE ERROR ifdown /sbin`
+    [ -z "$CTYS_ROUTE" ]&&CTYS_ROUTE=`getPathName $LINENO $BASH_SOURCE ERROR route /sbin`
+
+    case ${MYDIST} in
+	CentOS)
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    ;;
+	Fedora)
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    ;;
+	SuSE)
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /sbin`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    ;;
+	openSUSE)
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /sbin`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    ;;
+	debian)
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR networking /etc/init.d`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    ;;
+	Ubuntu)
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR networking /etc/init.d`
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    ;;
+	*)
+	    [ -z "$CTYS_IPTABLES" ]&&CTYS_IPTABLES=`getPathName $LINENO $BASH_SOURCE ERROR iptables /sbin`
+	    [ -z "$CTYS_BRCTL" ]&&CTYS_BRCTL=`getPathName $LINENO $BASH_SOURCE ERROR brctl /usr/sbin`
+	    [ -z "$CTYS_NETWORK" ]&&CTYS_NETWORK=`getPathName $LINENO $BASH_SOURCE ERROR network /etc/init.d`
+	    ;;
+    esac
 fi
 
-
-VIRSH=`which virsh 2>/dev/null`
-if [ $? -ne 0 ];then
-    VIRSH=`which /usr/bin/virsh 2>/dev/null`
-    if [ $? -ne 0 ];then
-	printWNG $LINENO $BASH_SOURCE 0  "Can not find \"virsh\", check your PATH."
-    fi
-fi
+#
+#Required for xenbr-stop when WoL requested.
+#These are not pre-checked for access permissions, this is due
+#to the circumstance, that most of reliable access-checks are
+#harmful to systems state by themself.
+#
 
 
 #
@@ -75,15 +125,49 @@ fi
 #   Basically the same, but to be handled by local configurations on any machine.
 #
 #
-#XENCALL="${XENCALL:-ksu -e }"
-#VIRSHCALL="${VIRSHCALL:-ksu -e }"
+#XENCALL="${XENCALL:-$KSU -e }"
+#VIRSHCALL="${VIRSHCALL:-$KSU -e }"
 
 
 #
-#Timeout for first attempt to connect to a DomU after create call.
-XEN_CONSOLE_DOMU_INIT_WAIT=${XEN_CONSOLE_DOMU_INIT_WAIT:-5}
+#XEN_BRIDGE_SCRIPT=${XEN_BRIDGE_SCRIPT:-/etc/xen/scripts/network-bridge}
+XEN_BRIDGE_SCRIPT=${XEN_BRIDGE_SCRIPT:-$MYCALLPATH/ctys-xen-network-bridge}
 
-
+#
 #
 #Default behaviour for CANCEL
 XEN_CANCEL_DEFAULT=${XEN_CANCEL_DEFAULT:-POWEROFF}
+
+
+#
+#The default console
+XEN_CONSOLE_DEFAULT=XTERM;
+
+
+#Timeout for first attempt to connect to a VM after create call.
+#XEN requires longer to start, particularly within stacks, when
+#multiplr layers are involved.
+XEN_INIT_WAITC=${XEN_INIT_WAITC:-2}
+XEN_INIT_WAITS=${XEN_INIT_WAITS:-2}
+
+#
+#Timeout for polling the base IP stack mainly after initial start.
+#WAIT unit is seconds, REPEAT unit is #nr.
+CTYS_PING_DEFAULT_XEN=${CTYS_PING_DEFAULT_XEN:-1};
+CTYS_PING_ONE_MAXTRIAL_XEN=${CTYS_PING_ONE_MAXTRIAL_XEN:-20};
+CTYS_PING_ONE_WAIT_XEN=${CTYS_PING_ONE_WAIT_XEN:-2};
+
+#
+#Timeout for polling the base SSH access, requires preconfigured permissions.
+#WAIT unit is seconds, REPEAT unit is #nr.
+CTYS_SSHPING_DEFAULT_XEN=${CTYS_SSHPING_DEFAULT_XEN:-0};
+CTYS_SSHPING_ONE_MAXTRIAL_XEN=${CTYS_SSHPING_ONE_MAXTRIAL_XEN:-20};
+CTYS_SSHPING_ONE_WAIT_XEN=${CTYS_SSHPING_ONE_WAIT_XEN:-2};
+
+
+#
+#individual XEN defaults for STACKCHECK parameter
+#0:OFF, 1:ON
+_stackChkContextXEN=1;
+_stackChkHWCapXEN=1;
+_stackChkStacCapXEN=1:

@@ -20,8 +20,8 @@
     found=0;
 
     #label
-    if($19){
-        x0=$19;        
+    if($0){
+        x0=$0;
         gsub(".*l:","",x0);
         gsub(" .*","",x0);
         gsub(",.*","",x0);
@@ -38,10 +38,7 @@
     }
 
     if(found!=0){
-        if(id=="")
-            printf(";;;");
-        else
-            printf(";;;%s",id);           
+        printf(";;;");
         printf(";");
         printf(";");
     
@@ -58,7 +55,17 @@
         printf("CLI");
 
         #clientServer
-        printf(";CLIENT");
+        printf(";CLIENT;");
+
+        j=$0;
+        jm=gsub("^.*-j *","",j);
+        if(jm!0){
+            gsub(" .*$","",j);
+            printf(";%s",j);
+        }else{
+            printf(";");
+        }
+
         printf(" ");
     }
     found=0;

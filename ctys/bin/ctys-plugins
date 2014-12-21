@@ -1,5 +1,35 @@
 #!/bin/bash
 
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_05_001a01
+#
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
 ################################################################
 #                   Begin of FrameWork                         #
 ################################################################
@@ -29,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_01_001a01pre
+VERSION=01_01_001a02
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -85,7 +115,7 @@ EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -163,6 +193,10 @@ if [ ! -d "${MYCONFPATH}" ];then
   exit 1
 fi
 
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
+fi
+
 MYMACROPATH=${MYCONFPATH}/macros
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
@@ -201,7 +235,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -235,11 +269,26 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 ################################################################
 #                     End of FrameWork                         #
 ################################################################
+
+
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux);;
+    OpenBSD);;
+    SunOS);;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
 if [ "${*}" != "${*//-X/}" ];then
-    CTRL_TERSE=1
+    C_TERSE=1
 fi
 if [ "${*}" != "${*//-V/}" ];then
-    if [ -n "${CTRL_TERSE}" ];then
+    if [ -n "${C_TERSE}" ];then
 	echo -n ${VERSION}
     else
 	echo "$0: VERSION=${VERSION}"
@@ -275,18 +324,18 @@ if [ -f "${MYCONFPATH}/ctys.conf" ];then
 fi
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
 else
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+	. "${MYCONFPATH}/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
 	else
 	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
 	    gotoHell ${ABORT}
 	fi
@@ -299,8 +348,8 @@ fi
 
 ###################
 #generic
-DEFAULT_CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE:-VNC}
-DEFAULT_CTRL_SCOPE=${DEFAULT_CTRL_SCOPE:-USER}
+DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
+DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
 DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,FULLPATH,BOTH}
 
@@ -310,17 +359,17 @@ DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,FULLPATH,BOTH}
 
 ###################
 #LIST
-DEFAULT_CTRL_MODE_ARGS_LIST=${DEFAULT_CTRL_MODE_ARGS_LIST:-"label,id,user,group,pid"}
-#DEFAULT_LIST_CTRL_SCOPE="USRLST"
-#DEFAULT_LIST_CTRL_SCOPE_ARGS="all"
+DEFAULT_C_MODE_ARGS_LIST=${DEFAULT_C_MODE_ARGS_LIST:-"label,id,user,group,pid"}
+#DEFAULT_LIST_C_SCOPE="USRLST"
+#DEFAULT_LIST_C_SCOPE_ARGS="all"
 
 ###################
 #ENUMERATE
-DEFAULT_CTRL_MODE_ARGS_ENUMERATE=${DEFAULT_CTRL_MODE_ARGS_ENUMERATE:-'.'}
+DEFAULT_C_MODE_ARGS_ENUMERATE=${DEFAULT_C_MODE_ARGS_ENUMERATE:-'.'}
 
 ###################
 #CREATE
-DEFAULT_CTRL_MODE_ARGS=${DEFAULT_CTRL_MODE_ARGS_CREATE:-'1,DEFAULT,REUSE'}
+DEFAULT_C_MODE_ARGS=${DEFAULT_C_MODE_ARGS_CREATE:-'1,DEFAULT,REUSE'}
 
 
 
@@ -338,7 +387,7 @@ DEFAULT_CTRL_MODE_ARGS=${DEFAULT_CTRL_MODE_ARGS_CREATE:-'1,DEFAULT,REUSE'}
 #Existing ports are not reused anyway, because the next tunnel-request
 #increments the highest present for a new tunnel.
 #
-#APPLY:Increment when clients do not connect with ConnectionForwarding.
+#APPLY:Increment when clients do not connect with CONNECTIONFORWARDING.
 SSH_ONESHOT_TIMEOUT=${SSH_ONESHOT_TIMEOUT:-20}
 
 
@@ -351,7 +400,7 @@ R_CLIENT_DELAY=${R_CLIENT_DELAY:-2}
 #started. Due to problems with reliability a shift of distinguished 
 #windows seems not to work(at least in my environment on CentOS-5.0/Gnome).
 #So current desktop is switched for default pop-up on target desktop
-#which could take some time until the window actually is displayed.
+#gwhich could take some time until the window actually is displayed.
 #When the desktop is meanwhile switched the window will be positioned 
 #on the current if not yet displayed.
 #Depends on actual base, it seems that at least 5seconds are required,
@@ -383,60 +432,40 @@ R_CREATE_TIMEOUT=${R_CREATE_TIMEOUT:-5}
 R_CREATE_MAX=${R_CREATE_MAX:-20}
 
 
-#######wrapper for vncviewer
-export VNCVIEWER=${VNCVIEWER:-$MYCALLPATH/ctys-callVncviewer}
-#viewer default parameters
-#keep "hextile" for being generic for VMware-WS6 too(see pg. 183).
-export VNCVIEWER_OPT=${VNCVIEWER_OPT:-"-AutoSelect=0 -PreferredEncoding hextile -FullColour"}
-#ffs.:"copyrect"
-
-#######wrapper for vncserver
-export VNCSERVER=${VNCSERVER:-$MYCALLPATH/ctys-callVncserver}
-#server default parameters
-export VNCSERVER_OPT=${VNCSERVER_OPT:-"-depth 24 -geometry 1280x1024 -nohttpd -localhost -nolisten tcp "}
-
-
-
-################################################################
-#Basic-Package Settings: XEN
-#ffs.
-
-
-
 ################################################################
 #      Internal control flow - do not change these!            #
 ################################################################
-CTRL_SESSIONTYPE=DEFAULT
+C_SESSIONTYPE=DEFAULT
 PACKAGES_KNOWNTYPES=
 
-unset CTRL_XTOOLKITOPTS;
+unset C_XTOOLKITOPTS;
 
-unset CTRL_SESSIONID;
-unset CTRL_SESSIONIDARGS;
-unset CTRL_SESSIONFLAG;
-CTRL_MODE=CREATE
-#unset CTRL_MODE_ARGS
-#CTRL_MODE_ARGS="1,DEFAULT,REUSE"
-CTRL_MODE_ARGS=DEFAULT
-CTRL_SCOPE=DEFAULT
-unset CTRL_SCOPE_ARGS
-unset CTRL_SCOPE_CONCAT
-CTRL_SSH=1
-unset CTRL_EXECLOCAL;
-unset CTRL_NOEXEC;
-unset CTRL_LISTSES;
-unset CTRL_TERSE;
-CTRL_PRINTINFO=0;
-CTRL_ASYNC=DEFAULT;
+unset C_SESSIONID;
+unset C_SESSIONIDARGS;
+unset C_SESSIONFLAG;
+C_MODE=CREATE
+#unset C_MODE_ARGS
+#C_MODE_ARGS="1,DEFAULT,REUSE"
+C_MODE_ARGS=DEFAULT
+C_SCOPE=DEFAULT
+unset C_SCOPE_ARGS
+unset C_SCOPE_CONCAT
+C_SSH=1
+unset C_EXECLOCAL;
+unset C_NOEXEC;
+unset C_LISTSES;
+unset C_TERSE;
+C_PRINTINFO=0;
+C_ASYNC=DEFAULT;
 
-unset CTRL_WMCTRL_DESK
-unset CTRL_MDESK;
+unset C_WMC_DESK
+unset C_MDESK;
  
-unset CTRL_GEOMETRY;
-unset CTRL_REMOTERESOLUTION;
-unset CTRL_FORCE;
-unset CTRL_ALLOWAMBIGIOUS;
-#CTRL_WARNING=1;
+unset C_GEOMETRY;
+unset C_REMOTERESOLUTION;
+unset C_FORCE;
+unset C_ALLOWAMBIGIOUS;
+#WNG=1;
 
 unset R_HOSTS;
 unset R_OPTS;
@@ -449,10 +478,10 @@ PR_OPTS=${PR_OPTS:--o 5 -l 76}
 
 #Using this as a ready to use option, some lengthy keywords for now,
 #but recognition has priority over string replace-functions!
-CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION:-"-L DisplayForwarding"};
+C_CLIENTLOCATION=${C_CLIENTLOCATION:-"-L DISPLAYFORWARDING"};
 
 
-#Base for remapping of local client access ports for ConnectionForwarding
+#Base for remapping of local client access ports for CONNECTIONFORWARDING
 LOCAL_PORTREMAP=${LOCAL_PORTREMAP:-5950}
 
 #Is defined to be used when set, so it is foreseen as test-path for remote call
@@ -496,18 +525,18 @@ CTYS_GROUPS_PATH="${HOME}/.ctys/groups:${MYCONFPATH}/groups${CTYS_GROUPS_PATH:+:
 ################################################################
 #                    Initial call trace                        #
 ################################################################
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "TRACE:CALL-PARAMS:"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<${0} ${*}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "TRACE:ENV-PARAMS:"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<PATH=${PATH}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<LD_PLUGIN_PATH=${LD_PLUGIN_PATH}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<RS_PREFIX_L=${RS_PREFIX_L}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "<RS_PREFIX_R=${RS_PREFIX_R}>"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
-printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE ""
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "TRACE:CALL-PARAMS:"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<${0} ${*}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "TRACE:ENV-PARAMS:"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<PATH=${PATH}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<LD_PLUGIN_PATH=${LD_PLUGIN_PATH}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<RS_PREFIX_L=${RS_PREFIX_L}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "<RS_PREFIX_R=${RS_PREFIX_R}>"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "-----------------------------------------------------------------------------"
+printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE ""
 
 
 
@@ -541,6 +570,7 @@ printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
 . ${MYLIBPATH}/lib/help/help
 . ${MYLIBPATH}/lib/geometry/geometry
 . ${MYLIBPATH}/lib/wmctrlEncapsulation
+. ${MYLIBPATH}/lib/network/network
 
 
 
@@ -549,122 +579,59 @@ printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE ""
 #########################################################################
 
 
-#These will be loaded in given path-order, units within the given
-#directories are loaded in alphabetical order.
-#There is one hard-coded exception for the CORE directory:
-
-#
-#CORE:
-#
-#  Units within CORE are just loaded and registered, but will not
-#  be called for generic initialization. This is due to the design,
-#  that core modules are hardcoded project specific libraries 
-#  handeled as building blocks. 
-#
 PLUGINPATHS=${MYINSTALLPATH}/plugins/CORE
-
-#
-#HOSTs+VMs+GUESTs:
-#
-#  Whereas the remaining are seen as dynamic attached hooks representing
-#  pluggable add-ons.
-#
+PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/GENERIC
 PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/HOSTs
 PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/VMs
 PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/PMs
 PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/GUESTs
 
-#
-#The environment variable LD_PLUGIN_PATH is similiar to LD_LIBRARY_PATH,
-#loading bash plugins.
-#
 LD_PLUGIN_PATH=${LD_PLUGIN_PATH}:${PLUGINPATHS}
 
 
 
-
-_t=`echo " $* "| sed -n '/ -e /p'`
-if [ -n "${_t}" ];then
-    CTRL_EXECLOCAL=1;
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTRL_EXECLOCAL"
-fi
-
-#
-#  This function analyses an ARGV for occurance of "-t" option, which 
-#  is the type of session to be handeled. If not found the pre-set
-#  default will be assumed.
-#
-#  Once the decision is made, the appropriate module will be loaded
-#  by source-ing. Therefore the Name of the plugin will be returned to be 
-#  "sourced" in global namespace.
-#
-#  The former approach of automatic sourcing all available modules during
-#  startup will still be possible, when setting the environment variable
-#  "CTYS_MULTITYPE". This is more flexible due to possibility of combined
-#  and intermixed calls, but requires some "stripping" of the sources to
-#  reduce resource requirements when loading multiple plugins. 
-#
-#  CTYS_MULTITYPE may contain ALL or a ":"/colon separated list with
-#  plugins to be loaded.
-#
-#
-#  However, the next version is planned to be reworked or written in Perl.
-#  A scripting language at all seems to be most appropriate to this task.
-#
-_t=`echo "$*"| sed -n 's/(.*)//g;s/^.* -T/-T/;s/-T \([a-zA-Z0-9,]*[^ ]\).*$/\1/p'`
-if [ -n "${_t}" ];then
-    CTYS_MULTITYPE=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_MULTITYPE=$CTYS_MULTITYPE"
-fi
-if [ -z "${CTYS_MULTITYPE}" ];then
-    _t=`echo "$*"| sed -n 's/^.* -t/-t/;s/-t \([a-zA-Z0-9]*\) .*$/\1/p'`
-    if [ -n "${_t}" ];then
-	CTRL_SESSIONTYPE=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
-    else
-        CTRL_SESSIONTYPE=${DEFAULT_CTRL_SESSIONTYPE}
+function 0_initPlugins ()  {
+    #
+    #Perform the initialization according and based on LD_PLUGIN_PATH.
+    #
+    echo
+    echo "------------------------------"
+    echo "Start check on:${MYHOST}"
+    echo "------------------------------"
+    echo "Prepare check on:${MYHOST}"
+    echo "------------------------------>>>"
+    MYROOTHOOK=${MYINSTALLPATH}/plugins/hook
+    if [ ! -f "${MYROOTHOOK}" ];then 
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing packages hook: hook=${MYROOTHOOK}"
+	gotoHell ${ABORT}
     fi
-    CTYS_MULTITYPE=${CTRL_SESSIONTYPE}
-    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTRL_SESSIONTYPE=$CTRL_SESSIONTYPE"
-fi
+    echo "<<<------------------------------"
+    echo "Checking PLUGINS-STATEs on:${MYHOST}"
+    echo "Perform:${MYROOTHOOK}"
+    echo "------------------------------>>>"
+    . ${MYROOTHOOK}
+    initPackages "${MYROOTHOOK}"
+    echo "<<<------------------------------"
+    echo "...results on:${MYHOST} to:"
+    echo
+}
 
-
-
-
-#
-#remember call parameters, for usage within functions
-#
-CALLARGS=$*
-echo
-echo "Checking PLUGINS-STATEs now..."
-echo "------------------------------"
-#
-#Perform the initialization according and based on LD_PLUGIN_PATH.
-#
-initPackages 1 NOEXIT
-echo "------------------------------"
-echo "...results to:"
-echo
-
-
-#################################################################################
-#Plugins are loaded and accessible...                                           #
-#...check and manage plugins now.                                               #
-#################################################################################
-
-function pluginsEnumerate () {
+function 1_pluginsEnumerate () {
     local _knownTypes="`hookGetKnownTypes`"
     local _disabledTypes="`hookGetDisabledTypes`"
     local _ignoredTypes="`hookGetIgnoredTypes`"
 
     local _allign=5;
-    local _label=20;
+    local _label=12;
+    local _label1=23;
 
-    if [ -z "$CTRL_EXECLOCAL" ];then
+    if [ -z "$C_EXECLOCAL" ];then
 	printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	    " " "Check-Client/Server" "CLIENT features"
+	    " " "Check-Client/Server" "`setSeverityColor TRY CLIENT features`"
     else
 	printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
-	    " " "Check-Client/Server" "SERVER features"
+	    " " "Check-Client/Server" "`setSeverityColor TRY SERVER features`"
     fi
     echo
 
@@ -694,16 +661,16 @@ function pluginsEnumerate () {
     echo
 
     #IGNORED(-)
-    printf "%"$((2*_allign))"s%-"${_label}"s%-"$((2*_allign))"s\n" \
-	" " "IGNORED(-):" "${_ignoredTypes}"
+    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
+	" " "`setStatusColor IGNORED IGNORED`(-):" "`setStatusColor IGNORED ${_ignoredTypes}`"
 
     #AVAILABLE(0)
-    printf "%"$((2*_allign))"s%-"${_label}"s%-"$((2*_allign))"s\n" \
-	" " "AVAILABLE(0):" "${_knownTypes}"
+    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
+	" " "`setStatusColor AVAILABLE AVAILABLE`(0):" "`setStatusColor AVAILABLE ${_knownTypes}`"
 
     #DISABLED(1)
-    printf "%"$((2*_allign))"s%-"${_label}"s%-"$((2*_allign))"s\n" \
-	" " "DISABLED(1):" "${_disabledTypes}"
+    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
+	" " "`setStatusColor DISABLED DISABLED`(1):" "`setStatusColor DISABLED ${_disabledTypes}`"
 
 
     #ENABLED(2)
@@ -711,27 +678,27 @@ function pluginsEnumerate () {
     for i in ${_disabledTypes};do
 	_curEnabled=${_curEnabled//$i}
     done
-    printf "%"$((2*_allign))"s%-"${_label}"s%-"$((2*_allign))"s\n" \
-	" " "ENABLED(2):" "${_curEnabled}"
+    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
+	" " "`setStatusColor ENABLED ENABLED`(2):" "`setStatusColor ENABLED ${_curEnabled}`"
 
     #IDLE(3)
     local _curIdle=;
-    if [ "${CTRL_SESSIONTYPE}" == ALL ];then
+    if [ "${C_SESSIONTYPE}" == ALL ];then
 	_curIdle="";
     else
-	_curIdle=${_curEnabled//$CTRL_SESSIONTYPE};
+	_curIdle=${_curEnabled//$C_SESSIONTYPE};
     fi
 
     #BUSY(4)
     local _curBusy=;
-    if [ "${CTRL_SESSIONTYPE}" == ALL ];then
+    if [ "${C_SESSIONTYPE}" == ALL ];then
 	_curBusy=${_curEnabled};
     else
 	local _t=`echo " $CALLARGS "| sed -n 's/^.* -t/-t/;s/-t \([a-zA-Z0-9]*\) .*$/\1/p'`
 	if [ -n "${_t}" ];then
 	    _curBusy=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
 	else
-	    _curBusy=${CTRL_SESSIONTYPE};
+	    _curBusy=${C_SESSIONTYPE};
 	fi
     fi
     for i in ${_disabledTypes};do
@@ -739,13 +706,11 @@ function pluginsEnumerate () {
     done
     _curIdle=${_curEnabled//$_curBusy};
 
-    printf "%"$((2*_allign))"s%-"${_label}"s%-"$((2*_allign))"s\n" \
-	" " "IDLE(3):" "${_curIdle}"
+    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
+	" " "`setStatusColor IDLE IDLE`(3):" "`setStatusColor IDLE ${_curIdle}`"
 
-    printf "%"$((2*_allign))"s%-"${_label}"s%-"$((2*_allign))"s\n" \
-	" " "BUSY(4):" "${_curBusy}"
-
-
+    printf "%"$((2*_allign))"s%-"${_label1}"s%-"$((2*_allign))"s\n" \
+	" " "`setStatusColor BUSY BUSY`(4):" "`setStatusColor BUSY ${_curBusy}`"
 
     echo
     printf "%"$((1*_allign))"s%-"${_label}"s:%-"$((2*_allign))"s\n" \
@@ -754,44 +719,77 @@ function pluginsEnumerate () {
     for _ty in ${_knownTypes};do
 	eval info${_ty} $_allign 
     done
+
+    echo "------------------------------"
+    echo "End check on:${MYHOST}"
+    echo "------------------------------"
 }
 
 
-_t=`echo "$*" | sed '/^[^ ]*[^-]/d'`
-_t=`echo "$*" | sed 's/-T [a-zA-Z0-9,]*[^ ] *//'`
-_t=`echo "$_t"| sed 's/-t [a-zA-Z0-9]* *//'`
-_t="${_t//-e}"
-_t=`echo "$_t"| sed 's/-d [0-9]* *//'`
-_t="${_t//-w}"
-_t="${_t// /}"
-if [ -n "${_t}" ];then
-    ABORT=1;
-    printERR $LINENO $BASH_SOURCE ${ABORT} "No arguments, and only following common options are supported:"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "   -t  Specific type"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "   -T  Preload type list"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "   -e  Check for local host as final execution target, this"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       forces full verification."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       If \"-e\" is not set, only required functionality as client is"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       validated, which could be for some packages almost the same"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       and though treated as. "
-    printERR $LINENO $BASH_SOURCE ${ABORT} "."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       -> This is e.g. the case for PM."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       -> This is e.g. not the case for XEN, which obviously"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "          requires a completly different runtime environment for"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "          it's clients than within the server as Dom0/DomU"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       -> This e.g. could be or not the case for VMW, depends on type"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "          of product + version + requested type of client."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "   -d  [0-9]*"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "       debug"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "   -w  activate extended warning"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "\$*=$*"
-    gotoHell ${ABORT}
-    echo ""
+
+
+_ARGS=;
+_ARGSCALL=$*;
+
+
+while [ -n "$1" ];do
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\${1}=<${1}>"
+    case $1 in
+	'-h')showToolHelp;exit 0;;
+	'-V')printVersion;exit 0;;
+	'-d')shift;;
+	'-T')shift;;
+	'-t')shift;;
+	'-E')
+	    C_EXECLOCAL=1;
+	    printDBG $S_BIN ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:C_EXECLOCAL"
+	    ;;
+
+	*)
+	    _ARGS="${_ARGS} ${1}"
+	    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS=${_ARGS}"
+	    ;;
+    esac
+    shift
+done
+
+_RARGS=${_ARGSCALL//$_ARGS/}
+_MYLBL=${MYCALLNAME}-${MYUID}-${DATE}
+
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
+_RARGS=${_RARGS// /\%}
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
+printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_MYLBL=<$_MYLBL>"
+
+if [ -z "${_ARGS}" ];then
+    _t=`echo " $_ARGSCALL "| sed -n 's/(.*)//g;s/^.* -T/-T/;s/-T \([a-zA-Z0-9,]*[^ ]\).*$/\1/p'`
+    if [ -n "${_t}" ];then
+	CTYS_MULTITYPE=`echo "${_t}"|tr '[:lower:]' '[:upper:]'`
+	printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_MULTITYPE=$CTYS_MULTITYPE"
+    fi
+    if [ -z "${CTYS_MULTITYPE//*DEFAULT*/}" ];then
+	_ac=`echo " $_ARGSCALL "| sed -n 's/^.* -a/-a/;s/-a \([a-zA-Z0-9]*\)[= ].*$/\1/p'|tr '[:lower:]' '[:upper:]'`
+	_ty=`echo " $_ARGSCALL "| sed -n 's/^.* -t/-t/;s/-t \([a-zA-Z0-9]*\) .*$/\1/p'|tr '[:lower:]' '[:upper:]'`
+	if [ -n "${_ty}" ];then
+	    CTYS_MULTITYPE="${_ty}"
+	fi
+	printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:C_SESSIONTYPE=$C_SESSIONTYPE"
+    fi
+
+    0_initPlugins
+    1_pluginsEnumerate
+else
+    _argChk=`echo " ${_ARGS} "|sed 's/["'\'']([^)]*)["'\'']//g'`
+    _argChk=" ${_argChk} "
+    _argChk1="${_argChk// -/}"
+    if [ "${_argChk}" != "${_argChk1}" ];then
+	printERR $LINENO $BASH_SOURCE 1 "Local options in remote host section:${_argChk}"
+	printERR $LINENO $BASH_SOURCE 1 "For local options only the original ${MYCALLNAME} options are permitted."
+	gotoHell 1;
+    fi
+    printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution on:${_ARGS}"
+    ctys ${C_DARGS} -t cli -a create=l:${_MYLBL},cmd:${MYCALLNAME}%${_RARGS} ${_ARGS}
 fi
 
 
-pluginsEnumerate
-gotoHell 0 

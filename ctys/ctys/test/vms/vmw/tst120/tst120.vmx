@@ -1,0 +1,69 @@
+#!/usr/bin/vmware
+
+#---------------------------------------------
+#@#MAGICID-IGNORE
+#--------------------------------------------
+
+config.version = "8"
+virtualHW.version = "6"
+scsi0.present = "TRUE"
+scsi0.virtualDev = "lsilogic"
+memsize = "256"
+MemAllowAutoScaleDown = "FALSE"
+ide0:0.present = "TRUE"
+ide0:0.fileName = "tst120.vmdk"
+ide1:0.present = "TRUE"
+ide1:0.autodetect = "TRUE"
+ide1:0.deviceType = "cdrom-image"
+floppy0.startConnected = "FALSE"
+floppy0.autodetect = "TRUE"
+usb.present = "TRUE"
+ehci.present = "TRUE"
+sound.present = "TRUE"
+sound.fileName = "-1"
+sound.autodetect = "TRUE"
+svga.autodetect = "TRUE"
+pciBridge0.present = "TRUE"
+guestOS = "freebsd"
+nvram = "tst120.nvram"
+deploymentPlatform = "windows"
+virtualHW.productCompatibility = "hosted"
+RemoteDisplay.vnc.port = "0"
+tools.upgrade.policy = "useGlobal"
+
+floppy0.fileName = "/dev/fd0"
+extendedConfigFile = "tst120.vmxf"
+
+
+
+displayName = "tst120"
+
+#Ethernet0.virtualDev = "e1000"
+ethernet0.present = "TRUE"
+ethernet0.wakeOnPcktRcv = "FALSE"
+ethernet0.addressType = "static"
+ethernet0.address = "00:50:56:13:11:54"
+
+#---@#CTYS-IP0=linux001
+#@#IP0="192.168.1.204"
+#@#DIST="FreeBSD"
+#@#DISTREL="6.1"
+#@#OS="FreeBSD"
+#@#OSREL="6.1"
+#@#VERSION="01.01.001"
+#@#SERNO="20080415062000"
+#@#CATEGORY="VM"
+
+uuid.action = "keep"
+
+ide1:0.fileName = "/mntn/swpool/UNIXDist/ubuntu/6.06.1/raw/isos/i386/ubuntu-6.06.1-server-i386.iso"
+
+uuid.location = "56 4d 0c 0a a9 8d 64 02-e5 ef f9 f3 9c 47 6b 0d"
+uuid.bios = "56 4d 0c 0a a9 8d 64 02-e5 ef f9 f3 9c 47 6b 0d"
+ide0:0.redo = ""
+pciBridge0.pciSlotNumber = "17"
+scsi0.pciSlotNumber = "16"
+ethernet0.pciSlotNumber = "32"
+sound.pciSlotNumber = "33"
+ehci.pciSlotNumber = "34"
+tools.remindInstall = "TRUE"

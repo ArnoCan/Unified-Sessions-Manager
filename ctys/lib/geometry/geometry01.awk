@@ -17,7 +17,7 @@
 
 
 function perror(inp){
-    if(dbg<=d){
+    if(!d){
         print line ":" inp | "cat 1>&2"
     }
 }  
@@ -34,7 +34,6 @@ BEGIN{
     myLineScreen=0
     myLineSection=0
 
-    perror("dbg=   " dbg);
     perror("d=     " d);
     perror("sect=  " sect);
     perror("nr=    " nr);

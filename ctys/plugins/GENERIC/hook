@@ -21,7 +21,6 @@ _myPKGVERS_GENERIC="01.02.001b01"
 hookInfoAdd $_myPKGNAME_GENERIC $_myPKGVERS_GENERIC
 
 _myPKGBASE_GENERIC="`dirname ${_myPKGNAME_GENERIC}`"
-_BASE_GENERIC="${_myPKGBASE_GENERIC}hook"
 
 
 #FUNCBEG###############################################################
@@ -36,10 +35,10 @@ _BASE_GENERIC="${_myPKGBASE_GENERIC}hook"
 #  This is just a hardcoded attribute and controls the application 
 #  matrix of following attribute values of option "-L" locality:
 #
-#   - ConnectionForwarding
-#   - DisplayForwarding
-#   - ServerOnly
-#   - LocalOnly
+#   - CONNECTIONFORWARDING
+#   - DISPLAYFORWARDING
+#   - SERVERONLY
+#   - LOCALONLY
 #
 #EXAMPLE:
 #
@@ -54,7 +53,7 @@ _BASE_GENERIC="${_myPKGBASE_GENERIC}hook"
 #
 #FUNCEND###############################################################
 function clientServerSplitSupportedGENERIC () {
-    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_BASE_GENERIC "$FUNCNAME $1"
+    printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME $1"
     case $1 in
 	ENUMERATE)return 0;;
 	LIST)return 0;;
@@ -66,7 +65,7 @@ function clientServerSplitSupportedGENERIC () {
 
 
 #
-#Managed load of sub-packages which are required in almost any case.
+#Managed load of sub-packages gwhich are required in almost any case.
 #On-demand-loads will be performed within requesting action.
 #
 hookPackage "${_myPKGBASE_GENERIC}/LIST/list"
@@ -106,88 +105,113 @@ hookPackage "${_myPKGBASE_GENERIC}/ENUMERATE/enumerate"
 #
 #FUNCEND###############################################################
 function handleGENERIC () {
-  printVerboseDebug ${DBG_LVL_UID} $LINENO $_BASE_GENERIC "${FUNCNAME}:$*"
+  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:$*"
   local OPMODE=$1;shift
   local ACTION=$1;shift
 
   case ${ACTION} in
-
 
       LIST)
 	  case ${OPMODE} in
               CHECKPARAM)
                   listCheckParam
 		  ;;
-	      ACTION)
-		  if [ -z "${CTRL_EXECLOCAL}" ];then
-		      assembleExeccall
-		  else
-                      if [ -n "${R_TEXT}" ];then
-			  echo "${R_TEXT}"|sed 's/-T//'
-                      fi
-                      EXECCALL="listMySessions ${CTRL_MODE_ARGS}"
+              PROLOGUE)
+                  #print the prefix
+		  if [ -z "${CTYS_SUBCALL}" ];then
+		      listMySessions "${C_MODE_ARGS},PROLOGUE"
 		  fi
+		  ;;
+              EPILOGUE)
+                  #print the prefix
+		  if [ -z "${CTYS_SUBCALL}" ];then
+		      listMySessions "${C_MODE_ARGS},EPILOGUE"
+		  fi
+		  ;;
+	      ASSEMBLE)
+		  assembleExeccall
+		  ;;
+
+	      EXECUTE)
+                  if [ -n "${R_TEXT}" ];then
+		      echo "${R_TEXT}"|sed 's/-T//'
+                  fi
+                  EXECCALL="listMySessions ${C_MODE_ARGS}"
 		  ;;
 	  esac
           ;;
-
 
       ENUMERATE)
           #Not critical, thus just pass args, there is anyway not so much to be pre-checked.
 	  case ${OPMODE} in
               CHECKPARAM)
+                  enumerateCheckParam
 		  ;;
-	      ACTION)
-		  if [ -z "${CTRL_EXECLOCAL}" ];then
-		      assembleExeccall
-		  else
-                      if [ -n "${R_TEXT}" ];then
-			  echo "${R_TEXT}"|sed 's/-T//'
-                      fi
-                      EXECCALL="enumerateMySessions ${CTRL_MODE_ARGS}"
+              PROLOGUE)
+                  #print the prefix
+		  if [ -z "${CTYS_SUBCALL}" ];then
+		      enumerateMySessions "${C_MODE_ARGS},PROLOGUE"
 		  fi
+		  ;;
+              EPILOGUE)
+                  #print the prefix
+		  if [ -z "${CTYS_SUBCALL}" ];then
+		      enumerateMySessions "${C_MODE_ARGS},EPILOGUE"
+		  fi
+		  ;;
+	      ASSEMBLE)
+		  assembleExeccall
+		  ;;
+
+	      EXECUTE)
+                  if [ -n "${R_TEXT}" ];then
+		      echo "${R_TEXT}"|sed 's/-T//'
+                  fi
+                  EXECCALL="enumerateMySessions ${C_MODE_ARGS}"
 		  ;;
 	  esac
           ;;
-
-
 
       SHOW|INFO)
 	  case ${OPMODE} in
               CHECKPARAM)
 		  ;;
-	      ACTION)
-		  if [ -z "${CTRL_EXECLOCAL}" ];then
-		      assembleExeccall
-		  else
-                      if [ -n "${R_TEXT}" ];then
-			  echo "${R_TEXT}"|sed 's/-T//'
-                      fi
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      ASSEMBLE)
+		  assembleExeccall
+		  ;;
 
-  		      MYHOOK=${_myPKGBASE_GENERIC}/${ACTION}/${MYOS}
-		      printVerboseDebug ${DBG_LVL_UID} $LINENO $_BASE_GENERIC "${FUNCNAME}:${MYHOOK}"
-                      if [ -d "${MYHOOK}" ];then
-			  MYHOOK=${MYHOOK}/${MYOS}
-			  if [ -f "${MYHOOK}" ];then
-			      hookPackage "${MYHOOK}"
-			      ${ACTION}${MYOS}
-			  else
-			      ABORT=1
-			      printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:${MYHOOK}"
-			      gotoHell ${ABORT}
-			  fi
+	      EXECUTE)
+                  if [ -n "${R_TEXT}" ];then
+		      echo "${R_TEXT}"|sed 's/-T//'
+                  fi
+
+  		  MYHOOK=${_myPKGBASE_GENERIC}/${ACTION}/${MYOS}
+		  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:${MYHOOK}"
+                  if [ -d "${MYHOOK}" ];then
+		      MYHOOK=${MYHOOK}/${MYOS}
+		      if [ -f "${MYHOOK}" ];then
+			  hookPackage "${MYHOOK}"
+			  ${ACTION}${MYOS}
 		      else
-			  printWNG $LINENO $BASH_SOURCE 0 "OS=\"${MYOS}\" not supported for ACTION=${ACTION} OPMODE=${OPMODE}"
+			  ABORT=1
+			  printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:${MYHOOK}"
+			  gotoHell ${ABORT}
 		      fi
-		      gotoHell 0
+		  else
+		      printWNG 1 $LINENO $BASH_SOURCE 0 "OS=\"${MYOS}\" not supported for ACTION=${ACTION} OPMODE=${OPMODE}"
 		  fi
+		  gotoHell 0
 		  ;;
           esac
           ;;
 
       *)
           ABORT=1;
-          printERR $LINENO $_BASE_GENERIC ${ABORT} "System Error, unexpected GENERIC:OPMODE=${OPMODE} ACTION=${ACTION}"
+          printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected GENERIC:OPMODE=${OPMODE} ACTION=${ACTION}"
           ;;
   esac
 }
@@ -216,18 +240,31 @@ function handleGENERIC () {
 #FUNCEND###############################################################
 function initGENERIC () {
   local _curInit=$1
-  printVerboseDebug ${DBG_LVL_SUPPORT} $LINENO $_BASE_GENERIC "$FUNCNAME ${_curInit}"
+  local _raise=$((INITSTATE<_curInit));
 
-  case $_curInit in
-      0);;#NOP - Done by shell
-      1)
-          #add own help to searchlist for options
-	  MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/GENERIC/help/${MYLANG}/010_generic"
-	  ;;
-      2);;#Curently nothing todo.
-      3);;#Curently nothing todo.
-      4);;#Curently nothing todo.
-      5);;#Curently nothing todo.
-  esac
+  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:${INITSTATE} -> ${_curInit} - ${_raise}"
+
+  if [ "$_raise" == "1" ];then
+      #for raise of INITSTATE do not touch the OS's decisions, just expand.
+
+      case $_curInit in
+	  0);;#NOP - Done by shell
+	  1)
+              #add own help to searchlist for options
+	      MYOPTSFILES="${MYOPTSFILES} ${MYPKGPATH}/GENERIC/help/${MYLANG}/010_generic"
+	      ;;
+	  2);;
+	  3);;
+	  4);;
+	  5);;
+	  6);;
+      esac
+  else
+      case $_curInit in
+	  *);;
+      esac
+
+  fi
+
 }
 

@@ -9,7 +9,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_06_001a06
 #
 ########################################################################
 #
@@ -17,54 +17,69 @@
 #
 ########################################################################
 
+printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
+
 
 PATH=${PATH}:/sbin:/usr/local/bin
 export PATH
 
 
+#
+#reset callers TTY settings when pseudoterminal option of ssh is used.
+STTY=`stty -g 2>/dev/null`
+if [ $? -eq 0 ];then
+    trap "stty $STTY" EXIT
+fi
+
+################################################################
+#           Absolutely basic for bootstrap                     #
+################################################################
+
+#initially native access for current user required
+WHICH=`getPathName  $LINENO $BASH_SOURCE ERROR which  /usr/bin`
+WHICH1=`callErrOutWrapper $LINENO $BASH_SOURCE  $WHICH which`
+if [ $? -ne 0 ];then
+    ABORT=1
+    printERR $LINENO $_BASE_XEN ${ABORT} "Missing \"which\""
+    gotoHell ${ABORT}
+
+    printERR $LINENO $_BASE_XEN ${ABORT} "Does not make sence, even for \"-n\"!"
+    exit ${ABORT}
+fi
+
+if [ "$WHICH" != "$WHICH1" ];then
+    ABORT=1
+    printERR $LINENO $_BASE_XEN ${ABORT} "Do not want several versions of which on the same machine!"
+    printERR $LINENO $_BASE_XEN ${ABORT} " 1. check executables/links/etc."
+    printERR $LINENO $_BASE_XEN ${ABORT} " 2. check your PATH"
+    splitPath 15 PATH $PATH
+    gotoHell ${ABORT}
+
+    printERR $LINENO $_BASE_XEN ${ABORT} "Could be serious, thus correct it first!"
+    exit ${ABORT}
+fi
+
 ################################################################
 #           Default definitions for system tools               #
 ################################################################
+KSU=`getPathName  $LINENO $BASH_SOURCE WARNINGEXT ksu  /usr/kerberos/bin`
+SUDO=`getPathName $LINENO $BASH_SOURCE WARNINGEXT sudo /usr/bin`
 
-
-#########
-#CLI
-CLI_SHELL_DEFAULT="bash -i";
-CLI_SHELL_CMD_DEFAULT="bash -c";
-
-
-#########
-#X11
-X11_DEFAULT_OPTS="";
-
-which gnome-terminal 2>/dev/null >/dev/null
-if [ $? == 0 ];then
-    X11_XTERM_DEFAULT="gnome-terminal ";
-    X11_WM_OPTPRE="--";
+if [ -z "$KSU" -a -z "$SUDO" -a "$USER" != "root" ];then
+    if [ `id -u $USER` -eq 0 ];then
+	printERR $LINENO $BASH_SOURCE 1 "non-root user \"$USER\" has ID=0, don't do that"
+    else
+	printWNG 1 $LINENO $BASH_SOURCE 1 "Probably limited access, missing:ksu and sudo, and $USER!=root"
+    fi
 else
-    X11_XTERM_DEFAULT="xterm ";
-    X11_WM_OPTPRE="-";
+    printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "KSU=$KSU"
+    printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "SUDO=$SUDO"
 fi
-X11_XTERM_SHELL_DEFAULT="${CLI_SHELL_DEFAULT}";
+
+KILL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT kill /bin`
+PKILL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT pkill /usr/bin`
 
 
-
-#########
-#VNC
-
-#vncviewer - passed through by wrapper
-#keep "hextile" for being generic for VMware-WS6 too(see pg. 183).
-VNCVIEWER_NATIVE=${VNCVIEWER_NATIVE:-vncviewer}
-VNCVIEWER_OPT_RealVNC=" -PreferredEncoding hextile  -FullColour -AutoSelect=0 -Shared=1 "
-VNCVIEWER_OPT_TightVNC="-encodings         hextile  -truecolour  -shared "
-VNCVIEWER_OPT_GENERIC=""
-#ffs.:"copyrect"
-
-#vncserver - passed through by wrapper
-VNCSERVER_NATIVE=${VNCSERVER_NATIVE:-vncserver}
-VNCSERVER_OPT_RealVNC=" -depth 24 -geometry 1268x994 -localhost -nolisten tcp -nohttpd "
-VNCSERVER_OPT_TightVNC="-depth 24 -geometry 1268x994 -localhost -nolisten tcp "
-VNCSERVER_OPT_GENERIC=" -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 
 
 
@@ -73,26 +88,6 @@ VNCSERVER_OPT_GENERIC=" -depth 24 -geometry 1268x994 -localhost -nolisten tcp "
 #Required for desktop/workspace switching, has to be installed manually and be present 
 #on DISPLAY target machines only.
 CTYS_WMCTRL=${CTYS_WMCTRL:-wmctrl}
-
-
-
-#########
-#WOL
-#Required by PM plugins, e.g. LINUX. At least one machine, which could be any PM or a VM
-#for execution has to be provided.
-#Require root-access for magic-packet transmission.
-#
-#Take the first interface only, works for bonding too, but should be considered
-#e.g. for multi-homed.
-#CTYS_WOL=${CTYS_WOL:-/sbin/ether-wake -i `/sbin/ifconfig|awk '{if(p==0){print $1;p=1;}}'` }
-CTYS_WOL=${CTYS_WOL:-/usr/bin/false}
-
-
-
-#########
-#HALT
-#Generally used to switch off VMs and PMs by inherent facilities.
-CTYS_HALT=${CTYS_HALT:-halt}
 
 
 
@@ -120,10 +115,18 @@ CTYS_SMARTCTL=${CTYS_SMARTCTL:-/usr/local/sbin/smartctl}
 #########
 #DMIDECODE
 #Used for fetching the UUID of current machine for generating of
-#configuration file. Is later required for ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} and will be
-#collected by ctys-vdbgen. 
+#configuration file.
 CTYS_DMIDECODE=${CTYS_DMIDECODE:-/usr/local/sbin/dmidecode}
 
+
+#########
+#If bridge is set during boot, and DHCP is used, probably a lower level,
+#maybe 0 should be used.
+#Else it seems safe for commen platforms setting it higher.
+#  system-default=30, 
+#  ctys-fallback=0
+#This is the delay for the creation of the first VDE-switch.
+BRIDGE_FORWARDDELAY=${BRIDGE_FORWARDDELAY:-15};
 
 
 #########
@@ -148,9 +151,18 @@ PSL=" -w -w -l -x "
 #CTYS_SED=sed
 #CTYS_AWK=awk
 
+[ -z "$CLIEXE" ]&&CLIEXE=`getPathName $LINENO $BASH_SOURCE ERROR ${CLISHELL} /usr/local/bin`
+[ -z "$BASHEXE" ]&&BASHEXE="$CLIEXE"
+[ -z "$CTYS_SYSCTL" ]&&CTYS_SYSCTL=`getPathName $LINENO $BASH_SOURCE ERROR sysctl /sbin`
+[ -z "$CTYS_LSPCI" ]&&CTYS_LSPCI=`getPathName $LINENO $BASH_SOURCE WARNING lspci /usr/local/sbin`
+[ -z "$CTYS_NETSTAT" ]&&CTYS_NETSTAT=`getPathName $LINENO $BASH_SOURCE WARNING netstat /usr/bin`
+[ -z "$CTYS_CHMOD" ]&&CTYS_CHMOD=`getPathName $LINENO $BASH_SOURCE ERROR chmod /bin`
 
 
-#
-#Cmd_Alias CTYS_SYSTOOLS = /sbin/ether-wake
-#
+#requires a pty, set's ENV
+EXECSHELLWRAPPER="${CLISHELL} -l -c "
+
+#does not require a pty, but may cause some PATH trouble.
+EXECSHELLWRAPPERNOPTY="${CLISHELL} -c "
+
 

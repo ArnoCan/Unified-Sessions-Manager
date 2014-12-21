@@ -21,7 +21,6 @@ _myPKGVERS_VNC_INFO="01.02.001b01"
 hookInfoAdd $_myPKGNAME_VNC_INFO $_myPKGVERS_VNC_INFO
 _myPKGBASE_VNC_INFO="`dirname ${_myPKGNAME_VNC_INFO}`"
 
-_VNC_INFO="${_myPKGNAME_VNC_INFO}"
 
 
 #FUNCBEG###############################################################
@@ -47,13 +46,16 @@ _VNC_INFO="${_myPKGNAME_VNC_INFO}"
 function infoVNC4Action () {
     local _allign=$1
 
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "VNC:" "Plugin Version:${_myPKGVERS_VNC}"
-    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "Operational State:${VNC_STATE}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " \
+         "`setStatusColor ${VNC_STATE} VNC`:" "Plugin Version:${_myPKGVERS_VNC}"
+    printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " "" \
+         "Operational State:`setStatusColor ${VNC_STATE} ${VNC_STATE}`"
 
     if [ -n "${VNC_VERSTRING}" ];then
         printf "%"$((2*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " ""     "VNC version:"
   	printf "%"$((2*_allign))"s%-"${_label}"s ->%"$((2*_allign))"s\n" " " " " "${VNC_VERSTRING}"
-  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Magic-Number:${VNC_MAGIC}"
+  	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " \
+            "Magic-Number:`setStatusColor ${VNC_STATE} ${VNC_MAGIC}`"
   	printf "%"$((3*_allign))"s%-"${_label}"s %"$((2*_allign))"s\n" " " " " "Verified Prerequisites:"
 
 	local i2=;
@@ -93,11 +95,11 @@ function infoVNC4Action () {
 #        Current type "VNC".
 #
 #      <plug-vers>
-#        The version of current plugin, which is the value 
+#        The version of current plugin, gwhich is the value 
 #        of _myPKGVERS_VNC.
 #
 #      <plug-magic>
-#        The magic ID, which is the shortform of the version of 
+#        The magic ID, gwhich is the shortform of the version of 
 #        current plugin stored in VNC_MAGIC.
 #
 #      <plug-state>
@@ -157,7 +159,7 @@ function infoVNC () {
 	    infoVNC4MACHINE $*
 	    ;;
 	[0-9]*)
-            if [ -n "${CTRL_TERSE}" ];then
+            if [ -n "${C_TERSE}" ];then
 		infoVNC4MACHINE $*
 	    else
 		infoVNC4Action $*

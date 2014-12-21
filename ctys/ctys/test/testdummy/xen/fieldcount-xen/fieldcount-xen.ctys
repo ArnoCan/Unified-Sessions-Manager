@@ -1,0 +1,93 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a13
+#
+########################################################################
+#
+#     Copyright (C) 2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+#***********************************************************************
+#                        Don't forget to activate                      *
+#***********************************************************************
+#@#MAGICID-IGNORE
+
+#######################################################################
+#
+#Values required for ENUMERATE, even though some values, e.g. UUID
+#are currently not yet actually utilized by the QEMU-VM itself.
+#The values are used as search key within the ctys-name-services. 
+#So it makes "heavily" sence to maintain them thoroughly, and keep
+#all values unique, where applicable.
+#
+########################################################################
+#
+#@#MAGICID-XEN
+
+#@#SESSIONTYPE        = "2"
+#@#LABEL              = "3xen"
+#@#UUID               = "5"
+#@#MAC0               = "6err"
+#@#IP0                = "7err"
+#@#VNCACCESSDISPLAY   = "8"
+#@#VNCACCESSPORT      = "9"
+#@#SPORT              = "10"
+#@#VNCBASEPORT        = "11"
+#@#DIST               = "12"
+#@#DISTREL            = "13"
+#@#OS                 = "14"
+#@#OSREL              = "15"
+#@#VERSION            = "16"
+#@#SERNO              = "17"
+#@#CATEGORY           = "18"
+#@#VMSTATE            = "TESTDUMMY"
+#@#HYPERREL           = "20"
+#@#STACKCAP           = "21"
+#@#STACKREQ           = "22"
+#@#HWCAP              = "23"
+#@#HWREQ              = "24"
+#@#EXECLOCATION       = "25"
+#@#RELOCCAP           = "26"
+#@#SSHPORT            = "27"
+#@#RSRV6              = "28"
+#@#RSRV7              = "29"
+#@#RSRV8              = "30"
+#@#RSRV9              = "31"
+#@#RSRV10             = "32"
+#@#IFNAME             = "33"
+#@#CTYSRELEASE        = "34"
+#@#NETMASK            = "35"
+#@#GATEWAY            = "36"
+#@#RELAY              = "37"
+#@#ARCH               = "38"
+#@#PLATFORM           = "39"
+#@#VRAM               = "40"
+#@#VCPU               = "41"
+#@#CSTRG              = "42"
+#@#USTRG              = "43"
+#
+########################################################################
+
+

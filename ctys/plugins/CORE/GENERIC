@@ -125,8 +125,8 @@ HEAD1
 
     vncviewer --help 2>/dev/null >/dev/null
     if [ -n "`vncviewer --help 2>&1|egrep '(RealVNC)'`" ];then
-  	printf "%"${_allign}"s%-"${_label}"s:%"$((2*_allign))"s\n" "  " "VNC" \
-          "`vncviewer --help 2>&1|egrep '(VNC Viewer)'|awk -v a=${_allign} '{printf("%s\n",$0);}'`";
+        local _x1=`vncviewer --help 2>&1|egrep '(VNC Viewer)'|awk -v a=${_allign} '{printf("%s\n",$0);}'`;
+  	printf "%"${_allign}"s%-"${_label}"s:%"$((2*_allign))"s\n" "  " "VNC" "$_x1";
     else
   	printf "%"${_allign}"s%-"${_label}"s:%"$((2*_allign))"s\n" \
           "  " "VNC" "vncviewer is on this machine not available"
@@ -179,6 +179,9 @@ local _label=2;
     printf "%"${_allign}"s%-"${_label}"s:%-"$((2*_allign))"s" \
       "  " "ArgList(bytes)" "\"env|wc -c\" => "
     env|wc -c
+    printf "%"${_allign}"s%-"${_label}"s:%-"$((2*_allign))"s" \
+      "  " "ArgList(bytes)" "\"set|wc -c\" => "
+    set|wc -c
     echo 
     echo
 }
@@ -212,7 +215,7 @@ function printSubcalls () {
 	local _i=0;
 	unset _pathMissing;
 	for _lel in $@;do
-	    which ${_lel} 2>/dev/null >/dev/null 
+	    gwhich ${_lel} 2>/dev/null >/dev/null 
 	    if [ $? -eq 0 ];then
 		if [ "$_vers" = 1 ];then
 		    printf "  %02d   %-43s%s" $_i ${_lel} "`${_lel} -X -V`"
@@ -220,11 +223,11 @@ function printSubcalls () {
 		    printf "  %02d   %-43s%s" $_i ${_lel} "OK"
 		fi
 
-		[ "${CTRL_PRINTINFO}" == 2 ]&&printf " %s" "`which ${_lel}`"
+		[ "${C_PRINTINFO}" == 2 ]&&printf " %s" "`gwhich ${_lel}`"
 	    else
 		local _pathMissing=1;
 		printf "  %02d   %-43s%s" $_i ${_lel} "ERROR: missing PATH-entry"
-		[ "${CTRL_PRINTINFO}" == 2 ]&&printf " %s" "ERROR: ${_lel} - missing PATH-entry"
+		[ "${C_PRINTINFO}" == 2 ]&&printf " %s" "ERROR: ${_lel} - missing PATH-entry"
 	    fi
 	    printf "\n"
 	    ((_i++));
@@ -248,17 +251,22 @@ function printSubcalls () {
     _LST="${_LST} ctys-callVncserver"
     _LST="${_LST} ctys-callVncviewer"
     _LST="${_LST} ctys-dnsutil"
-    _LST="${_LST} ctys-extractMAClst"
     _LST="${_LST} ctys-extractARPlst"
+    _LST="${_LST} ctys-extractMAClst"
     _LST="${_LST} ctys-genmconf"
     _LST="${_LST} ctys-install"
     _LST="${_LST} ctys-install1"
+    _LST="${_LST} ctys-macros"
     _LST="${_LST} ctys-macmap"
     _LST="${_LST} ctys-plugins"
     _LST="${_LST} ctys-smbutil"
     _LST="${_LST} ctys-vdbgen"
     _LST="${_LST} ctys-vhost"
     _LST="${_LST} ctys-vping"
+    _LST="${_LST} ctys-wakeup"
+    _LST="${_LST} ctys-xen-network-bridge"
+    _LST="${_LST} ctys-setupVDE"
+    _LST="${_LST} ctys-getMasterPid"
     checkListCalls 1 $_LST
 
 
@@ -270,6 +278,7 @@ function printSubcalls () {
     _LSThelper="${_LSThelper} getCurOSRel"
     _LSThelper="${_LSThelper} getCurDistribution"
     _LSThelper="${_LSThelper} getCurRelease"
+    _LSThelper="${_LSThelper} getCurGID"
     _LSThelper="${_LSThelper} pathlist"
     checkListCalls 0 $_LSThelper
 
@@ -299,7 +308,7 @@ function printSubcalls () {
 #
 #FUNCEND###############################################################
 function printLegal () {
-  if [ -z "$CTRL_TERSE" ];then
+  if [ -z "$C_TERSE" ];then
       printVersion
       libManInfoList
       echo

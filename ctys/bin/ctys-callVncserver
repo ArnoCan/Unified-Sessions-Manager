@@ -1,5 +1,34 @@
 #!/bin/bash
 
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a10
+#
+########################################################################
+#
+#     Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
 ################################################################
 #                   Begin of FrameWork                         #
 ################################################################
@@ -28,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_01_002c01
+VERSION=01_06_001a10
 #DESCRIPTION:
 #  Wrapper schript for calling vncserver.
 #
@@ -85,7 +114,7 @@ EOF
   exit 1
 fi
 
-MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.002
 if [ ! -f "${MYBOOTSTRAP}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
 cat <<EOF  
@@ -165,6 +194,10 @@ if [ ! -d "${MYCONFPATH}" ];then
   exit 1
 fi
 
+if [ -f "${MYCONFPATH}/versinfo.conf" ];then
+    . ${MYCONFPATH}/versinfo.conf
+fi
+
 MYMACROPATH=${MYCONFPATH}/macros
 if [ ! -d "${MYMACROPATH}" ];then
   echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
@@ -203,7 +236,7 @@ if [ ! -d "${MYINSTALLPATH}" ];then
     gotoHell ${ABORT}
 fi
 
-MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/*_base_options} 
 checkFileListElements "${MYOPTSFILES}"
 if [ $? -ne 0 ];then
     ABORT=1;
@@ -237,11 +270,48 @@ TARGET_WM_FORESEEN="KDE(might work now)"
 ################################################################
 #                     End of FrameWork                         #
 ################################################################
+
+#
+#Perform the initialization according and based on LD_PLUGIN_PATH.
+#
+MYROOTHOOK=${MYINSTALLPATH}/plugins/hook
+if [ ! -f "${MYROOTHOOK}" ];then 
+    ABORT=2
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing packages hook: hook=${MYROOTHOOK}"
+    gotoHell ${ABORT}
+fi
+. ${MYROOTHOOK}
+#initPackages "${MYROOTHOOK}"
+
+hookPackage "${MYLIBPATH}/plugins/CORE/CACHE"
+
+
+#
+#Verify OS support
+#
+case ${MYOS} in
+    Linux)
+	[ -z "$X11XAUTH" ]&&X11AUTH=`getPathName $LINENO $BASH_SOURCE ERROR xauth /usr/bin`
+	;;
+    OpenBSD)
+	[ -z "$X11XAUTH" ]&&X11AUTH=`getPathName $LINENO $BASH_SOURCE ERROR xauth /usr/X11R6/bin`
+	;;
+    SunOS)
+	[ -z "$X11XAUTH" ]&&X11AUTH=`getPathName $LINENO $BASH_SOURCE ERROR xauth /usr/openwin/bin`
+	;;
+    *)
+        printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	gotoHell 0
+	;;
+esac
+
+
+
 if [ "${*}" != "${*//-X/}" ];then
-    CTRL_TERSE=1
+    C_TERSE=1
 fi
 if [ "${*}" != "${*//-V/}" ];then
-    if [ -n "${CTRL_TERSE}" ];then
+    if [ -n "${C_TERSE}" ];then
 	echo -n ${VERSION}
     else
 	echo "$0: VERSION=${VERSION}"
@@ -249,41 +319,44 @@ if [ "${*}" != "${*//-V/}" ];then
     exit 0
 fi
 
-
 #Source pre-set environment from user
 if [ -f "${HOME}/.ctys/ctys.conf" ];then
   . "${HOME}/.ctys/ctys.conf"
 fi
 
 #Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
-  . "${MYCONFPATH}/conf/ctys.conf"
+if [ -f "${MYCONFPATH}/ctys.conf" ];then
+  . "${MYCONFPATH}/ctys.conf"
 fi
-
-#Source pre-set environment from installation 
-if [ -f "${MYCONFPATH}/conf/vnc/vnc.conf" ];then
-  . "${MYCONFPATH}/conf/vnc/vnc.conf"
-fi
-
 
 #system tools
-if [ -f "${HOME}/.ctys/systools.conf" ];then
-    . "${HOME}/.ctys/systools.conf"
-else
+if [ -f "${HOME}/.ctys/systools.conf.${MYDIST}" ];then
+    . "${HOME}/.ctys/systools.conf.${MYDIST}"
+fi
 
-    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
-	. "${MYCONFPATH}/conf/ctys/systools.conf"
+if [ -f "${MYCONFPATH}/systools.conf.${MYDIST}" ];then
+    . "${MYCONFPATH}/systools.conf.${MYDIST}"
+else
+    if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}" ];then
+	. "${MYCALLPATH}/../conf/ctys/systools.conf.${MYDIST}"
     else
-	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
-	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
-	else
-	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
-	    gotoHell ${ABORT}
-	fi
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf.${MYDIST}\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	gotoHell ${ABORT}
     fi
 fi
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/vnc/vnc.conf.${MYOS}" ];then
+  . "${HOME}/.ctys/vnc/vnc.conf.${MYOS}"
+fi
+
+#Source pre-set environment from user
+if [ -f "${MYCONFPATH}/vnc/vnc.conf.${MYOS}" ];then
+  . "${MYCONFPATH}/vnc/vnc.conf.${MYOS}"
+fi
+
 
 ################################################################
 #    Specific definitions - User-Customizable  from shell      #
@@ -300,13 +373,21 @@ case `getCurOS` in
 	    cp $HOME/.vnc/passwd.tightVNC $HOME/.vnc/passwd
 	fi
 	;;
+    SunOS)
+	if [ ! -f $HOME/.vnc/passwd ];then
+	    cp $HOME/.vnc/passwd.tightVNC $HOME/.vnc/passwd
+	fi
+	;;
 esac
 
 
 . ${MYLIBPATH}/lib/cli/cli
 
+_myJob=`cliGetOptValue "-j" ${@}`
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "_myJob=$_myJob"
+
 #Used only for current script, to be removed for vncviewer
-CLISERVERONLY="-d "
+CLISERVERONLY="-d -j "
 
 
 #
@@ -315,43 +396,23 @@ CLISERVERONLY="-d "
 #CLIDEFAULTS=" -name ${NAME:-VncServerDefault} -depth 16 -localhost -nolisten tcp "
 CLIDEFAULTS=" -name ${NAME:-VncServerDefault} -depth 16  "
 
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "DISPLAY=$DISPLAY"
 
-#
-#Reminder for solaris, so don't remove.
-#
-#
-# CALLDIR=`dirname $0`
-# CALLNAME=`basename $0`
-#
-# case `uname -s` in 
-#  Linux)   cp ${CALLDIR}/xstartup.linux ~/.vnc/xstartup;;
-#  Solaris) cp ~/.vnc/xstartup.solaris ~/.vnc/xstartup;;
-#  *)echo "ERROR:Unknown OS">&2;exit 1;;
-# esac
-
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "\$@=$@"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "\$@=$@"
 X="`cliOptionsStrip REMOVE ${CLISERVERONLY} -- ${@}`"
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
 X="`cliOptionsAddMissing ${CLIDEFAULTS} -- ${X}`"
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
 
 LBL=`echo " $X "|sed -n 's/.*-name *\([^ ]*\) *.*/\1/p'`
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "LBL=${LBL}"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "LBL=${LBL}"
 
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "PATH=${PATH}"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "PATH=${PATH}"
 OUTPUT="${VNCSERVER_NATIVE} ${X}"
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "CALL=${OUTPUT}"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "CALL=${OUTPUT}"
 
-# OUTPUT=`${OUTPUT} ${X} 2>&1`
-# printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "OUTPUT=<${OUTPUT}>"
-# RESULT=`echo ${OUTPUT}|awk -F':' -v d=${LBL} '/d/{printf("%s\n",gensub(" .*$","","g",$2))}'`
-
-#Linux-Only
-#RESULT=`${OUTPUT} ${X} 2>&1|awk -F':' -v d=${LBL} '/d/&&!/Log file/{printf("%s\n",gensub(" .*$","","g",$2))}'`
-
-#generic: Linux+OBSD
+#generic: Linux+OBSD+Solaris+..
 RESULT=`${OUTPUT} ${X} 2>&1|awk -F':' -v d=${LBL} '/d/&&!/Log file/&&/^New/{id=$2;gsub(" .*$","",id);printf("%s\n",id);}'`
 RESULT="${RESULT%% *}"
-printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "RESULT=${RESULT}"
+printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "RESULT=${RESULT}"
 echo $RESULT
-
