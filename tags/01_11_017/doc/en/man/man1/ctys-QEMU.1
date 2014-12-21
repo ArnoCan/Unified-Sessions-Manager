@@ -1,0 +1,471 @@
+.TH "ctys-QEMU" 1 "November, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-QEMU - QEMU(TM) Interface - QEMU+KVM\fR
+
+.SH SYNTAX
+
+   ctys -t QEMU -a action[=<suboptions>] ...
+   ctys -T QEMU -a action[=<suboptions>] ...
+   ctys -T ALL  -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+The \fBQEMU\fR plugin adds support for sessions to
+\fBVirtualMachines\fR of type 
+\fBQEMU(TM)\fR with optional \fBKVM\fR and \fBKQEMU\fR based accelerators.
+The  \fBKVM\fR accelerator is used implicitly when present and activated.
+Therefore multiple sets of executables ares scanned during initialisation
+of each startup and set appropriately.
+
+.P
+The management of the virtual machines includes the support of boot and shutdown for local and remote virtual machines.
+This is either executed by filesystem search of configuration files, or by the use of a pre\-scanned
+inventory databases containing accessible machines.
+Various options control the name service and possible caching of information, particularly the option 
+\fB\-c\fR
+for the control of the location of the nameservice cache data.
+Virtual machines stored on network filesystems could be optionally executed on multiple worker\-machines,
+providing a multipath\-registration within the inventory.
+The inventory is populated automatically by scanning the local
+and remote filesystems on each participating worker\-machine and collecting the information of detected
+VMs into the inventory database.
+The inventory database is currently an ASCII based file\-database containing records seperated by <CR>/lines, 
+and semicolon seperated fields.
+
+.P
+The access to VMs is supported by the full scope of the 
+\fB<machine\-address>\fR,
+thus e.g. a user defined LABEL as a shortcut\-alias could be used.
+The QEMU plugin is "\fBVM\-STACK safe\fR" as it handles running embedded virtual machines
+and emulators by propagating state change events(e.g. SHUTDOWN) of the execution platform to
+contained hypervisors and emulators.
+
+.P
+The supported versions are automatically detected, 
+thus no furter parameters for version distinction are required.
+KVM is supported within the QEMU plugin only. Thus KVM could be enabled within a native QEMU
+installation and as a seperate installation.
+The various \fBKVM\fR versions and builds specific to distributions with their various available option sets are detected automatically.
+The actual option sets are identified and dynamically pre\-set for the usage of appropriate values.
+
+.P
+Additional information for installation is available from 
+\fBctys\-configuration\-QEMU\fR,
+information containing use\-cases with application examples is available from
+\fBctys\-uc\-QEMU\fR.
+
+.SH OPTIONS
+.TP
+\fB\-a <action>\fR
+
+.P
+For the complete Syntax refer to the depicted generic superset 
+within the call\-framework 
+ctys(1)
+\&.
+
+.TP
+\fB\-a CANCEL\fR
+Specific semantics for
+SPORT within QEMUMONSOCK
+as described before.
+
+The 
+CONSOLE type CLI0
+requires specific handling for CANCEL.
+
+.TP
+\fB\-a CREATE\fR
+All standard parameters not listed here could be applied.
+
+.RS
+.IP \(bu 3
+\fBARGSADD:(C|S|B)%<ARGSADD>\fR
+
+Additional arguments to be bypassed to the qemu executable.
+The application targets are:
+.RS
+.IP \(bu 3
+C: Client(not yet supported)
+.IP \(bu 3
+S: Server, is applied to the wrapper script as the '\-\-argsadd=<ARGSADD>' argument.
+.IP \(bu 3
+B: Both(not yet supported)
+.RE
+.RE
+
+.RS
+.IP \(bu 3
+\fBBOOTMODE:<MODE>[%<PATH>]\fR
+
+For
+BOOTMODE
+multiple configuration variants are supported.
+In any case only one of them is supported to be the active \fBmaster\fR at any
+time.
+This is controlled by
+\fBMAGICID\-QEMU\fR
+and
+\fBMAGICID\-IGNORE\fR
+, which
+incfluences the inventory scanning process of \fBENUMERATE\fR, and
+therefore the caching behaviour too.
+The following combinations of configuration file and Wrapper\-Script are recognized by the 
+QEMU plugin:
+.RS
+.IP \(bu 3
+\fBsh+ctys\fR
+
+This is the standard case, where a wrapper\-script with the suffix 'ctys' and a configuration
+file with the suffix 'conf' exists.
+The configuration file is the 'almost' only place to configure the settings specific for the 
+current VM.
+The contained configuration variables comprise the shell variable assignements 
+and additional \fBctys\-keys\fR to be handled by the \fBENUMERATE\fR scan.
+The configuration keys are "sourced" into from an external conf\-file, which
+is required to be coallocated within the same directory.
+
+.IP \(bu 3
+\fBctys\-conf\fR
+
+The same as ctys, but the configuration keys are \fBsourced\fR
+from an external conf\-file, which is required to be coallocated 
+within the same directory.
+These are created by the 
+\fBctys\-cresteConfVM\fR
+utility.
+
+.RE
+.IP \(bu 3
+\fB<PATH>\fR
+
+The optional <PATH> parameter provides the temporary alteration of preconfigured
+boot source media.
+
+.IP \(bu 3
+\fBBOOTMODE:CD\fR
+
+This boots an ISO image of a CDROM by setting the boot flag '\-boot d'.
+
+.IP \(bu 3
+\fBBOOTMODE:DVD\fR
+
+This boots an ISO image of a DVD by setting the boot flag '\-boot d'.
+
+.IP \(bu 3
+\fBBOOTMODE:FDD\fR
+
+This boots an file image.
+The file could be either a virtual HDD or a the tull path to a physical device.
+
+.IP \(bu 3
+\fBBOOTMODE:HDD\fR
+
+This boots an image of a HDD by setting the boot flag '\-boot c'.
+
+.IP \(bu 3
+\fBBOOTMODE:PXE\fR
+
+This boots an image into PXE, currently only for x86 platforms supported.
+
+.IP \(bu 3
+\fBBOOTMODE:USB\fR
+
+This boots an image of a USB\-Stick which is actually the same as an HDD image
+by setting the boot flag '\-boot c'.
+
+.IP \(bu 3
+\fBBOOTMODE:VHDD\fR
+
+This boots an image of a HDD by setting the boot flag '\-boot c'.
+
+.IP \(bu 3
+\fBCONSOLE\fR
+
+The \fBCONSOLE\fR suboption defines the console to be used for the VM.
+
+.IP \(bu 3
+\fBCONSOLE:CLI\fR
+
+The CLI mode is the backed by the plugin CLI, which is utilized in the
+same manner as the other X11\-based plugins, thus attached by usage
+of the UNIX\-Domain socket QEMUMONSOCK  for a serial port.
+The CLI console is detachable and could be re\-attached later.
+The VNC console access port is implicitly prepared additionally for later attachement.
+
+.IP \(bu 3
+\fBCONSOLE:CLI0\fR
+
+This mode deviates from the common CLI mode, and is tightly
+coupled to the VM, thus could not be detached.
+When the console is detached, the VM will be terminated.
+When the GuestOS is shutdown in CLI0 mode the console stays still
+occupied by the QEMU VM after the guest system is halted.
+In order to release the CONSOLE/Terminal, the monitor has to be used.
+Call \fBCtrl\-A\-c\-<RETURN>\fR, and \- when the \fB(qemu)\fR monitor prompt occurs \-
+execute \fBquit\fR within the monitor.
+
+This mode sets particularly the following options and
+operational modifications.
+.RS
+.IP \(bu 3
+\fBtrap: INT,TSTP, QUIT\fR:
+
+These signals are deactivated in the first instance of the called
+client, and in the entry instance of the remote client(s).
+Thus the signals, if activated, are transparently passed though to the
+target peer.
+The values could be configured by the variable and/or set by the
+option 
+\fB\-S\fR.
+\fBCTYS_SIGIGNORESPEC\fR.
+
+.IP \(bu 3
+\fB\-b 0,2 \-z 2\fR:
+
+This mode sets implicitly \fB\-b 0,2 \-z 2\fR, otherwise the the input
+stream might be disconnected. 
+The background mode is generally not applicable to CLI0.
+
+.RE
+.RE
+
+.TP
+_
+
+.RS
+.IP \(bu 3
+\fBCONSOLE:EMACS\fR
+
+The same as CONSOLE:CLI, but utilizes for access the type EMACS.
+
+.IP \(bu 3
+\fBCONSOLE:EMACSA\fR
+
+The same as CONSOLE:CLI, but utilizes for access the type EMACSA.
+
+.IP \(bu 3
+\fBCONSOLE:EMACSAM\fR
+
+The same as CONSOLE:CLI, but utilizes for access the type EMACSAM.
+
+.IP \(bu 3
+\fBCONSOLE:GTERM\fR
+
+The same as CONSOLE:CLI, but utilizes for access the type GTERM.
+
+.IP \(bu 3
+\fBCONSOLE:SDL\fR
+
+This is the standard graphical console of QEMU.
+
+.IP \(bu 3
+\fBCONSOLE:XTERM\fR
+
+The same as CONSOLE:CLI, but utilizes for access the type XTERM.
+
+.IP \(bu 3
+\fBCONSOLE:VNC\fR
+
+The VNC console of QEMU.
+The VNC console access port is implicitly prepared additionally for the following
+CONSOLE types for later attachement: CLI, XTERM, GTERM, EMACSM, EMACS, EMACSAM, and EMACSA.
+
+.IP \(bu 3
+\fBINSTMODE[:<params>)]\fR
+
+This boots an image as set by \fBINSTSRC\fR into a specific intstallation mode.
+The installation mode prepares the \fBINSTTARGET\fR device by pre\-configured 
+actions for usage as installation media for the GuestOS installer.
+.nf
+  
+  <params>:= <MODE-SRC>%<SRC-PATH>\e
+             %<MODE-TARGET>%<TARGET-PATH>\e
+             %(INIT|<custom>)
+  
+.fi
+
+
+\fB<MODE\-SRC>\fR
+
+The <MODE> parameter provides the same modes as BOOTMODE of the INSTALLTARGET.
+
+\fB<SRC\-PATH>\fR
+
+The optional <SRC\-PATH> parameter provides the temporary alteration of preconfigured
+install target media.
+
+\fB<MODE\-TARGET>\fR
+
+The <MODE\-TARGET> parameter provides the same modes as BOOTMODE.
+
+\fB<TARGET\-PATH>\fR
+
+The optional <TARGET\-PATH> parameter provides the temporary alteration of preconfigured
+install target media.
+
+\fB(INIT|<custom>)\fR
+
+This sets the wrapper either to initial install mode for destructive first time
+actions \- like replacement of filesystems, or to post\-install mode, where e.g.
+just some post processing of basic system configuration is performed.
+
+.RS
+.IP \(bu 3
+\fBKERNEL:[<KERNEL\-IMG>[,<INITRD>[,<APPEND>]]]\fR
+
+A specific kernel to boot, with an optional alteration of the initrd \- which usually is required \- 
+and optional appended kernel arguments.
+.RE
+.RE
+
+.TP
+\fB\-a LIST\fR
+The LIST action displays information about the runtime 
+state of active QEMU\-VMs.
+This comprises QEMU/KVM managed VMs as well as any other, but some 
+specific information like the TCP/IP\-Address of the GuestOS are displayed
+for ctys managed VMs only.
+
+The detection of ctys managed processes requires the
+bootimage to be the last commandline argument.
+The files for the bootimage, the wrapperscript, and the conf\-file
+have to be coallocated within the same directory.
+In addition one of the following naming\-conventions has to be fullfilled,
+the scan\-order is as given.
+
+
+.TS
+center, tab(^); cll.
+ directoryname^==^conffilename\-prefix
+ imagefilename\-prefix^==^conffilename\-prefix
+ label^==^conffilename\-prefix
+.TE
+
+
+.TP
+\fB\-g <geometry>|<geometryExtended>\fR
+The geometry could be set for the clients only, the resolution
+parameter \fB\-r\fR is not applicable:
+
+.RS
+.IP \(bu 3
+\fBCLI\fR
+.RE
+
+.RS
+.IP \(bu 3
+\fBSDL\fR
+
+Limited applicable, not yet supported/tested, will follow soon.
+
+.IP \(bu 3
+\fBXTERM|GTERM\fR
+
+The size Xsiz and Ysiz provide the UNIT of CHARACTERS only.
+
+.IP \(bu 3
+\fBVNC\fR
+
+As expected.
+.RE
+
+.TP
+\fB\-r <resolution>\fR
+Not supported.
+
+.SH PREREQUISITES
+.TP
+\fBSupported products:\fR
+The following product releases are verified to work.
+
+
+.TS
+center, allbox, tab(^); ll.
+ \fBProduct\fR^\fBTested Versions\fR
+ QEMU^0.9.0, 0.9.1, 0.11.0, 0.12.2
+ KVM^72, 83
+ KQEMU^ffs.
+ VDE^vde2\-2.2.0\-pre1, vde2\-2.2.3
+.TE
+
+
+.TS
+center, tab(^); l.
+ \fBSupported products\fR
+.TE
+
+
+.TP
+\fBVDE2\-Installation\fR
+
+The VDE tools should be installed into the directory
+"/opt/vde".
+
+.TP
+\fBQEMU\-Installation\fR
+
+"NON\-KVM" QEMU should be installed either by standard distribution or 
+into the directory "/opt/qemu".
+
+.TP
+\fBKVM\-Installation\fR
+
+KVM should be installed by standard distribution.
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR
+,
+\fIctys\-createConfVM(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-QEMU(1)\fR
+,
+\fIctys\-configuration\-QEMU(7)\fR
+,
+\fIctys\-uc\-QEMU(7)\fR
+,
+\fIctys\-vhost(1)\fR
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+
+The whole document \- all sections \- is/are defined as invariant.
+.RE
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-QEMU.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/man/man1/ctys-QEMU.1
+

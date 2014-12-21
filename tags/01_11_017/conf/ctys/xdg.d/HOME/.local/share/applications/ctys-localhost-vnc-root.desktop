@@ -1,0 +1,31 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=root@localhost
+Comment=root@localhost
+Name[en_CA]=root@localhost
+Name[en_GB]=root@localhost
+Name[de_DE]=root@localhost
+Exec=_MYHOME_/bin/ctys -t vnc -a create=l:localhost -b 0,2 root@localhost
+Icon=ctys-vnc
+Terminal=true
+Categories=X-USM;X-PMs;

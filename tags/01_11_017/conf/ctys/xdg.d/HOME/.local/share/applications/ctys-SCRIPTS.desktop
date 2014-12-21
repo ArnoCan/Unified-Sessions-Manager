@@ -1,0 +1,32 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=SCRIPTS
+Comment=UnifiedSessionsManager SCRIPTS
+Comment[de]=Editieren der SCRIPTS
+Comment[en]=Edit SCRIPTS
+Name[en]=SCRIPTS
+Name[de]=SCRIPTS
+Exec=_MYHOME_/bin/ctys-scripts.sh -e
+Icon=text-editor
+Terminal=false
+Categories=X-USM;
