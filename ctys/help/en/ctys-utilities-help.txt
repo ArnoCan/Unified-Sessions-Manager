@@ -1,0 +1,62 @@
+
+NAME
+====
+
+ctys-utilities - basic atom calls
+
+SYNTAX
+======
+
+ctys-utilities
+
+
+   ctys-getMasterPid
+
+   getCPUinfo
+   getCurArch
+   getCurCTYSRel
+   getCurDistribution
+   getFSinfo
+   getCurGID
+   getHDDinfo
+   getHDDtemp
+   getMEMinfo
+   getCurOS
+   getCurOSRel
+   getCurDistribution
+   getCurRelease
+   getPerfIDX
+   getSolarisUUID
+   getVMinfo
+
+   pathlist
+
+
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H help
+
+     displays available online help options.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL for license conditions,
+
+This document is created with: latex and text2tags
+
+
+
+
+
+

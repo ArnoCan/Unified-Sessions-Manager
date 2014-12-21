@@ -1,0 +1,417 @@
+.TH "ctys-vdbgen" 1 "Feb, 2010" ""
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-vdbgen - generates databases of VMs and PMs\fR
+
+.SH SYNTAX
+.P
+\fBctys-vdbgen\fR 
+
+
+   [--append]
+   [--base=<base-path-list>]
+   [--cacheDB=<output-db-directory-path>]
+   [--filecontext]
+   [--progress]
+   [--progressall]
+   [--replace]
+   [--stdio]
+
+   [-b]
+   [-c]
+   [-C]
+   [-d <debug-level>]
+   [-h]
+   [-H <help-options>]
+   [-t]
+   [-T]
+   [-V]
+   [-X]
+   <target-list>
+
+
+
+.SH DESCRIPTION
+.P
+\fBctys\-vdbgen\fR generates databases of static mapping from configuration
+files for usage by ctys\-gettarget. "ctys\-vdbgen" itself is a 
+\fBwrapper for\fR
+
+.RS
+\fB"ctys \-a ENUMERATE=machine...."\fR
+.RE
+
+.P
+The output of the ENUMERATE action for a given list is stored into one
+file contained in the given <output\-db\-directory\-path>, or
+"$HOME/.ctys/db/default" respectively.
+
+.P
+The mapping contains available VMs for a given list of PMs as well as
+the PMs. Multiple databases could be generated as specific access\-groups which
+could be selected by the standard parameter "\fB\-p\fR" for all ctys utilities with
+"cacheDB" access.
+
+.P
+\fBREMARKS\fR:
+
+.RS
+.IP \(bu 3
+\fBMultiple\-Entries of IP, and/or MAC addresses\fR
+
+All entries are evaluated and checked for matching indexes.
+This means for a the index of an "IP0" an matching index of "eth0" is
+searched, if missing a warning is generated.
+Whereas "eth0" without an IP address will be accepted.
+
+The second specific is the generation of one seperate entry for each
+of the resolved IP\-MAC pair.
+This is due to a network\-centric view on the interfaces, which
+together found a network and represent their hosts to the outside.
+
+.IP \(bu 3
+\fBOther Multiple\-Entries\fR
+
+The common behaviour in case of multiple entries is to use
+the FIRST\-ONLY. Even though some tools might present more
+than one, it must not be relied on!
+
+This can be varied by option for some utilities.
+
+.IP \(bu 3
+\fBWhitespaces\fR
+
+Whitespaces are generally no supported. When required within
+suboptions the '%' sign has to be used for padding
+field\-separators.
+Anyhow, please avoid them, at least for now!
+.RE
+
+.P
+Due to the defaults described in the following subsection for options, the call 
+
+.nf
+  ctys-vdbgen <host1> <host2> ...
+.fi
+
+.P
+leads to the default call
+
+.nf
+  ${HOME}/bin/ctys -a enumerate=machine,b:\e$HOME >\e
+    ${HOME}/.ctys/db/default/enum.fdb <host1> <host2> ...
+.fi
+
+
+.P
+Where the PM plugin by default additionaly checks for the 
+PM configuration which is located in
+
+.nf
+  /etc/ctys.d/pm.conf
+.fi
+
+
+.P
+For additional information refer to GENMCONF.
+
+.P
+A special append\-mode is supported for addition of data. This mode
+does a pure concatenation only, redundancy of added data is not
+tested. Therefore the user should be aware, when calling append
+mode, whether he already updated the data of that node.
+
+.P
+The deletion of data has to be performed manually for now, a simple
+ASC\-II editor, MS\-Excel, or the spreadsheet application of OpenOffice 
+could be used for this task.
+The data format is described in the appendix of the ctys manual.
+
+.P
+\&.
+
+.SH OPTIONS
+.P
+\fBctys-vdbgen\fR 
+
+.P
+\fBATTENTION:\fR
+
+.P
+The following options are case sensitive, thus are required literally.
+If not printed properly, word\-options have 2 leading hyphens '\-'+'\-'="\-\-".
+
+.RS
+.IP \(bu 3
+<same as "ctys \-a enumerate=machine,b:<srcpathlst>"
+With specific environment variables for modification of the
+default search path DEFAULT_ENUM_BASE.
+.nf
+  <srcpathlst>=
+     "${BASEPATHLST:-$DEFAULT_ENUM_BASE}\e
+          ${BASEAPPENDLST:+%$BASEAPPENDLST}"
+.fi
+
+which expands by default to
+.nf
+  "ctys -a enumerate=machine,b:$DEFAULT_ENUM_BASE ..."
+.fi
+
+All context options and suboptions will be passed through, so
+apply same as for ENUMERATE action.
+.RE
+
+.TP
+\fB\-\-append**\fR
+This activates the append mode, just appending data to present
+fdb or creating a new if missing. 
+The modes append, replace, and stdio are exclusive and could not be
+combined.
+
+This is foreseen for addition of minor changes and avoiding
+a long running recollection of each data set from each target.
+
+.TP
+\fB\-b\fR
+Background mode, refer to common options 
+"\-b".
+
+.TP
+\fB\-\-base=<base\-path\-list>\fR
+A <base\-path\-list> to be scanned exclusively. This can be combined
+with multiple targets and the "\-\-append" mode for quick addition of
+specific new VMs.
+The path could be the contianing directory for a single VM only.
+
+.TP
+\fB\-c\fR
+Nameservice caching mode, refer to common options 
+"\-c" .
+
+.TP
+\fB\-C\fR
+Result data caching mode, refer to common options 
+"\-C".
+
+.TP
+\fB\-\-cacheDB=<output\-db\-directory\-path>\fR
+Pathname for directory containing DB file to be created.
+This file stores the mapping records generated from ctys\-ENUMERATE literally.
+
+The evaluation order priority and predefined default values for
+the directory is defined as follows:
+
+.TP
+
+"\\-\\-cacheDB=<output\\-db\\-directory\\-path>"
+.TP
+
+DEFAULT_VDBGEN_DB=$HOME/.ctys/db/default
+.TP
+
+DEFAULT_DBPATHLST=$HOME/.ctys/db/default
+
+or
+
+.TP
+
+"\\-\\-cacheDB=<output\\-db\\-directory\\-path>"
+.TP
+
+DEFAULT_VDBGEN_DB=<install\\-path>/conf/db/default
+.TP
+
+DEFAULT_DBPATHLST=<install\\-path>/conf/db/default
+
+The name for the filedb itself is hard\-coded as "enum.fdb". 
+Additional files are be stored within the cacheDB directory.
+
+.TP
+
+REMARK:
+Only ONE path could be provided here for the PATHLST.
+
+.TP
+\fB\-\-filecontext\fR
+This switches off several defaults and assumes that a configuration
+file with a complete CONTEXT is provided.
+
+The explicit suppression of defaults is required, due to the addition
+of chained context options for dialogue based entries from right to
+left.
+The evaluation of superposing options is proceeded from\-left\-to\-right.
+Thus the last wins, so the last dialogue entries have the highest
+priority.
+
+.TP
+\fB\-h\fR
+Print help, refer to "\-H" for additional information.
+
+.TP
+\fB\-H <help\-option>\fR
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+
+For additional help refer to the documents or type \fBctys \-H help\fR.
+
+.TP
+\fB\-\-progress\fR
+This activates the formatted table output, therefore some traces are
+filtered and displaye in a compact overview, indicating the progress
+and required processing time.
+
+For the application of the "\-\-progress" option additionally the
+appropriate trace switches for the target has to be set.
+This is due to the required activation of the appropriate trace output
+for post\-filtering on local machine.
+In case of usage of MACROS or GROUPS these could be stored
+permanenetly as required.
+
+E.g. the following 
+"\-d"
+context options for the target of enumeration
+required to be present.
+
+.nf
+  ctys-vdbgen \e
+  --cacheDB=/home/tstusr/.ctys/db/tmp \e
+  --append \e
+  --base=qemu \e
+  lab00'(-d 2,s:16,w:0,p)'
+.fi
+
+
+When "progress" choosen the data for each displayed instance is a
+post\-result, calculated as a sumup after finished processing.
+For continuous display refer to "progressall".
+
+.TP
+\fB\-\-progressall\fR
+This activates the formatted table output with continuous display,
+where the data is filtered as well, but any relevant entity with an
+intermidiate result is displayed.
+The final sum\-up data is additionally displayed as soon as the
+somplete set of results for the current entity is available.
+
+.TP
+\fB\-\-replace\fR
+This activates the explicit replace mode, which is required when a
+"enum.fdb" alread exists.
+Choosing this will delete the present "enum.fdb", when the data has
+to be kept, make a backup before activating this option.
+The modes append, replace, and stdio are exclusive and could not be
+combined.
+
+.TP
+\fB\-\-stdio\fR
+Writes it's output to STDOUT only.
+The modes append, replace, and stdio are exclusive and could not be
+combined.
+
+.TP
+\fB\-t\fR
+Session type, refer to common options 
+"\-t"
+\&.
+
+.TP
+\fB\-T\fR
+Preload of session type plugins, refer to common options
+"\-T"
+
+.TP
+\fB\-V\fR
+Version.
+
+.TP
+\fB\-X\fR
+Terse output format, effects "\-V" when set left\-of.
+
+.P
+\&.
+
+.SH ARGUMENTS
+.P
+Any target to be enumerated, could be hosts and nested groups.
+
+.P
+\&.
+
+.SH EXIT-VALUES
+.TP
+ 0: OK:
+Result is valid.
+
+.TP
+ 1: NOK:
+Erroneous parameters.
+
+.TP
+ 2: NOK:
+Missing an environment element like files or databases.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+ffs.
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(7)\fR
+.TP
+  \fBVMs\fR
+\fIctys\-KVM(7)\fR, \fIctys\-QEMU(7)\fR, \fIctys\-VMV(7)\fR, \fIctys\-XEN(7)\fR, \fIctys\-VBOX(7)\fR
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(7)\fR, \fIctys\-PM(7)\fR, \fIctys\-VNC(7)\fR, \fIctys\-X11(7)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys\-distribute(1)\fR, \fIctys\-genmconf(1)\fR, \fIctys\-vping(1)\fR, \fIctys\-plugins(1)\fR, \fIctys\-vhost(1)\fR
+
+.TP
+\fBsystem executables\fR
+\fIdmidecode(8)\fR
+
+.SH AUTHOR
+.P
+Written and maintained by Arno\-Can Uestuensoez:
+
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL for license conditions,
+.RE
+
+.P
+This document is created with: latex and text2tags
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-vdbgen.t2t -o /tmpn/0/ctys/bld/01.11.001/doc-tmp/BASE/en/man/man1/ctys-vdbgen.1
+

@@ -1,0 +1,387 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#ffffcc ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-distribute</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-distribute</H1>
+<FONT SIZE="4">
+Feb, 2010
+</FONT></CENTER>
+
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-distribute - local and remote installation, bulk-distribution</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>ctys-distribute</B> 
+</P>
+<P>
+<PRE>
+
+   [-d &lt;debug-options&gt;]
+   [-D (0|1)]
+   [-F (1|2|3|force|forceclean|forceall)]
+   [-h]
+   [-H &lt;help-options&gt;]
+   [-l &lt;remote login&gt;]
+   [-L &lt;remote-login&gt;]
+   [-M &lt;access-mask&gt;]
+   [-P (
+       UserHomeCopy
+      |UserHomeLinkonly
+      |SharedAnyDirectory,&lt;subopts&gt;
+      |SharedAnyLinkonly,&lt;subopts&gt;
+      |AnyDirectory,&lt;subopts&gt;
+      )]
+   [-R &lt;remote-host&gt;]
+   [-V]
+   [-X]
+   &lt;list-of-target-acounts&gt;
+
+
+
+
+
+
+</PRE>
+</P>
+<H1>DESCRIPTION</H1>
+<P>
+<B>ctys-distribute</B> is the main interface for local installation and 
+remote distribution. The installation of a single target and an
+arbitrary list of targets for automated bulk installations is provided.
+</P>
+<P>
+Various distribution and installation methods for distribution packages
+and installation types could be applied, these are for the current
+version:
+</P>
+<DL>
+<DT><B>File based installation:</B></DT><DD>
+File based installation uses an existing installation or any copy of
+the directory tree and either copies it and/or sets appropriate
+symbolic links for execution.
+<P></P>
+In case of remote installation the current version uses excessive local-remote-interaction
+by <B>ssh/scp</B> based commands, thus for practical reasons requires automated remote login procedures.
+These could be for example either based on Kerberos or SSH-Keys.
+<P></P>
+The following keys are required to be written literally when applied.
+<P></P>
+<DT></DT><DD>
+<B>UserHomeCopy</B>
+installs for the current local or remote user a user-local
+copy into it's HOME directory with the standard ctys-directory
+structure.
+<P></P>
+<DT></DT><DD>
+<B>UserHomeLinkonly</B>
+installs for the current local or remote user a partial
+user-local copy, where the specific configuration files are copied, 
+whereas the executables and documentation is set as symbolic
+links only. 
+<P></P>
+<DT></DT><DD>
+<B>SharedAnyDirectory</B>
+variant installs a local copy for share usaged, thus sets up
+a common installation within any directory, but should be in 
+accordance to common standards of the actual UNIX variant.
+<P></P>
+<DT></DT><DD>
+<B>AnyDirectory</B>
+variant installs a local copy only for shared usage.
+</DL>
+
+<DL>
+<DT><B>Package based installation</B></DT><DD>
+Package based installation is forseen by means of the standard mechanisms.
+"ctys-distribute" could be used as a installer for the following install
+applications:
+<P></P>
+<DT></DT><DD>
+<B>rpm</B>
+The distributions <B>rpm-CentOS</B>, <B>rpm-Fedora</B>, and <B>rpm-OpenSUSE</B> are supported by the provided rpms.
+In the "install section" ctys-distribute can be applied as:
+<P></P>
+<PRE>
+  
+  INSTBASE=${RPM_BUILD_ROOT}/usr/share
+  INSTTARGET=${INSTBASE}/${RPM_PACKAGE_NAME}-${RPM_PACKAGE_VERSION}
+  
+  ${PWD}/bin/ctys-distribute.sh -F 1 -P AnyDirectory,${INSTTARGET} localhost
+  
+</PRE>
+<P></P>
+This installs the complete package without configuration of user accounts.
+<P></P>
+The user accounts have to be configured by calling:
+<P></P>
+<PRE>
+  
+  /usr/share/bin/ctys-distribute.sh -F 1 -P UserHomeLinkonly localhost
+  
+  
+</PRE>
+</DL>
+
+<UL>
+<LI><B>deb</B>
+ffs.
+<P></P>
+<LI><B>pkg-OpenBSD</B>
+ffs.
+<P></P>
+<LI><B>pkg-Solaris</B>
+ffs.
+</UL>
+
+<P>
+The utilitiy scp of the OpenSSH package is used for any transfer, thus 
+remote SSH access is required.
+</P>
+<P>
+The call evaluates its own actual physical file location by recursive 
+dereferencing symbolic links and uses the actual containing distribution 
+for further steps. 
+Thus if a specific distribution outside the search path is to be installed, the
+call path has to be provided explicitly:
+&lt;path-to-installbase&gt;/bin/ctys-distribute
+</P>
+<P>
+.
+</P>
+<H1>OPTIONS</H1>
+<P>
+<B>ctys-distribute</B> 
+</P>
+<DL>
+<DT><B>-d &lt;debug-args&gt;</B></DT><DD>
+Refer to "ctys" generic options for additional information.
+<P></P>
+<DT><B>-D (0|1|2)</B></DT><DD>
+This option controls whether documentation is installed or not. For
+low-bandwidth the documentation could be suppressed.
+<P></P>
+ <B>0</B> No documents
+<P></P>
+ <B>1</B> With documents
+<P></P>
+ <B>2</B> Only documents
+</DL>
+
+<DL>
+<DT><B>-F (1|2|3|force|forceclean|forceall)</B></DT><DD>
+Bypassed to ctys-install1.sh
+<P></P>
+<DT><B>-h</B></DT><DD>
+Print help, refer to "-H" for additional information.
+<P></P>
+<DT><B>-H &lt;help-option&gt;</B></DT><DD>
+The extended help option is based on system interfaces for display of
+manpages, PDF  and HTML documents.
+This comprises the man pages and installed manuals.
+<P></P>
+For additional help refer to the documents or type <B>ctys -H help</B>.
+<P></P>
+<DT><B>-l &lt;remote login&gt;</B></DT><DD>
+The remote USER to be used as a EMail style prefix for all given
+remote hostnames within the &lt;list-of-target-acounts&gt;.
+This option is supported with hostname-only targets, it
+cannot be intermixed with EMail style &lt;USER&gt;@&lt;HOST&gt; targets.
+<P></P>
+<DT><B>-L &lt;remote login&gt;</B></DT><DD>
+The remote user for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+The semantics is somewhat different from the ordinary remote operations, which is 
+application specific, whereas this 'beam-up' is a generic pre-execution forwarding.
+<P></P>
+<DT><B>-M &lt;access-mask&gt;</B></DT><DD>
+Access mask for post-chmod, where the value is literally passed to:
+<P></P>
+ "chmod -R &lt;access-mask&gt; &lt;base-lib-dir&gt;"
+<P></P>
+The user-local file access permissions remain unmodified.
+</DL>
+
+<DL>
+<DT><B>-P &lt;pkg-type&gt;</B></DT><DD>
+This option supports the selection of prepared installation packages,
+which are automated by preconfigured parameters or to be finished by
+interactive dialogue from the command line interface.
+<P></P>
+The packages are prepared during build operations within the local
+"packages" directory for the current version.
+<P></P>
+For system directory appropriate access permissions are required.
+<P></P>
+ <UL>
+ <LI><B>UserHomeCopy</B>:
+ <P></P>
+Creates a copy in $HOME/lib and sets links to $HOME/bin.
+ <P></P>
+ <LI><B>UserHomeLinkonly</B>:
+ <P></P>
+Creates sets links to $HOME/bin from execution directory.
+ <P></P>
+ <LI><B>SharedAnyDirectory</B>,<I>&lt;install-directory&gt;</I>[,<I>&lt;link-directory&gt;</I>]:
+ <P></P>
+The links will be set within the standard directory conventions.
+ <P></P>
+  <UL>
+  <LI><I>&lt;install-directory&gt;</I>:
+Directory for installation of non-user specific files.
+  <P></P>
+  <LI><I>&lt;link-directory&gt;</I>:
+The links to be set, default is "${HOME}/bin".
+  <P></P>
+  </UL>
+ <LI><B>SharedAnyLinkonly</B>,<I>&lt;reference-directory&gt;</I>,<I>&lt;link-directory&gt;</I>:
+ <P></P>
+Any directory could be linked, this could be used e.g. for providing
+sysmbolic links within standard search PATH.
+ <P></P>
+  <UL>
+  <LI><I>&lt;reference-directory&gt;</I>:
+Directory for targets of symbolic links to non-user specific files.
+  <P></P>
+  <LI><I>&lt;link-directory&gt;</I>:
+The links to be set.
+  <P></P>
+  </UL>
+ <LI><B>AnyDirectory</B>,<I>&lt;install-directory&gt;</I>:
+ <P></P>
+Copies only without setup of configuration.
+Foreseen for build process only.
+ <P></P>
+  <UL>
+  <LI><I>&lt;install-directory&gt;</I>:
+Directory for installation of non-user specific files.
+  </UL>
+ </UL>
+</DL>
+
+<DL>
+<DT><B>-R &lt;remote-host&gt;</B></DT><DD>
+The remote host for the inherent beamer function to place the execution immediately
+on an arbitrary execution relay.
+</DL>
+
+<DL>
+<DT><B>-V</B></DT><DD>
+Version.
+</DL>
+
+<DL>
+<DT><B>-X</B></DT><DD>
+Terse output format, effects "-V" when set left-of.
+</DL>
+
+<P>
+.
+</P>
+<H1>ARGUMENTS</H1>
+<DL>
+<DT><B>&lt;list-of-target-acounts&gt;</B></DT><DD>
+The target accounts appropriate for the ssh/scp-call, where the
+install process shout be executed.
+<P></P>
+The provided formats are a list of EMail style hostnames or pure
+hostnames. EMail style hostnames are not supported in conjunction with
+the "-l" option.
+<P></P>
+For any hostname without a user-prefix either the current USER or the
+user from the "-l" option is prepended.
+</DL>
+
+<P>
+.
+</P>
+<H1>EXIT-VALUES</H1>
+<DL>
+<DT> 0: OK:</DT><DD>
+Result is valid.
+<P></P>
+<DT> 1: NOK:</DT><DD>
+Erroneous parameters.
+<P></P>
+<DT> 2: NOK:</DT><DD>
+Missing an environment element like files or databases.
+</DL>
+
+<H1>SEE ALSO</H1>
+<DL>
+<DT><B>ctys use-cases</B></DT><DD>
+ffs.
+<P></P>
+<DT><B>ctys plugins</B></DT><DD>
+<DT>  <B>PMs</B></DT><DD>
+<I>ctys-PM(7)</I>
+<DT>  <B>VMs</B></DT><DD>
+<I>ctys-KVM(7)</I>, <I>ctys-QEMU(7)</I>, <I>ctys-VMV(7)</I>, <I>ctys-XEN(7)</I>, <I>ctys-VBOX(7)</I>
+<DT>  <B>HOSTS</B></DT><DD>
+<I>ctys-CLI(7)</I>, <I>ctys-PM(7)</I>, <I>ctys-VNC(7)</I>, <I>ctys-X11(7)</I>
+<P></P>
+<DT><B>ctys executables</B></DT><DD>
+<I>ctys-genmconf(1)</I>, <I>ctys-install(1)</I>, <I>ctys-plugins(1)</I>, <I>ctys-vhost(1)</I>
+<P></P>
+<DT><B>system executables</B></DT><DD>
+ffs.
+</DL>
+
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL for license conditions,
+</UL>
+
+<P>
+This document is created with: latex and text2tags
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-distribute.t2t -o /tmpn/0/ctys/bld/01.11.001/doc-tmp/BASE/en/html/man1/ctys-distribute.html -->
+</BODY></HTML>

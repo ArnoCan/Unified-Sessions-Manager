@@ -6,11 +6,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_10_013
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -29,24 +29,25 @@ BEGIN{
 
     line=0;
     perror("Start record with AWK:splitArgsWithOpts");
-    perror("D=     " D);
-    perror("d=     " d);
-    perror("ind=   " ind);
+    perror("D=     "D);
+    perror("d=     "d);
+    perror("ind=   "ind);
 }
 {
     line++;
 }
 {
     buf1=$0;
-    perror("buf1-raw  =<" buf1 ">");
+    perror("buf1-raw  =<"buf1">");
     #canonize somewhat...
     gsub(" *[\"]* *[(] *","(",buf1);
     gsub(" *[)] *[\"]* *",")",buf1);
-    perror("buf1-canon=<" buf1 ">");
+    perror("buf1-canon=<"buf1">");
 
     while(buf1&&ripCord&&curind<=ind){
-        perror("buf1-canon("ind")=<" buf1 ">");
+        perror("buf1-canon("ind")=<"buf1">");
         ripCord--;
+       perror("ripCord="ripCord);
 
         if((p=match(buf1,"^[^(]* ")==1) || (p=match(buf1,"^[^(]*$")==1)){
 
@@ -57,34 +58,33 @@ BEGIN{
             if(curind==ind){
                 out=substr(buf1,RSTART,RLENGTH);
                 gsub(" *","",out);
-                perror("out("ind")=" out);
+                perror("out("ind")="out);
                 print out;
             }
-
             buf1=substr(buf1,RLENGTH+1);
             if((p=match(buf1,"^ *"))==1){
                 buf1=substr(buf1,RLENGTH+1);
             }
             curind++;
-
         }
-        else
-
+        else{
             perror("argopts");
             #argopts
             if((p=match(buf1,"^[^\\(]*\\("))==1){
+                perror("ind="ind" curind="curind);
                 if((p=match(buf1,"^[^\\)]*\\)"))==1){
                     if(curind==ind){
                         out=substr(buf1,RSTART,RLENGTH);
-                        perror("out("ind")=" out);
+                        perror("out("ind")="out);
                         print out;
                     }
                     buf1=substr(buf1,RLENGTH+1);
-                    if((p=match(buf1,"^ *"))==1){
+                    if((p=match(buf1,"^  *"))==1){
                         buf1=substr(buf1,RLENGTH+1);
                     }
                 }
                 curind++;
             }
+        }
     }
 }

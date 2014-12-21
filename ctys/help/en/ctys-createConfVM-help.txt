@@ -1,0 +1,63 @@
+
+NAME
+====
+
+ctys-createConfVM - creates a startup configuration of VMs
+
+SYNTAX
+======
+
+ctys-createConfVM
+
+
+   [--auto-all]
+   [--auto]
+   [-C]
+   [--create-image]
+   [-d <debug-level>]
+   [-D <directory>]
+   [--defaults-file=<file-name>]
+   [--defaults-file <file-name>]
+   [--expert]
+   [-h]
+   [-H <help-options>]
+   [-L <remote-user>]
+   [--label=<label>]
+   [--label <label>]
+   [--list-env-var-options|--levo]
+   [--no-create-image]
+   [--no-save-para-kernel]
+   [-R <remote-hosts>]
+   [--save-para-kernel]
+   [-t <session-type>]
+   [-V]
+   [-X]
+
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H help
+
+     displays available online help options.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL for license conditions,
+
+This document is created with: latex and text2tags
+
+
+
+
+
+

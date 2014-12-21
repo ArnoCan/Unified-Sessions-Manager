@@ -24,7 +24,10 @@ function getAttrVal(inp){
     perror("getAttrVal="inp);
     #format: <... ATTR='VAL' .../>
     a=$0
-    gsub(".*"inp"='","",a);
+    perror("a="a);
+    xs=sprintf(".* %s='",inp);
+    perror("xs="xs);
+    gsub(xs,"",a);
     gsub("'.*","",a);
     gsub(" ","",a);
     perror("res="a);

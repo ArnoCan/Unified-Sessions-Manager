@@ -1,7 +1,0 @@
-uClinux kernel with embedded footfs for use with qemu ColdFire emulation.
-
-Details of sources used to build this image are in src.tar.bz2.
-
-Example invocation:
-
-./qemu-system-m68k -kernel vmlinux-2.6.21-uc0 -nographic

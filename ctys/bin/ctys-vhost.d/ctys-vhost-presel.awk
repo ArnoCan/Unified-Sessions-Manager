@@ -144,7 +144,7 @@ function fetchMacMap(td,mx){
         perror("missing TcpDns input");
         return;
     }
-    call=callp"/ctys-vhost ${C_DARGS} -s -C macmaponly ";
+    call=callp"/ctys-vhost.sh ${C_DARGS} -s -C macmaponly ";
     if(dargs!=""){
         call=call""dargs" ";
     }
