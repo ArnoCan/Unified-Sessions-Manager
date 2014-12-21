@@ -1,0 +1,31 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=localhost
+Comment=root@localhost
+Name[en_CA]=root@localhost
+Name[en_GB]=root@localhost
+Name[de_DE]=root@localhost
+Exec=ctys -a create=l:rootDesk00,reuse root@ws2
+Icon=terminal
+Terminal=true
+Categories=System;

@@ -1,0 +1,396 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      MARKER_VERNO
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+#
+#This file is processed in the following way:
+#
+# 1. Included by the wrapper call.
+# 2. Detected by ENUMERATE and based tools such as ctys-vdbgen
+#    as valid (if not MAGICID_IGNORE) and collected to the
+#    inventory database.
+#
+#
+
+
+#***********************************************************************
+#                        Don't forget to activate                      *
+#***********************************************************************
+#@#MAGICID-IGNORE
+#***********************************************************************
+
+#
+#INSTALLER-INFO:
+#===============
+#
+#@#INST_EDITOR               =  MARKER_EDITOR
+#@#INST_DATE                 =  MARKER_DATE
+#@#INST_CTYSREL              =  MARKER_CTYSREL
+#@#INST_VERNO                =  MARKER_VERNO
+#@#INST_SERNO                =  MARKER_SERNO
+#@#INST_UID                  =  MARKER_UID
+#@#INST_GID                  =  MARKER_GID
+#@#INST_HOST                 =  MARKER_HOST
+
+
+
+
+#
+#INSTALL-HOST-MACHINE-INFO:
+#==========================
+#
+#@#INST_HOST_DIST            =  MARKER_INST_DIST
+#@#INST_HOST_DISTREL         =  MARKER_INST_RELEASE
+#@#INST_HOST_OS              =  MARKER_INST_OS_
+#@#INST_HOST_OSREL           =  MARKER_INST_OSREL
+#
+#@#INST_XEN                  =  MARKER_XEN__
+#@#INST_HYPERREL             =  MARKER_XEN_HYPERREL
+#@#INST_MAGICID              =  MARKER_XEN_MAGICID
+#@#INST_ACCELERATOR          =  MARKER_ACCELERATOR
+
+#
+#Once GuestOS is installed, do not change this!
+ACCELERATOR=MARKER_ACCELERATOR
+if [ "$ACCELERATOR" == 'HVM' ];then
+    BACKEND="ioemu"
+else
+    BACKEND=;
+fi
+#
+
+
+
+#
+#GUEST-OS-INFO:
+#==============
+#
+#Values required for ENUMERATE, even though some values, e.g. UUID
+#are currently not yet actually utilized by the XEN-VM itself.
+#The values are used as search key within the ctys-name-services. 
+#So it makes "heavily" sence to maintain them thoroughly, and keep
+#all values unique, where applicable.
+#
+#
+#@#MAGICID-XEN
+#@#LABEL                     = "MARKER_LABEL"
+#@#SESSIONTYPE               = "XEN"
+#@#UUID                      = "MARKER_UUID"
+#@#IP0                       = "MARKER_IP"
+#@#MAC0                      = "MARKER_MAC"
+#@#DIST                      = "MARKER_DIST"
+#@#DISTREL                   = "MARKER_RELEASE"
+#@#OS                        = "MARKER_OS_"
+#@#OSREL                     = "MARKER_OSREL"
+#@#SERNO                     = "MARKER_SERNO"
+#@#VERSION                   = "MARKER_VERNO"
+#@#CATEGORY                  = "MARKER_CATEGORY"
+
+LABEL="MARKER_LABEL"
+MAC0="MARKER_MAC"
+DIST="MARKER_DIST"
+DISTREL="MARKER_RELEASE"
+OS="MARKER_OS_"
+OSREL="MARKER_OSREL"
+
+#_@#VNCACCESSPORT            = 
+#_@#VNCBASEPORT              = 
+#_@#VNCACCESSDISPLAY         = 
+#VNCACCESSDISPLAY=
+
+
+#@#DEFAULTHOSTS             = "MARKER_DEFAULTHOSTS"
+#@#DEFAULTCONSOLE           = "MARKER_DEFAULTCONSOLE"
+
+
+
+#
+#WRAPPER-INFO:
+#==============
+#
+#The following parameters suffice for basic to medium level konfiguration 
+#of runtime environment.
+#
+#For enhanced configuration the coallocated script has to be adapted.
+#
+
+#
+#Components for virtual PC-BIOS, VGA-BIOS and keymaps.
+#The value is expanded to '-L' option - when present.
+#Should be inherited from the environment which is
+#set within conf-XEN.sh.
+#
+#The standard case is not to set the value and let the
+#executable use it's default.
+#
+#XENBIOS=${XENBIOS:-/usr/lib/xen/bin/qemu-dm}
+
+#
+#xen start
+STARTERCALL=${STARTERCALL:-MARKER_DEFAULTSTARTERCALL}
+STARTERCALL=${STARTERCALL:-/usr/sbin/xm}
+
+
+#
+#When setting this the static values from this configuration file
+#are forced to be used by generating the values at the commandline.
+#This overwrites the related settings from the configuration file.
+CLI_CONF=${CLI_CONF:-};
+
+#
+#Virtual floppy drive for boot, used as FDA.
+#
+#FDDIMAGE="${CTYSWRAPPERPATH}/fda.img"
+#FDA="${FDDIMAGE}"
+#
+
+#
+#Virtual floppy drive for boot, used as FDB.
+#
+#FDB="${CTYSWRAPPERPATH}/fdb.img"
+
+
+#
+#Virtual drive for boot, used as HDA.
+#ABSOLUTE PATH path is required for runtime toolset.
+#
+HDDBOOTIMAGE="${CTYSWRAPPERPATH}/MARKER_HDD_A"
+HDA=${HDDBOOTIMAGE}
+
+#
+#Size of virtual drive for boot device when INSTALL or PXE is performed.
+#
+HDDBOOTIMAGE_INST_SIZE=MARKER_HDDBOOTIMAGE_INST_SIZE
+HDDBOOTIMAGE_INST_BLOCKSIZE=MARKER_HDDBOOTIMAGE_INST_BLOCKSIZE
+HDDBOOTIMAGE_INST_BLOCKCOUNT=MARKER_HDDBOOTIMAGE_INST_BLOCKCOUNT
+HDDBOOTIMAGE_INST_BALLOON=MARKER_HDDBOOTIMAGE_INST_BALLOON
+
+#
+#Optional additional virtual drives for data.
+#
+
+#
+# For debian now requires a seperate drive for debootstrap: swap on a seperate hdd
+# This is utilized for automatic creation of images by ctys-createConfVM and
+# for call-execution when CLI_CONF is set.
+#
+#HDB="${CTYSWRAPPERPATH}/xvdb.img"
+# if [ -n "MARKER_HDD_B" -a "$ACCELERATOR" == 'PARA' -a  "$DIST" == debian ];then
+#     HDD_B="MARKER_HDD_B"
+#     HDB="${CTYSWRAPPERPATH}/${HDD_B}"
+# fi
+#
+#
+#HDC="${CTYSWRAPPERPATH}/hdc.img"
+#
+#
+
+
+#
+#BOOT-INFO:
+#==========
+#
+DEFAULTBOOTMODE=MARKER_DEFAULTBOOTMODE
+DEFAULTBOOTMODE=${DEFAULTBOOTMODE:-HDD}
+#
+DEFAULTINSTMODE=MARKER_DEFAULTINSTMODE
+DEFAULTINSTMODE=${DEFAULTINSTMODE:-CD}
+#
+DEFAULTINSTSOURCE=MARKER_DEFAULTINSTSOURCE
+DEFAULTINSTSOURCE=${DEFAULTINSTSOURCE:-/dev/cdrom}
+#
+DEFAULTINSTTARGET=MARKER_DEFAULTINSTTARGET
+DEFAULTINSTTARGET=${DEFAULTINSTTARGET:-$CTYSWRAPPERPATH/MARKER_HDD_A}
+[ "${DEFAULTINSTTARGET#/}" == "$DEFAULTINSTTARGET" ]&&DEFAULTINSTTARGET=${CTYSWRAPPERPATH}/${DEFAULTINSTTARGET}
+
+
+#
+#VGA driver to be used:
+#
+#- for newer qemu/kvm - refer to qemu manuals.:
+## " -vga [std|cirrus|vmware] "
+#
+#- older versions:
+#  " -std-vga "
+# 
+#VGADRIVER="-vga vmware "
+#VGADRIVER=" -vga std "
+VGADRIVER="-vga cirrus "
+
+
+#
+#The architecture.
+#
+ARCH=${ARCH:-MARKER_ARCH}
+
+#
+#The number of emulated CPUs.
+#
+SMP=${SMP:-MARKER_SMP}
+
+
+#
+#The size of memory.
+#
+MEMSIZE=${MEMSIZE:-MARKER_MEMSIZE}
+
+
+#
+#Keyboard layout.
+#
+KBD_LAYOUT=${KBD_LAYOUT:-MARKER_KBD_LAYOUT}
+
+
+#
+#System time, preferably by ntp, but as fallback...
+#
+TIMEOPT="${TIMEOPT:--localtime} "
+
+
+#
+#Default network interface
+#
+#For OpenBSD-4.6 use e1000, with bsd.rd and/or disable 'mpbios'
+#NIC=${NIC:-e1000}
+#
+#NIC=${NIC:-pcnet}
+NIC=${NIC:-rtl8139}
+
+
+#
+#Default bridge, may vary widely - for what ever reason?!
+#
+#However, the configuration script scans for the actual
+#and uses the first having a 'peth', which hopefully will
+#not be varied too, for the sense of ...???
+#
+#So, with ONE Xen-Bridge anything might be OK, when using multiple
+#bridges on one or more pyhsical interfaces and want one which is not the first,
+#manual adaption is required here.
+#
+case $MYDIST in
+    openSUSE)
+	case $MYREL in
+	    11.3)XENBRDG=br0;;
+	    *)XENBRDG=pan0;;
+	esac
+	;;
+    debian)XENBRDG=eth0;;
+    *)XENBRDG=xenbr0;;
+esac
+
+#
+#Set this in order to force a specific bridge.
+#for this VM only. For globals setting use 
+#xen.conf-Linux.sh.
+#
+#FORCE_THIS_IS_XEN_BRIDGE=br0 
+
+
+#
+#EXTERNAL KERNEL and INITRD:
+#===========================
+#
+#The following values are required in special cases only.
+#For kernel parameter refer to QEMU manuals.
+#
+#KERNELIMAGE=${KERNELIMAGE}
+#INITRDIMAGE=${INITRDIMAGE}
+#APPEND=${APPEND}
+
+
+
+#
+#INSTALLER-INFO for GUESTOS-CDROM/DVD:
+#=====================================
+#
+#The following values are required for installation only.
+#
+#CDROM ISO image for INSTALL parameter
+INSTSRCCDROM=MARKER_INSTSRCCDROM
+INSTSRCCDROM=${INSTSRCCDROM:-/dev/cdrom}
+
+#
+#INSTALLER-INFO for GUESTOS-FDD:
+#===============================
+#
+#The following values are required for installation only.
+#
+#FDD image for INSTALL parameter
+INSTSRCFDD=MARKER_INSTSRCFDD
+INSTSRCFDD=${INSTSRCFDD:-/dev/fd0}
+#
+#some additional examples
+#
+#INSTSRCFDD_PREFIX=${INSTSRCFDD_PREFIX:-/mntn/swpool/UNIXDist/}
+#
+#INSTSRCFDD_MISC_PREFIX=${INSTSRCFDD_MISC_PREFIX:-/mntn/swpool/miscOS/}
+#INSTSRCFDD=${INSTSRCFDD_MISC_PREFIX}Balder/1.0/src/Balder-1.0/balder10.img
+#
+
+#
+#INSTALLER-INFO for GUESTOS-USB:
+#===============================
+#
+#The following values are required for installation only.
+#
+#USB image for INSTALL parameter, which is actually a HDD images
+INSTSRCUSB=MARKER_INSTSRCUSB
+INSTSRCUSB=${INSTSRCUSB:-/dev/usb}
+#
+#some additional examples
+#
+#INSTSRCUSB_PREFIX=${INSTSRCUSB_PREFIX:-/mntn/swpool/miscOS/}
+#
+#INSTSRCUSB_MISC_PREFIX=${INSTSRCUSB_MISC_PREFIX:-/mntn/swpool/miscOS/}
+#INSTSRCUSB=${INSTSRCUSB_MISC_PREFIX}
+#
+
+
+#
+#INSTALLER-INFO for GUESTOS-HDD:
+#===============================
+#
+#The following values are required for installation only.
+#
+#HDD image for INSTALL parameter
+INSTSRCHDD=MARKER_INSTSRCHDD
+INSTSRCHDD=${INSTSRCHDD:-xvda}
+#
+#some additional examples
+#
+#INSTSRCHDD_PREFIX=${INSTSRCHDD_PREFIX:-/mntn/swpool/UNIXDist/}
+#
+#INSTSRCHDD_MISC_PREFIX=${INSTSRCHDD_MISC_PREFIX:-/mntn/swpool/miscOS/}
+#INSTSRCHDD=${INSTSRCHDD_MISC_PREFIX}
+#
+
+
+

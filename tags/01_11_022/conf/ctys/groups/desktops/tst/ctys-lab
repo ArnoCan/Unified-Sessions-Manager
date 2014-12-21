@@ -1,0 +1,5 @@
+#  -*- mode: conf; -*-
+
+#root@lab01'(-a create=l:LAB01,reuse -c local -g 1268x994:A01:ALL -b 1,2 )'
+root@lab02'(-a create=l:LAB02,reuse -c local -g 1268x992:A11:ALL -b 1,2 )'
+root@lab03'(-a create=l:LAB03,reuse -c local -g 1268x994:A21:ALL -b 1,2 )'

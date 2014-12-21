@@ -1,0 +1,33 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=Create
+Comment=Auto Create
+Comment[en]=Auto Create
+Comment[de]=Automatischer Start
+Name[en]=Create
+Name[de]=Start
+Exec=_MYHOME_/bin/gnome-starter.sh CREATE CONSOLE ALL
+Icon=ctys-exe
+Terminal=true
+Categories=X-USM;
+#OnlyShowIn=GNOME;KDE;

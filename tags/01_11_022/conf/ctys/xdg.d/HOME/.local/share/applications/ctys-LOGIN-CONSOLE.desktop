@@ -1,0 +1,33 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=Login
+Comment=Auto Login
+Comment[de]=Automatische Logins
+Comment[en]=Auto Login
+Name[en]=Login
+Name[de]=Login
+Exec=_MYHOME_/bin/gnome-starter LOGIN CONSOLE ALL
+Icon=ctys-exe
+Terminal=true
+Categories=X-USM;
+#OnlyShowIn=GNOME;KDE;

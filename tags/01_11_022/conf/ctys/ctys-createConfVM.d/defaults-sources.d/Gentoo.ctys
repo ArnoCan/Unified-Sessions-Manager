@@ -1,0 +1,111 @@
+#!/bin/bash
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_005
+#
+########################################################################
+#
+#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+function set-Gentoo () {
+    DEFAULTINSTMODE=CD;
+    case ${DISTREL} in
+#	2008.0-r1)
+	2008.0*)
+	    case ${C_SESSIONTYPE} in
+		XEN)  set-gentoo-2008x-XEN;;
+		QEMU) set-gentoo-2008x-QEMU;;
+	    esac
+	    ;;
+    esac
+    case ${C_SESSIONTYPE} in
+	VMW)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+	VBOX)
+	    printINFO 2 $LINENO $BASH_SOURCE 1 "${C_SESSIONTYPE} for now uses dynamic defaults only."
+	    _MATCHED=1;
+	    ;;
+    esac
+}
+
+
+
+#*******************************************************************
+#
+#DIST: gentoo-2008.0-r1
+#
+#
+function set-gentoo-2008x-XEN () {
+    local R=${DISTREL}
+    DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/gentoo/install-amd64-minimal-2008.0-r1/
+    INSTSRCCDROM=${INSTSRCCDROM_BASE}/gentoo/install-amd64-minimal-2008.0-r1.iso
+    case ${ACCELERATOR} in
+	PARA)
+	    _MATCHED=1;
+	    DEFAULT_DOMU_KERNEL=${DEFAULT_DOMU_KERNEL:-/boot/vmlinuz-2.6.26-2-xen-amd64};
+	    DEFAULT_DOMU_INITRD=${DEFAULT_DOMU_INITRD:-/boot/initrd.img-2.6.26-2-xen-amd64};
+	    DEFAULT_DOMU_MODULESDIR=${DEFAULT_DOMU_MODULESDIR:-/lib/modules/2.6.26-2-xen-amd64};
+
+	    DEFAULT_INST_KERNEL=${DEFAULT_DOMU_KERNEL}
+	    DEFAULT_INST_INITRD=${DEFAULT_DOMU_INITRD}
+	    DEFAULT_INST_EXTRA=${DEFAULT_DOMU_EXTRA:-"text ip=dhcp"}
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen-default1/bin/pygrub'}
+	    ;;
+	HVM)
+	    _MATCHED=1;
+ 	    DEFAULT_BOOTLOADER=${DEFAULT_BOOTLOADER:-'/usr/lib/xen/boot/hvmloader'}
+	    DEFAULT_INST_KERNEL=${DEFAULT_BOOTLOADER}
+	    DEFAULT_INST_INITRD=
+	    DEFAULT_INST_EXTRA=
+	    DEFAULT_INST_ROOTARGS=${DEFAULT_INST_ROOTARGS:-'/dev/xvda1 ro console=ttyS0'}
+	    ;;
+    esac
+}
+
+function set-gentoo-2008x-QEMU () {
+    DEFAULT_BOOTLOADER=;
+    case ${ACCELERATOR} in
+#ffs.	KQEMU)
+# 	    DEFAULT_BOOTLOADER=
+# 	    ;;
+	QEMU)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by primary call-wrapper
+	    #so NOP here.
+	    ;;
+	KVM)
+	    _MATCHED=1;
+	    #due to widely distributed legacy handeled by secondary call-wrapper
+	    #so NOP here.
+	    ;;
+    esac
+}
+
+
+
+

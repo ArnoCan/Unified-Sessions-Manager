@@ -1,0 +1,27 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Name=Desktops
+Name[de]=Desktops
+Name[en]=Desktops
+Comment=Desktops
+Comment[de]=Desktops
+Type=Directory
+Icon=ctys-multiple-desktops
+Encoding=UTF-8

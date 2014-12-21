@@ -1,0 +1,313 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_10_013
+#
+########################################################################
+#
+# Copyright (C) 2007,2008,2009,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+########################################################################
+#
+#     Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+CUROS=`${HOME}/bin/getCurOS.sh`
+CURDIST=`${HOME}/bin/getCurDistribution.sh`
+
+
+########################################################################
+#Addons
+########################################################################
+#
+#Demonstration of static-preconfigured VNC-Desktops
+#Additional dynamic configuration could be performed by usage
+#of the X11-DISPLAY variable.
+#
+#Refer to action: 'ctys -a CREATE=VNCDESKIDLIST:....'
+#
+for vdID in ${VNCDESKIDLIST};do
+    case ${vdID} in
+	demo1)
+	    xclock&
+	    xterm -geometry 80x24+10+10 -ls -title "$vdID" &
+	    ;;
+	demo2)
+	    xclock -geometry 40x40+900+10&
+	    ;;
+	demo3)
+	    xeyes -geometry 50x50+900+100&
+	    ;;
+	demo4)
+	    xlogo -geometry 50x50+1000+200&
+	    ;;
+	demo5)
+	    xclock -geometry 40x40+10+10&
+
+            #
+            #This shows the usage of ctys itself, which opens the full scope 
+            #of plugins to be used in a stateless subsession.
+	    #The PATH should be preset, thus the sysntax
+	    #   ctys -t x11 -a ...
+	    #should be applicable, anyhow, this is a bit more reliable.
+	    ${HOME}/bin/ctys.sh -t x11 -a create=l:${vdID}-0,cd:/var/tmp              -g 60x12+100+200  
+	    ${HOME}/bin/ctys.sh -t x11 -a create=l:${vdID}-1,cd:/tmp,console:gterm    -g 60x12+150+300 
+	    ;;
+	*)
+	    ;;
+    esac
+done
+
+
+
+########################################################################
+#WindowManager
+########################################################################
+#
+#
+#Refer to action: 'ctys -a CREATE=WM:....'
+#
+function defaultWM () {
+    case "$CURDIST" in
+	OpenBSD|FreeBSD)
+	    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	    xsetroot -solid grey
+	    vncconfig -iconic &
+	    fvwm &
+	    ;;
+	SunOS)
+	    case "${CUROS}" in
+		SunOS)
+ 		    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+ 		    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		    xsetroot -solid grey
+		    /usr/dt/bin/dtwm&
+		    ;;
+		*OpenSolaris)
+		    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		    xsetroot -solid grey
+		    vncconfig -iconic &
+		    xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+		    gnome-session &
+		    ;;
+	    esac
+	    ;;
+	Ubuntu)
+	    unset SESSION_MANAGER
+
+            #
+            #seems to be a bug - missing exe-permissions - anyhow
+	    #exec /etc/X11/xinit/xinitrc
+	    exec sh /etc/X11/xinit/xinitrc
+
+	    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	    xsetroot -solid grey
+	    vncconfig -iconic &
+	    ;;
+	*)
+	    [ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	    [ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	    unset SESSION_MANAGER
+	    exec /etc/X11/xinit/xinitrc
+	    ;;
+    esac
+}
+
+case "${VNCWM}" in
+    X11)
+	case "$CURDIST" in
+	    debian)
+		unset SESSION_MANAGER
+		exec /etc/X11/xinit/xinitrc
+#		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+                #x-terminal-emulator -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+                x-window-manager &
+                #/etc/X11/Xsession
+		;;
+	    Ubuntu)
+		unset SESSION_MANAGER
+		exec /etc/X11/xinit/xinitrc
+#		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+                #x-terminal-emulator -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+                x-window-manager &
+                #/etc/X11/Xsession
+		;;
+	    *)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		/etc/X11/Xsession
+		;;
+	esac
+	;;
+
+    DTWM)
+	case "${CURDIST}" in
+	    SunOS)
+ 		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+ 		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		/usr/dt/bin/dtwm&
+		;;
+	    *)
+		defaultWM
+		;;
+	esac
+	;;
+
+
+    FVWM)
+	case "${CURDIST}" in
+	    SunOS)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+                /opt/sfw/bin/fvwm2&
+		;;
+	    *)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		vncconfig -iconic &
+		fvwm &
+		;;
+	esac
+	;;
+
+    FVWM2)
+	case "${CURDIST}" in
+	    SunOS)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+                /opt/sfw/bin/fvwm2&
+		;;
+	    *)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		vncconfig -iconic &
+		xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+		fvwm2 &
+		;;
+	esac
+	;;
+
+    KDE)
+	xrdb $HOME/.Xresources
+	xsetroot -solid grey
+        startkde &
+	;;
+    TWM)
+	[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	xsetroot -solid grey
+	vncconfig -iconic &
+	twm &
+	;;
+    XFCE)
+	[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	xsetroot -solid grey
+	vncconfig -iconic &
+#       xfce4-session &
+        startxfce4&
+	;;
+
+    GNOME)
+	case "$CURDIST" in
+	    OpenBSD|FreeBSD)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		vncconfig -iconic &
+		gnome-session &
+		;;
+
+	    debian)
+		unset SESSION_MANAGER
+		exec /etc/X11/xinit/xinitrcxfs
+		xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		;;
+	    Ubuntu)
+		unset SESSION_MANAGER
+
+                #
+                #seems to be a bug - missing exe-permissions - anyhow
+	        #exec /etc/X11/xinit/xinitrc
+		exec sh /etc/X11/xinit/xinitrc
+
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		vncconfig -iconic &
+
+		gnome-session &
+		;;
+	    SunOS)
+		case "${CUROS}" in
+		    *OpenSolaris)
+			[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+			xsetroot -solid grey
+			vncconfig -iconic &
+			xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+			gnome-session &
+			;;
+		esac
+		;;
+	    *)
+		defaultWM
+		;;
+	esac
+	;;
+
+    *)
+	case "$CURDIST" in
+	    debian)
+		[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+		[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+		unset SESSION_MANAGER
+		exec /etc/X11/xinit/xinitrcxfs
+		xrdb $HOME/.Xresources
+		xsetroot -solid grey
+		;;
+	    *)
+		defaultWM
+		;;
+	esac
+	;;
+esac
+
+
