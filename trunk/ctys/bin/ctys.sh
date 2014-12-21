@@ -4,7 +4,7 @@
 #
 #PROJECT:      Unified Sessions Manager
 #AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
-#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
@@ -46,7 +46,7 @@ MYPROJECT="Unified Sessions Manager"
 #AUTHOR:
 AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
 #MAINTAINER:
-MAINTAINER="Arno-Can Uestuensoez - acue_sf1@sourceforge.net"
+MAINTAINER="Arno-Can Uestuensoez - acue_sf1@users.sourceforge.net"
 #
 #FULLNAME:
 FULLNAME="Unified Sessions Manager"
