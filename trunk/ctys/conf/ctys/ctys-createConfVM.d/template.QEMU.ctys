@@ -270,7 +270,8 @@ if [ -n "${ARCH}" ];then
 	[iI]386|[iI]586|[iI]686) CPU="qemu32";;
 
 	#anyhow...for suprising pop-ups of x86-types
-	*) CPU="qemu32";;
+#avoid this for embedded	*) CPU="qemu32";;
+	*) CPU="${ARCH}";;
     esac
 fi
 

@@ -21,12 +21,12 @@ November, 2010
 </P>
 <H1>Abstract</H1>
 <P>
-The UnifiedSessionsManager is from beginning on designed for the management of 
+The UnifiedSessionsManager is from beginning on designed with the emphasis of the management of 
 embedded services within virtual and physical machines, including the login sessions for both.
 This results in a slightly different concept than of the products which are actually
 designed around the machine in their main focus.
 The concept of the UnifiedSessionsManager avoids - whenever possible - the application of
-machine oriented attributes, but presents a common generic task oriented interface.
+machine oriented attributes, but presents a common generic task oriented interface with abstract parameters.
 </P>
 <P>
  <br /> 
@@ -47,17 +47,18 @@ machine oriented attributes, but presents a common generic task oriented interfa
 </P>
 <P>
 The overall resulting functionality is positioned as a personal Service-Manager, and offers particularly specific features
-for the ease of the handling of combined services.
+for the creation and application of combined services.
 The presented interface for this is kept unique by the definition of a superset of partly optional attributes.
-Thus the neatless view onto a pool of services and groups of services  - v-components - providing various features is provided.
+Thus the seamless view onto a pool of services and groups of services  - v-components - providing various features is provided.
 The current version provides particularly the desktop based assembly and automation of arbitrary services,
 following versions will emphasize the VM based assembly. Either by reference, or by containment of nested VMs - 
 stacked-VMs.
 </P>
 <P>
  <br /> 
-The UnifiedSessionsManager itself is designed as glueware for the assembly of available systems resources into a
-management application.
+The UnifiedSessionsManager itself is designed in it's current implementation as a thin mediation layer, adapting 
+the interfaces of the various components to a common abstract interface.
+This comprises the tools required for the runtime environment including the management of resource data.
 The access control to the resources including the encryption of network connections rely solely on the
 provided facilities of the underlying operating systems.
 </P>
@@ -141,8 +142,11 @@ The on-demand sessions are handeled by the <B>HOSTs</B> plugins comprising login
  <br /> 
 </P>
 <P>
-This is visibly expressed by a common syntax which is the superposition of all attributes.
-Thus the UnifiedSessionsManager implements the targeted design as a generic  <B>Personal Service-Management Application</B> - a <B>ServiceComposer</B>.
+This is visibly expressed by a common syntax which is the superposition of all attributes, for example
+in case of the vendor and product independent common address for the required component by it's 
+<B><A HREF="../html/man7/ctys-common-addresssyntax.html#machine-address"> &lt;machine-address&gt;</A></B>
+.
+Thus the UnifiedSessionsManager implements a generic  <B>Personal Service-Management Application</B> - a <B>ServiceComposer</B>.
  <br /> 
 </P>
 <P>
@@ -189,7 +193,7 @@ The following test demonstrated the instanciation of multiple entities within ea
  <br /> 
 </P>
 <P>
-The scope of applicability comprises the neatless application by ordinary users as well, as by administrators 
+The scope of applicability comprises the common application by ordinary users as well, as by administrators 
 with advanced permissions.
 The access control is almost solely delegated to the system facilities - here OpenSSH, Kerberos, LDAP, and sudo
 in combination with file access permissions either by UNIX only, or by Posix-Attributes.
@@ -202,24 +206,17 @@ appliance structure based on their contained guest OS attributes.
  <br /> 
 </P>
 <P>
-The first full feature set and target direction of the
-UnifiedSessionsManager was described 02/2008 within the version 
-01.03.003a01 available from sourceforge.net/berlios.org.
- <br /> 
-</P>
-<P>
-The first basically stable applicable VSTACK feature set for the VM-based
-service composition by the UnifiedSessionsManager was 
-described and implemented  within the releases of the version
-01.07.001 beginning at 08/2008 available from
-sourceforge.net/berlios.org.
+The first feature set and target direction is availabele by 01.03.003a01 from 02/2008,
+the first basically stable applicable VSTACK feature set for the VM-based
+service composition by 01.07.001 beginning at 08/2008
+at sourceforge.net/berlios.org.
  <br /> 
  <br /> 
 </P>
 <P>
 These comprise the definition and reference implementation for the automatic boot and shutdown of VSTACKs with multiple
-instances on each layer forming a tree structure.
-This particularly requires the controlled bottom-up startup and top-down shutdown of the mashed runtime dependencies.
+instances on each layer forming a tree structure,
+which particularly requires the controlled bottom-up startup and top-down shutdown of the mashed runtime dependencies.
  <br /> 
  <br /> 
  <br /> 
@@ -266,7 +263,7 @@ is going to be physically executed in a flat matrix structure of
 multiple cores. It is expected that in future hundreds, even
 thousands of cores are going to be available. Making this approach an
 additional component model for software development and flexible
-applications management even for execution on one physical machine only.
+applications management even for the execution on one physical machine only.
  <br /> 
 </P>
 <P>
@@ -310,7 +307,7 @@ VMs and HOSTs consoles shows the available configuration and customization capab
 <B><A HREF="../html/man1/ctys.html#optg"> -g</A></B>
 option is 
 a superset of the <B>--geometry</B> option of X11.
-The following examples demonstrate the neatless interface, where the type of the session is going to
+The following examples demonstrate the seamless interface, where the type of the session is going to
 be deleted for unambitiously defined entities based on a pre-created inventory database.
  <br /> 
  <br /> 
@@ -581,7 +578,7 @@ Therefore some funding and probably support is required.
  <P></P>
 <I><A HREF="../html/man7/ctys-uc-CentOS.html"> ctys-uc-CentOS(*)</A></I>
 ,
-<I>ctys-uc-Debian(*)</I>
+<I><A HREF="../html/man7/ctys-uc-debian.html"> ctys-uc-Debian(*)</A></I>
 ,
 <I>ctys-uc-Enterprise-Linux(*)</I>
 ,
@@ -701,5 +698,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i UnifiedSessionsManager-ServiceManagement.t2t -o /tmpn/0/ctys/bld/01.11.016/doc-tmp/BASE/en/intro/UnifiedSessionsManager-ServiceManagement.html -->
+<!-- cmdline: txt2tags -t html -i UnifiedSessionsManager-ServiceManagement.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/intro/UnifiedSessionsManager-ServiceManagement.html -->
 </BODY></HTML>

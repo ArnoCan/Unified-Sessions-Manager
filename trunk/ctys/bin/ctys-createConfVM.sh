@@ -947,6 +947,7 @@ function getValues () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Check your machine, some hints:"
 		printERR $LINENO $BASH_SOURCE ${ABORT} "1. Is the machine registered in VirtualBox?"
 		printERR $LINENO $BASH_SOURCE ${ABORT} "2. Does the current user has access permissions/ownership?"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "   Try 'VBoxManage showvminfo ${LABEL} --machinereadable'"
 		gotoHell ${ABORT}
 	    fi
 	    ;;
@@ -3572,7 +3573,9 @@ function fListEnvVarOptions () {
     printIt FCYAN    NETMASK
 
     if [ -z "$TCP" ];then
-	TCP=$(${MYLIBEXECPATH}/ctys-macmap.sh -n $MAC)
+	if [ -n "$MAC" ];then
+	    TCP=$(${MYLIBEXECPATH}/ctys-macmap.sh -n $MAC)
+	fi
 	printIt FCYAN    TCP "" "(m)"
     else
 	printIt FCYAN    TCP

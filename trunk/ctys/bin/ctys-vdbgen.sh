@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_017
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_008
+VERSION=01_11_017
 #DESCRIPTION:
 #  Main untility of project ctys for generation of nameservice DB.
 #
@@ -997,7 +997,7 @@ if [ -z "${filecontext}" ];then
 
     if [ -n "${_cOpt}" ];then
 	echo "Nameservice cache       OFF: DEFAULT=\"-c ${_cOpt} \""
-	NEWARGS="-t $_cOpt  ${NEWARGS}"
+	NEWARGS="-c $_cOpt  ${NEWARGS}"
     else
 	echo "Nameservice cache       OFF: DEFAULT=\"-c off \""
 	NEWARGS="-c off  ${NEWARGS}"
@@ -1005,7 +1005,7 @@ if [ -z "${filecontext}" ];then
 
     if [ -n "${_COpt}" ];then
 	echo "Data cache              OFF: DEFAULT=\"-C ${_cOpt} \""
-	NEWARGS="-t $_COpt  ${NEWARGS}"
+	NEWARGS="-C $_COpt  ${NEWARGS}"
     else
 	echo "Data cache              OFF: DEFAULT=\"-C off \""
 	NEWARGS="-C off  ${NEWARGS}"
@@ -1134,6 +1134,9 @@ echo
 		    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
 		    eval ${_call} &
 		    let tcnt++;
+
+		    #4TEST:try it semi-permanent, may not really harm!
+		    sleep 1
 		fi
 		if [ $tcnt -ge $tmax -o "$rtarget" == LAST ];then
 		    wait
