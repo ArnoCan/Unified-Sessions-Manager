@@ -18,6 +18,8 @@ ctys-help-on
        | funcList=<any-function>][@<module-name>[@...]][,<any-function>...]
        | funcListMod=<any-function>][@<module-name>[@...]][,<any-function>...]
        | funcHead=<any-function>][@<module-name>[@...]][,<any-function>...]
+       | _ONLINEHELP_
+       | _HELP_
      )
 
 DESCRIPTION

@@ -916,8 +916,21 @@ case $_MODE in
  	    printINFO 1 $LINENO $BASH_SOURCE 1 "."
 	fi
 
+# 	for _p in ${_RHOSTS0//,/ };do
+# 	    _tlst=$(resolveTunnels "" "${_p}")
+
+
+# 	    setupTunnels "${_tlst}"
+# 	    if [ "$C_TERSE" != 1 ];then
+# 		printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution through SSH tunnel:${_tlst}"
+#  		printINFO 1 $LINENO $BASH_SOURCE 1 "."
+# 	    fi
+# 	done
+
+
 	for _p in ${_RHOSTS0//,/ };do
 	    _tlst=$(resolveTunnels "" "${_p}")
+
 	    setupTunnels "${_tlst}"
 	    if [ "$C_TERSE" != 1 ];then
 		printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution through SSH tunnel:${_tlst}"

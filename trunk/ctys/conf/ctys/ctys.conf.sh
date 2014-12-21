@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -251,6 +251,11 @@ DEFAULT_C_MODE_ARGS_ENUMERATE=${DEFAULT_C_MODE_ARGS_ENUMERATE:-'.'}
 #Globalized convenience settings for Basic-Community-Packages  #
 ################################################################
 
+#
+#Timeout for probe-call of checks for the presence of a valid HostKey
+#in known_hosts and remote access permissions.
+#
+SSH_digPrecheckSSHKey_TIMEOUT=5
 
 #Common: Defines the timeout an established port-forwarding tunnel by 
 #OpenSSH.
@@ -285,7 +290,8 @@ R_CLIENT_DELAY=${R_CLIENT_DELAY:-2}
 #for safety 8 seconds are choosen.
 #
 #APPLY:Increment this value when clients pop-up on wrong desktop.
-X_DESKTOPSWITCH_DELAY=${X_DESKTOPSWITCH_DELAY:-3}
+X_DESKTOPSWITCH_DELAY_DEFAULT=${X_DESKTOPSWITCH_DELAY_DEFAULT:-3}
+X_DESKTOPSWITCH_DELAY=${X_DESKTOPSWITCH_DELAY:-$X_DESKTOPSWITCH_DELAY_DEFAULT}
 
 
 #Flush time of local cached sessions in seconds.

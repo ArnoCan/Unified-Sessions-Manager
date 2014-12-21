@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-#     Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_011
+VERSION=01_11_018
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -246,8 +246,10 @@ MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
 ##############################################
 . ${MYLIBPATH}/lib/base.sh
 . ${MYLIBPATH}/lib/libManager.sh
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(date +%H:%M:%S)>"
+
 #
-#Germish: "Was the egg or the chicken first?"
+#"Was the egg or the chicken first?"
 #
 #..and prevent real load order for later display.
 #
@@ -628,12 +630,17 @@ printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "<RS_PREFIX_R=${RS_PREFIX_R}>"
 #These will be hardcoded and just sourced, but are completely unmanaged.
 . ${MYLIBPATH}/lib/cli/cli.sh
 . ${MYLIBPATH}/lib/misc.sh
+
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
+
 . ${MYLIBPATH}/lib/security.sh
 . ${MYLIBPATH}/lib/help/help.sh
 . ${MYLIBPATH}/lib/geometry/geometry.sh
 . ${MYLIBPATH}/lib/wmctrlEncapsulation.sh
 . ${MYLIBPATH}/lib/groups.sh
 . ${MYLIBPATH}/lib/network/network.sh
+
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 
 
@@ -687,6 +694,8 @@ PLUGINPATHS=${PLUGINPATHS}:${MYINSTALLPATH}/plugins/GUESTs
 LD_PLUGIN_PATH=${LD_PLUGIN_PATH}:${PLUGINPATHS}
 
 
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
+
 ########################################################################
 #
 #CLI processing - after basic debug options within "base"
@@ -724,7 +733,7 @@ printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:C_STACKMASTER=${C_STAC
 printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_CLIARGS     =${_CLIARGS}"
 printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_smast       =\"${_smast}\""
 
-
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 #
 #  This function analyses an ARGV for occurance of "-t" option, gwhich 
@@ -789,12 +798,14 @@ case $C_CLIENTLOCATION in
 esac
 printDBG $S_BIN ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:C_CLIENTLOCATION=$C_CLIENTLOCATION"
 
-
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 #
 #pre-fetch su-settings for initial plugin bootstrap
 #
 fetchSUaccessOpts ${_CLIARGS}
+
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 #
 #Perform the initialization according and based on LD_PLUGIN_PATH.
@@ -805,8 +816,11 @@ if [ ! -f "${MYROOTHOOK}" ];then
     printERR $LINENO $BASH_SOURCE ${ABORT} "Missing packages hook: hook=${MYROOTHOOK}"
     gotoHell ${ABORT}
 fi
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 . ${MYROOTHOOK}
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 initPackages "${MYROOTHOOK}"
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 #################################################################################
 #prepare execution                                                              #
@@ -841,8 +855,8 @@ fi
 #...could be perfect, of course.
 #
 #fetch global options for all given nodes
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 fetchOptions LOCAL $_CLIARGS
-
 
 #now do the remaining part manually
 #shift $(( OPTIND - 1))
@@ -889,6 +903,7 @@ else
     fetchArguments "${remain}"
 fi
 
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:Finalize execCalls"
 #################################################################################
 #Check whether remote execution requested                                       #
@@ -903,6 +918,7 @@ if [ -z "${ABORT}" -a -z "${C_EXECLOCAL}" ];then
 fi
 
 printDBG $S_BIN ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:Process execCalls"
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 #################################################################################
 #End of prerequisite-checks...                                                  #
@@ -980,18 +996,22 @@ printDBG $S_BIN ${D_UI} $LINENO $BASH_SOURCE "Use SUDO    =${USE_SUDO}"
 #      ...based on user+host                                                    #
 #        ...by local and/or remote execution.                                   #
 #################################################################################
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
-    #doing this for collectors to support cache processing within EPILOGUE
+#doing this for collectors to support cache processing within EPILOGUE
 if [ "${C_CACHEDOP}" == 1 -a "${C_CACHEONLY}" == 0 ];then
     doExecCalls|cat >"${CALLERCACHE}"
 else
     doExecCalls
 fi
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
+
 
 #################################################################################
 #postfix tasks...                                                               #
 #################################################################################
 doExecCallsEpilogue
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 
 #if plugin has not processed and removed it jet then just "cat" and remove it
 if [ -s "${CALLERCACHE}" ];then
@@ -1012,6 +1032,7 @@ if [ -f "${CALLERCACHE}" ];then
     fi
 fi
 
+printINFO 9 $LINENO $BASH_SOURCE 1 "<$(getCurTime)>"
 #################################################################################
 #End of commutation...                                                          #
 #...beeing here seems to be a successful task was done.                         #

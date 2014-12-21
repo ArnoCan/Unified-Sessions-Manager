@@ -7,11 +7,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -58,7 +58,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_011
+VERSION=01_11_018
 #DESCRIPTION:
 #  Utility of project ctys for generation of PM data supporting 
 #  ENUMERATE. This is seperated, due to some of the data requires
@@ -779,7 +779,6 @@ function getValues () {
     echo "${_prefix1}""It is recommended to use the hostname of the virtual machine."
     echo
 
-
     case ${C_SESSIONTYPE} in
 
 #4TEST-VBOX
@@ -968,7 +967,6 @@ function getValues () {
     esac
     UUID=${UUID//-/}
     echo
-
     echo -e -n "${_prefix0}"
     setFontAttrib BOLD "MAC";
     echo "($((_idx++))/${_sum})";
@@ -1001,6 +999,7 @@ function getValues () {
     printOut "${_prefix1}""Multiple interfaces require manual modification"
     printOut "${_prefix1}""of created configuration files."
     printOut
+
     if [ -z "${MAC}" ];then
 	local _ix=;
 	local _nx=0;
@@ -3391,6 +3390,10 @@ _ARGSCALL=$*;
 _RUSER0=;
 LABEL=;
 
+_NOCREATECONF=;
+_NOWRITECONF=;
+_NOLOADDEFAULTSFILE=;
+
 
 while [ -n "$1" ];do
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\${1}=<${1}>"
@@ -3416,9 +3419,31 @@ while [ -n "$1" ];do
 	    ;;
 
 
-        '--defaults-file='*) DEFAULTSFILE=${1#*=};;
+	'--no-load-defaults-file')_NOLOADDEFAULTSFILE=1;;
+	'--no-create-conf-data')_NOCREATECONF=1;_NOWRITECONF=1;;
+	'--no-write-conf-file')_NOWRITECONF=1;;
+
+        '--defaults-file='*) 
+	    DEFAULTSFILE=${1#*=};
+	    ;;
+
         '--defaults-file')
-	    shift;DEFAULTSFILE=$1;
+	    DEFAULTSFILE=1;
+	    ;;
+
+        '--defaults-file-create')
+	    DEFAULTSFILE_CREATE=1;
+	    if [ -z "${DEFAULTSFILE}" ];then
+		DEFAULTSFILE=1;
+	    fi
+	    ;;
+
+        '--defaults-file-create-with-force')
+	    DEFAULTSFILE_CREATE=1;
+	    DEFAULTSFILE_FORCE_IT=1;
+	    if [ -z "${DEFAULTSFILE}" ];then
+		DEFAULTSFILE=1;
+	    fi
 	    ;;
 
 	'--list-env-var-options'|'--levo')_listEnvVarOptions=1;;
@@ -3429,6 +3454,9 @@ while [ -n "$1" ];do
 	'-X')C_TERSE=1;;
 
 	'-d')shift;;
+
+
+	'--inExec')_inExec=1;;
 
 
 	*)
@@ -3443,9 +3471,56 @@ while [ -n "$1" ];do
     shift
 done
 
+
+if [ -n "$_listEnvVarOptions" -a -n "${DEFAULTSFILE_CREATE}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Options are not allowed to be combined:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "'--defaults-file-create'"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "'--list-env-var-options|--levo'"
+    gotoHell ${ABORT}
+
+fi
+
+
 #
 #set directory position
+#
 IDDIR=${_RDIRECTORY:-$PWD}
+
+if [ -n "${DEFAULTSFILE}" ];then
+    if [ "${DEFAULTSFILE}" == "1" ];then
+	if [ -z "$LABEL" ];then
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Requires assignment of LABEL option \"--label\" for"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "generic \"--defaults-file\" option."
+	    gotoHell ${ABORT}		
+	fi
+	DEFAULTSFILE=${LABEL}.defaults;
+    fi
+    if [ "${DEFAULTSFILE#/}" == "${DEFAULTSFILE}" ];then
+	DEFAULTSFILE=${IDDIR}/${DEFAULTSFILE};
+    fi
+
+    if [ -z "${DEFAULTSFILE_CREATE}" -a ! -f "${DEFAULTSFILE}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing DEFAULTSFILE=\"$DEFAULTSFILE\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "First use \"--defaults-file-create\"."
+	gotoHell ${ABORT}		
+    fi
+
+    if [ "${_inExec}" != "1" ];then
+	if [ -z "${_NOLOADDEFAULTSFILE}" ];then
+	    if [ -f "${DEFAULTSFILE}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE 1 "Using custom DEFAULTSFILE=\"${DEFAULTSFILE}\""
+		. "${DEFAULTSFILE}"
+		exec $0 --inExec $_ARGSCALL;
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "System error, must notreach this!!!"
+		gotoHell ${ABORT}		
+	    fi	
+	fi	
+    fi	
+fi
 
 
 case ${C_SESSIONTYPE} in
@@ -3542,24 +3617,28 @@ function fListEnvVarOptions () {
     printIt FBLUE    C_SESSIONTYPE
     printIt FBLUE    LABEL
 
-    case ${C_SESSIONTYPE} in
-	VBOX) 
-	    MAC=$(fetchMAC "${IDDIR}/${LABEL}.vdi"|tr '[:lower:]' '[:upper:]')
-	    printIt FCYAN    MAC "" "(c)"
-	    ;;
-	VMW)
-            MAC=$(getVMWMAC0 "${IDDIR}/${LABEL}.vmx"|tr '[:lower:]' '[:upper:]')
-	    printIt FCYAN    MAC "" "(c)"
-	    ;;
-	QEMU)
-	    MAC=$(${MYLIBEXECPATH}/ctys-macmap.sh -m $LABEL)
-	    printIt FCYAN    MAC "" "(m)"
-	    ;;
-	*)
-	    printIt FCYAN    MAC
-	    ;;
-    esac
-    if [ -n "${MAC}" ];then
+    if [ -z "${MAC}" ];then
+	case ${C_SESSIONTYPE} in
+	    VBOX) 
+		MAC=$(fetchMAC "${IDDIR}/${LABEL}.vdi"|tr '[:lower:]' '[:upper:]')
+		printIt FCYAN    MAC "" "(c)"
+		;;
+	    VMW)
+		MAC=$(getVMWMAC0 "${IDDIR}/${LABEL}.vmx"|tr '[:lower:]' '[:upper:]')
+		printIt FCYAN    MAC "" "(c)"
+		;;
+	    QEMU)
+		MAC=$(${MYLIBEXECPATH}/ctys-macmap.sh -m $LABEL)
+		printIt FCYAN    MAC "" "(m)"
+		;;
+	    *)
+		printIt FCYAN    MAC
+		;;
+	esac
+    else
+	printIt FCYAN    MAC
+    fi
+    if [ -n "${MAC}" -a -z "${IP}" ];then
 	IP=$(${MYLIBEXECPATH}/ctys-macmap.sh -i $MAC)
     fi
     if [ -n "${IP}" ];then
@@ -3882,7 +3961,59 @@ function fListEnvVarOptions () {
     echo
 }
 
+
+function checkCreateDefaults () {
+    local _myconf=${IDDIR}/${LABEL}.ctys
+    function createDefaults () {
+	echo
+	echo
+#	echo "Creating defaults-file -> \"${DEFAULTSFILE}\""
+	echo "Creating defaults-file -> \"$(setFontAttrib BOLD \"${DEFAULTSFILE##*/}\")\""
+
+#setFontAttrib BGREEN $(setFontAttrib BOLD "That's it.")
+
+	echo
+	cat ${_myconf}|\
+        sed -n '
+          /^#.*SERNO/p;
+          /^#[^@]*$/d;
+          /^ *$/d;
+          s/#@#//g;
+          s/^MAGICID.*$/MAGICID="&"/;
+          s/ *=\([^=]\)/=\1/;
+          s/\([^=]\)= */\1=/;
+          s/[^# )=&][^=)\}&]*=[^=][^=]*/export &/;
+          s/export MAC0=.*/&/p; s/export MAC0=/export MAC=/p;/export MAC[0]*=/d;
+          s/export IP0=.*/&/p; s/export IP0=/export IP=/p;/export IP[0]*=/d;
+          p
+          '|\
+        if [ -n "${DEFAULTSFILE_FORCE_IT}" ];then
+            sed -n '
+              p;
+              '>"${DEFAULTSFILE}"
+	else
+            sed '
+              s/export \([^=]*\)=.*/[ -z "$\1" ]\&\&&/;
+              '>"${DEFAULTSFILE}"
+	fi
+    }
+
+    if [ -n "${DEFAULTSFILE_CREATE}" ];then
+	createDefaults
+    else
+	if [ -n "${DEFAULTSFILE_CREATE}" ];then
+	    createDefaults
+	fi
+    fi
+}
+
 if [ -n "$_listEnvVarOptions" ];then
+    if [ -n "${DEFAULTSFILE_CREATE}" ];then
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Not allowed with Requires DEFAULTSFILE_CREATE"
+	    gotoHell ${ABORT}
+
+fi
     fListEnvVarOptions
     exit 0;
 fi
@@ -3923,133 +4054,154 @@ if [ -n "${_RDIRECTORY}" ];then
 fi
 
 
+###
+####
+  ##############################
+####
+###
+if [ -z "$_NOCREATECONF" ];then
+    createConf
+    if [ -z "$_NOWRITECONF" ];then
+	createData
+    fi
+fi
 
-createConf
-createData
+checkCreateDefaults
 
-case ${C_SESSIONTYPE} in
-    VBOX)
-	if [ -n "$_CREATEIMAGE"  ];then
-	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Image creation for VBOX is not yet supported"
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Use tools of supplier."
-	    gotoHell ${ABORT}
-	fi
-	;;
+###
+####
+  ##############################
+####
+###
 
-    VMW)
-	if [ -n "$_CREATEIMAGE"  ];then
-	    ABORT=1;
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Image creation for VMW is not yet supported"
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "Use tools of supplier."
-	    gotoHell ${ABORT}
-	fi
-	;;
-
-    QEMU|XEN)
-	if [ -z "$_NOCREATEIMAGE" ];then
-	    if [ -z "$_CREATEIMAGE"  -a "$DIST" == debian -a "$ACCELERATOR" == PARA ];then
+if [ -z "$_NOWRITECONF" ];then
+    case ${C_SESSIONTYPE} in
+	VBOX)
+	    if [ -n "$_CREATEIMAGE"  ];then
 		ABORT=1;
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Image creation for $(setFontAttrib FBLUE 'para virtualized VMs') is supported on '$(setFontAttrib FBLUE debian)'"
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "by debootstrap method with the specific $(setFontAttrib UNDL 'debootstrap-wrapper')."
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Thus the creation of the image should be performed there, else"
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "might fail due to safety reasons with missing filesystem."
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Force creation by '$(setFontAttrib FBLUE '--create-image')' option for manual"
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "correction or using another approach."
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "For now $(setFontAttrib FRED 'no image') is $(setFontAttrib FRED 'created')"
-		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
-	    else
-		createImage
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Image creation for VBOX is not yet supported"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Use tools of supplier."
+		gotoHell ${ABORT}
 	    fi
-	fi
-	;;
-esac
+	    ;;
+
+	VMW)
+	    if [ -n "$_CREATEIMAGE"  ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Image creation for VMW is not yet supported"
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Use tools of supplier."
+		gotoHell ${ABORT}
+	    fi
+	    ;;
+
+	QEMU|XEN)
+	    if [ -z "$_NOCREATEIMAGE" ];then
+		if [ -z "$_CREATEIMAGE"  -a "$DIST" == debian -a "$ACCELERATOR" == PARA ];then
+		    ABORT=1;
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Image creation for $(setFontAttrib FBLUE 'para virtualized VMs') is supported on '$(setFontAttrib FBLUE debian)'"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "by debootstrap method with the specific $(setFontAttrib UNDL 'debootstrap-wrapper')."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Thus the creation of the image should be performed there, else"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "might fail due to safety reasons with missing filesystem."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Force creation by '$(setFontAttrib FBLUE '--create-image')' option for manual"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "correction or using another approach."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "For now $(setFontAttrib FRED 'no image') is $(setFontAttrib FRED 'created')"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "."
+		else
+		    createImage
+		fi
+	    fi
+	    ;;
+    esac
 
 
-case ${C_SESSIONTYPE} in
-    VBOX)
-	if [ -n "$_SAVEPARAKERN" ];then
-            printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
-	fi
-	;;
+    case ${C_SESSIONTYPE} in
+	VBOX)
+	    if [ -n "$_SAVEPARAKERN" ];then
+		printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	    fi
+	    ;;
 
-    VMW)
-	if [ -n "$_SAVEPARAKERN" ];then
-            printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
-	fi
-	;;
-    QEMU|XEN)
-	case "$ACCELERATOR" in
-	    PARA)
-		[  -z "$_NOSAVEPARAKERN" ]&&saveParaKernel
-		;;
-	    *)
-		[ -n "$_SAVEPARAKERN" ]&&saveParaKernel
-		;;
-	esac
+	VMW)
+	    if [ -n "$_SAVEPARAKERN" ];then
+		printINFO 1 $LINENO $BASH_SOURCE 1 "${MYCALLNAME} is not supported on ${MYOS}"
+	    fi
+	    ;;
+	QEMU|XEN)
+	    case "$ACCELERATOR" in
+		PARA)
+		    [  -z "$_NOSAVEPARAKERN" ]&&saveParaKernel
+		    ;;
+		*)
+		    [ -n "$_SAVEPARAKERN" ]&&saveParaKernel
+		    ;;
+	    esac
 
-esac
+    esac
 
-
+fi
 echo
 echo
 echo
 setFontAttrib BGREEN $(setFontAttrib BOLD "That's it.")
 echo
 echo
-case ${C_SESSIONTYPE} in
-    XEN)
-	echo "Check now the contents of the configuration files manually and adapt them when/as required"
-	_mcall=${IDDIR}/${LABEL}.sh;_mcall=${_mcall##*/};
-	echo -n "and perform a dummy-call for '${_mcall}  "
-	setFontAttrib FBLUE "--check -d printfinal "
-	echo "--instmode=...' and "
-	echo -n "'${_mcall} "
-	setFontAttrib FBLUE "--check -d printfinal "
-	echo " --bootmode=...'"
-	echo
-	echo -n "Or use the display of "
-	setFontAttrib BOLD   "FINAL"
-	echo " for cut-and-paste of raw-calls."
-	echo
-	echo -n -e "Refer to the document "
-	setFontAttrib BOLD   "ctys-configuration-XEN(7)"
-	echo " for additional information."
-	;;
-    QEMU)
-	echo "Check now the contents of the configuration files manually and adapt them when/as required"
-	_mcall=${IDDIR}/${LABEL}.sh;_mcall=${_mcall##*/};
-	echo "and perform a dummy-call for '${_mcall} --check  -d printfinal --instmode=...' and "
-	echo "'${_mcall} --check -d printfinal --bootmode=...'"
-	echo
-	echo -n "Or use the display of "
-	setFontAttrib BOLD   "FINAL"
-	echo " for cut-and-paste for raw-calls."
-	echo
-	echo -n -e "Refer to the document "
-	setFontAttrib BOLD   "ctys-configuration-QEMU(7)"
-	echo " for additional information."
-	;;
-    VBOX)
-	echo -n -e "Refer to the document "
-	setFontAttrib BOLD   "ctys-configuration-VBOX(7)"
-	echo " for additional information."
-	echo
-	;;
-
-    VMW)
-	echo -n -e "Refer to the document "
-	setFontAttrib BOLD   "ctys-configuration-VMW(7)"
-	echo " for additional information."
-	echo
-	echo -n -e "Don't forget to insert '"
-	setFontAttrib FBLUE  "#@#MAGICID-IGNORE"
-	echo "' into the vmx-file."
-	echo "This avoids redundant entries within the automatically scanned database."
-	;;
-esac
-echo
 echo
 
+if [ -z "$_NOWRITECONF" ];then
+    case ${C_SESSIONTYPE} in
+	XEN)
+	    echo "Check now the contents of the configuration files manually and adapt them when/as required"
+	    _mcall=${IDDIR}/${LABEL}.sh;_mcall=${_mcall##*/};
+	    echo -n "and perform a dummy-call for '${_mcall}  "
+	    setFontAttrib FBLUE "--check -d printfinal "
+	    echo "--instmode=...' and "
+	    echo -n "'${_mcall} "
+	    setFontAttrib FBLUE "--check -d printfinal "
+	    echo " --bootmode=...'"
+	    echo
+	    echo -n "Or use the display of "
+	    setFontAttrib BOLD   "FINAL"
+	    echo " for cut-and-paste of raw-calls."
+	    echo
+	    echo -n -e "Refer to the document "
+	    setFontAttrib BOLD   "ctys-configuration-XEN(7)"
+	    echo " for additional information."
+	    ;;
+	QEMU)
+	    echo "Check now the contents of the configuration files manually and adapt them when/as required"
+	    _mcall=${IDDIR}/${LABEL}.sh;_mcall=${_mcall##*/};
+	    echo "and perform a dummy-call for '${_mcall} --check  -d printfinal --instmode=...' and "
+	    echo "'${_mcall} --check -d printfinal --bootmode=...'"
+	    echo
+	    echo -n "Or use the display of "
+	    setFontAttrib BOLD   "FINAL"
+	    echo " for cut-and-paste for raw-calls."
+	    echo
+	    echo -n -e "Refer to the document "
+	    setFontAttrib BOLD   "ctys-configuration-QEMU(7)"
+	    echo " for additional information."
+	    ;;
+	VBOX)
+	    echo -n -e "Refer to the document "
+	    setFontAttrib BOLD   "ctys-configuration-VBOX(7)"
+	    echo " for additional information."
+	    echo
+	    ;;
+
+	VMW)
+	    echo -n -e "Refer to the document "
+	    setFontAttrib BOLD   "ctys-configuration-VMW(7)"
+	    echo " for additional information."
+	    echo
+	    echo -n -e "Don't forget to insert '"
+	    setFontAttrib FBLUE  "#@#MAGICID-IGNORE"
+	    echo "' into the vmx-file."
+	    echo "This avoids redundant entries within the automatically scanned database."
+	    ;;
+    esac
+    echo
+    echo
+
+fi

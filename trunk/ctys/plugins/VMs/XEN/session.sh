@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_XEN_SESSION="${BASH_SOURCE}"
-_myPKGVERS_XEN_SESSION="01.11.011"
+_myPKGVERS_XEN_SESSION="01.11.018"
 hookInfoAdd $_myPKGNAME_XEN_SESSION $_myPKGVERS_XEN_SESSION
 _myPKGBASE_XEN_SESSION="`dirname ${_myPKGNAME_XEN_SESSION}`"
 
@@ -106,130 +106,6 @@ function expandSessionIDXEN () {
     echo $1
 }
 
-#FUNCBEG###############################################################
-#NAME:
-#  isActiveXEN
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#
-#OUTPUT:
-#  RETURN:
-#    0: Active
-#    1: Not active
-#
-#  VALUES:
-#    0: Active
-#    1: Not active
-#
-#FUNCEND###############################################################
-function isActiveXEN () {
-    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
-
-    if [ -z "$1" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
-	gotoHell ${ABORT}
-    fi
-    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
-
-    case ${XEN_MAGIC} in
-	XEN_*)
-	    if [ -n "${VIRSH}" ];then
-                    #preferred
-		x=`callErrOutWrapper $LINENO $BASH_SOURCE ${VIRSHCALL} ${VIRSH} list|grep ${1#*:} 2>/dev/null`
-	    else
-		ABORT=2
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Requires VIRSH or XM"
-		gotoHell ${ABORT}
-	    fi
-  	    ;;
-        RELAY)#no own client support, see hosts plugins
-            ;;
-        DISABLED)#nothing to do
-            ;;
-	*)  #ooooops!!!!!!
-	    ABORT=2
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:XEN_MAGIC=${XEN_MAGIC}"
-	    gotoHell ${ABORT}
-	    ;;
-    esac
-
-    if [ -n "$x" ];then
-	printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
-	echo 0
-	return 0;
-    fi
-    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
-    echo 1
-    return 1;
-}
-
-
-#FUNCBEG###############################################################
-#NAME:
-#  getClientTPXEN
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-# GENERIC-IF-DESCRIPTION:
-#  Gives the termination points port number, to gwhich a client could be 
-#  attachhed. This port is forseen to be used in port-forwarding e.g.
-#  by OpenSSH.
-#
-#  The port is the local port number, gwhich in general has to be mapped 
-#  on remote site, when already in use. Therefore the application has
-#  to provide a port-number-independent client access protocol in order 
-#  to be used by connection forwarding. In any other case display 
-#  forwarding has to be choosen.
-#
-#  Some applications support only one port for access by multiple 
-#  sessions, dispatching and bundling the communications channels
-#  by their own protocol. 
-#
-#  While others require for each channel a seperate litenning port.
-#
-#  So it is up to the specific package to support a function returning 
-#  the required port number gwhich could be used to attach an forwarded 
-#  port. 
-#  
-#  The applications client has to support a remapped port number.
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#  $1: <label>
-#       The <label> to gwhich the client will be attached.
-#
-#  $2: <pname>
-#      The pname of the configuration file, this is required for 
-#      VNC-sessions, and given to avoid scanning for labels
-#
-#OUTPUT:
-#  RETURN:
-#    0: If OK
-#    1: else
-#
-#  VALUES:
-#    <TP-port>
-#      The TP port, to gwhich a client could be attached.
-#
-#FUNCEND###############################################################
-function getClientTPXEN () {
-    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
-    local _ret=`listMySessionsXEN S MACHINE|awk -F';' -v l="${1}" '$2~l{print $7;}'`
-    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=<$_ret> from LABEL=<$1> ID=<$2>"
-    echo ${_ret}
-}
 
 
 #FUNCBEG###############################################################

@@ -376,6 +376,7 @@ _RHOSTS0=;
 _ARGS=;
 _ARGSCALL=$*;
 TREELEVEL=;
+GEO=;
 
 _listscripts=;
 _display=;
@@ -441,6 +442,13 @@ while [ -n "$1" ];do
 	    fi
 	    ;;
 
+
+
+	'-g')
+            shift;GEO=$1;
+            GEO=$(getGeometry  -g  ${GEO});
+            GEO="--geometry=${GEO}";
+            ;;
 
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
 	'-h'|'--help'|'-help')_showToolHelp=1;;
@@ -545,7 +553,7 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_CONFIGEDIT ${_editX//%/ }&sleep 1
+    $CTYS_CONFIGEDIT ${GEO} ${_editX//%/ }&sleep 1
     exit $?
 fi
 

@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_CLI="${BASH_SOURCE}"
-_myPKGVERS_CLI="01.11.007"
+_myPKGVERS_CLI="01.11.018"
 hookInfoAdd "$_myPKGNAME_CLI" "$_myPKGVERS_CLI"
 
 
@@ -68,12 +68,26 @@ function setDefaultsByMasterOption () {
 
     case ${C_MODE} in
         GETCLIENTPORT)
+	    R_CLIENT_DELAY=0
+	    X_DESKTOPSWITCH_DELAY=0
+	    R_CREATE_TIMEOUT=0
+	    VNCVIEWER_DELAY=0
 	    C_SCOPE=${C_SCOPE//*DEFAULT*/$DEFAULT_C_SCOPE}
             ;;
         ISACTIVE)
+	    R_CLIENT_DELAY=0
+	    X_DESKTOPSWITCH_DELAY=0
+	    R_CREATE_TIMEOUT=0
+	    VNCVIEWER_DELAY=0
 	    C_SCOPE=${C_SCOPE//*DEFAULT*/$DEFAULT_C_SCOPE}
             ;;
 	LIST)
+
+	    R_CLIENT_DELAY=0
+	    X_DESKTOPSWITCH_DELAY=0
+	    R_CREATE_TIMEOUT=0
+	    VNCVIEWER_DELAY=0
+
             #do it on terminating leaf or missing any request
             if [  -n "${C_EXECLOCAL}" ];then
 		C_SESSIONTYPE=${C_SESSIONTYPE//*DEFAULT*/ALL};
@@ -134,6 +148,11 @@ function setDefaultsByMasterOption () {
 	    ;;
 
 	INFO)
+	    R_CLIENT_DELAY=0
+	    X_DESKTOPSWITCH_DELAY=0
+	    R_CREATE_TIMEOUT=0
+	    VNCVIEWER_DELAY=0
+
             #do it on terminating leaf
             if [  -n "${C_EXECLOCAL}" ];then
 		C_SESSIONTYPE=${C_SESSIONTYPE//*DEFAULT*/ALL};
@@ -163,6 +182,11 @@ function setDefaultsByMasterOption () {
 	    ;;
 
 	SHOW)
+	    R_CLIENT_DELAY=0
+	    X_DESKTOPSWITCH_DELAY=0
+	    R_CREATE_TIMEOUT=0
+	    VNCVIEWER_DELAY=0
+
             #do it on terminating leaf
             if [  -n "${C_EXECLOCAL}" ];then
 		C_SESSIONTYPE=${C_SESSIONTYPE//*DEFAULT*/ALL};
@@ -193,6 +217,9 @@ function setDefaultsByMasterOption () {
 
 
 	CREATE)
+            #set this when '-W' is set.
+	    X_DESKTOPSWITCH_DELAY=0
+
 	    C_SESSIONTYPE=${C_SESSIONTYPE//*DEFAULT*/$DEFAULT_C_SESSIONTYPE};
             case "${C_SESSIONTYPE}" in 
 		CLI)C_ASYNC=${C_ASYNC//*DEFAULT*/0};
@@ -911,6 +938,7 @@ function fetchOptions () {
 			gotoHell ${ABORT}       
 		    fi
 		fi
+		X_DESKTOPSWITCH_DELAY=${X_DESKTOPSWITCH_DELAY_DEFAULT}
 		;;
 
 	    x) #[-x:]
@@ -1549,5 +1577,178 @@ function runningOnDisplayStation () {
     return 1
 }
 
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  stripContext
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI arguments
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function stripContext () {
+    local _targets=${*}
+    _targets=${_targets//(*)/}
+    _targets=${_targets//\"\"/}
+    _targets=${_targets//\'\'/}
+    echo ${_targets}
+    return
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  stripHostUsers
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI arguments
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function stripHostUsers () {
+    local _targets=" ${*} "
+    _targets=${_targets// [^ ]*@/ }
+    echo ${_targets}
+    return
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  stripHosts
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI arguments
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function stripHosts () {
+    local _targets=" ${*} "
+    _targets=$(echo ${_targets//@[^ ]* / })
+    echo ${_targets}
+    return
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getTargets
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Analyse CLI arguments
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getTargets () {
+    function stripArgs () {
+        local _myArgs=$*;
+        local _myArgs=${_myArgs#ctys };
+	local OLD_OPTIND=$OPTIND;
+	OPTIND=1
+
+        #
+        #hardcoded for now
+        #
+	OPTLST="a:A:b:d:D:c:C:EfF:g:hH:j:k:l:L:M:no:O:p:r:s:S:t:T:vVwW:x:XyYz:Z:";
+
+	local WSUB=$(echo " ${OPTLST} "|sed 's/.:/ & /g;s/ . / /g;s/  */|/g;s/://g;s/^|//;s/|$//');
+	local NSUB=$(echo " ${OPTLST} "|sed 's/.://g;s/ //g;s/./&|/g;s/^|//;s/|$//');
+	local _ARGS=;
+	local CUROPT=;
+        local w=;
+        local n=;
+
+	while getopts $OPTLST CUROPT ${_myArgs} && [ -z ${ABORT} ] ; do
+	    case ${CUROPT} in 
+                *)
+		    if [ "${WSUB}" != "${WSUB//$CUROPT/}" ];then
+			w=${CUROPT};n=;
+		    else
+                        w=;n=${CUROPT};
+                    fi
+                   _ARGS="${_ARGS} ${CUROPT}";
+		   ;;
+            esac
+        done
+	if [ -n "$n" ];then
+	    _myArgs=${_myArgs##*-$n}
+	else
+	    if [ -n "$w" ];then
+		_myArgs=${_myArgs##*-$w}
+		_myArgs=${_myArgs## }
+		_myArgs=${_myArgs#* }
+		_myArgs=${_myArgs## }
+	    fi
+	fi
+
+        OPTIND=$OLD_OPTIND;
+        echo -e "${_myArgs}"
+     }
+    local _targets=$(stripArgs $*)
+    _targets=$(stripContext ${_targets})
+
+    echo ${_targets}
+    return
+
+
+###########
+#TODO
+#     local _targets=${*##* -- }:
+#     if [ "$_targets" != "$*" ];then
+#         _targets=$(expandGroups $_targets)
+#     fi
+
+}
 
 

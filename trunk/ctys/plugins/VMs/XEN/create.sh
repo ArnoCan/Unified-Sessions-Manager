@@ -802,6 +802,18 @@ function createConnectXEN () {
 		    ;;
 	    esac
 
+	    #
+	    #find the correct db entry
+	    #
+ 	    local _targetHost=${R_HOSTS#*@};
+ 	    _targetHost=${_targetHost%%[({\'\"]*};
+	    if [ -z "${_actionuserQEMU}" ];then
+		    _actionuserQEMU="${R_HOSTS%%@*}";
+		    if [ "${R_HOSTS}" == "${_actionuserQEMU}" ];then
+			_actionuserQEMU="${MYUID}";
+		    fi
+	    fi
+
             #
             #0. Try cache - DB-INDEX
             #
@@ -815,13 +827,15 @@ function createConnectXEN () {
  		    gotoHell ${ABORT}
 		fi
 	    fi
-
             #
             #1. Try cache
             #
             if [ -z "${_pname// /}" ];then
 		printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE"
-		_pnameX=`cacheGetUniquePname "${_base}" "${MYHOST}" XEN ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname}`
+		_call="cacheGetUniquePname \"${_base}\" \"${_targetHost}\" XEN ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname} ${_actionuserQEMU} "
+		printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${_call}"
+		_pnameX=$(eval ${_call} )
+
 		if [ $? -ne 0 ];then
 		    ABORT=1;
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch unique pathname"
@@ -841,6 +855,9 @@ function createConnectXEN () {
 		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_stime):No CACHE hit by \"ctys-vhost.sh\", scanning filesystem now."
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "Update your database with \"ctys-vdbgen.sh\"."
 
+		    hookPackage "${_myPKGBASE_XEN}/config.sh"
+		    hookPackage "${_myPKGBASE_XEN}/enumerate.sh"
+
                     #starts in $HOME
                     _base=${_base:-$HOME}
 
@@ -853,31 +870,31 @@ function createConnectXEN () {
 			if [ -n "${_uuid}" ];then
                             #UUID to be "grepped" from vmx-files
 			    _pname=`enumerateMySessionsXEN ${_base}|awk -F';' -v d="${_uuid}" '
-                                BEGIN{firstX="";};$4~d{if(!firstX)firstX=$3;};END{print firstX}'`
+                                    BEGIN{firstX="";};$4~d{if(!firstX)firstX=$3;};END{print firstX}'`
 			    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
 			else
 			    if [ -n "${_label}" ];then
                                 #displayName to be "grepped" from vmx-files
 		 		_pname=`enumerateMySessionsXEN ${_base}|awk -F';' -v d="${_label}" '
-                                BEGIN{firstX="";};$2~d{if(!firstX)firstX=$3;};END{print firstX}'`
+                                        BEGIN{firstX="";};$2~d{if(!firstX)firstX=$3;};END{print firstX}'`
 				printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
 			    else
 				if [ -n "${_tcp}" ];then
                                     #displayName to be "grepped" from vmx-files
 				    _pname=`enumerateMySessionsXEN ${_base}|awk -F';' -v d="${_tcp}" '
-                                BEGIN{firstX="";};$10~d{if(!firstX)firstX=$3;};END{print firstX}'`
+                                            BEGIN{firstX="";};$10~d{if(!firstX)firstX=$3;};END{print firstX}'`
 				    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
 				else
 	 			    if [ -n "${_mac}" ];then
                                         #displayName to be "grepped" from vmx-files
 					_pname=`enumerateMySessionsXEN ${_base}|awk -F';' -v d="${_mac}" '
-                                BEGIN{firstX="";};$5~d{if(!firstX)firstX=$3;};END{print firstX}'`
+                                                BEGIN{firstX="";};$5~d{if(!firstX)firstX=$3;};END{print firstX}'`
 					printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
 
 				    else
                                         #has to be a relative vmx-file name, the absolute path has to be found
 					_pname=`enumerateMySessionsXEN ${_base}|awk -F';' -v d="${_fname}" '
-                                BEGIN{firstX="";};$3~d{if(!firstX)firstX=$3;};END{print firstX}'`
+                                                BEGIN{firstX="";};$3~d{if(!firstX)firstX=$3;};END{print firstX}'`
 					_label=${_pname//:*}
 					_pname=${_pname//*:}
 					printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "_pname=${_pname}"
@@ -888,18 +905,22 @@ function createConnectXEN () {
 		    fi
 		fi
 		local _etime=`getCurTime`;
-		local _dtime=`getDiffTime $_etime $_stime`;
+		local _dtime=`getDiffTime $_stime $_etime`;
 
                 #should have find one
 		if [ -z "${_pname// /}" ];then
 		    _ret=1;
  		    printERR $LINENO $BASH_SOURCE ${_ret} "($_etime):Cannot evaluate ID/PNAME, input seems to be erroneous  =>${_dtime}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  BASE        = ${_base}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL       = ${_label}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  UUID        = ${_uuid}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MAC         = ${_mac}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  TCP         = ${_tcp}"
- 		    printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME    = ${_fname}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  BASE            = ${_base}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  LABEL           = ${_label}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  UUID            = ${_uuid}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MAC             = ${_mac}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  TCP             = ${_tcp}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  FILENAME        = ${_fname}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  R_HOSTS         = ${R_HOSTS}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  MYHOST          = ${MYHOST}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  _targetHost     = ${_targetHost}"
+ 		    printERR $LINENO $BASH_SOURCE ${_ret} "  _actionuserQEMU = ${_actionuserQEMU}"
 		    gotoHell ${_ret};
 		else
 		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_etime):FILE-MATCH:\"${_pname}\" =>${_dtime}"
@@ -1042,7 +1063,7 @@ function createConnectXEN () {
 			    local _tcp=`${_VHOST}  R:$DBREC `
 			else
 			    local _VHOST="${_VHOST} ${_actionuserXEN:+ F:44:$_actionuserXEN}"
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			fi
 			;;
 		    2)#local
@@ -1051,7 +1072,7 @@ function createConnectXEN () {
 				local _tcp=`${_VHOST}  R:$DBREC `
 			    else
 				local _VHOST="${_VHOST} ${_actionuserXEN:+ F:44:$_actionuserXEN}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1061,7 +1082,7 @@ function createConnectXEN () {
 				local _tcp=`${_VHOST}  R:$DBREC `
 			    else
 				local _VHOST="${_VHOST} ${_actionuserXEN:+ F:44:$_actionuserXEN}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1204,7 +1225,7 @@ function createConnectXEN () {
  		    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
 		    if [ -z "${_lport}" ];then	  
  			printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "No tunnel found, create a new one."
-			digLocalPort XEN "$R_HOSTS" "$_label" "$_pname">/dev/null
+			digLocalPort XEN "$_targetHost" "$_label" "$_pname" "" "${_actionuserQEMU}">/dev/null
 		    fi
                     #check it once again
  		    local _lport=`digGetLocalPort ${_label} XEN`
@@ -1212,7 +1233,7 @@ function createConnectXEN () {
                         #Something went wrong!!!???                                      
 			ABORT=1
 			printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot allocate CONNECTIONFORWARDING"
-			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort XEN <$R_HOSTS> <$_label> <$_pname>"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort XEN <$_targetHost> <$_label> <$_pname> <> <${_actionuserQEMU}>"
 			printERR $LINENO $BASH_SOURCE ${ABORT} "  digGetLocalPort <$_label> XEN"
 			gotoHell ${ABORT}
 		    fi

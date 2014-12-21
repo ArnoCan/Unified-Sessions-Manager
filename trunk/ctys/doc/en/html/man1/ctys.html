@@ -15,9 +15,87 @@ November, 2010
 </FONT></CENTER>
 
 <P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+  <UL>
+  <LI><A HREF="#toc1">NAME</A>
+  <LI><A HREF="#toc2">SYNTAX</A>
+  <LI><A HREF="#toc3">DESCRIPTION</A>
+    <UL>
+    <LI><A HREF="#toc4">Basics</A>
+      <UL>
+      <LI><A HREF="#toc5">Installation and Setup</A>
+      <LI><A HREF="#toc6">Configuration</A>
+      <LI><A HREF="#toc7">VMs and PMs - Sessions Namebinding</A>
+      </UL>
+    <LI><A HREF="#toc8">Option Groups</A>
+      <UL>
+      <LI><A HREF="#toc9">ACTIONS</A>
+      <LI><A HREF="#toc10">Generic Attributes</A>
+      </UL>
+    </UL>
+  <LI><A HREF="#toc11">OPTIONS</A>
+    <UL>
+    <LI><A HREF="#toc12">ACTIONS</A>
+      <UL>
+      <LI><A HREF="#toc13">CANCEL</A>
+      <LI><A HREF="#toc14">CREATE</A>
+      <LI><A HREF="#toc15">ENUMERATE</A>
+      <LI><A HREF="#toc16">GETCLIENTPORT</A>
+      <LI><A HREF="#toc17">INFO</A>
+      <LI><A HREF="#toc18">LIST</A>
+      <LI><A HREF="#toc19">SHOW</A>
+      </UL>
+    <LI><A HREF="#toc20">Generic Options</A>
+      <UL>
+      <LI><A HREF="#toc21">-A &lt;ambiguity-mode&gt;</A>
+      <LI><A HREF="#toc22">-b &lt;background-mode&gt;</A>
+      <LI><A HREF="#toc23">-c &lt;args&gt;</A>
+      <LI><A HREF="#toc24">-C &lt;args&gt;</A>
+      <LI><A HREF="#toc25">-d &lt;debug-args&gt;</A>
+      <LI><A HREF="#toc26">-D (&lt;display&gt;[.&lt;screen&gt;])|&lt;LABEL&gt;</A>
+      <LI><A HREF="#toc27">-f</A>
+      <LI><A HREF="#toc28">-F &lt;remote_version&gt;</A>
+      <LI><A HREF="#toc29">-g &lt;geometry&gt;|&lt;geometryExtended&gt;</A>
+      <LI><A HREF="#toc30">-h</A>
+      <LI><A HREF="#toc31">-H &lt;help-options&gt;</A>
+      <LI><A HREF="#toc32">-j &lt;job-id&gt;</A>
+      <LI><A HREF="#toc33">-l &lt;login-name&gt;</A>
+      <LI><A HREF="#toc34">-L &lt;execution-location&gt;</A>
+      <LI><A HREF="#toc35">-M &lt;message&gt;</A>
+      <LI><A HREF="#toc36">-n</A>
+      <LI><A HREF="#toc37">-p &lt;db-directory-path-list&gt;</A>
+      <LI><A HREF="#toc38">-P</A>
+      <LI><A HREF="#toc39">-r &lt;xsize&gt;x&lt;ysize&gt;</A>
+      <LI><A HREF="#toc40">-s &lt;scope&gt;</A>
+      <LI><A HREF="#toc41">-S [(on|off)][,][&lt;ignore-signal-spec&gt;</A>
+      <LI><A HREF="#toc42">-t &lt;session-type&gt;[=suboptions]</A>
+      <LI><A HREF="#toc43">-T &lt;session-type&gt;[,&lt;session-type&gt;[,...]] | all</A>
+      <LI><A HREF="#toc44">-v</A>
+      <LI><A HREF="#toc45">-V</A>
+      <LI><A HREF="#toc46">-W &lt;WorkspaceId&gt;|&lt;WorkspaceLabel&gt;</A>
+      <LI><A HREF="#toc47">-x &lt;OFF|STAR|CHAIN&gt;</A>
+      <LI><A HREF="#toc48">-X</A>
+      <LI><A HREF="#toc49">-y</A>
+      <LI><A HREF="#toc50">-Y</A>
+      <LI><A HREF="#toc51">-z (NOPTY|PTY|1|2)</A>
+      <LI><A HREF="#toc52">-Z (KSU|NOKSU|SUDO|NOSUDO|ALL)</A>
+      </UL>
+    </UL>
+  <LI><A HREF="#toc53">ARGUMENTS</A>
+  <LI><A HREF="#toc54">SEE ALSO</A>
+  <LI><A HREF="#toc55">AUTHOR</A>
+  <LI><A HREF="#toc56">COPYRIGHT</A>
+  </UL>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+<P></P>
 <P>
 .
 </P>
+<A NAME="toc1"></A>
 <H1>NAME</H1>
 <P>
 <B>ctys - Commutate To Your Session</B>
@@ -25,6 +103,7 @@ November, 2010
 <br />
 <br />
 </P>
+<A NAME="toc2"></A>
 <H1>SYNTAX</H1>
 <P>
  <br /> 
@@ -41,6 +120,7 @@ November, 2010
 <br />
 <br />
 </P>
+<A NAME="toc3"></A>
 <H1>DESCRIPTION</H1>
 <P>
 The utility <B>ctys</B> is the core interface to be used within the UnifiedSessionsManager.
@@ -50,12 +130,10 @@ native sessions into a common syntax with a single call interface.
 <br />
 <br />
 </P>
-<P>
+<A NAME="toc4"></A>
 <H2>Basics</H2>
-</P>
-<P>
+<A NAME="toc5"></A>
 <H3>Installation and Setup</H3>
-</P>
 <P>
 The installation and configuration is descibed within the HowTo manual and the specific 
 configuration guides.
@@ -65,16 +143,18 @@ a validation of local and remote installations and displays a detailed report.
 <br />
 <br />
 </P>
-<P>
+<A NAME="toc6"></A>
 <H3>Configuration</H3>
+<P>
 The majority  of the preset default values could be changed by configuration files
 and environment variables.
 The configuration files are installed by default within <B>$HOME/.ctys</B> directory tree.
 <br />
 <br />
 </P>
-<P>
+<A NAME="toc7"></A>
 <H3>VMs and PMs - Sessions Namebinding</H3>
+<P>
 The most important aspect for the introduction of a common interface is the 
 unique namenbinding for addressing the user sessions to physical machines, supported hypervisors
 and guest OSs.
@@ -140,33 +220,36 @@ an enhanced query interface.
 <br />
 <br />
 </P>
-<P>
+<A NAME="toc8"></A>
 <H2>Option Groups</H2>
+<P>
 The options are grouped into two sections:
 </P>
-<DL>
-<DT><B>ACTIONS</B></DT><DD>
+<A NAME="toc9"></A>
+<H3>ACTIONS</H3>
+<P>
 These are options directly related to specific plugins.
 ACTIONS are suboptions to the <B>-a</B> option and are preset by the actual 
 loaded plugin controlled by <B>-t</B> and <B>-T</B> options.
-</DL>
-
-<DL>
-<DT><B>Generic Attributes</B></DT><DD>
+</P>
+<A NAME="toc10"></A>
+<H3>Generic Attributes</H3>
+<P>
 These are the options which are mostly generic within the whole set of utilities.
 They influence the ACTIONS, but are related to the runtime environment.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 .
 </P>
+<A NAME="toc11"></A>
 <H1>OPTIONS</H1>
 <P>
 .
 </P>
+<A NAME="toc12"></A>
 <H2>ACTIONS</H2>
 <P>
 <B>ctys</B> supports the following actions:
@@ -222,6 +305,7 @@ dynamic details about ENABLED VMs
 <P>
 <a name="optCANCEL" />
 </P>
+<A NAME="toc13"></A>
 <H3>CANCEL</H3>
 <PRE>
   
@@ -394,6 +478,7 @@ The user to be used for native access to the &lt;action-target&gt;.
 <P>
 <a name="optCREATE" />
 </P>
+<A NAME="toc14"></A>
 <H3>CREATE</H3>
 <PRE>
   
@@ -1202,6 +1287,7 @@ mode only, else may have internal influence only.
 <P>
 <a name="optENUMERATE" />
 </P>
+<A NAME="toc15"></A>
 <H3>ENUMERATE</H3>
 <PRE>
   
@@ -1764,6 +1850,7 @@ The following table depicts the complete set of fields for current data record.
 <P>
 <a name="optGETCLIENTPORT" />
 </P>
+<A NAME="toc16"></A>
 <H3>GETCLIENTPORT</H3>
 <P>
 Returns the port for attaching the front end client
@@ -1800,6 +1887,7 @@ Which could be for example:
 <P>
 <a name="optINFO" />
 </P>
+<A NAME="toc17"></A>
 <H3>INFO</H3>
 <P>
 Displays miscellaneous static information for the given hosts.
@@ -1863,6 +1951,7 @@ For now the Display is given as:
 <P>
 <a name="optLIST" />
 </P>
+<A NAME="toc18"></A>
 <H3>LIST</H3>
 <PRE>
   
@@ -2378,6 +2467,7 @@ current record format.
 <P>
 <a name="optSHOW" />
 </P>
+<A NAME="toc19"></A>
 <H3>SHOW</H3>
 <P>
 Displays dynamic information for the given hosts. 
@@ -2437,21 +2527,24 @@ For now the Display is given as:
 <br />
 <br />
 </P>
+<A NAME="toc20"></A>
 <H2>Generic Options</H2>
 <P>
 <a name="optA" />
 </P>
-<DL>
-<DT><B>-A &lt;ambiguity-mode&gt;</B></DT><DD>
+<A NAME="toc21"></A>
+<H3>-A &lt;ambiguity-mode&gt;</H3>
+<P>
 Allow ambiguity, this has several effects on values which may
 or may not be allowed to be ambiguous.
-<P></P>
+</P>
 <PRE>
   &lt;ambiguity-mode&gt;=&lt;0|off|1|on&gt;
 </PRE>
 <P></P>
+<P>
 Allow ambiguity(-A 1) or disallow(-A 0:default).
-<P></P>
+</P>
  <UL>
  <LI><B>LABEL</B>:    Even though the labels might be ambiguous, the IDs are not,
     thus an unambiguous labels only restrict the access by
@@ -2467,16 +2560,17 @@ Allow ambiguity(-A 1) or disallow(-A 0:default).
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optb" />
 </P>
-<DL>
-<DT><B>-b &lt;background-mode&gt;</B></DT><DD>
+<A NAME="toc22"></A>
+<H3>-b &lt;background-mode&gt;</H3>
+<P>
 Background and/or parallel execution. This option combines the
 control of detachment from console and the job distribution to
 multiple targets.
+</P>
 <PRE>
   
   &lt;background-mode&gt;=
@@ -2493,10 +2587,11 @@ multiple targets.
   
 </PRE>
 <P></P>
+<P>
 In addition this option controls the execution of VM-Stacks, which are
 closely coupled to GROUPS as well as to the background mode,
 refer to "Stacks As Vertical Subgroups".
-<P></P>
+</P>
  <UL>
  <LI><B>stack-mode</B>:
  <br /> 
@@ -2564,6 +2659,8 @@ refer to "Stacks As Vertical Subgroups".
   <P></P>
   </UL>
  </UL>
+
+<DL>
 <DT>_</DT><DD>
 Therefore the two properties complement each other, even though
 some similar effects could occur.
@@ -2578,8 +2675,8 @@ the internal job control, which should avoided.
 <P>
 <a name="optc" />
 </P>
-<DL>
-<DT><B>-c &lt;args&gt;</B></DT><DD>
+<A NAME="toc23"></A>
+<H3>-c &lt;args&gt;</H3>
 <PRE>
   
   &lt;args&gt;=(
@@ -2591,17 +2688,19 @@ the internal job control, which should avoided.
   
 </PRE>
 <P></P>
+<P>
 The operations of ctys utilize special virtual-nameservice information which optionally could be
 read from the inventory database.
 Either from the local host, or the remote hosts allocated local database.
 This option controls the usage and selection of the location of these distributed caches at the local and/or remote site.
-<P></P>
+</P>
+<P>
  <br /> 
  <br /> 
-<P></P>
+</P>
+<P>
 <center><img src="../../images/distributedcaches.png" width="60%"  /> </center> 
-</DL>
-
+</P>
 <TABLE ALIGN="center" CELLPADDING="4">
 <TR>
 <TH>Distributed Caches</TH>
@@ -2713,8 +2812,8 @@ with all of it's actually present parts, and
 <P>
 <a name="optC" />
 </P>
-<DL>
-<DT><B>-C &lt;args&gt;</B></DT><DD>
+<A NAME="toc24"></A>
+<H3>-C &lt;args&gt;</H3>
 <PRE>
   
   &lt;args&gt;=(
@@ -2729,22 +2828,26 @@ with all of it's actually present parts, and
          |OFF
   
 </PRE>
+<P>
 <br />
-<P></P>
+</P>
+<P>
 For ctys two basic types of data-caches are used. 
 The first one is the plugin specific in-mem cache, where frequent
 operations like "ps" for LABEL mapping will be cached for the lifetime
 of a process.
 The second is the cacheDB on-disk cacheing, which could span
 multiple calls to a specific executable.
-<P></P>
+</P>
+<P>
 The in-mem caching is active by default, because the assumption
 is made that the systems state might not alter relevant to ctys
 within a call-cycle. This could be deactivated for the common
 plugins by with the "OFF" option, which additionally.
-<P></P>
+</P>
+<P>
 The on-disk caching is used for two specific reasons.
-<P></P>
+</P>
  <UL>
  <LI>Enables collecting data for overall-processing like sort,
   where data from all remote tasks is prefetched on
@@ -2827,13 +2930,12 @@ Following suboptions are applicable:
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optd" />
 </P>
-<DL>
-<DT><B>-d &lt;debug-args&gt;</B></DT><DD>
+<A NAME="toc25"></A>
+<H3>-d &lt;debug-args&gt;</H3>
 <PRE>
   
   &lt;debug-args&gt;=
@@ -2866,10 +2968,12 @@ Following suboptions are applicable:
     -d &lt;#integer&gt;,MAX,WARNING:1,INFO:1
   
 </PRE>
+<P>
 <br />
-<P></P>
+</P>
+<P>
 Sets the level and range of debug output.
-<P></P>
+</P>
  <UL>
  <LI><B>&lt;debug-bit-array&gt;[,(PATTERN|P)|MIN|MAX]</B>
  <br /> 
@@ -2888,6 +2992,8 @@ Sets the level and range of debug output.
   <P></P>
   </UL>
  </UL>
+
+<DL>
 <DT>_</DT><DD>
 <P></P>
 The debug mode value could be provided in any bash supported notation,
@@ -2999,8 +3105,9 @@ subcalls of minor interest, but by definition is the final CLI execution.
 <P>
 <a name="optD" />
 </P>
-<DL>
-<DT><B>-D (&lt;display&gt;[.&lt;screen&gt;])|&lt;LABEL&gt;</B></DT><DD>
+<A NAME="toc26"></A>
+<H3>-D (&lt;display&gt;[.&lt;screen&gt;])|&lt;LABEL&gt;</H3>
+<P>
 This option controls the output of local display.
 The values are mapped to the DISPLAY variable, but due to security
 resons for localhost only.
@@ -3010,50 +3117,53 @@ VMs are from the point of view for TCP/IP generally different hosts.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optf" />
 </P>
-<DL>
-<DT><B>-f</B></DT><DD>
+<A NAME="toc27"></A>
+<H3>-f</H3>
+<P>
   Force execution and ignore minor warnings. Basically no
   "destructive" operation, particularly nothing irreversible will
   be performed.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optF" />
 </P>
-<DL>
-<DT><B>-F &lt;remote_version&gt;</B></DT><DD>
+<A NAME="toc28"></A>
+<H3>-F &lt;remote_version&gt;</H3>
+<P>
   Force remote version.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optg" />
 </P>
-<DL>
-<DT><B>-g &lt;geometry&gt;|&lt;geometryExtended&gt;</B></DT><DD>
+<A NAME="toc29"></A>
+<H3>-g &lt;geometry&gt;|&lt;geometryExtended&gt;</H3>
+<P>
   The geometry for client-side representation. It is the exact
   syntax of X client "--geometry" parameter with an additional
   screen parameter as alias or index for usage with Xorg multiple
   displays.
-<P></P>
+</P>
+<P>
   <B>ATTENTION</B>:
     In order of using xorg.conf and saving effort some
     minor assumptions as requirements concerning the xorg.conf
     file are made.  Current implementation requires due to
     stateless filtering the field "Identifier" as first entry in
     "ServerLayout" sections.
-<P></P>
+</P>
+<P>
   Supported variants: 
+</P>
   <UL>
   <LI>Xorg-style: &lt;geometry&gt;
     Any screen offset has to be calculated manually.
@@ -3115,46 +3225,48 @@ remote DISPLAY in case of DISPLAYFORWARDING.
 <br />
    </UL>
   </UL>
-</DL>
 
 <P>
 <a name="opth" />
 </P>
-<DL>
-<DT><B>-h</B></DT><DD>
+<A NAME="toc30"></A>
+<H3>-h</H3>
+<P>
 Print help, refer to "-H" for additional information.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optH" />
 </P>
-<DL>
-<DT><B>-H &lt;help-options&gt;</B></DT><DD>
+<A NAME="toc31"></A>
+<H3>-H &lt;help-options&gt;</H3>
+<P>
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
 This comprises the man pages and installed manuals.
-<P></P>
+</P>
+<P>
 For additional help refer to the documents chapter
 <B>Online-Help</B> or type <B>ctys -H help</B>.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optj" />
 </P>
-<DL>
-<DT><B>-j &lt;job-id&gt;</B></DT><DD>
+<A NAME="toc32"></A>
+<H3>-j &lt;job-id&gt;</H3>
+<P>
   The ID of current job. This is an internal call and therefore
   should just used by developers for test purposes. Any variation
   of the JOB_IDX for the CLI call may severe job execution
   seriously and even can damage user data when set for a CANCEL
   operation.
-<P></P>
+</P>
+<P>
   The originating CLI call should not use this option in
   productive operations, any subcall may have a propagated value
   as required.
@@ -3165,8 +3277,10 @@ For additional help refer to the documents chapter
   The value is evaluated by plugins for handling job specific
   PROLOG and within EPILOG for decision of the state of passed
   job and eventual required post-processing.
-<P></P>
+</P>
+<P>
   In addition a variable "CTYS_SUBCALL" is set.
+</P>
  <UL>
  <LI>"-j ${DATETIME}:${JOB_SUPER}"
  <P></P>
@@ -3180,13 +3294,13 @@ For additional help refer to the documents chapter
 <br />
   </UL>
  </UL>
-</DL>
 
 <P>
 <a name="optl" />
 </P>
-<DL>
-<DT><B>-l &lt;login-name&gt;</B></DT><DD>
+<A NAME="toc33"></A>
+<H3>-l &lt;login-name&gt;</H3>
+<P>
   The users, which will be used for hosts without an exlicitly given
   user. The hosts/groups entries provide the common EMail-Style
   "&lt;user&gt;@&lt;execution-target&gt;". 
@@ -3194,13 +3308,12 @@ For additional help refer to the documents chapter
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optL" />
 </P>
-<DL>
-<DT><B>-L &lt;execution-location&gt;</B></DT><DD>
+<A NAME="toc34"></A>
+<H3>-L &lt;execution-location&gt;</H3>
 <PRE>
   
   &lt;execution-location&gt;=(
@@ -3212,11 +3325,12 @@ For additional help refer to the documents chapter
                        )
   
 </PRE>
+<P>
 This option controls the location and possible split of the
 involved client and server parts of current session.
 When connecting a user interface with it's server components
 the following basic constellations could be distinguished:
-<P></P>
+</P>
  <UL>
  <LI><B>LOCALONLY</B>
 <br />
@@ -3245,36 +3359,36 @@ the following basic constellations could be distinguished:
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optM" />
 </P>
-<DL>
-<DT><B>-M &lt;message&gt;</B></DT><DD>
+<A NAME="toc35"></A>
+<H3>-M &lt;message&gt;</H3>
+<P>
   Free text to be used as prefix for target exec. It will be
   printed before output.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optn" />
 </P>
-<DL>
-<DT><B>-n</B></DT><DD>
+<A NAME="toc36"></A>
+<H3>-n</H3>
+<P>
   Just display, do not execute. For test only.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optp" />
 </P>
-<DL>
-<DT><B>-p &lt;db-directory-path-list&gt;</B></DT><DD>
+<A NAME="toc37"></A>
+<H3>-p &lt;db-directory-path-list&gt;</H3>
+<P>
   Path list to directories containing DBs for name resolution,
   same for each &lt;db-directory-path&gt; as for ctys-vdbgen. 
   ctys will internally handle names by multiple levels of
@@ -3284,7 +3398,8 @@ the following basic constellations could be distinguished:
   machines, where after some plugin specific resolution of
   convenient VM-addressing by user an TCP/IP service-access-point
   for OpenSSH has to be addressed.
-<P></P>
+</P>
+<P>
   The second case to be handled is the addressing of execution
   entities of type HOSTs transparently within a VM or PM. This
   will be supplied by ctys-nameservice too.
@@ -3296,24 +3411,24 @@ the following basic constellations could be distinguished:
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optP" />
 </P>
-<DL>
-<DT><B>-P</B></DT><DD>
+<A NAME="toc38"></A>
+<H3>-P</H3>
+<P>
   Use default &lt;db-directory-path&gt;.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optr" />
 </P>
-<DL>
-<DT><B>-r &lt;xsize&gt;x&lt;ysize&gt;</B></DT><DD>
+<A NAME="toc39"></A>
+<H3>-r &lt;xsize&gt;x&lt;ysize&gt;</H3>
+<P>
   Remote resolution, which is by default the same as local client
   size given by "-g" option.
   This configures the virtual graphic card of the server with the
@@ -3321,21 +3436,22 @@ the following basic constellations could be distinguished:
   This parameter is not applicable to any application. It has to
   be defined in the application specific package. The current
   supported applications are:
-<P></P>
+</P>
  <UL>
  <LI>VNC: for vncserver
 <br />
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="opts" />
 </P>
-<DL>
-<DT><B>-s &lt;scope&gt;</B></DT><DD>
+<A NAME="toc40"></A>
+<H3>-s &lt;scope&gt;</H3>
+<P>
   Restrics/expands the scope/selected set for mode of operations.
+</P>
  <UL>
  <LI><B>USER</B>
  <br /> 
@@ -3356,42 +3472,45 @@ the following basic constellations could be distinguished:
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optS" />
 </P>
-<DL>
-<DT><B>-S [(on|off)][,][&lt;ignore-signal-spec&gt;</B></DT><DD>
+<A NAME="toc41"></A>
+<H3>-S [(on|off)][,][&lt;ignore-signal-spec&gt;</H3>
+<P>
   Sets the signal spectrum to be ignored.
   The values are accepted as numeric values only.
   Applicable values could be displayed by "trap -l"(within bash).
-<P></P>
+</P>
+<P>
   The default values are "1,3,19", which is set for CLI0 consoles only
   by default.
-<P></P>
+</P>
+<P>
   In case of CLI, generally for any multi-session call, it has to be
   considered thoroughly whether and which signals could be set.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optt" />
 </P>
-<DL>
-<DT><B>-t &lt;session-type&gt;[=suboptions]</B></DT><DD>
+<A NAME="toc42"></A>
+<H3>-t &lt;session-type&gt;[=suboptions]</H3>
+<P>
   Defines the context of execution and the resulting applicable
   feature set.  This could be a flat endpoint-user-session in
   case of VNC, or a virtual OS-starter in case of a VM session
   e.g. in case of VMW or XEN.  Suboptions specify more detailed
   characteristics.
-<P></P>
+</P>
+<P>
   Thus this parameter has to be set first.
   To load multiple plugins for one call, the environment variable 
   CTYS_MULTITYPE or the "-T" option could be set.
-<P></P>
+</P>
  <UL>
  <LI><B>&lt;session_type&gt;(default:VNC)</B>
   <UL>
@@ -3413,19 +3532,20 @@ the following basic constellations could be distinguished:
 <br />
   </UL>
  </UL>
-</DL>
 
 <P>
 <a name="optT" />
 </P>
-<DL>
-<DT><B>-T &lt;session-type&gt;[,&lt;session-type&gt;[,...]] | all</B></DT><DD>
+<A NAME="toc43"></A>
+<H3>-T &lt;session-type&gt;[,&lt;session-type&gt;[,...]] | all</H3>
+<P>
   Preloads given list of &lt;session_type&gt; instead of loading the
   plugins of requested types by "-t" option.
   Alternatively the environment variable CTYS_MULTITYPE could be
   pre-set, which has the same result. If CTYS_MULTITYPE  and the
   "-T" option are provided, the option has priority.
-<P></P>
+</P>
+<P>
   This option is required for the scope control of generic
   actions, which generally will be applied by calling of all
   current loaded &lt;session_type&gt; interfaces.
@@ -3433,7 +3553,7 @@ the following basic constellations could be distinguished:
   actually loaded &lt;session_type&gt;. For display of current active
   sessions of all available &lt;session_type&gt;, the "-T all" has to
   be used.
-<P></P>
+</P>
  <UL>
  <LI><B>&lt;session_type&gt;</B>
  <br /> 
@@ -3453,26 +3573,26 @@ the following basic constellations could be distinguished:
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optv" />
 </P>
-<DL>
-<DT><B>-v</B></DT><DD>
+<A NAME="toc44"></A>
+<H3>-v</H3>
+<P>
   Show version. Current version scheme is as follows:
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optV" />
 </P>
-<DL>
-<DT><B>-V</B></DT><DD>
+<A NAME="toc45"></A>
+<H3>-V</H3>
+<P>
   Show version. Current version scheme is as follows:
-<P></P>
+</P>
  <UL>
  <LI><B>AA_BB_CCC[[abc]DD]</B>
   <UL>
@@ -3518,20 +3638,21 @@ the following basic constellations could be distinguished:
 <br />
   </UL>
  </UL>
-</DL>
 
 <P>
 <a name="optW" />
 </P>
-<DL>
-<DT><B>-W &lt;WorkspaceId&gt;|&lt;WorkspaceLabel&gt;</B></DT><DD>
+<A NAME="toc46"></A>
+<H3>-W &lt;WorkspaceId&gt;|&lt;WorkspaceLabel&gt;</H3>
+<P>
   This parameter requires the tool 'wmctrl' to be present, if not
   the usage is not provided and an error message is generated
   before exiting ctys.
-<P></P>
+</P>
+<P>
   When provided by system and successully detected, the following
   applies:
-<P></P>
+</P>
  <UL>
  <LI><B>&lt;WorkspaceId&gt;</B>
  <br /> 
@@ -3557,13 +3678,13 @@ the following basic constellations could be distinguished:
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optx" />
 </P>
-<DL>
-<DT><B>-x &lt;OFF|STAR|CHAIN&gt;</B></DT><DD>
+<A NAME="toc47"></A>
+<H3>-x &lt;OFF|STAR|CHAIN&gt;</H3>
+<P>
 Defines the resolution of required nested access to a chain of servers.
 This is e.g. the case when from the machine CLIENT01 the HOST01 
 is accessed. When now HOST01 required some information from the
@@ -3573,7 +3694,7 @@ For requirements exist both cases, but for the common task of user-logins
 the SSO-keys are only present on the CLIENT01, atleast in case of OpenSSH the 
 ssh-agent might run on CLIENT01 only.
 When using Keberos with the ticket forwarding option, the CHAIN option should be prefered.
-<P></P>
+</P>
  <UL>
  <LI><B>OFF</B>
  <br /> 
@@ -3593,25 +3714,25 @@ initiating machine only, remote issues have to be replied first.
 <br />
 <br />
  </UL>
-</DL>
 
 <P>
 <a name="optX" />
 </P>
-<DL>
-<DT><B>-X</B></DT><DD>
+<A NAME="toc48"></A>
+<H3>-X</H3>
+<P>
   Generate terse output for post processing.  The '-v Verbose'
   flag is not effected and should be only used for testing.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="opty" />
 </P>
-<DL>
-<DT><B>-y</B></DT><DD>
+<A NAME="toc49"></A>
+<H3>-y</H3>
+<P>
   Activates some terminal capabilities, mainly coloring of ERROR,
   WARNING, and WARNINGEXT. Very handy when debugging, but
   not yet supported for Emacs-Consoles.
@@ -3622,13 +3743,13 @@ initiating machine only, remote issues have to be replied first.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optY" />
 </P>
-<DL>
-<DT><B>-Y</B></DT><DD>
+<A NAME="toc50"></A>
+<H3>-Y</H3>
+<P>
 Activate <B>'ForwardAgent yes'/'-A'</B> of OpenSSH.
 If not active, another SSH authentication is required for each hop.
 When no mechanism like keys or Kerberos is in place, password authentication will be used.
@@ -3636,16 +3757,16 @@ The basic configuration of SSH has to be prepared appropriately.
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optz" />
 </P>
-<DL>
-<DT><B>-z (NOPTY|PTY|1|2)</B></DT><DD>
+<A NAME="toc51"></A>
+<H3>-z (NOPTY|PTY|1|2)</H3>
+<P>
   Control the allocation of a pseudotty by ssh. Therefore one or
   two "-t" options could be set for the internal "ssh" call.
-<P></P>
+</P>
 <PRE>
   
   NOPTY    : Eliminates "-l" of standard bash-call
@@ -3656,22 +3777,24 @@ The basic configuration of SSH has to be prepared appropriately.
   2        : "-t -t" 
   
 </PRE>
+<P>
 <br />
 <br />
 <br />
-</DL>
-
+</P>
 <P>
 <a name="optZ" />
 </P>
-<DL>
-<DT><B>-Z (KSU|NOKSU|SUDO|NOSUDO|ALL)</B></DT><DD>
+<A NAME="toc52"></A>
+<H3>-Z (KSU|NOKSU|SUDO|NOSUDO|ALL)</H3>
+<P>
   Controls call permission-grant. The calls requiring
   impersonation to another users ID, frequently "root" for
   restricted system resources, are supported to use "ksu" and/or
   "sudo". This option replaces the default settings from the
   configuration file.
   The mechanisms could be switched on/off selectively.
+</P>
 <PRE>
   
   KSU     : use Kerberos
@@ -3682,8 +3805,10 @@ The basic configuration of SSH has to be prepared appropriately.
   
 </PRE>
 <P></P>
+<P>
 As an persistent alternative following environment variables
 could be pre-set.
+</P>
 <PRE>
   
   USE_KSU (0=&gt;off 1=&gt;on)         (DEFAULT:0=&gt;off)
@@ -3691,17 +3816,17 @@ could be pre-set.
   
 </PRE>
 <P></P>
+<P>
 The evaluation is implemented as a generic check for first
 match of hard-coded call-check. The following order of
 permission tests is performed for each system callee.
-<P></P>
+</P>
  <UL>
  <LI>user is root
  <LI>native access granted
  <LI>ksu call
  <LI>sudo call
  </UL>
-</DL>
 
 <DL>
 <DT>_</DT><DD>
@@ -3771,6 +3896,7 @@ option could be used to activate a pseudotty.
  </UL>
 </DL>
 
+<A NAME="toc53"></A>
 <H1>ARGUMENTS</H1>
 <PRE>
   
@@ -3857,6 +3983,7 @@ support for seamless execution is provided by this tool.
 <br />
 </DL>
 
+<A NAME="toc54"></A>
 <H1>SEE ALSO</H1>
 <DL>
 <DT><B>ctys use-cases</B></DT><DD>
@@ -3920,6 +4047,7 @@ support for seamless execution is provided by this tool.
 <br />
 </DL>
 
+<A NAME="toc55"></A>
 <H1>AUTHOR</H1>
 <P>
 Written and maintained by Arno-Can Uestuensoez:
@@ -3956,9 +4084,10 @@ Written and maintained by Arno-Can Uestuensoez:
 <br />
 <br />
 </P>
+<A NAME="toc56"></A>
 <H1>COPYRIGHT</H1>
 <P>
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
 </P>
 <P>
 This is software and documentation from <B>BASE</B> package,
@@ -3979,5 +4108,5 @@ For additional information refer to enclosed Releasenotes and License files.
 </P>
 
 <!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
-<!-- cmdline: txt2tags -t html -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/html/man1/ctys.html -->
+<!-- cmdline: txt2tags -t html -\-toc -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/html/man1/ctys.html -->
 </BODY></HTML>

@@ -903,6 +903,18 @@ function createConnectVMW () {
 	    fi
 
 
+	    #
+	    #find the correct db entry
+	    #
+ 	    local _targetHost=${R_HOSTS#*@};
+ 	    _targetHost=${_targetHost%%[({\'\"]*};
+	    if [ -z "${_actionuserQEMU}" ];then
+		    _actionuserQEMU="${R_HOSTS%%@*}";
+		    if [ "${R_HOSTS}" == "${_actionuserQEMU}" ];then
+			_actionuserQEMU="${MYUID}";
+		    fi
+	    fi
+
             #
             #0. Try cache - DB-INDEX
             #
@@ -924,7 +936,7 @@ function createConnectVMW () {
             #
             if [ -z "${_pname// /}" ];then
 		printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE"
-		_pname=`cacheGetUniquePname "${_base}" "${MYHOST}" VMW ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname}`
+		_pname=`cacheGetUniquePname "${_base}" "${_targetHost}" VMW ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname} ${_actionuserQEMU} `
 		if [ $? -ne 0 ];then
 		    ABORT=1;
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch unique pathname, following should be checked:"
@@ -954,6 +966,8 @@ function createConnectVMW () {
 		    local _stime=`getCurTime`;
 		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_stime):No CACHE hit by \"ctys-vhost.sh\", scanning filesystem now."
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "Update your database with \"ctys-vdbgen.sh\"."
+
+		    hookPackage "${_myPKGBASE_VMW}/enumerate.sh"
 
                     #starts in $HOME
                     _base=${_base:-$HOME}
@@ -996,7 +1010,7 @@ function createConnectVMW () {
 		    fi
 		fi
 		local _etime=`getCurTime`;
-		local _dtime=`getDiffTime $_etime $_stime`;
+		local _dtime=`getDiffTime $_stime $_etime`;
 
                 #give it up now
 		if [ -z "${_pname// /}" ];then
@@ -1063,7 +1077,7 @@ function createConnectVMW () {
 			    local _tcp=`${_VHOST} R:${DBREC}`
 			else
 			    _VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			fi
 			;;
 		    2)#local
@@ -1072,7 +1086,7 @@ function createConnectVMW () {
 				local _tcp=`${_VHOST} R:${DBREC}`
 			    else
 				_VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1082,7 +1096,7 @@ function createConnectVMW () {
 				local _tcp=`${_VHOST} R:${DBREC}`
 			    else
 				_VHOST="${_VHOST} ${_actionuserVMW:+ F:44:$_actionuserVMW}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1257,14 +1271,14 @@ function createConnectVMW () {
                     #So, dig the tunnel and connect myself.
                     #
  		    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
-                    digLocalPort VMW "${R_HOSTS//(*)/}" "$_label" "$_pname"
+                    digLocalPort VMW "${_targetHost//(*)/}" "$_label" "$_pname" "" "$_actionuserVMW"
 
  		    local _lport=`digGetLocalPort "${_label}" VMW`
                     if [ -z "$_lport" ];then
                         #Something went wrong!!!???                                      
 			ABORT=1
 			printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot allocate CONNECTIONFORWARDING"
-			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <VMW> <${R_HOSTS//(*)/}> <$i>"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <VMW> <${_targetHost//(*)/}> <$i> <> <$_actionuserVMW>"
 			gotoHell ${ABORT}
 		    fi
  		    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "_lport=${_lport} i=${i}"

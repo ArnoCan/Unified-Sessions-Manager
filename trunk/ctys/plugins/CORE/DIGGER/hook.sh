@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_DIGGER="${BASH_SOURCE}"
-_myPKGVERS_DIGGER="01.11.003"
+_myPKGVERS_DIGGER="01.11.018"
 hookInfoAdd "$_myPKGNAME_DIGGER" "$_myPKGVERS_DIGGER"
 
 _myPKGBASE_DIGGER=`dirname ${_myPKGNAME_DIGGER}`
@@ -76,6 +76,7 @@ hookPackage "${_myPKGBASE_DIGGER}/list.sh"
 #  $3: <label>
 #  $4: [<id>|<pname>]
 #  $5: [<blacklist>]
+#  $6: [<remote-user>]
 #
 #GLOBALS:
 #  LOCAL_PORTREMAP
@@ -90,11 +91,12 @@ hookPackage "${_myPKGBASE_DIGGER}/list.sh"
 #
 #FUNCEND###############################################################
 function digLocalPort () {
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME package   \$1=$1"
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME host      \$2=$2"
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME label     \$3=$3"
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME id        \$4=$4"
-    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME blacklist \$5=$5"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME package    \$1=$1"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME host       \$2=$2"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME label      \$3=$3"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME id         \$4=$4"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME blacklist  \$5=$5"
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME actionUser \$6=$6"
 
     if [ -z "$1" ];then
         ABORT=2
@@ -116,9 +118,14 @@ function digLocalPort () {
     local _blst=$5;
 
     local _rhost=`echo "${2}"|sed 's/(/"(/g;s/)/)"/g'`;
+    local actionUser=${6};
+    [ -z "$actionUser" -a \( "${_rhost#*@}" != "${_rhost}" \) ]&&actionUser=${_rhost%@*};
+    [ -z "$actionUser" ]&&actionUser=${MYUID};
+    _rhost=${actionUser}@${_rhost#*@}
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _rhost=$_rhost"
-
-    local remoteClientTP=`eval digGetClientTPfromServer "$3" "${_rhost}" "$1" "$4"`
+    local _call="digGetClientTPfromServer '${3}' '${_rhost}' '${1}' '${4}'"
+    printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-DO-EXEC:" "eval $_tunnel"
+    local remoteClientTP=$(eval ${_call})
 
     _rhost=`echo "${_rhost}"|sed 's/"([^)]*)"//g'`;
 
@@ -148,7 +155,7 @@ function digLocalPort () {
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME "
 
 
-    local _tunnel="ssh -f -L ${localClientAccess}:localhost:${remoteClientTP} $_rhost sleep ${SSH_ONESHOT_TIMEOUT} \# DYNREMAP:$1:$_rhost:${localClientAccess}:$3:${remoteClientTP}:${MYHOST}:${MYUID}:${MYGID}:${MYPID}:${MYPPID}:${CALLERJOB//:/-}-$((JOB_IDXSUB++))"
+    local _tunnel="ssh -f -L ${localClientAccess}:localhost:${remoteClientTP} ${_rhost} sleep ${SSH_ONESHOT_TIMEOUT} \# DYNREMAP:$1:$_rhost:${localClientAccess}:$3:${remoteClientTP}:${MYHOST}:${MYUID}:${MYGID}:${MYPID}:${MYPPID}:${CALLERJOB//:/-}-$((JOB_IDXSUB++))"
 
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME "
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME Assembled tunnel-call:"
@@ -248,6 +255,7 @@ function digGetLocalPort () {
 #  $2: [<host>]
 #  $3: [<package>]
 #  $4: [<id>|<pname>]
+#  $5: [<remote-user>]
 #
 #OUTPUT:
 #  RETURN:
@@ -257,13 +265,17 @@ function digGetLocalPort () {
 #
 #FUNCEND###############################################################
 function digGetClientTPfromServer () {
+    local actionUser=${5};
+    [ -z "$actionUser" -a \( "${_rhost#*@}" != "${_rhost}" \) ]&&actionUser=${_rhost%@*};
+    [ -z "$actionUser" ]&&actionUser=${MYUID};
+    local _rhost=${actionUser}@${_rhost#*@}
+
     printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME CALL=<${*}>"
     if [ -n "${C_DARGS}" ];then
 	local _rcall="${MYLIBEXECPATHNAME} -t ${3:-$C_SESSIONTYPE} -a GETCLIENTPORT=$1${4:+,$4} ${C_DARGS} ${2:-$R_HOSTS}'(${C_DARGS})'"
     else
 	local _rcall="${MYLIBEXECPATHNAME} -t ${3:-$C_SESSIONTYPE} -a GETCLIENTPORT=$1${4:+,$4} ${C_DARGS} ${2:-$R_HOSTS}"
     fi
-#    printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _rcall=${_rcall}"
     printFINALCALL 1  $LINENO $BASH_SOURCE "FINAL-GETCLIENTPORT-CALL" "${_rcall}"
     local _cPort=`$_rcall`
     printDBG $S_CORE ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME _cPort=${_cPort}"
@@ -291,7 +303,9 @@ function digGetClientTPfromServer () {
 #
 #PARAMETERS:
 #  $1: <host>
-#
+#  $2: [<SSH-Optionlist>]
+#       <SSH-Optionlist>:=<SSH-Option>[,<SSH-Option>...]
+#      OPtional options list for usage within '-o' option
 #OUTPUT:
 #  RETURN:
 #    0: remote-config:       ssh...
@@ -306,7 +320,10 @@ function digGetClientTPfromServer () {
 #FUNCEND###############################################################
 function digGetExecLink () {
     printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:TARGET(\$1-only!!!)=${*}"
+    local _opts=;
     local _EXECLINK=""
+
+    [ -n "$2" ]&&_opts="-o ${2//,/ -o }";
 
     if [ -z "${1}" ];then
 	return
@@ -383,6 +400,9 @@ function digGetExecLink () {
 	fi
 
 
+	if [ -n "$_opts" ];then
+	    _EXECLINK="${_EXECLINK} ${_opts} "
+	fi
 
 	_EXECLINK="${_EXECLINK} ${_target}"
 
@@ -437,6 +457,71 @@ function digCheckLocal () {
 
 #FUNCBEG###############################################################
 #NAME:
+#  digCheckSSHCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether it is a ssh-call.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: local exec
+#    1: remote exec
+#  VALUES:
+#
+#FUNCEND###############################################################
+function digCheckSSHCall () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:R_HOSTS=${R_HOSTS}"
+    if [ "$*" == "${*#ssh }" ];then
+	return 1
+    fi
+    return 0
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  digCheckCTYSCall
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks whether it is a ctys-call.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: local exec
+#    1: remote exec
+#  VALUES:
+#
+#FUNCEND###############################################################
+function digCheckCTYSCall () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:R_HOSTS=${R_HOSTS}"
+
+    if [ "$*" != "${*#/[^ ]*/ctys }" ];then
+	return 0
+    fi
+    if [ "$*" != "${*#ctys }" ];then
+	return 0
+    fi
+    return 1
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
 #  digGetSSHTarget
 #
 #TYPE:
@@ -471,7 +556,6 @@ function digGetSSHTarget () {
     if [ -z "$_x" ];then
 	return 1
     fi
-
     _x=${_x#*ssh };
     if [ "${*}" != "${_x}" ];then
 	_x=${_x#*@}
@@ -481,7 +565,6 @@ function digGetSSHTarget () {
     fi
     return 1
 }
-
 
 
 #FUNCBEG###############################################################
@@ -537,6 +620,224 @@ function digGetSSHUser () {
     fi
 
     return 1
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  digGetSSHTargetUser
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns the target machine of a ssh-call, if not matched no output 
+#  is provided.
+#
+#  For simlicity, the ctys-standard format including user and host is
+#  expected for the target.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: matched
+#    1: else
+#  VALUES:
+#    [<exec-target>]
+#       If present, the variants of "localhost" are treated as fully 
+#       recognized remote machines here.
+#
+#FUNCEND###############################################################
+function digGetSSHTargetUser () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
+    local _x="${@}"
+
+    if [ -z "$_x" ];then
+	return 1
+    fi
+
+    _x=${_x#*ssh };
+    if [ "${*}" != "${_x}" ];then
+	local _h=${_x#*@}
+	_h=${_h%% *}
+	local _u=${_x%%@*}
+	_u=${_u##* }
+	echo -n -e "${_u:+$_u@}${_h}"
+	return 0
+    fi
+    return 1
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  digPrecheckSSHKey
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks for the presence of a valid HostKey in known_hosts and remote
+#  access permissions.
+#  
+#EXAMPLE:
+#GLOBALS:
+#
+#PARAMETERS:
+#  $1:   <host>
+#
+#OUTPUT:
+#  RETURN:
+#    0: Success
+#    1: Failure
+#  VALUES:
+#    none
+#FUNCEND###############################################################
+function digPrecheckSSHKey () {
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _myCall=$(digGetExecLink $1 "StrictHostKeychecking=yes,PasswordAuthentication=no" )
+    { sleep $SSH_digPrecheckSSHKey_TIMEOUT&&x123=$(ps -ef |awk '!/12727/&&/123123-'"$$"'/{print $2}')&&[ -n "$x123" ]&&kill $x123 ; }&
+    local _myResult=$(${_myCall} echo -e -n -123123-$$-$?- 2>&1 );
+    if [ "${_myResult}" == "${_myResult//-123123-$$-0-/}" ];then
+	return 1;
+    fi
+    return $_ret;
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  digPrecheckSSHHost
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks for the presence of a valid HostKey in known_hosts.
+#  
+#EXAMPLE:
+#GLOBALS:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: Success
+#    1: Failure
+#  VALUES:
+#    none
+#FUNCEND###############################################################
+function digCheckSSHHost () {
+    printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _call="$@"
+    local _myTarget=$(digGetSSHTargetUser ${_call})
+    digPrecheckSSHKey ${_myTarget}
+    if [ $? -ne 0 ];then
+	${MYLIBEXECPATH}/checkCLIDialogue.sh
+	if [ $? -ne 0 ];then
+	    ABORT=2;
+	    local _msg=;
+	    _msg="${_msg}From localhost \"${MYUID}@${MYHOST}\" to remote host \"${_myTarget}\".\n\n"
+	    _msg="${_msg}ctys is running as a native GUI application, "
+	    _msg="${_msg}but requires dialogue for SSH confirmation of target host, "
+	    _msg="${_msg}and/or remote user authentication."
+	    _msg="${_msg}\n\nCheck your \"~/.ssh/known_hosts\", your Single-Sign-On, "
+	    _msg="${_msg}or call alternatively from command line."
+	    guiERR ${ABORT} "$_msg"
+	    gotoHell ${ABORT}
+	fi
+    fi
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  digGetCTYSTarget
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns the target machine of a ctys-call, if not matched no output 
+#  is provided.
+#
+#  It has t be a CTYS call, thus the "first" command is checked.
+#
+#  For simlicity, the ctys-standard format including user and host is
+#  expected for the target.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: matched
+#    1: else
+#  VALUES:
+#    [<exec-target>]
+#       If present, the variants of "localhost" are treated as fully 
+#       recognized remote machines here.
+#
+#FUNCEND###############################################################
+function digGetCTYSTarget () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
+    local _x="${@}"
+    local _targets=$(getTargets $*)
+    _targets=$(stripHostUsers ${_targets})
+    echo ${_targets}
+    return
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  digGetCTYSTargetUser
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Returns the target machine of a ctys-call, if not matched no output 
+#  is provided.
+#
+#  It has t be a CTYS call, thus the "first" command is checked.
+#
+#  For simlicity, the ctys-standard format including user and host is
+#  expected for the target.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: <complete-ssh-exec-call-string>
+#
+#OUTPUT:
+#  RETURN:
+#    0: matched
+#    1: else
+#  VALUES:
+#    [<exec-target>]
+#       If present, the variants of "localhost" are treated as fully 
+#       recognized remote machines here.
+#
+#FUNCEND###############################################################
+function digGetCTYSTargetUser () {
+    printDBG $S_CORE ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=${@}"
+    local _x="${@}"
+    local _targets=$(getTargets $*)
+    _targets=$(stripHosts ${_targets})
+    echo ${_targets}
+    return
 }
 
 

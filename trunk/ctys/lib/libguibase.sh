@@ -79,7 +79,7 @@ guiCONFIRM () {
 	    return $?
 	    ;;
 	*)
-	    printERR $LINENO $BASH_SOURCE ${_err} "Gnome is required, the WindowManager=<${MYWM}> is not supported."
+	    printERR $LINENO $BASH_SOURCE ${_err} "Gnome is required, the \nWindowManager=[${MYWM}]\n is not supported."
 	    return ${_err}
 	    ;;
     esac
@@ -118,7 +118,7 @@ guiERR () {
 	    kdialog --error "${*}"
 	    ;;
 	*)
-	    printERR $LINENO $BASH_SOURCE ${_err} "Gnome is required, the WindowManager=<${MYWM}> is not supported."
+	    printERR $LINENO $BASH_SOURCE ${_err} "Gnome is required, the \nWindowManager=[${MYWM}]\n is not supported."
 	    return ${_err}
 	    ;;
     esac
@@ -155,7 +155,7 @@ guiWNG () {
 	    kdialog --sorry "${*}"
 	    ;;
 	*)
-	    printERR $LINENO $BASH_SOURCE ${_wng} "Gnome is required, the WindowManager=<${MYWM}> is not supported."
+	    printERR $LINENO $BASH_SOURCE ${_wng} "Gnome is required, the \nWindowManager=[${MYWM}]\n is not supported."
 	    return ${_wng}
 	    ;;
     esac
@@ -192,7 +192,7 @@ guiINFO () {
 	    kdialog --info "${*}"
 	    ;;
 	*)
-	    printERR $LINENO $BASH_SOURCE ${_inf} "Gnome is required, the WindowManager=<${MYWM}> is not supported."
+	    printERR $LINENO $BASH_SOURCE ${_inf} "Gnome is required, the \nWindowManager=[${MYWM}]\n is not supported."
 	    return ${_inf}
 	    ;;
     esac
@@ -226,13 +226,82 @@ guiCHECKEXIT () {
 	*)
 	    ABORT=2;
 	    if [ -n "${MYWM}" ];then
-		guiERR ${ABORT} "Gnome is required, the WindowManager=<${MYWM}> is not supported."
+		guiERR ${ABORT} "Gnome is required, the \nWindowManager=[${MYWM}]\n is not supported."
 	    else
-		printERR $LINENO $BASH_SOURCE ${ABORT} "Gnome is required, the WindowManager=<${MYWM}> is not supported."
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Gnome is required, the \nWindowManager=[${MYWM}]\n is not supported."
 	    fi
 	    gotoHell ${ABORT}
 	    ;;
     esac
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  guiCHECK
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: [WM]
+#      Check also the exact windows manager
+#
+#  $2: [EXIT|SILENT]
+#      EXIT
+#        Exit process if fails
+#      SILENT
+#        No screen output, just return code.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+guiCHECK () {
+    ABORT=2;
+    if [ -n "${MYWM}" ];then
+	case "$1" in
+	    WM)
+		case "$MYWM" in
+		    GNOME) ;;
+		    KDE) ;;
+		    *)
+			case "$2" in
+			    EXIT)
+				guiERR ${ABORT} "Gnome or KDE is required, the \nWindowManager=[${MYWM}]\n is not supported."
+				gotoHell ${ABORT}
+				;;
+			    SILENT)
+				return 1
+				;;
+			    *)
+				guiWNG ${ABORT} "Gnome or KDE is required, the \nWindowManager=[${MYWM}]\n may be erroneous."
+				return 1
+				;;
+			esac
+		esac
+		;;
+	esac
+    else
+	case "$2" in
+	    EXIT)
+		printERR $LINENO $BASH_SOURCE ${ABORT} "WindowManager is required."
+		gotoHell ${ABORT}
+		;;
+	    SILENT)
+		return 1
+		;;
+	    *)
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "WindowManager is required"
+		return 1
+		;;
+	esac
+    fi
 }
 
 

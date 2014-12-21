@@ -286,6 +286,7 @@ function createConnectCLI () {
 		CONNECTIONFORWARDING|*)
 		    ABORT=1
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Execution locality error:${C_CLIENTLOCATION}"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Use for CLI the STUBMODE instead."
 		    gotoHell ${ABORT}
 		    ;;
 	    esac

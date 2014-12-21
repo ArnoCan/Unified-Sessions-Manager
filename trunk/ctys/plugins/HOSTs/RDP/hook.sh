@@ -511,9 +511,9 @@ function enumerateMySessionsRDP () {
 #Managed load of sub-packages gwhich are required in almost any case.
 #On-demand-loads will be performed within requesting action.
 #
-hookPackage "${_myPKGBASE_RDP}/session.sh"
-hookPackage "${_myPKGBASE_RDP}/list.sh"
-hookPackage "${_myPKGBASE_RDP}/info.sh"
+#4TEST:hookPackage "${_myPKGBASE_RDP}/session.sh"
+#4TEST:hookPackage "${_myPKGBASE_RDP}/list.sh"
+#4TEST: hookPackage "${_myPKGBASE_RDP}/info.sh"
 
 if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/rdp" ];then
     #Source pre-set environment from user
@@ -557,13 +557,66 @@ function handleRDP () {
 
   case ${ACTION} in
 
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_RDP}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_RDP}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
       CREATE) 
 	  case ${OPMODE} in
               PROLOGUE)
 		  ;;
               EPILOGUE)
 		  ;;
-	      CHECKPARAM|ASSEMBLE|EXECUTE)
+	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_RDP}/create.sh"
+		  createConnectRDP ${OPMODE} ${ACTION} 
+		  ;;
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_RDP}/create.sh"
+		  createConnectRDP ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_RDP}/session.sh"
+		  hookPackage "${_myPKGBASE_RDP}/list.sh"
 		  hookPackage "${_myPKGBASE_RDP}/create.sh"
 		  createConnectRDP ${OPMODE} ${ACTION} 
 		  ;;
@@ -576,7 +629,17 @@ function handleRDP () {
 		  ;;
               EPILOGUE)
 		  ;;
-	      CHECKPARAM|ASSEMBLE|EXECUTE)
+	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_RDP}/cancel.sh"
+		  cutCancelSessionRDP ${OPMODE} ${ACTION} 
+		  ;;
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_RDP}/cancel.sh"
+		  cutCancelSessionRDP ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_RDP}/session.sh"
+		  hookPackage "${_myPKGBASE_RDP}/list.sh"
 		  hookPackage "${_myPKGBASE_RDP}/cancel.sh"
 		  cutCancelSessionRDP ${OPMODE} ${ACTION} 
 		  ;;
@@ -602,6 +665,8 @@ function handleRDP () {
 
                   ;;
 	      EXECUTE)
+		  hookPackage "${_myPKGBASE_RDP}/session.sh"
+		  hookPackage "${_myPKGBASE_RDP}/list.sh"
 		  printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "Remote command:C_MODE_ARGS=${C_MODE_ARGS}"
 		  printDBG $S_RDP ${D_BULK} $LINENO $BASH_SOURCE "CLIENTPORT(RDP,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPRDP ${_C_GETCLIENTPORT}`"
   		  echo "CLIENTPORT(RDP,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPRDP ${_C_GETCLIENTPORT}`"

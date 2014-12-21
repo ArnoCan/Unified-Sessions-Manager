@@ -143,7 +143,6 @@ function fetchGroupMembers () {
 	    _matchone=1;
 	fi
     done
-
     if [ -z "${_matchone}" ];then
 	ABORT=1
 	printERR $LINENO $BASH_SOURCE ${ABORT} "No directory available from:CTYS_GROUPS_PATH=<${CTYS_GROUPS_PATH}>"
@@ -446,7 +445,6 @@ function expandGroups () {
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_hostlst=<${_hostlst}>"
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_namelst=${_namelst}"
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:RESOLVE-AND-PERMUTATE:${_namelst}"
-
     local _curglst=;
     local i7=;
     for i7 in $_namelst;do
@@ -578,7 +576,6 @@ function listGroupMembers () {
 
     for i7 in ${_sb//:/ };do
         [ -z "$C_TERSE" ]&&echo
-#4TEST:        [ -z "$C_TERSE" ]&&echo "${i7}"
         [ -z "$C_TERSE" ]&&echo $(setFontAttrib BOLD "${i7}");echo
 
         cd "${i7}"

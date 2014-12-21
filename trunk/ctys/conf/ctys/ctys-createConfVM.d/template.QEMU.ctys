@@ -11,7 +11,7 @@
 #
 ########################################################################
 #
-#     Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#     Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 #     This program is free software: you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
@@ -262,16 +262,20 @@ esac
 #
 ARCH=${ARCH:-MARKER_ARCH}
 #
+#The CPU.
+#
+#2check for platforms!!!: CPU=${CPU:-host}
+#
 #Optional CPU architecture
 #
 if [ -n "${ARCH}" ];then
     case ${ARCH// /} in
-	[xX]86_64|[aA][mM][dD]64) CPU="qemu64";;
-	[iI]386|[iI]586|[iI]686) CPU="qemu32";;
+	[xX]86_64|[aA][mM][dD]64) CPU="${CPU:-qemu64}";;
+	[iI]386|[iI]586|[iI]686) CPU="${CPU:-qemu32}";;
 
 	#anyhow...for suprising pop-ups of x86-types
 #avoid this for embedded	*) CPU="qemu32";;
-	*) CPU="${ARCH}";;
+	*) CPU="${CPU:-$ARCH}";;
     esac
 fi
 
@@ -302,11 +306,17 @@ TIMEOPT="${TIMEOPT:--localtime} "
 #
 #Default network interface
 #
+#Most degree of generic, but may not outperform others.
+NIC=${NIC:-rtl8139}
+#
 #For OpenBSD-4.6 use e1000, with bsd.rd and/or disable 'mpbios'
 #NIC=${NIC:-e1000}
 #
 #NIC=${NIC:-pcnet}
-NIC=${NIC:-rtl8139}
+#
+#Probably the best performance for newer kernels.
+#Requires the module to be loaded.
+#NIC=${NIC:-virtio}
 
 
 

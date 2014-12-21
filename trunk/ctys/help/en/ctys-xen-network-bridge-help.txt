@@ -20,7 +20,7 @@ Refer to man pages.
 COPYRIGHT
 =========
 
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
 
 This is software and documentation from BASE package,
 

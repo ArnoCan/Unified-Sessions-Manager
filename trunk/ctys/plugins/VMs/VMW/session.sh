@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_007
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VMW_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VMW_SESSION="01.11.007"
+_myPKGVERS_VMW_SESSION="01.11.018"
 hookInfoAdd $_myPKGNAME_VMW_SESSION $_myPKGVERS_VMW_SESSION
 _myPKGBASE_VMW_SESSION="`dirname ${_myPKGNAME_VMW_SESSION}`"
 
@@ -77,143 +77,6 @@ function noClientServerSplitSupportedMessageVMW () {
 function expandSessionIDVMW () {
     echo $1
 }
-
-#FUNCBEG###############################################################
-#NAME:
-#  isActiveVMW
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#
-#OUTPUT:
-#  RETURN:
-#    0: Active
-#    1: Not active
-#
-#  VALUES:
-#    0: Active
-#    1: Not active
-#
-#FUNCEND###############################################################
-function isActiveVMW () {
-    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
-
-    if [ -z "$1" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
-	gotoHell ${ABORT}
-    fi
-    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
-    if [ -n "$x" ];then
-	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
-	echo 0
-	return 0;
-    fi
-    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
-    echo 1
-    return 1;
-}
-
-
-
-#FUNCBEG###############################################################
-#NAME:
-#  getClientTPVMW
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-# GENERIC-IF-DESCRIPTION:
-#  Gives the termination points port number, to gwhich a client could be 
-#  attachhed. This port is forseen to be used in port-forwarding e.g.
-#  by OpenSSH.
-#
-#  The port is the local port number, gwhich in general has to be mapped 
-#  on remote site, when already in use. Therefore the application has
-#  to provide a port-number-independent client access protocol in order 
-#  to be used by connection forwarding. In any other case display 
-#  forwarding has to be choosen.
-#
-#  Some applications support only one port for access by multiple 
-#  sessions, dispatching and bundling the communications channels
-#  by their own protocol. 
-#
-#  While others require for each channel a seperate litenning port.
-#
-#  So it is up to the specific package to support a function returning 
-#  the required port number gwhich could be used to attach an forwarded 
-#  port. 
-#  
-#  The applications client has to support a remapped port number.
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#  $1: <label>
-#       The <label> to gwhich the client will be attached.
-#
-#  $2: <pname>
-#      The pname of the configuration file, this is required for 
-#      VNC-sessions, and given to avoid scanning for labels
-#
-#OUTPUT:
-#  RETURN:
-#    0: If OK
-#    1: else
-#
-#  VALUES:
-#    <TP-port>
-#      The TP port, to gwhich a client could be attached.
-#
-#FUNCEND###############################################################
-function getClientTPVMW () {
-    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
-    local _port=;
-
-    #for ws>6 only
-    if [ -n "$2" -a "${VMW_MAGIC}" == "VMW_WS6" -o "${VMW_MAGIC}" == "VMW_WS7" ];then
-	if [ -f "$2" ];then
-	    _port=`cat $2|sed -n 's/\t//g;/^#/d;s/RemoteDisplay.vnc.port *= *"\([^"]*\)"/\1/p'`
-	fi
-	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_port=$_port"
-    fi
-
-    #for s2
-    if [ -z "$_port" -a -f "/etc/vmware/hostd/proxy.xml" ];then
-	_port=`cat /etc/vmware/hostd/proxy.xml |sed -n 's@<httpsPort>\([0-9]*\)</httpsPort>@\1@p'`
-	if [ -z "$_port" ];then
-	    _port=`cat /etc/vmware/hostd/proxy.xml |sed -n 's@<httpPort>\([0-9]*\)</httpPort>@\1@p'`
-	fi
-    fi
-
-    #for ws and server
-    if [ -z "$_port" -a -f "/etc/vmware/config" ];then
-	_port=`cat /etc/vmware/config |sed -n 's/authd.client.port *= *"\([0-9]*\)"/\1/p'`
-    fi
-
-    #for player not an error!
-    if [ -z "${_port}" ];then
-	if [ "${VMW_MAGIC}" == "VMW_S104" ];then
-	    echo
-	    ABORT=2
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Error, can not get port number for label:${1}"
-	    gotoHell ${ABORT}
-	fi
-    fi
-    local _ret=$_port;  
-    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
-    echo ${_ret}
-}
-
-
 
 #FUNCBEG###############################################################
 #NAME:

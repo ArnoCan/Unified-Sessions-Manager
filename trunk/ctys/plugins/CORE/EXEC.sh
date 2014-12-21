@@ -835,6 +835,10 @@ function doExecCall () {
 	fi
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:C_PARALLEL=<${C_PARALLEL}>"
 	printDBG $S_CORE ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:C_STACK   =<${C_STACK}>"
+
+
+	digCheckSSHHost ${_call}
+
         #activate job-control
         #
         #The special case of VMSTACK is handled here due to missing "actual-namespaces",
@@ -842,6 +846,7 @@ function doExecCall () {
 	if [ "${C_STACK}" == 1 ];then
 	    local _R_C_SESSIONTYPE=`cliGetOptValue -t ${_call}`
 	    printINFO 2 $LINENO $BASH_SOURCE 0 "$FUNCNAME:VMSTACK:force NON-CLI-HOSTSs to ASYNC:<$_R_C_SESSIONTYPE>"
+
 	    case $_R_C_SESSIONTYPE in
 		X11)
 		    _call=${_call//ssh/ssh -f};

@@ -242,6 +242,18 @@ function enumerateMySessions () {
       printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-machine-${_ssumtime}--"
       for y in ${PACKAGES_KNOWNTYPES};do
 	  [ "$y" == "CLI" -o "$y" == "X11" -o "$y" == "RDP" -o "$y" == "VNC" ]&&continue;
+
+          local _yx="${y}_STATE";
+          _yx=$(eval echo \${${_yx}})
+	  printINFO 9 $LINENO $BASH_SOURCE 1 "${FUNCNAME}:<$(getCurTime)>:${y}:${_yx}"
+          if [ "${_yx}" == ENABLED ];then
+              eval handle${y} PROLOGUE ENUMERATE
+	  else
+	      printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:Plugin for \"${y}\" is not ENABLED - IGNORED"
+ 	      printWNG  2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:Plugin for \"${y}\" is not ENABLED - IGNORED"
+	      continue
+          fi
+
  	  if [ -n "`typeset -f enumerateMySessions${y}`" ];then
 	      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE} => ${y}"
 	      if [ "${C_SESSIONTYPE}" == "${y}" -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == "DEFAULT" ];then
@@ -275,26 +287,25 @@ function enumerateMySessions () {
 		      SESLST="${SESLST} `enumerateMySessions${y}`"
 		  fi
 		  local _ftime=`getCurTime`;
-		  local _duration=`getDiffTime $_ftime $_stime`;
+		  local _duration=`getDiffTime $_stime $_ftime`;
 		  printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-${_duration}"
 		  printINFO 2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-${_duration}"
 	      fi
 	  else
 	      local _ftime=`getCurTime`;
-	      local _duration=`getDiffTime $_ftime $_stime`;
-	      printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-IGNORED"
-	      printINFO 2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:FINISH-${y}-${_stime}-${_ftime}-IGNORED"
+	      local _duration=`getDiffTime $_stime $_ftime`;
+	      printERR $LINENO $BASH_SOURCE 2 "${FUNCNAME}:Plugin for \"${y}\" not found - IGNORED"
 	  fi
       done
       local _fsumtime=`getCurTime`;
-      local _sumduration=`getDiffTime $_fsumtime $_ssumtime`;
+      local _sumduration=`getDiffTime $_ssumtime $_fsumtime`;
       printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:FINISH-machine-${_ssumtime}-${_fsumtime}-${_sumduration}"
       printINFO 2 $LINENO $BASH_SOURCE 2 "${FUNCNAME}:FINISH-machine-${_ssumtime}-${_fsumtime}-${_sumduration}"
 
       if((_matched==0));then
 	  ABORT=2
-	  printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected C_SESSIONTYPE=${C_SESSIONTYPE}"
-	  printERR $LINENO $BASH_SOURCE ${ABORT} "  PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+	  printERR $LINENO $BASH_SOURCE ${ABORT} "System Error, unexpected C_SESSIONTYPE=\"${C_SESSIONTYPE}\""
+	  printERR $LINENO $BASH_SOURCE ${ABORT} "  PACKAGES_KNOWNTYPES=\"${PACKAGES_KNOWNTYPES}\""
 
 	  gotoHell ${ABORT}
       fi

@@ -17,17 +17,24 @@ ctys-createConfVM
    [-d <debug-level>]
    [-D <directory>]
    [--defaults-file=<file-name>]
-   [--defaults-file <file-name>]
+   [--defaults-file]
+   [--defaults-file-create]
+   [--defaults-file-create-with-force]
    [--expert]
    [-h]
    [-H <help-options>]
-   [--label=<label>]
-   [--label <label>]
+   (
+     --label=<label>
+     | --label <label>
+   )
    [--list-env-var-options|--levo]
    [--no-create-image]
+   [--no-create-conf-data]
+   [--no-load-defaults-file]
    [--no-save-para-kernel]
+   [--no-write-conf-files]
    [--save-para-kernel]
-   [-t <session-type>]
+   -t <session-type>
    [-V]
    [-X]
 
@@ -44,7 +51,7 @@ extended help:
 COPYRIGHT
 =========
 
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
 
 This is software and documentation from BASE package,
 

@@ -23,47 +23,6 @@ _myPKGBASE_QEMU_SESSION="`dirname ${_myPKGNAME_QEMU_SESSION}`"
 
 
 
-#FUNCBEG###############################################################
-#NAME:
-#  isActiveQEMU
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#
-#OUTPUT:
-#  RETURN:
-#    0: Active
-#    1: Not active
-#
-#  VALUES:
-#    0: Active
-#    1: Not active
-#
-#FUNCEND###############################################################
-function isActiveQEMU () {
-    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
-
-    if [ -z "$1" ];then
-	ABORT=2
-	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
-	gotoHell ${ABORT}
-    fi
-    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
-    if [ -n "$x" ];then
-	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
-	echo 0
-	return 0;
-    fi
-    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
-    echo 1
-    return 1;
-}
 
 
 #FUNCBEG###############################################################
@@ -128,69 +87,6 @@ function expandSessionIDQEMU () {
 
 
 
-#FUNCBEG###############################################################
-#NAME:
-#  getClientTPQEMU
-#
-#TYPE:
-#  bash-function
-#
-#DESCRIPTION:
-#
-# GENERIC-IF-DESCRIPTION:
-#  Gives the termination points port number, to gwhich a client could be 
-#  attachhed. This port is forseen to be used in port-forwarding e.g.
-#  by OpenSSH.
-#
-#  The port is the local port number, gwhich in general has to be mapped 
-#  on remote site, when already in use. Therefore the application has
-#  to provide a port-number-independent client access protocol in order 
-#  to be used by connection forwarding. In any other case display 
-#  forwarding has to be choosen.
-#
-#  Some applications support only one port for access by multiple 
-#  sessions, dispatching and bundling the communications channels
-#  by their own protocol. 
-#
-#  While others require for each channel a seperate litenning port.
-#
-#  So it is up to the specific package to support a function returning 
-#  the required port number gwhich could be used to attach an forwarded 
-#  port. 
-#  
-#  The applications client has to support a remapped port number.
-#
-#EXAMPLE:
-#
-#PARAMETERS:
-#  $1: <label>
-#       The <label> to gwhich the client will be attached.
-#
-#  $2: <pname>
-#      The pname of the configuration file, this is required for 
-#      VNC-sessions, and given to avoid scanning for labels
-#
-#OUTPUT:
-#  RETURN:
-#    0: If OK
-#    1: else
-#
-#  VALUES:
-#    <TP-port>
-#      The TP port, to gwhich a client could be attached.
-#
-#FUNCEND###############################################################
-function getClientTPQEMU () {
-    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
-    local _port=;
-    _port=`listMySessionsQEMU S|awk -F';' -v l="${1}" -v id="${2}" '$2~l&&$3~id||$3~id||$2~l{print $7;}'`
-    if [ -z "${_port}" ];then
-	_port="NO-CPORT"
-    fi
-    local _ret=$_port;  
-    printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
-    echo ${_ret}
-}
 
 
 

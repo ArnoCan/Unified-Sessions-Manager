@@ -22,6 +22,8 @@ The utility \fBctys\fR is the core interface to be used within the UnifiedSessio
 \fBctys\fR encapsulates the user interfaces of the whole set of supported hypervisors and
 native sessions into a common syntax with a single call interface.
 
+.SS Basics
+.SS Installation and Setup
 .P
 The installation and configuration is descibed within the HowTo manual and the specific 
 configuration guides.
@@ -29,11 +31,13 @@ The basic installation should work almost from the box, once the prerequisites a
 The most valuable tool for verifying the setup of ctys is \fBctys\-plugins\fR which performs 
 a validation of local and remote installations and displays a detailed report.
 
+.SS Configuration
 .P
 The majority  of the preset default values could be changed by configuration files
 and environment variables.
 The configuration files are installed by default within \fB$HOME/.ctys\fR directory tree.
 
+.SS VMs and PMs - Sessions Namebinding
 .P
 The most important aspect for the introduction of a common interface is the 
 unique namenbinding for addressing the user sessions to physical machines, supported hypervisors
@@ -101,17 +105,18 @@ The supported core utilities are:
 These provide particularly the dynamic network related data for caching and offer 
 an enhanced query interface.
 
+.SS Option Groups
 .P
 The options are grouped into two sections:
 
-.TP
-\fBACTIONS\fR
+.SS ACTIONS
+.P
 These are options directly related to specific plugins.
 ACTIONS are suboptions to the \fB\-a\fR option and are preset by the actual 
 loaded plugin controlled by \fB\-t\fR and \fB\-T\fR options.
 
-.TP
-\fBGeneric Attributes\fR
+.SS Generic Attributes
+.P
 These are the options which are mostly generic within the whole set of utilities.
 They influence the ACTIONS, but are related to the runtime environment.
 
@@ -1434,8 +1439,8 @@ For now the Display is given as:
 
 
 .SS Generic Options
-.TP
-\fB\-A <ambiguity\-mode>\fR
+.SS -A <ambiguity-mode>
+.P
 Allow ambiguity, this has several effects on values which may
 or may not be allowed to be ambiguous.
 
@@ -1444,6 +1449,7 @@ or may not be allowed to be ambiguous.
 .fi
 
 
+.P
 Allow ambiguity(\-A 1) or disallow(\-A 0:default).
 
 .RS
@@ -1461,11 +1467,12 @@ circumstance or not. If not activated, redundancies in
 resulting group lists will be removed silently.
 .RE
 
-.TP
-\fB\-b <background\-mode>\fR
+.SS -b <background-mode>
+.P
 Background and/or parallel execution. This option combines the
 control of detachment from console and the job distribution to
 multiple targets.
+
 .nf
   
   <background-mode>=
@@ -1483,6 +1490,7 @@ multiple targets.
 .fi
 
 
+.P
 In addition this option controls the execution of VM\-Stacks, which are
 closely coupled to GROUPS as well as to the background mode,
 refer to "Stacks As Vertical Subgroups".
@@ -1554,6 +1562,7 @@ reduced from 300seconds=5minutes to 15seconds.
 
 .RE
 .RE
+
 .TP
 _
 Therefore the two properties complement each other, even though
@@ -1562,8 +1571,7 @@ some similar effects could occur.
 \fBREMARK\fR: The usage of "&" by shell expansion will just superpose
 the internal job control, which should avoided.
 
-.TP
-\fB\-c <args>\fR
+.SS -c <args>
 .nf
   
   <args>=(
@@ -1576,6 +1584,7 @@ the internal job control, which should avoided.
 .fi
 
 
+.P
 The operations of ctys utilize special virtual\-nameservice information which optionally could be
 read from the inventory database.
 Either from the local host, or the remote hosts allocated local database.
@@ -1683,8 +1692,7 @@ configuration data for plugins based ob conf\-files.
 The cache DB has to be created by the tool ctys\-vdbgen.
 .RE
 
-.TP
-\fB\-C <args>\fR
+.SS -C <args>
 .nf
   
   <args>=(
@@ -1701,6 +1709,7 @@ The cache DB has to be created by the tool ctys\-vdbgen.
 .fi
 
 
+.P
 For ctys two basic types of data\-caches are used. 
 The first one is the plugin specific in\-mem cache, where frequent
 operations like "ps" for LABEL mapping will be cached for the lifetime
@@ -1708,11 +1717,13 @@ of a process.
 The second is the cacheDB on\-disk cacheing, which could span
 multiple calls to a specific executable.
 
+.P
 The in\-mem caching is active by default, because the assumption
 is made that the systems state might not alter relevant to ctys
 within a call\-cycle. This could be deactivated for the common
 plugins by with the "OFF" option, which additionally.
 
+.P
 The on\-disk caching is used for two specific reasons.
 
 .RS
@@ -1796,8 +1807,7 @@ current operation on it's actual execution\-target are
 stored.
 .RE
 
-.TP
-\fB\-d <debug\-args>\fR
+.SS -d <debug-args>
 .nf
   
   <debug-args>=
@@ -1832,6 +1842,7 @@ stored.
 .fi
 
 
+.P
 Sets the level and range of debug output.
 
 .RS
@@ -1852,6 +1863,7 @@ The match mode displays trace only by bitwise AND operation.
 
 .RE
 .RE
+
 .TP
 _
 
@@ -1982,8 +1994,8 @@ This could be in some cases an internal library call with a bulk of
 subcalls of minor interest, but by definition is the final CLI execution.
 .RE
 
-.TP
-\fB\-D (<display>[.<screen>])|<LABEL>\fR
+.SS -D (<display>[.<screen>])|<LABEL>
+.P
 This option controls the output of local display.
 The values are mapped to the DISPLAY variable, but due to security
 resons for localhost only.
@@ -1991,31 +2003,34 @@ Thus this is practically applicable to the display target VNC and
 physical multi\-monitor configurations only.
 VMs are from the point of view for TCP/IP generally different hosts.
 
-.TP
-\fB\-f\fR
-Force execution and ignore minor warnings. Basically no
-"destructive" operation, particularly nothing irreversible will
-be performed.
+.SS -f
+.P
+  Force execution and ignore minor warnings. Basically no
+  "destructive" operation, particularly nothing irreversible will
+  be performed.
 
-.TP
-\fB\-F <remote_version>\fR
-Force remote version.
+.SS -F <remote_version>
+.P
+  Force remote version.
 
-.TP
-\fB\-g <geometry>|<geometryExtended>\fR
-The geometry for client\-side representation. It is the exact
-syntax of X client "\-\-geometry" parameter with an additional
-screen parameter as alias or index for usage with Xorg multiple
-displays.
+.SS -g <geometry>|<geometryExtended>
+.P
+  The geometry for client\-side representation. It is the exact
+  syntax of X client "\-\-geometry" parameter with an additional
+  screen parameter as alias or index for usage with Xorg multiple
+  displays.
 
-\fBATTENTION\fR:
-In order of using xorg.conf and saving effort some
-minor assumptions as requirements concerning the xorg.conf
-file are made.  Current implementation requires due to
-stateless filtering the field "Identifier" as first entry in
-"ServerLayout" sections.
+.P
+  \fBATTENTION\fR:
+    In order of using xorg.conf and saving effort some
+    minor assumptions as requirements concerning the xorg.conf
+    file are made.  Current implementation requires due to
+    stateless filtering the field "Identifier" as first entry in
+    "ServerLayout" sections.
 
-Supported variants: 
+.P
+  Supported variants: 
+
 .RS
 .IP \(bu 3
 Xorg\-style: <geometry>
@@ -2079,39 +2094,43 @@ configuration file only used for remote DISPLAY targets.
 .RE
 .RE
 
-.TP
-\fB\-h\fR
+.SS -h
+.P
 Print help, refer to "\-H" for additional information.
 
-.TP
-\fB\-H <help\-options>\fR
+.SS -H <help-options>
+.P
 The extended help option is based on system interfaces for display of
 manpages, PDF  and HTML documents.
 This comprises the man pages and installed manuals.
 
+.P
 For additional help refer to the documents chapter
 \fBOnline\-Help\fR or type \fBctys \-H help\fR.
 
-.TP
-\fB\-j <job\-id>\fR
-The ID of current job. This is an internal call and therefore
-should just used by developers for test purposes. Any variation
-of the JOB_IDX for the CLI call may severe job execution
-seriously and even can damage user data when set for a CANCEL
-operation.
+.SS -j <job-id>
+.P
+  The ID of current job. This is an internal call and therefore
+  should just used by developers for test purposes. Any variation
+  of the JOB_IDX for the CLI call may severe job execution
+  seriously and even can damage user data when set for a CANCEL
+  operation.
 
-The originating CLI call should not use this option in
-productive operations, any subcall may have a propagated value
-as required.
-The value within the originating interactive CLI call is set to
-"JOB_IDX=0". This is the value for the starting point of
-internal task\-scheduler data, and thus the index for the first
-performed task too.
-The value is evaluated by plugins for handling job specific
-PROLOG and within EPILOG for decision of the state of passed
-job and eventual required post\-processing.
+.P
+  The originating CLI call should not use this option in
+  productive operations, any subcall may have a propagated value
+  as required.
+  The value within the originating interactive CLI call is set to
+  "JOB_IDX=0". This is the value for the starting point of
+  internal task\-scheduler data, and thus the index for the first
+  performed task too.
+  The value is evaluated by plugins for handling job specific
+  PROLOG and within EPILOG for decision of the state of passed
+  job and eventual required post\-processing.
 
-In addition a variable "CTYS_SUBCALL" is set.
+.P
+  In addition a variable "CTYS_SUBCALL" is set.
+
 .RS
 .IP \(bu 3
 "\-j ${DATETIME}:${JOB_SUPER}"
@@ -2128,15 +2147,14 @@ default:
 .RE
 .RE
 
-.TP
-\fB\-l <login\-name>\fR
-The users, which will be used for hosts without an exlicitly given
-user. The hosts/groups entries provide the common EMail\-Style
-"<user>@<execution\-target>". 
-The default is "$USER", when neither "\-l", nor an explicit user is provided.
+.SS -l <login-name>
+.P
+  The users, which will be used for hosts without an exlicitly given
+  user. The hosts/groups entries provide the common EMail\-Style
+  "<user>@<execution\-target>". 
+  The default is "$USER", when neither "\-l", nor an explicit user is provided.
 
-.TP
-\fB\-L <execution\-location>\fR
+.SS -L <execution-location>
 .nf
   
   <execution-location>=(
@@ -2149,6 +2167,7 @@ The default is "$USER", when neither "\-l", nor an explicit user is provided.
   
 .fi
 
+.P
 This option controls the location and possible split of the
 involved client and server parts of current session.
 When connecting a user interface with it's server components
@@ -2180,58 +2199,60 @@ from local client.
 This is a server in a so called headless\-mode.
 .RE
 
-.TP
-\fB\-M <message>\fR
-Free text to be used as prefix for target exec. It will be
-printed before output.
+.SS -M <message>
+.P
+  Free text to be used as prefix for target exec. It will be
+  printed before output.
 
-.TP
-\fB\-n\fR
-Just display, do not execute. For test only.
+.SS -n
+.P
+  Just display, do not execute. For test only.
 
-.TP
-\fB\-p <db\-directory\-path\-list>\fR
-Path list to directories containing DBs for name resolution,
-same for each <db\-directory\-path> as for ctys\-vdbgen. 
-ctys will internally handle names by multiple levels of
-resolution, which depends on the actual executing plugin. The
-most sophisticated address resolution is frequently required
-for VMs when using them in a roaming manner on groups of
-machines, where after some plugin specific resolution of
-convenient VM\-addressing by user an TCP/IP service\-access\-point
-for OpenSSH has to be addressed.
+.SS -p <db-directory-path-list>
+.P
+  Path list to directories containing DBs for name resolution,
+  same for each <db\-directory\-path> as for ctys\-vdbgen. 
+  ctys will internally handle names by multiple levels of
+  resolution, which depends on the actual executing plugin. The
+  most sophisticated address resolution is frequently required
+  for VMs when using them in a roaming manner on groups of
+  machines, where after some plugin specific resolution of
+  convenient VM\-addressing by user an TCP/IP service\-access\-point
+  for OpenSSH has to be addressed.
 
-The second case to be handled is the addressing of execution
-entities of type HOSTs transparently within a VM or PM. This
-will be supplied by ctys\-nameservice too.
-For almost all of the nameservice tasks additionally required
-for plugin\-specific address resolution actions the ctys\-vhost
-command is used internally. This option sets the databases for
-operations of ctys\-vhost. If not present ctys\-vhost defaults 
-will be applied.
+.P
+  The second case to be handled is the addressing of execution
+  entities of type HOSTs transparently within a VM or PM. This
+  will be supplied by ctys\-nameservice too.
+  For almost all of the nameservice tasks additionally required
+  for plugin\-specific address resolution actions the ctys\-vhost
+  command is used internally. This option sets the databases for
+  operations of ctys\-vhost. If not present ctys\-vhost defaults 
+  will be applied.
 
-.TP
-\fB\-P\fR
-Use default <db\-directory\-path>.
+.SS -P
+.P
+  Use default <db\-directory\-path>.
 
-.TP
-\fB\-r <xsize>x<ysize>\fR
-Remote resolution, which is by default the same as local client
-size given by "\-g" option.
-This configures the virtual graphic card of the server with the
-provided resolution.
-This parameter is not applicable to any application. It has to
-be defined in the application specific package. The current
-supported applications are:
+.SS -r <xsize>x<ysize>
+.P
+  Remote resolution, which is by default the same as local client
+  size given by "\-g" option.
+  This configures the virtual graphic card of the server with the
+  provided resolution.
+  This parameter is not applicable to any application. It has to
+  be defined in the application specific package. The current
+  supported applications are:
 
 .RS
 .IP \(bu 3
 VNC: for vncserver
 .RE
 
-.TP
-\fB\-s <scope>\fR
-Restrics/expands the scope/selected set for mode of operations.
+.SS -s <scope>
+.P
+  Restrics/expands the scope/selected set for mode of operations.
+
 .RS
 .IP \(bu 3
 \fBUSER\fR
@@ -2250,29 +2271,32 @@ Given list.
 This value is remapped to "USRLST=all".
 .RE
 
-.TP
-\fB\-S [(on|off)][,][<ignore\-signal\-spec>\fR
-Sets the signal spectrum to be ignored.
-The values are accepted as numeric values only.
-Applicable values could be displayed by "trap \-l"(within bash).
+.SS -S [(on|off)][,][<ignore-signal-spec>
+.P
+  Sets the signal spectrum to be ignored.
+  The values are accepted as numeric values only.
+  Applicable values could be displayed by "trap \-l"(within bash).
 
-The default values are "1,3,19", which is set for CLI0 consoles only
-by default.
+.P
+  The default values are "1,3,19", which is set for CLI0 consoles only
+  by default.
 
-In case of CLI, generally for any multi\-session call, it has to be
-considered thoroughly whether and which signals could be set.
+.P
+  In case of CLI, generally for any multi\-session call, it has to be
+  considered thoroughly whether and which signals could be set.
 
-.TP
-\fB\-t <session\-type>[=suboptions]\fR
-Defines the context of execution and the resulting applicable
-feature set.  This could be a flat endpoint\-user\-session in
-case of VNC, or a virtual OS\-starter in case of a VM session
-e.g. in case of VMW or XEN.  Suboptions specify more detailed
-characteristics.
+.SS -t <session-type>[=suboptions]
+.P
+  Defines the context of execution and the resulting applicable
+  feature set.  This could be a flat endpoint\-user\-session in
+  case of VNC, or a virtual OS\-starter in case of a VM session
+  e.g. in case of VMW or XEN.  Suboptions specify more detailed
+  characteristics.
 
-Thus this parameter has to be set first.
-To load multiple plugins for one call, the environment variable 
-CTYS_MULTITYPE or the "\-T" option could be set.
+.P
+  Thus this parameter has to be set first.
+  To load multiple plugins for one call, the environment variable 
+  CTYS_MULTITYPE or the "\-T" option could be set.
 
 .RS
 .IP \(bu 3
@@ -2294,21 +2318,22 @@ For now supported are QEMU/KVM, (VBOX), VMW, XEN, PM, VNC, X11, and CLI.
 .RE
 .RE
 
-.TP
-\fB\-T <session\-type>[,<session\-type>[,...]] | all\fR
-Preloads given list of <session_type> instead of loading the
-plugins of requested types by "\-t" option.
-Alternatively the environment variable CTYS_MULTITYPE could be
-pre\-set, which has the same result. If CTYS_MULTITYPE  and the
-"\-T" option are provided, the option has priority.
+.SS -T <session-type>[,<session-type>[,...]] | all
+.P
+  Preloads given list of <session_type> instead of loading the
+  plugins of requested types by "\-t" option.
+  Alternatively the environment variable CTYS_MULTITYPE could be
+  pre\-set, which has the same result. If CTYS_MULTITYPE  and the
+  "\-T" option are provided, the option has priority.
 
-This option is required for the scope control of generic
-actions, which generally will be applied by calling of all
-current loaded <session_type> interfaces.
-E.g. the "\-a LIST" action lists active sessions for all
-actually loaded <session_type>. For display of current active
-sessions of all available <session_type>, the "\-T all" has to
-be used.
+.P
+  This option is required for the scope control of generic
+  actions, which generally will be applied by calling of all
+  current loaded <session_type> interfaces.
+  E.g. the "\-a LIST" action lists active sessions for all
+  actually loaded <session_type>. For display of current active
+  sessions of all available <session_type>, the "\-T all" has to
+  be used.
 
 .RS
 .IP \(bu 3
@@ -2327,13 +2352,13 @@ Thus the default will be set to requested types by "\-t"
 options or NIL by default.
 .RE
 
-.TP
-\fB\-v\fR
-Show version. Current version scheme is as follows:
+.SS -v
+.P
+  Show version. Current version scheme is as follows:
 
-.TP
-\fB\-V\fR
-Show version. Current version scheme is as follows:
+.SS -V
+.P
+  Show version. Current version scheme is as follows:
 
 .RS
 .IP \(bu 3
@@ -2387,14 +2412,15 @@ default\-loaded\-components are listed.
 .RE
 .RE
 
-.TP
-\fB\-W <WorkspaceId>|<WorkspaceLabel>\fR
-This parameter requires the tool 'wmctrl' to be present, if not
-the usage is not provided and an error message is generated
-before exiting ctys.
+.SS -W <WorkspaceId>|<WorkspaceLabel>
+.P
+  This parameter requires the tool 'wmctrl' to be present, if not
+  the usage is not provided and an error message is generated
+  before exiting ctys.
 
-When provided by system and successully detected, the following
-applies:
+.P
+  When provided by system and successully detected, the following
+  applies:
 
 .RS
 .IP \(bu 3
@@ -2419,8 +2445,8 @@ is the label. For further information on wmctrl refer to
 related man page.
 .RE
 
-.TP
-\fB\-x <OFF|STAR|CHAIN>\fR
+.SS -x <OFF|STAR|CHAIN>
+.P
 Defines the resolution of required nested access to a chain of servers.
 This is e.g. the case when from the machine CLIENT01 the HOST01 
 is accessed. When now HOST01 required some information from the
@@ -2448,32 +2474,32 @@ STAR access, which is the forwarding of requests form the site
 initiating machine only, remote issues have to be replied first.
 .RE
 
-.TP
-\fB\-X\fR
-Generate terse output for post processing.  The '\-v Verbose'
-flag is not effected and should be only used for testing.
+.SS -X
+.P
+  Generate terse output for post processing.  The '\-v Verbose'
+  flag is not effected and should be only used for testing.
 
-.TP
-\fB\-y\fR
-Activates some terminal capabilities, mainly coloring of ERROR,
-WARNING, and WARNINGEXT. Very handy when debugging, but
-not yet supported for Emacs\-Consoles.
-As an alternate the variable "CTYS_TERM_COLORS" could be set to
-"0".
-When selected the local and remote settings are both set at once.
-In current version this is set by default when the variable TERM is set to "xterm".
+.SS -y
+.P
+  Activates some terminal capabilities, mainly coloring of ERROR,
+  WARNING, and WARNINGEXT. Very handy when debugging, but
+  not yet supported for Emacs\-Consoles.
+  As an alternate the variable "CTYS_TERM_COLORS" could be set to
+  "0".
+  When selected the local and remote settings are both set at once.
+  In current version this is set by default when the variable TERM is set to "xterm".
 
-.TP
-\fB\-Y\fR
+.SS -Y
+.P
 Activate \fB'ForwardAgent yes'/'\-A'\fR of OpenSSH.
 If not active, another SSH authentication is required for each hop.
 When no mechanism like keys or Kerberos is in place, password authentication will be used.
 The basic configuration of SSH has to be prepared appropriately.
 
-.TP
-\fB\-z (NOPTY|PTY|1|2)\fR
-Control the allocation of a pseudotty by ssh. Therefore one or
-two "\-t" options could be set for the internal "ssh" call.
+.SS -z (NOPTY|PTY|1|2)
+.P
+  Control the allocation of a pseudotty by ssh. Therefore one or
+  two "\-t" options could be set for the internal "ssh" call.
 
 .nf
   
@@ -2487,14 +2513,15 @@ two "\-t" options could be set for the internal "ssh" call.
 .fi
 
 
-.TP
-\fB\-Z (KSU|NOKSU|SUDO|NOSUDO|ALL)\fR
-Controls call permission\-grant. The calls requiring
-impersonation to another users ID, frequently "root" for
-restricted system resources, are supported to use "ksu" and/or
-"sudo". This option replaces the default settings from the
-configuration file.
-The mechanisms could be switched on/off selectively.
+.SS -Z (KSU|NOKSU|SUDO|NOSUDO|ALL)
+.P
+  Controls call permission\-grant. The calls requiring
+  impersonation to another users ID, frequently "root" for
+  restricted system resources, are supported to use "ksu" and/or
+  "sudo". This option replaces the default settings from the
+  configuration file.
+  The mechanisms could be switched on/off selectively.
+
 .nf
   
   KSU     : use Kerberos
@@ -2506,8 +2533,10 @@ The mechanisms could be switched on/off selectively.
 .fi
 
 
+.P
 As an persistent alternative following environment variables
 could be pre\-set.
+
 .nf
   
   USE_KSU (0=>off 1=>on)         (DEFAULT:0=>off)
@@ -2516,6 +2545,7 @@ could be pre\-set.
 .fi
 
 
+.P
 The evaluation is implemented as a generic check for first
 match of hard\-coded call\-check. The following order of
 permission tests is performed for each system callee.
@@ -2759,7 +2789,7 @@ tab(^); ll.
 
 .SH COPYRIGHT
 .P
-Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno\-Can Uestuensoez
 
 .P
 This is software and documentation from \fBBASE\fR package,
@@ -2778,5 +2808,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.017/doc-tmp/BASE/en/man/man1/ctys.1
+.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.018/doc-tmp/BASE/en/man/man1/ctys.1
 

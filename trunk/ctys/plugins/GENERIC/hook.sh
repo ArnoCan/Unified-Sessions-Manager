@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_GENERIC="${BASH_SOURCE}"
-_myPKGVERS_GENERIC="01.02.001b01"
+_myPKGVERS_GENERIC="01.11.018"
 hookInfoAdd $_myPKGNAME_GENERIC $_myPKGVERS_GENERIC
 
 _myPKGBASE_GENERIC="`dirname ${_myPKGNAME_GENERIC}`"
@@ -69,8 +69,6 @@ function clientServerSplitSupportedGENERIC () {
 #On-demand-loads will be performed within requesting action.
 #
 hookPackage "${_myPKGBASE_GENERIC}/LIST/list.sh"
-hookPackage "${_myPKGBASE_GENERIC}/ENUMERATE/enumerate.sh"
-
 
 
 #FUNCBEG###############################################################
@@ -142,6 +140,7 @@ function handleGENERIC () {
           ;;
 
       ENUMERATE)
+	  hookPackage "${_myPKGBASE_GENERIC}/ENUMERATE/enumerate.sh"
           #Not critical, thus just pass args, there is anyway not so much to be pre-checked.
 	  case ${OPMODE} in
               CHECKPARAM)

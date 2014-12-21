@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_011beta
+#VERSION:      01_11_018beta
 #
 ########################################################################
 #
-# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VBOX_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VBOX_CREATE="01.11.011beta"
+_myPKGVERS_VBOX_CREATE="01.11.018beta"
 hookInfoAdd $_myPKGNAME_VBOX_CREATE $_myPKGVERS_VBOX_CREATE
 _myPKGBASE_VBOX_CREATE="`dirname ${_myPKGNAME_VBOX_CREATE}`"
 
@@ -819,6 +819,18 @@ function createConnectVBOX () {
 		    ;;
 	    esac
 
+	    #
+	    #find the correct db entry
+	    #
+ 	    local _targetHost=${R_HOSTS#*@};
+ 	    _targetHost=${_targetHost%%[({\'\"]*};
+	    if [ -z "${_actionuserVBOX}" ];then
+		    _actionuserVBOX="${R_HOSTS%%@*}";
+		    if [ "${R_HOSTS}" == "${_actionuserVBOX}" ];then
+			_actionuserVBOX="${MYUID}";
+		    fi
+	    fi
+
             #
             #0. Try cache - DB-INDEX
             #
@@ -838,7 +850,7 @@ function createConnectVBOX () {
             #
             if [ -z "${_pname// /}" ];then
 		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE"
-		_pname=`cacheGetUniquePname "${_base}" "${MYHOST}" VBOX ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname}`
+		_pname=`cacheGetUniquePname "${_base}" "${_targetHost}" VBOX ${_pname} ${_tcp} ${_mac} ${_uuid} ${_label} ${_fname} ${_actionuserVBOX} `
 		if [ $? -ne 0 ];then
 		    ABORT=1;
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch unique pathname, following should be checked:"
@@ -868,6 +880,8 @@ function createConnectVBOX () {
 		    local _stime=`getCurTime`;
 		    printINFO 1 $LINENO $BASH_SOURCE 0 "($_stime):No CACHE hit by \"ctys-vhost.sh\", scanning filesystem now."
 		    printINFO 2 $LINENO $BASH_SOURCE 0 "Update your database with \"ctys-vdbgen.sh\"."
+
+		    hookPackage "${_myPKGBASE_VBOX}/enumerate.sh"
 
                     #starts in $HOME
                     _base=${_base:-$HOME}
@@ -909,7 +923,7 @@ function createConnectVBOX () {
 		    fi
 		fi
 		local _etime=`getCurTime`;
-		local _dtime=`getDiffTime $_etime $_stime`;
+		local _dtime=`getDiffTime $_stime $_etime`;
 
 		C_TERSE=${_rem}
 	    else
@@ -947,7 +961,7 @@ function createConnectVBOX () {
 
             #check for RDP client
             if [ -n "${_rdp}" ];then
-		_RDP_CLIENT_MODE=`getRDPport "${_pname}"`
+		_RDP_CLIENT_MODE=$(getRDPport "${_pname}" )>&2
 	    fi
 
 	    if [ -z "${_tcp}" ];then
@@ -960,7 +974,7 @@ function createConnectVBOX () {
 			    local _tcp=`${_VHOST}  R:${DBREC}`
 			else
 			    local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
-			    local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+			    local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			fi
 			;;
 		    2)#local
@@ -969,7 +983,7 @@ function createConnectVBOX () {
 				local _tcp=`${_VHOST}  R:${DBREC}`
 			    else
 				local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -979,7 +993,7 @@ function createConnectVBOX () {
 				local _tcp=`${_VHOST}  R:${DBREC}`
 			    else
 				local _VHOST="${_VHOST} ${_actionuserVBOX:+ F:44:$_actionuserVBOX}"
-				local _tcp=`${_VHOST}  "${_label}" "${MYHOST}"  "${_pname}" `
+				local _tcp=`${_VHOST}  "${_label}" "${_targetHost}"  "${_pname}" `
 			    fi
 			fi
 			;;
@@ -1032,13 +1046,7 @@ function createConnectVBOX () {
            ###########################
             #    So, ... let's go!    #
            ###########################
-
-
-            #check whether a mediating wormhole is required. 
-            #In any case find the entry for peer.
-	    if [ "${C_CLIENTLOCATION}" !=  "-L CONNECTIONFORWARDING" \
-		-a "${C_CLIENTLOCATION}" !=  "-L LOCALONLY" \
- 		];then
+	    if [ "${C_CLIENTLOCATION}" !=  "-L CONNECTIONFORWARDING" ];then
 
                #Seems to be executed on remote host, not the calling station
 		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
@@ -1047,18 +1055,6 @@ function createConnectVBOX () {
                 #...remember, this part is actually running local-on-remote site!
  		local _IDx=`fetchID4Label ${_label}`
                 [ "$_IDx" != none ]&&_pname=${_pname:-$_IDx}
-            else
-                #Is executed on the calling station
-                #so is to be executed completely locally or a local client to be tunneled.
-                #
-		printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
-
-                #find local entry for SSH-tunnel with generic LABEL as marker for proxying to remote server.
- 		local _IDx=`digGetLocalPort ${_label} VBOX`
-		_pname=${_pname:-`fetchID4Label ${_label}`}
-		if [ "$_rdp" == 1 -a -n "$_IDx" ];then
-		    _RDP_CLIENT_MODE=$_IDx
-		fi
 	    fi
 	    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE " Session-Identifier: ${_label} ->${_IDx}($_pname)"
 
@@ -1078,7 +1074,7 @@ function createConnectVBOX () {
                         #check now for reconnect, if so kill whole competition
 			if [ -n "${_reconnect}" ];then
                             #So it is all to be killed: ID might be available here.
-			    if [ "${VBOX_MAGIC}" == VBOX_WS6 -o "${VBOX_MAGIC}" == VBOX_WS7 ];then
+			    if [ "${VBOX_MAGIC}" != "${VBOX_MAGIC//VBOX_03/}" ];then
 				hookPackage RDP
 				printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "_RDP_CLIENT_MODE=\"${_RDP_CLIENT_MODE}\""
 				if [ -z "${_RDP_CLIENT_MODE// /}" ];then
@@ -1156,17 +1152,18 @@ function createConnectVBOX () {
                     #So, dig the tunnel and connect myself.
                     #
  		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "C_CLIENTLOCATION=${C_CLIENTLOCATION}"
-                    digLocalPort VBOX "${R_HOSTS//(*)/}" "$_label" "$_pname"
-
- 		    local _lport=`digGetLocalPort "${_label}" VBOX`
+                    local _lport=`digGetLocalPort "${_label}" VBOX`
+                    if [ -z "$_lport" ];then
+                          digLocalPort VBOX "${_targetHost//(*)/}" "$_label" "$_pname" "" "$_actionuserVBOX"
+                    fi
+ 		    _lport=`digGetLocalPort "${_label}" VBOX`
                     if [ -z "$_lport" ];then
                         #Something went wrong!!!???                                      
 			ABORT=1
 			printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot allocate CONNECTIONFORWARDING"
-			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <VBOX> <${R_HOSTS//(*)/}> <$i>"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <VBOX> <${_targetHost//(*)/}> <$i> <> <$_actionuserVBOX>"
 			gotoHell ${ABORT}
 		    fi
-
  		    printDBG $S_VBOX ${D_UID} $LINENO $BASH_SOURCE "_lport=${_lport} i=${i}"
 		    if [ -n "${_rdp}" ];then
 			_RDP_CLIENT_MODE=${_lport}

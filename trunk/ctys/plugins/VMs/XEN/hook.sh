@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_010
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2008,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -27,7 +27,7 @@ XEN_ACCELERATOR=;
 XEN_SERVER=;
 
 _myPKGNAME_XEN="${BASH_SOURCE}"
-_myPKGVERS_XEN="01.11.010"
+_myPKGVERS_XEN="01.11.018"
 hookInfoAdd $_myPKGNAME_XEN $_myPKGVERS_XEN
 
 _myPKGBASE_XEN="`dirname ${_myPKGNAME_XEN}`"
@@ -67,6 +67,134 @@ _actionuserXEN="${MYUID}";
 
 
 . ${MYLIBPATH}/lib/libXENbase.sh
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getClientTPXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+# GENERIC-IF-DESCRIPTION:
+#  Gives the termination points port number, to gwhich a client could be 
+#  attachhed. This port is forseen to be used in port-forwarding e.g.
+#  by OpenSSH.
+#
+#  The port is the local port number, gwhich in general has to be mapped 
+#  on remote site, when already in use. Therefore the application has
+#  to provide a port-number-independent client access protocol in order 
+#  to be used by connection forwarding. In any other case display 
+#  forwarding has to be choosen.
+#
+#  Some applications support only one port for access by multiple 
+#  sessions, dispatching and bundling the communications channels
+#  by their own protocol. 
+#
+#  While others require for each channel a seperate litenning port.
+#
+#  So it is up to the specific package to support a function returning 
+#  the required port number gwhich could be used to attach an forwarded 
+#  port. 
+#  
+#  The applications client has to support a remapped port number.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <label>
+#       The <label> to gwhich the client will be attached.
+#
+#  $2: <pname>
+#      The pname of the configuration file, this is required for 
+#      VNC-sessions, and given to avoid scanning for labels
+#
+#OUTPUT:
+#  RETURN:
+#    0: If OK
+#    1: else
+#
+#  VALUES:
+#    <TP-port>
+#      The TP port, to gwhich a client could be attached.
+#
+#FUNCEND###############################################################
+function getClientTPXEN () {
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _ret=`listMySessionsXEN S MACHINE|awk -F';' -v l="${1}" '$2~l{print $7;}'`
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=<$_ret> from LABEL=<$1> ID=<$2>"
+    echo ${_ret}
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  isActiveXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#    0: Active
+#    1: Not active
+#
+#  VALUES:
+#    0: Active
+#    1: Not active
+#
+#FUNCEND###############################################################
+function isActiveXEN () {
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:<$1>"
+
+    if [ -z "$1" ];then
+	ABORT=2
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing ID"
+	gotoHell ${ABORT}
+    fi
+    local x=$(${PS} ${PSEF} |grep -v "grep"|grep -v "$CALLERJOB"|grep ${1#*:} 2>/dev/null)
+
+    case ${XEN_MAGIC} in
+	XEN_*)
+	    if [ -n "${VIRSH}" ];then
+                    #preferred
+		x=`callErrOutWrapper $LINENO $BASH_SOURCE ${VIRSHCALL} ${VIRSH} list|grep ${1#*:} 2>/dev/null`
+	    else
+		ABORT=2
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Requires VIRSH or XM"
+		gotoHell ${ABORT}
+	    fi
+  	    ;;
+        RELAY)#no own client support, see hosts plugins
+            ;;
+        DISABLED)#nothing to do
+            ;;
+	*)  #ooooops!!!!!!
+	    ABORT=2
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "mismatch:XEN_MAGIC=${XEN_MAGIC}"
+	    gotoHell ${ABORT}
+	    ;;
+    esac
+
+    if [ -n "$x" ];then
+	printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:0($x)"
+	echo 0
+	return 0;
+    fi
+    printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:1($x)"
+    echo 1
+    return 1;
+}
+
 
 
 
@@ -751,18 +879,6 @@ function clientServerSplitSupportedXEN () {
 }
 
 
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_XEN}/config.sh"
-hookPackage "${_myPKGBASE_XEN}/session.sh"
-hookPackage "${_myPKGBASE_XEN}/enumerate.sh"
-hookPackage "${_myPKGBASE_XEN}/list.sh"
-hookPackage "${_myPKGBASE_XEN}/info.sh"
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handleXEN
@@ -801,6 +917,59 @@ function handleXEN () {
   local ACTION=$1;shift
 
   case ${ACTION} in
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
+		  hookPackage "${_myPKGBASE_XEN}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_XEN}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_XEN}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
+		  hookPackage "${_myPKGBASE_XEN}/enumerate.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_XEN}/session.sh"
+		  hookPackage "${_myPKGBASE_XEN}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
       CREATE) 
 	  case ${OPMODE} in
               PROLOGUE)
@@ -808,10 +977,19 @@ function handleXEN () {
               EPILOGUE)
 		  ;;
 	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
 		  hookPackage "${_myPKGBASE_XEN}/create.sh"
 		  createConnectXEN ${OPMODE} ${ACTION} 
 		  ;;
-	      EXECUTE|ASSEMBLE)
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
+		  hookPackage "${_myPKGBASE_XEN}/create.sh"
+		  createConnectXEN ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_XEN}/session.sh"
+		  hookPackage "${_myPKGBASE_XEN}/list.sh"
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
 		  hookPackage "${_myPKGBASE_XEN}/create.sh"
 		  createConnectXEN ${OPMODE} ${ACTION} 
 		  ;;
@@ -825,11 +1003,18 @@ function handleXEN () {
               EPILOGUE)
 		  ;;
 	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
 		  hookPackage "${_myPKGBASE_XEN}/cancel.sh"
 		  cutCancelSessionXEN ${OPMODE} ${ACTION} 
 		  ;;
-	      EXECUTE|ASSEMBLE)
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
 		  hookPackage "${_myPKGBASE_XEN}/cancel.sh"
+		  cutCancelSessionXEN ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_XEN}/session.sh"
+		  hookPackage "${_myPKGBASE_XEN}/list.sh"
 		  cutCancelSessionXEN ${OPMODE} ${ACTION} 
 		  ;;
 	  esac
@@ -837,6 +1022,10 @@ function handleXEN () {
 
       GETCLIENTPORT)
 	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
               CHECKPARAM)
 		  if [ -n "$C_MODE_ARGS" ];then
                       printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "C_MODE_ARGS=$C_MODE_ARGS"
@@ -849,12 +1038,16 @@ function handleXEN () {
                   ;;
 
 	      EXECUTE)
+		  hookPackage "${_myPKGBASE_XEN}/config.sh"
+		  hookPackage "${_myPKGBASE_XEN}/session.sh"
+		  hookPackage "${_myPKGBASE_XEN}/list.sh"
 		  printDBG $S_XEN ${D_MAINT} $LINENO $BASH_SOURCE "Remote command:OPTARG=${OPTARG}"
   		  echo "CLIENTPORT(XEN,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPXEN ${_C_GETCLIENTPORT//,/ }`"
 		  gotoHell 0
 		  ;;
 
  	      ASSEMBLE)
+		  assembleExeccall ${OPMODE}
  		  ;;
           esac
 	  ;;

@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_018
 #
 ########################################################################
 #
-# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010,2011 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myLIBNAME_security="${BASH_SOURCE}"
-_myLIBVERS_security="01.10.013"
+_myLIBVERS_security="01.11.018"
 libManInfoAdd "${_myLIBNAME_security}" "${_myLIBVERS_security}"
 
 
@@ -629,3 +629,6 @@ function getGroup () {
     printDBG $S_LIB ${D_FRAME} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
     id -g -n $1
 }
+
+
+

@@ -197,9 +197,12 @@ function set-CentOS-55-QEMU () {
     DEFAULT_REPOSITORY_URL=${DEFAULT_REPOSITORY_URL_BASE}/centOS/$R/inst/isos/x86_64/CentOS-$R-x86_64-bin-DVD-1of2/
     INSTSRCCDROM=${INSTSRCCDROM_BASE}/centOS/$R/inst/isos/x86_64/CentOS-$R-x86_64-bin-DVD-1of2.iso
     DEFAULT_BOOTLOADER=;
-    DEFAULT_INST_KERNEL=${DEFAULT_INST_KERNEL:-$INSTSRCFS_BASE/centOS/$R/inst/isos/x86_64/CentOS-$R-x86_64-bin-DVD-1of2/images/xen/vmlinuz};
-    DEFAULT_INST_INITRD=${DEFAULT_INST_INITRD:-$INSTSRCFS_BASE/centOS/$R/inst/isos/x86_64/CentOS-$R-x86_64-bin-DVD-1of2/images/xen/initrd.img};
-    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-centos-5.ks"}
+    DEFAULT_INST_KERNEL=;
+    DEFAULT_INST_INITRD=;
+    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp "}
+#     DEFAULT_INST_KERNEL=${DEFAULT_INST_KERNEL:-$INSTSRCFS_BASE/centOS/$R/inst/os/x86_64/images/pxeboot/vmlinuz};
+#     DEFAULT_INST_INITRD=${DEFAULT_INST_INITRD:-$INSTSRCFS_BASE/centOS/$R/inst/os/x86_64/images/pxeboot/initrd.img};
+#    DEFAULT_INST_EXTRA=${DEFAULT_INST_EXTRA:-"text ip=dhcp ks=${DEFAULT_HTML_TMP_URL_BASE}/${LABEL}-centos-5.ks"}
     case ${ACCELERATOR} in
 #ffs.	KQEMU)
 # 	    ;;

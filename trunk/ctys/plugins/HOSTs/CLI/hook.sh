@@ -345,18 +345,6 @@ function enumerateMySessionsCLI () {
 }
 
 
-
-
-#
-#Managed load of sub-packages gwhich are required in almost any case.
-#On-demand-loads will be performed within requesting action.
-#
-hookPackage "${_myPKGBASE_CLI}/session.sh"
-hookPackage "${_myPKGBASE_CLI}/list.sh"
-hookPackage "${_myPKGBASE_CLI}/info.sh"
-
-
-
 #FUNCBEG###############################################################
 #NAME:
 #  handleCLI
@@ -385,6 +373,50 @@ function handleCLI () {
 
   case ${ACTION} in
 
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_CLI}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_CLI}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_CLI}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
       CREATE) 
           hookPackage "${_myPKGBASE_CLI}/create.sh"
 	  case ${OPMODE} in
@@ -392,7 +424,16 @@ function handleCLI () {
 		  ;;
               EPILOGUE)
 		  ;;
-	      CHECKPARAM|ASSEMBLE|EXECUTE)
+	      CHECKPARAM)
+		  createConnectCLI ${OPMODE} ${ACTION} 
+		  ;;
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_CLI}/session.sh"
+		  createConnectCLI ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_CLI}/session.sh"
+		  hookPackage "${_myPKGBASE_CLI}/list.sh"
 		  createConnectCLI ${OPMODE} ${ACTION} 
 		  ;;
 	  esac

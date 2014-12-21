@@ -64,9 +64,9 @@ _waitsVNC=${VNC_INIT_WAITS:-2}
 #Managed load of sub-packages gwhich are required in almost any case.
 #On-demand-loads will be performed within requesting action.
 #
-hookPackage "${_myPKGBASE_VNC}/session.sh"
-hookPackage "${_myPKGBASE_VNC}/list.sh"
-hookPackage "${_myPKGBASE_VNC}/info.sh"
+#4TEST:hookPackage "${_myPKGBASE_VNC}/session.sh"
+#4TEST:hookPackage "${_myPKGBASE_VNC}/list.sh"
+#4TEST: hookPackage "${_myPKGBASE_VNC}/info.sh"
 
 if [ -d "${HOME}/.ctys" -a -d "${HOME}/.ctys/vnc" ];then
     #Source pre-set environment from user
@@ -572,8 +572,10 @@ function noClientServerSplitSupportedMessageVNC () {
     ABORT=2
     printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected ERROR!!!"
     printERR $LINENO $BASH_SOURCE ${ABORT} "VNC perfectly supports ClientServerSplit!!!"
-    printERR $LINENO $BASH_SOURCE ${ABORT} "Check for process ownership, probably just missing permissions."
-    printERR $LINENO $BASH_SOURCE ${ABORT} "On grave slow machines just a timeout may have occured."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Check for following:"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "1. is the SERVER-SESSION actually VNC, "
+    printERR $LINENO $BASH_SOURCE ${ABORT} "2. check for process ownership, probably just missing permissions."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "3. On grave slow machines just a timeout may have occured."
     printERR $LINENO $BASH_SOURCE ${ABORT} "Try a following connect, if so adapt TIMEOUT value, but for this target only."
 }
 
@@ -665,13 +667,67 @@ function handleVNC () {
 
   case ${ACTION} in
 
+      LIST)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_VNC}/list.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
+      INFO)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  hookPackage "${_myPKGBASE_VNC}/info.sh"
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      ASSEMBLE)
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/list.sh"
+		  ;;
+	  esac
+	  ;;
+
+      ENUMERATE)
+	  case ${OPMODE} in
+              PROLOGUE)
+		  ;;
+              EPILOGUE)
+		  ;;
+	      CHECKPARAM)
+		  ;;
+	      EXECUTE|ASSEMBLE)
+		  ;;
+	  esac
+	  ;;
+
       CREATE) 
 	  case ${OPMODE} in
               PROLOGUE)
 		  ;;
               EPILOGUE)
 		  ;;
-	      CHECKPARAM|ASSEMBLE|EXECUTE)
+	      CHECKPARAM)
+		  hookPackage "${_myPKGBASE_VNC}/create.sh"
+		  createConnectVNC ${OPMODE} ${ACTION} 
+		  ;;
+	      ASSEMBLE)
+		  hookPackage "${_myPKGBASE_VNC}/create.sh"
+		  createConnectVNC ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/list.sh"
+		  hookPackage "${_myPKGBASE_VNC}/session.sh"
 		  hookPackage "${_myPKGBASE_VNC}/create.sh"
 		  createConnectVNC ${OPMODE} ${ACTION} 
 		  ;;
@@ -681,11 +737,19 @@ function handleVNC () {
       CANCEL)
 	  case ${OPMODE} in
               PROLOGUE)
+		  hookPackage "${_myPKGBASE_VNC}/cancel.sh"
 		  ;;
               EPILOGUE)
 		  ;;
-	      CHECKPARAM|ASSEMBLE|EXECUTE)
-		  hookPackage "${_myPKGBASE_VNC}/cancel.sh"
+	      CHECKPARAM)
+		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
+		  ;;
+	      ASSEMBLE)
+		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
+		  ;;
+	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/list.sh"
+		  hookPackage "${_myPKGBASE_VNC}/session.sh"
 		  cutCancelSessionVNC ${OPMODE} ${ACTION} 
 		  ;;
 	  esac
@@ -710,12 +774,15 @@ function handleVNC () {
 
                   ;;
 	      EXECUTE)
+		  hookPackage "${_myPKGBASE_VNC}/session.sh"
+		  hookPackage "${_myPKGBASE_VNC}/list.sh"
 		  printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "Remote command:C_MODE_ARGS=${C_MODE_ARGS}"
 		  printDBG $S_VNC ${D_BULK} $LINENO $BASH_SOURCE "CLIENTPORT(VNC,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPVNC ${_C_GETCLIENTPORT}`"
   		  echo "CLIENTPORT(VNC,${MYHOST},${_C_GETCLIENTPORT})=`getClientTPVNC ${_C_GETCLIENTPORT}`"
 		  gotoHell 0
 		  ;;
  	      ASSEMBLE)
+		  assembleExeccall ${OPMODE}
    		  ;;
           esac
 	  ;;
