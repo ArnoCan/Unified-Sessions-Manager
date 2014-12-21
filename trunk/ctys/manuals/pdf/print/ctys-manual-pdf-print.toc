@@ -1,0 +1,489 @@
+\contentsline {part}{I\hspace {1em}Common Basics}{21}{part.1}
+\contentsline {chapter}{\numberline {1}Preface}{23}{chapter.1}
+\contentsline {section}{\numberline {1.1}History}{23}{section.1.1}
+\contentsline {section}{\numberline {1.2}Contact}{23}{section.1.2}
+\contentsline {section}{\numberline {1.3}Some General Remarks}{24}{section.1.3}
+\contentsline {section}{\numberline {1.4}Legal}{25}{section.1.4}
+\contentsline {section}{\numberline {1.5}Acknowledgements}{26}{section.1.5}
+\contentsline {chapter}{\numberline {2}Abstract}{27}{chapter.2}
+\contentsline {chapter}{\numberline {3}Feature Specification}{29}{chapter.3}
+\contentsline {section}{\numberline {3.1}Feature Introduction}{29}{section.3.1}
+\contentsline {section}{\numberline {3.2}Feature-Sum-Up}{32}{section.3.2}
+\contentsline {chapter}{\numberline {4}Claimed Inventions}{39}{chapter.4}
+\contentsline {section}{\numberline {4.1}First set - 2008.02.11}{39}{section.4.1}
+\contentsline {section}{\numberline {4.2}Second set - 2008.07.10}{41}{section.4.2}
+\contentsline {chapter}{\numberline {5}Secure Sessions}{45}{chapter.5}
+\contentsline {section}{\numberline {5.1}Security and Authorization}{47}{section.5.1}
+\contentsline {section}{\numberline {5.2}Xinerama Screen Layouts}{48}{section.5.2}
+\contentsline {subsection}{\numberline {5.2.1}Physical Layout-1}{48}{subsection.5.2.1}
+\contentsline {subsubsection}{Logical Layout-1a}{49}{section*.5}
+\contentsline {subsubsection}{Logical Layout-1b}{49}{section*.6}
+\contentsline {subsubsection}{Logical Layout-1c}{51}{section*.7}
+\contentsline {subsection}{\numberline {5.2.2}Physical Layout-2}{52}{subsection.5.2.2}
+\contentsline {section}{\numberline {5.3}Client-Session Windows}{53}{section.5.3}
+\contentsline {section}{\numberline {5.4}Bulk Access}{55}{section.5.4}
+\contentsline {section}{\numberline {5.5}Encryption and Tunneling with SSH}{57}{section.5.5}
+\contentsline {subsection}{\numberline {5.5.1}DISPLAYFORWARDING}{59}{subsection.5.5.1}
+\contentsline {subsection}{\numberline {5.5.2}CONNECTIONFORWARDING}{60}{subsection.5.5.2}
+\contentsline {subsection}{\numberline {5.5.3}Execution-Locations}{61}{subsection.5.5.3}
+\contentsline {chapter}{\numberline {6}Advanced Features}{63}{chapter.6}
+\contentsline {section}{\numberline {6.1}Bulk Access}{63}{section.6.1}
+\contentsline {section}{\numberline {6.2}CLI-MACROS}{63}{section.6.2}
+\contentsline {section}{\numberline {6.3}Generic Custom Tables}{63}{section.6.3}
+\contentsline {section}{\numberline {6.4}Parallel and Background Operations}{64}{section.6.4}
+\contentsline {chapter}{\numberline {7}HOSTs - The Native Access to OS}{67}{chapter.7}
+\contentsline {section}{\numberline {7.1}Command Line Access - CLI}{67}{section.7.1}
+\contentsline {section}{\numberline {7.2}Start a GUI application - X11}{67}{section.7.2}
+\contentsline {section}{\numberline {7.3}Open a complete remote Desktop - VNC}{68}{section.7.3}
+\contentsline {chapter}{\numberline {8}PMs and VMs - The Stacked-Sessions}{69}{chapter.8}
+\contentsline {section}{\numberline {8.1}Session-Types}{71}{section.8.1}
+\contentsline {section}{\numberline {8.2}VM-Stacks - Nested VMs}{74}{section.8.2}
+\contentsline {subsection}{\numberline {8.2.1}Stacked-Operations}{74}{subsection.8.2.1}
+\contentsline {subsection}{\numberline {8.2.2}Specification of VM Stacks}{74}{subsection.8.2.2}
+\contentsline {subsection}{\numberline {8.2.3}Bulk-Core CPUs}{79}{subsection.8.2.3}
+\contentsline {subsection}{\numberline {8.2.4}Almost Seamless Addressing}{80}{subsection.8.2.4}
+\contentsline {section}{\numberline {8.3}Stacked Networking}{80}{section.8.3}
+\contentsline {section}{\numberline {8.4}Stacked Functional Interworking}{82}{section.8.4}
+\contentsline {subsection}{\numberline {8.4.1}Stack-Address Evaluation}{82}{subsection.8.4.1}
+\contentsline {subsection}{\numberline {8.4.2}Startup}{83}{subsection.8.4.2}
+\contentsline {subsection}{\numberline {8.4.3}Shutdown}{84}{subsection.8.4.3}
+\contentsline {subsection}{\numberline {8.4.4}State-Propagation Basics}{86}{subsection.8.4.4}
+\contentsline {subsubsection}{State-Propagation}{86}{section*.8}
+\contentsline {subsubsection}{Stack-Capability Interconnection}{89}{section*.9}
+\contentsline {subsubsection}{Virtual-Hardware-Capability Interconnection}{89}{section*.10}
+\contentsline {subsubsection}{Access Permissions}{90}{section*.11}
+\contentsline {chapter}{\numberline {9}CTYS-Nameservices}{93}{chapter.9}
+\contentsline {section}{\numberline {9.1}Basics}{93}{section.9.1}
+\contentsline {section}{\numberline {9.2}Runtime Components}{97}{section.9.2}
+\contentsline {subsection}{\numberline {9.2.1}Distributed Nameservice - CacheDB}{100}{subsection.9.2.1}
+\contentsline {subsection}{\numberline {9.2.2}Network LDAP-Access}{103}{subsection.9.2.2}
+\contentsline {subsection}{\numberline {9.2.3}Application Range and Limits}{103}{subsection.9.2.3}
+\contentsline {section}{\numberline {9.3}Required Namebinding}{103}{section.9.3}
+\contentsline {subsection}{\numberline {9.3.1}Integration of PMs, VMs, and HOSTs}{103}{subsection.9.3.1}
+\contentsline {subsection}{\numberline {9.3.2}Basics of Name Bindings}{104}{subsection.9.3.2}
+\contentsline {section}{\numberline {9.4}Group-Targets}{106}{section.9.4}
+\contentsline {part}{II\hspace {1em}Software Design}{107}{part.2}
+\contentsline {chapter}{\numberline {10}Software Architecture}{109}{chapter.10}
+\contentsline {section}{\numberline {10.1}Basic Modular Design}{109}{section.10.1}
+\contentsline {section}{\numberline {10.2}Development Environment}{110}{section.10.2}
+\contentsline {subsection}{\numberline {10.2.1}Some basics on "bash"}{110}{subsection.10.2.1}
+\contentsline {subsubsection}{"source-ing"}{110}{section*.12}
+\contentsline {subsubsection}{Using bash-modules as self-configuring dynamic objects}{111}{section*.13}
+\contentsline {subsection}{\numberline {10.2.2}Component Framework}{111}{subsection.10.2.2}
+\contentsline {subsubsection}{Hook - The Extendibility Interface}{111}{section*.14}
+\contentsline {paragraph}{Static Load of Modules}{111}{section*.15}
+\contentsline {paragraph}{Dynamic OnDemand Load of Modules}{111}{section*.16}
+\contentsline {paragraph}{Operational States}{111}{section*.17}
+\contentsline {paragraph}{IGNORE-Flag - A stateless State}{113}{section*.18}
+\contentsline {paragraph}{Multi-OS Boot Environments}{113}{section*.19}
+\contentsline {subsubsection}{Interface-Specification - Online-Help}{114}{section*.20}
+\contentsline {paragraph}{Interface-Specification-Rules}{114}{section*.21}
+\contentsline {paragraph}{Generic Context-Help for Shell-Scripts}{114}{section*.22}
+\contentsline {section}{\numberline {10.3}All about bash-Plugins and bash-Libraries}{114}{section.10.3}
+\contentsline {subsection}{\numberline {10.3.1}The Differences}{114}{subsection.10.3.1}
+\contentsline {subsection}{\numberline {10.3.2}Libraries}{114}{subsection.10.3.2}
+\contentsline {subsection}{\numberline {10.3.3}Plugins}{114}{subsection.10.3.3}
+\contentsline {subsubsection}{Category CORE}{114}{section*.23}
+\contentsline {subsubsection}{Category HOSTs}{115}{section*.24}
+\contentsline {subsubsection}{Category VMs}{115}{section*.25}
+\contentsline {subsubsection}{Category PMs}{115}{section*.26}
+\contentsline {section}{\numberline {10.4}ctys Control and Data Flow}{116}{section.10.4}
+\contentsline {subsection}{\numberline {10.4.1}Distributed Controller}{116}{subsection.10.4.1}
+\contentsline {subsection}{\numberline {10.4.2}Task Data}{117}{subsection.10.4.2}
+\contentsline {subsection}{\numberline {10.4.3}Stack Interworking}{117}{subsection.10.4.3}
+\contentsline {subsubsection}{Create Propagation - CREATE}{117}{section*.27}
+\contentsline {subsubsection}{Upward Propagation - CANCEL}{117}{section*.28}
+\contentsline {subsubsection}{Downward Propagation}{119}{section*.29}
+\contentsline {chapter}{\numberline {11}Interface Design}{121}{chapter.11}
+\contentsline {section}{\numberline {11.1}Target-Platforms}{121}{section.11.1}
+\contentsline {section}{\numberline {11.2}Feature-Design}{121}{section.11.2}
+\contentsline {subsection}{\numberline {11.2.1}Communications Modes}{121}{subsection.11.2.1}
+\contentsline {section}{\numberline {11.3}Command-Sets}{123}{section.11.3}
+\contentsline {section}{\numberline {11.4}Plugins}{123}{section.11.4}
+\contentsline {subsection}{\numberline {11.4.1}Main Dispatcher}{123}{subsection.11.4.1}
+\contentsline {subsection}{\numberline {11.4.2}Standard Plugins}{123}{subsection.11.4.2}
+\contentsline {subsection}{\numberline {11.4.3}Extensions}{123}{subsection.11.4.3}
+\contentsline {subsection}{\numberline {11.4.4}Subdispatcher}{123}{subsection.11.4.4}
+\contentsline {subsubsection}{Common Concepts}{123}{section*.30}
+\contentsline {subsubsection}{ENUMERATE}{124}{section*.31}
+\contentsline {subsubsection}{INFO}{127}{section*.32}
+\contentsline {subsubsection}{LIST}{127}{section*.33}
+\contentsline {subsubsection}{SHOW}{128}{section*.34}
+\contentsline {section}{\numberline {11.5}Security Design}{128}{section.11.5}
+\contentsline {subsection}{\numberline {11.5.1}Accounts Impersonation}{128}{subsection.11.5.1}
+\contentsline {subsection}{\numberline {11.5.2}Access Location}{128}{subsection.11.5.2}
+\contentsline {subsection}{\numberline {11.5.3}System Resources}{128}{subsection.11.5.3}
+\contentsline {chapter}{\numberline {12}CTYS-Nameservices}{129}{chapter.12}
+\contentsline {section}{\numberline {12.1}Runtime Components}{129}{section.12.1}
+\contentsline {part}{III\hspace {1em}User Interface}{131}{part.3}
+\contentsline {chapter}{\numberline {13}Common Syntax and Semantics}{133}{chapter.13}
+\contentsline {section}{\numberline {13.1}General CLI processing}{133}{section.13.1}
+\contentsline {section}{\numberline {13.2}Options Scanners - Reserved Characters}{134}{section.13.2}
+\contentsline {section}{\numberline {13.3}Hosts, Groups, VMStacks and Sub-Tasks}{135}{section.13.3}
+\contentsline {subsection}{\numberline {13.3.1}Common Concepts}{135}{subsection.13.3.1}
+\contentsline {subsection}{\numberline {13.3.2}Flat Execution-Groups by Include}{137}{subsection.13.3.2}
+\contentsline {subsection}{\numberline {13.3.3}Structured Execution-Groups by Sub-Tasks}{140}{subsection.13.3.3}
+\contentsline {subsection}{\numberline {13.3.4}Stacks as Vertical-Subgroups}{142}{subsection.13.3.4}
+\contentsline {subsection}{\numberline {13.3.5}VCircuits as Sequentially-Chained-Subgroups}{147}{subsection.13.3.5}
+\contentsline {section}{\numberline {13.4}CLI macros}{148}{section.13.4}
+\contentsline {section}{\numberline {13.5}Shell Interworking}{150}{section.13.5}
+\contentsline {subsection}{\numberline {13.5.1}ctys as Sub-Call}{150}{subsection.13.5.1}
+\contentsline {subsection}{\numberline {13.5.2}ctys as Master-Call}{150}{subsection.13.5.2}
+\contentsline {subsection}{\numberline {13.5.3}Generic Remote Execution}{150}{subsection.13.5.3}
+\contentsline {subsection}{\numberline {13.5.4}Access to ctys Functions}{150}{subsection.13.5.4}
+\contentsline {section}{\numberline {13.6}Common Options}{150}{section.13.6}
+\contentsline {chapter}{\numberline {14}Core Data}{153}{chapter.14}
+\contentsline {section}{\numberline {14.1}Overview}{153}{section.14.1}
+\contentsline {section}{\numberline {14.2}Standard Configuration Files}{154}{section.14.2}
+\contentsline {section}{\numberline {14.3}Common Data Fields}{155}{section.14.3}
+\contentsline {section}{\numberline {14.4}Common Processing Options}{163}{section.14.4}
+\contentsline {section}{\numberline {14.5}Specific Variations}{167}{section.14.5}
+\contentsline {section}{\numberline {14.6}Generic Tables}{168}{section.14.6}
+\contentsline {chapter}{\numberline {15}Address Syntax}{171}{chapter.15}
+\contentsline {section}{\numberline {15.1}Basic Elements}{171}{section.15.1}
+\contentsline {section}{\numberline {15.2}Syntax Elements}{172}{section.15.2}
+\contentsline {section}{\numberline {15.3}Stack Addresses}{177}{section.15.3}
+\contentsline {section}{\numberline {15.4}Groups of Stack Addresses}{178}{section.15.4}
+\contentsline {chapter}{\numberline {16}CTYS Call interface}{181}{chapter.16}
+\contentsline {section}{\numberline {16.1}Common Elements and Behaviour}{181}{section.16.1}
+\contentsline {subsection}{\numberline {16.1.1}Sessions Namebinding}{181}{subsection.16.1.1}
+\contentsline {subsection}{\numberline {16.1.2}Cache for Permormance and Collections}{181}{subsection.16.1.2}
+\contentsline {subsection}{\numberline {16.1.3}Access VM Stacks}{182}{subsection.16.1.3}
+\contentsline {subsubsection}{The Stack Essentials - CREATE and CANCEL}{185}{section*.35}
+\contentsline {section}{\numberline {16.2}ctys Actions}{185}{section.16.2}
+\contentsline {section}{\numberline {16.3}ctys Generic Options}{208}{section.16.3}
+\contentsline {section}{\numberline {16.4}ctys Arguments}{227}{section.16.4}
+\contentsline {section}{\numberline {16.5}ctys-plugins}{229}{section.16.5}
+\contentsline {chapter}{\numberline {17}Plugins - Feature Extensions}{231}{chapter.17}
+\contentsline {section}{\numberline {17.1}Prerequisites}{231}{section.17.1}
+\contentsline {section}{\numberline {17.2}Category HOSTs}{233}{section.17.2}
+\contentsline {subsection}{\numberline {17.2.1}CLI - Command Line Interface}{233}{subsection.17.2.1}
+\contentsline {subsection}{\numberline {17.2.2}X11 Interface}{237}{subsection.17.2.2}
+\contentsline {subsection}{\numberline {17.2.3}VNC - Virtual Network Console Interface}{240}{subsection.17.2.3}
+\contentsline {section}{\numberline {17.3}Category PMs}{246}{section.17.3}
+\contentsline {subsection}{\numberline {17.3.1}PM - Linux and BSD Hosts}{246}{subsection.17.3.1}
+\contentsline {section}{\numberline {17.4}Category VMs}{257}{section.17.4}
+\contentsline {subsection}{\numberline {17.4.1}QEMU - QEMU Emulator}{257}{subsection.17.4.1}
+\contentsline {subsection}{\numberline {17.4.2}VMW - VMware}{271}{subsection.17.4.2}
+\contentsline {subsection}{\numberline {17.4.3}XEN - Xen}{276}{subsection.17.4.3}
+\contentsline {section}{\numberline {17.5}Category GENERIC}{283}{section.17.5}
+\contentsline {subsection}{\numberline {17.5.1}LIST Plugin-Collector}{283}{subsection.17.5.1}
+\contentsline {subsection}{\numberline {17.5.2}ENUMERATE Plugin-Collector}{283}{subsection.17.5.2}
+\contentsline {subsection}{\numberline {17.5.3}SHOW Plugin-Collector}{283}{subsection.17.5.3}
+\contentsline {subsection}{\numberline {17.5.4}INFO Plugin-Collector}{283}{subsection.17.5.4}
+\contentsline {section}{\numberline {17.6}Category Internal}{284}{section.17.6}
+\contentsline {subsection}{\numberline {17.6.1}DIGGER - Forwarding Encrypted Connections}{284}{subsection.17.6.1}
+\contentsline {subsubsection}{Encrypted Tunnel Support}{284}{section*.36}
+\contentsline {subsubsection}{LIST Tunnels}{285}{section*.37}
+\contentsline {chapter}{\numberline {18}Support Tools}{287}{chapter.18}
+\contentsline {section}{\numberline {18.1}ctys-dnsutil}{288}{section.18.1}
+\contentsline {section}{\numberline {18.2}ctys-extractAPRlst}{292}{section.18.2}
+\contentsline {section}{\numberline {18.3}ctys-extractMAClst}{295}{section.18.3}
+\contentsline {section}{\numberline {18.4}ctys-genmconf}{298}{section.18.4}
+\contentsline {section}{\numberline {18.5}ctys-groups}{302}{section.18.5}
+\contentsline {section}{\numberline {18.6}ctys-macros}{304}{section.18.6}
+\contentsline {section}{\numberline {18.7}ctys-macmap}{306}{section.18.7}
+\contentsline {section}{\numberline {18.8}ctys-plugins}{310}{section.18.8}
+\contentsline {section}{\numberline {18.9}ctys-setupVDE}{314}{section.18.9}
+\contentsline {section}{\numberline {18.10}ctys-smbutil}{322}{section.18.10}
+\contentsline {section}{\numberline {18.11}ctys-vdbgen}{324}{section.18.11}
+\contentsline {section}{\numberline {18.12}ctys-vhost}{330}{section.18.12}
+\contentsline {section}{\numberline {18.13}ctys-vping}{355}{section.18.13}
+\contentsline {section}{\numberline {18.14}ctys-wakeup}{358}{section.18.14}
+\contentsline {section}{\numberline {18.15}ctys-xen-network-bridge}{361}{section.18.15}
+\contentsline {section}{\numberline {18.16}ctys-utilities}{364}{section.18.16}
+\contentsline {subsection}{\numberline {18.16.1}ctys-install}{364}{subsection.18.16.1}
+\contentsline {subsection}{\numberline {18.16.2}ctys-install1}{366}{subsection.18.16.2}
+\contentsline {subsection}{\numberline {18.16.3}getCurOS}{366}{subsection.18.16.3}
+\contentsline {subsection}{\numberline {18.16.4}getCurOSRelease}{366}{subsection.18.16.4}
+\contentsline {subsection}{\numberline {18.16.5}getCurDistribution}{366}{subsection.18.16.5}
+\contentsline {subsection}{\numberline {18.16.6}getCurRelease}{367}{subsection.18.16.6}
+\contentsline {subsection}{\numberline {18.16.7}pathlist}{367}{subsection.18.16.7}
+\contentsline {subsection}{\numberline {18.16.8}ctys-getMasterPid}{367}{subsection.18.16.8}
+\contentsline {part}{IV\hspace {1em}Examples}{369}{part.4}
+\contentsline {chapter}{\numberline {19}General Remarks}{371}{chapter.19}
+\contentsline {chapter}{\numberline {20}ctys Setup}{373}{chapter.20}
+\contentsline {section}{\numberline {20.1}Installation}{373}{section.20.1}
+\contentsline {subsection}{\numberline {20.1.1}Basic Install}{373}{subsection.20.1.1}
+\contentsline {subsection}{\numberline {20.1.2}Security Environment}{377}{subsection.20.1.2}
+\contentsline {subsection}{\numberline {20.1.3}ctys-Software Installation}{380}{subsection.20.1.3}
+\contentsline {subsection}{\numberline {20.1.4}Setup Access Permissions}{380}{subsection.20.1.4}
+\contentsline {subsection}{\numberline {20.1.5}Intstall User-Local}{381}{subsection.20.1.5}
+\contentsline {section}{\numberline {20.2}Configuration}{381}{section.20.2}
+\contentsline {subsection}{\numberline {20.2.1}Plugins}{381}{subsection.20.2.1}
+\contentsline {chapter}{\numberline {21}HOSTs - Sessions}{385}{chapter.21}
+\contentsline {section}{\numberline {21.1}CLI Examples}{385}{section.21.1}
+\contentsline {subsection}{\numberline {21.1.1}Single Local Interactive Session}{385}{subsection.21.1.1}
+\contentsline {subsection}{\numberline {21.1.2}Single Remote Interactive Session}{386}{subsection.21.1.2}
+\contentsline {subsection}{\numberline {21.1.3}Execute a Remote Command}{386}{subsection.21.1.3}
+\contentsline {subsection}{\numberline {21.1.4}Execute Multiple Remote Commands}{386}{subsection.21.1.4}
+\contentsline {subsection}{\numberline {21.1.5}Chained Logins by Relays}{387}{subsection.21.1.5}
+\contentsline {subsection}{\numberline {21.1.6}Xterm with tcsh}{388}{subsection.21.1.6}
+\contentsline {subsection}{\numberline {21.1.7}gnome-terminal}{388}{subsection.21.1.7}
+\contentsline {subsection}{\numberline {21.1.8}Call ctys functions}{388}{subsection.21.1.8}
+\contentsline {section}{\numberline {21.2}X11 Examples}{392}{section.21.2}
+\contentsline {subsection}{\numberline {21.2.1}Xterm with Interactive bash}{392}{subsection.21.2.1}
+\contentsline {subsection}{\numberline {21.2.2}Gnome-Terminal with Interactive bash}{393}{subsection.21.2.2}
+\contentsline {subsection}{\numberline {21.2.3}Emacs Session in shell-mode}{394}{subsection.21.2.3}
+\contentsline {subsection}{\numberline {21.2.4}Single XClock}{394}{subsection.21.2.4}
+\contentsline {section}{\numberline {21.3}VNC Examples}{395}{section.21.3}
+\contentsline {subsection}{\numberline {21.3.1}Single Local Desktop Session}{395}{subsection.21.3.1}
+\contentsline {subsection}{\numberline {21.3.2}Single Remote Desktop Session}{396}{subsection.21.3.2}
+\contentsline {subsection}{\numberline {21.3.3}Bulk Desktop Sessions}{396}{subsection.21.3.3}
+\contentsline {subsection}{\numberline {21.3.4}Remote Desktop with Local Client}{397}{subsection.21.3.4}
+\contentsline {subsection}{\numberline {21.3.5}Shared-Mode vs. Non-Shared-Mode}{399}{subsection.21.3.5}
+\contentsline {subsection}{\numberline {21.3.6}Reconnect Suboption}{399}{subsection.21.3.6}
+\contentsline {chapter}{\numberline {22}VMs - Sessions}{401}{chapter.22}
+\contentsline {section}{\numberline {22.1}QEMU Examples}{401}{section.22.1}
+\contentsline {subsection}{\numberline {22.1.1}Installation of QEMU}{401}{subsection.22.1.1}
+\contentsline {subsubsection}{Build and Install QEMU}{401}{section*.49}
+\contentsline {subsubsection}{Setup Networking for QEMU by VDE}{402}{section*.50}
+\contentsline {paragraph}{Overview}{402}{section*.51}
+\contentsline {paragraph}{VDE}{404}{section*.52}
+\contentsline {paragraph}{QEMU}{405}{section*.53}
+\contentsline {subsubsection}{Setup Serial Console}{406}{section*.54}
+\contentsline {subsection}{\numberline {22.1.2}Installation of Guests}{408}{Item.123}
+\contentsline {subsubsection}{PXE-Boot}{408}{section*.55}
+\contentsline {subsubsection}{Install Procedures}{408}{section*.56}
+\contentsline {paragraph}{Debian-4.0\_r3 by PXE - i386}{408}{section*.57}
+\contentsline {paragraph}{Debian-4.0\_r3 for ARM}{409}{section*.58}
+\contentsline {paragraph}{OpenBSD-4.3+SerialConsole - by PXE}{411}{section*.59}
+\contentsline {subsubsection}{Installed Systems}{411}{section*.60}
+\contentsline {subsection}{\numberline {22.1.3}CREATE a session}{412}{Item.132}
+\contentsline {subsection}{\numberline {22.1.4}CANCEL a session}{414}{Item.133}
+\contentsline {subsection}{\numberline {22.1.5}LIST sessions}{414}{Item.134}
+\contentsline {subsection}{\numberline {22.1.6}ENUMERATE sessions}{414}{Item.135}
+\contentsline {subsection}{\numberline {22.1.7}SHOW}{415}{Item.136}
+\contentsline {subsection}{\numberline {22.1.8}INFO}{415}{Item.137}
+\contentsline {subsection}{\numberline {22.1.9}Example Appliances}{418}{Item.138}
+\contentsline {subsubsection}{Qemu Test and Demo Examples}{418}{section*.61}
+\contentsline {paragraph}{ARM}{418}{section*.62}
+\contentsline {paragraph}{Coldfire}{419}{section*.63}
+\contentsline {paragraph}{MIPS}{419}{section*.64}
+\contentsline {paragraph}{PPC}{419}{section*.65}
+\contentsline {subsubsection}{Cross Build for ARM with Debian}{420}{section*.66}
+\contentsline {subsubsection}{Cross Build and Debug for uCLinux on ARM}{420}{section*.67}
+\contentsline {subsubsection}{W2K - i386}{420}{section*.68}
+\contentsline {subsubsection}{CentOS-5.0 - i386}{420}{section*.69}
+\contentsline {subsubsection}{Debug uCLinux on i386}{420}{section*.70}
+\contentsline {subsubsection}{Debug OpenBSD on i386}{420}{section*.71}
+\contentsline {section}{\numberline {22.2}VMW Examples}{420}{Item.139}
+\contentsline {subsection}{\numberline {22.2.1}Installation of VMware}{420}{Item.140}
+\contentsline {subsection}{\numberline {22.2.2}Installation of Guests}{420}{Item.141}
+\contentsline {subsubsection}{PXE with DHCP}{420}{section*.72}
+\contentsline {subsubsection}{ISO-Image and DHCP}{423}{section*.73}
+\contentsline {subsubsection}{Install procedures}{423}{section*.74}
+\contentsline {paragraph}{General Remarks}{423}{section*.75}
+\contentsline {paragraph}{CentOS}{423}{section*.76}
+\contentsline {paragraph}{Debian-4.0\_r3}{423}{section*.77}
+\contentsline {paragraph}{Fedora 8}{424}{section*.78}
+\contentsline {paragraph}{MS-Windows-NT-4.0-S}{424}{section*.79}
+\contentsline {paragraph}{MS-Windows-2000-WS}{424}{section*.80}
+\contentsline {paragraph}{OpenBSD}{424}{section*.81}
+\contentsline {paragraph}{SuSE}{424}{section*.82}
+\contentsline {subsubsection}{Installed Systems}{425}{section*.83}
+\contentsline {subsection}{\numberline {22.2.3}Display of Available Sessions}{425}{Item.150}
+\contentsline {subsection}{\numberline {22.2.4}CREATE a session}{428}{Item.151}
+\contentsline {subsection}{\numberline {22.2.5}CANCEL a session}{429}{Item.152}
+\contentsline {subsection}{\numberline {22.2.6}LIST sessions}{430}{Item.153}
+\contentsline {subsection}{\numberline {22.2.7}ENUMERATE sessions}{432}{Item.154}
+\contentsline {subsection}{\numberline {22.2.8}SHOW}{433}{Item.155}
+\contentsline {subsection}{\numberline {22.2.9}INFO}{433}{Item.156}
+\contentsline {subsection}{\numberline {22.2.10}Example Appliances}{433}{Item.157}
+\contentsline {subsubsection}{Freeze W2K-Appliances}{433}{section*.84}
+\contentsline {subsubsection}{EDWin as Appliance}{433}{section*.85}
+\contentsline {subsubsection}{Rational Developer Studio as Appliance}{433}{section*.86}
+\contentsline {subsubsection}{Lexware-Financial-Office-Pro - Complete Tax-Archiving}{433}{section*.87}
+\contentsline {paragraph}{General Remarks}{433}{section*.88}
+\contentsline {paragraph}{Server on Windows-NT-4.0-S}{433}{section*.89}
+\contentsline {paragraph}{DB-Storage on Samba-CentOS-5.0}{433}{section*.90}
+\contentsline {paragraph}{Clients on Windows-2000-WS}{433}{section*.91}
+\contentsline {section}{\numberline {22.3}Xen Examples}{434}{Item.158}
+\contentsline {subsection}{\numberline {22.3.1}Installation of Xen/Dom0}{434}{Item.159}
+\contentsline {subsection}{\numberline {22.3.2}Installation of Guests/DomU}{434}{Item.160}
+\contentsline {subsubsection}{Templates}{434}{section*.92}
+\contentsline {subsubsection}{Install Procedures}{436}{section*.93}
+\contentsline {paragraph}{CentOS-5}{436}{section*.94}
+\contentsline {paragraph}{Fedora-8}{436}{section*.95}
+\contentsline {paragraph}{OpenSUSE-10.2}{436}{section*.96}
+\contentsline {paragraph}{OpenSUSE-10.1}{437}{section*.97}
+\contentsline {subsubsection}{Installed Systems}{438}{section*.98}
+\contentsline {subsection}{\numberline {22.3.3}CREATE a session}{438}{Item.169}
+\contentsline {subsection}{\numberline {22.3.4}CANCEL a session}{446}{Item.170}
+\contentsline {subsection}{\numberline {22.3.5}LIST sessions}{450}{Item.171}
+\contentsline {subsection}{\numberline {22.3.6}ENUMERATE sessions}{452}{Item.172}
+\contentsline {subsection}{\numberline {22.3.7}SHOW}{453}{Item.173}
+\contentsline {subsection}{\numberline {22.3.8}INFO}{454}{Item.174}
+\contentsline {subsection}{\numberline {22.3.9}Example Appliances}{454}{Item.175}
+\contentsline {subsubsection}{Distributed Build-Environment for x86/x86\_64}{454}{section*.115}
+\contentsline {subsubsection}{Distributed Number-Crunching with Load-Redistribution}{454}{section*.116}
+\contentsline {subsubsection}{Non-Stop-Maintenance}{454}{section*.117}
+\contentsline {subsubsection}{Energy Efficiency with Online-Reconfiguration}{454}{section*.118}
+\contentsline {chapter}{\numberline {23}PMs - Sessions}{455}{Item.176}
+\contentsline {section}{\numberline {23.1}PM Examples}{455}{Item.177}
+\contentsline {subsection}{\numberline {23.1.1}Configuration of Access Permissions}{455}{Item.178}
+\contentsline {subsection}{\numberline {23.1.2}CREATE a PM Session}{456}{Item.179}
+\contentsline {subsection}{\numberline {23.1.3}CANCEL a PM Session}{457}{Item.180}
+\contentsline {subsection}{\numberline {23.1.4}PM - Using Wake-On-Lan - WoL}{459}{Item.181}
+\contentsline {subsection}{\numberline {23.1.5}Wake-On-Lan - Complete Reboot-Cycles}{465}{Item.191}
+\contentsline {subsubsection}{CLI}{465}{section*.125}
+\contentsline {subsubsection}{XTERM}{466}{section*.126}
+\contentsline {subsubsection}{GTERM}{467}{section*.127}
+\contentsline {subsubsection}{EMACS}{468}{section*.128}
+\contentsline {subsubsection}{VNC}{469}{section*.129}
+\contentsline {chapter}{\numberline {24}Common Session Options}{471}{Item.192}
+\contentsline {section}{\numberline {24.1}Opening multiple ctyss}{471}{Item.193}
+\contentsline {subsection}{\numberline {24.1.1}Multiple Calls}{471}{Item.194}
+\contentsline {subsection}{\numberline {24.1.2}One call}{471}{Item.195}
+\contentsline {section}{\numberline {24.2}Different resolution on client and server}{472}{Item.196}
+\contentsline {section}{\numberline {24.3}Dynamic move of sessions window}{472}{Item.197}
+\contentsline {section}{\numberline {24.4}Spanning Multiple Physical Screens}{476}{Item.198}
+\contentsline {section}{\numberline {24.5}CREATE with tree-search for unique IDs}{478}{Item.199}
+\contentsline {section}{\numberline {24.6}Some session related calls}{479}{Item.200}
+\contentsline {subsection}{\numberline {24.6.1}ENUMERATE}{479}{Item.201}
+\contentsline {subsection}{\numberline {24.6.2}LIST}{479}{Item.202}
+\contentsline {subsection}{\numberline {24.6.3}SHOW}{479}{Item.203}
+\contentsline {subsection}{\numberline {24.6.4}INFO}{480}{Item.204}
+\contentsline {section}{\numberline {24.7}Some ctys related calls}{480}{Item.205}
+\contentsline {subsection}{\numberline {24.7.1}Display Version and available plugin}{480}{Item.206}
+\contentsline {chapter}{\numberline {25}Custom CLI}{481}{Item.207}
+\contentsline {section}{\numberline {25.1}Groups}{481}{Item.208}
+\contentsline {section}{\numberline {25.2}Macros}{483}{Item.209}
+\contentsline {section}{\numberline {25.3}Tables}{483}{Item.210}
+\contentsline {subsection}{\numberline {25.3.1}Common Tables for ENUMERATE and LIST}{483}{Item.211}
+\contentsline {subsection}{\numberline {25.3.2}RAW Tables by MACHINE}{485}{Item.212}
+\contentsline {subsection}{\numberline {25.3.3}Combined MACROS and Tables}{485}{Item.213}
+\contentsline {subsubsection}{Usage with VMSTATE}{492}{section*.130}
+\contentsline {chapter}{\numberline {26}Pre-Configured Desktops}{497}{Item.214}
+\contentsline {section}{\numberline {26.1}Admin RAID-Info}{497}{Item.215}
+\contentsline {section}{\numberline {26.2}Tax-Calculation and Longterm-Storage}{501}{Item.216}
+\contentsline {section}{\numberline {26.3}QEMU Test-Environment for VDE}{505}{Item.217}
+\contentsline {chapter}{\numberline {27}Performance Measures}{509}{chapter.27}
+\contentsline {section}{\numberline {27.1}Background, Parallel and Cached Operations}{509}{section.27.1}
+\contentsline {section}{\numberline {27.2}Caching of Data}{510}{section.27.2}
+\contentsline {section}{\numberline {27.3}Combined Operations}{511}{section.27.3}
+\contentsline {chapter}{\numberline {28}VM Stacks}{513}{chapter.28}
+\contentsline {section}{\numberline {28.1}Setup of the Stack Environment}{513}{section.28.1}
+\contentsline {section}{\numberline {28.2}Single-Upper-Layer VMStack Basics}{517}{section.28.2}
+\contentsline {subsection}{\numberline {28.2.1}CREATE a PM Session}{517}{subsection.28.2.1}
+\contentsline {subsection}{\numberline {28.2.2}CREATE a VM Session with initial PM Session}{518}{subsection.28.2.2}
+\contentsline {subsection}{\numberline {28.2.3}CREATE a HOST Session with initial VM and PM Session}{518}{subsection.28.2.3}
+\contentsline {subsection}{\numberline {28.2.4}CANCEL a VM Session containing VM-Stack-Sessions}{518}{subsection.28.2.4}
+\contentsline {subsection}{\numberline {28.2.5}CANCEL a PM Session containing VM-Stack-Sessions}{518}{subsection.28.2.5}
+\contentsline {section}{\numberline {28.3}Multi-Layer VMStacks}{518}{section.28.3}
+\contentsline {subsection}{\numberline {28.3.1}MACRO Definition Basics}{518}{subsection.28.3.1}
+\contentsline {subsubsection}{Common Syntax}{518}{section*.131}
+\contentsline {subsubsection}{Consoles and Synchronous STACK-Operations}{518}{section*.132}
+\contentsline {subsubsection}{Integration of Tool-Calls}{518}{section*.133}
+\contentsline {subsubsection}{Auto-Creation of Virtual Bridges and Switches}{518}{section*.134}
+\contentsline {subsection}{\numberline {28.3.2}CREATE a VMStack}{518}{subsection.28.3.2}
+\contentsline {subsubsection}{Create a Blue-Print of Stack-Data}{518}{section*.135}
+\contentsline {subsubsection}{Verification of Supported Actions and Modes}{518}{section*.136}
+\contentsline {subsubsection}{Verification of Stack Entity-Consisytency}{518}{section*.137}
+\contentsline {subsubsection}{Verification of Stack-Capability}{518}{section*.138}
+\contentsline {subsubsection}{Verification of Hardware-Capability}{518}{section*.139}
+\contentsline {subsubsection}{Verification of Stack-Location}{518}{section*.140}
+\contentsline {subsection}{\numberline {28.3.3}CANCEL a VMStack}{518}{subsection.28.3.3}
+\contentsline {subsection}{\numberline {28.3.4}Prepare a PM for Restart by WoL}{518}{subsection.28.3.4}
+\contentsline {subsection}{\numberline {28.3.5}Xen with upper QEMU-VMs}{519}{subsection.28.3.5}
+\contentsline {subsection}{\numberline {28.3.6}VMWare with upper QEMU-VMs}{523}{subsection.28.3.6}
+\contentsline {subsection}{\numberline {28.3.7}QEMU with upper QEMU-VMs}{523}{subsection.28.3.7}
+\contentsline {chapter}{\numberline {29}User Access - Secure permissions}{525}{chapter.29}
+\contentsline {section}{\numberline {29.1}SSH, SSL, IPsec, and VPNs}{525}{section.29.1}
+\contentsline {section}{\numberline {29.2}VM-Stacks, SSO, and Kerberos}{526}{section.29.2}
+\contentsline {section}{\numberline {29.3}Network Filesystems}{526}{section.29.3}
+\contentsline {section}{\numberline {29.4}Authentication - ksu and sudo}{526}{section.29.4}
+\contentsline {subsection}{\numberline {29.4.1}Basics}{526}{subsection.29.4.1}
+\contentsline {subsection}{\numberline {29.4.2}sudoers}{526}{subsection.29.4.2}
+\contentsline {subsection}{\numberline {29.4.3}k5users}{528}{subsection.29.4.3}
+\contentsline {subsection}{\numberline {29.4.4}Secure root Access}{529}{subsection.29.4.4}
+\contentsline {section}{\numberline {29.5}Firewall}{529}{section.29.5}
+\contentsline {section}{\numberline {29.6}SELinux}{529}{section.29.6}
+\contentsline {chapter}{\numberline {30}System Resources}{531}{chapter.30}
+\contentsline {section}{\numberline {30.1}TAP/TUN by VDE}{531}{section.30.1}
+\contentsline {subsection}{\numberline {30.1.1}VDE within Xen Dom0}{532}{subsection.30.1.1}
+\contentsline {subsection}{\numberline {30.1.2}VDE within Xen DomU}{535}{subsection.30.1.2}
+\contentsline {subsection}{\numberline {30.1.3}VDE within VMware}{535}{subsection.30.1.3}
+\contentsline {subsection}{\numberline {30.1.4}VDE within Native Unix}{535}{subsection.30.1.4}
+\contentsline {subsection}{\numberline {30.1.5}VDE Remote Configuration}{539}{subsection.30.1.5}
+\contentsline {subsection}{\numberline {30.1.6}VDE-Setup with Micro-VMSTACK}{542}{subsection.30.1.6}
+\contentsline {section}{\numberline {30.2}DomU Management}{543}{section.30.2}
+\contentsline {section}{\numberline {30.3}Mount an ISO-Image}{543}{section.30.3}
+\contentsline {chapter}{\numberline {31}Applications of ctys-vhost}{545}{chapter.31}
+\contentsline {section}{\numberline {31.1}Database Generation ctys-vdbgen and companions}{545}{section.31.1}
+\contentsline {subsection}{\numberline {31.1.1}Initial Database}{546}{subsection.31.1.1}
+\contentsline {subsection}{\numberline {31.1.2}Append Data to present Database}{550}{subsection.31.1.2}
+\contentsline {subsection}{\numberline {31.1.3}vm.conf Coallocated with Hypervisor}{553}{subsection.31.1.3}
+\contentsline {section}{\numberline {31.2}LDAP based VM-Stack Nameservices}{554}{section.31.2}
+\contentsline {section}{\numberline {31.3}Group Addressing}{554}{section.31.3}
+\contentsline {subsection}{\numberline {31.3.1}Group Caches - The Performance Clue}{554}{subsection.31.3.1}
+\contentsline {subsection}{\numberline {31.3.2}Preconfigured Task-Groups}{554}{subsection.31.3.2}
+\contentsline {section}{\numberline {31.4}Stack Addressing}{554}{section.31.4}
+\contentsline {section}{\numberline {31.5}DHCP Poll}{554}{section.31.5}
+\contentsline {section}{\numberline {31.6}PXELinux - Address Translation}{556}{section.31.6}
+\contentsline {section}{\numberline {31.7}Formatted output by Generic Tables}{558}{section.31.7}
+\contentsline {section}{\numberline {31.8}Filter by awk-Regular Expressions}{559}{section.31.8}
+\contentsline {subsection}{\numberline {31.8.1}Datastreams and Match Conditions}{559}{subsection.31.8.1}
+\contentsline {subsection}{\numberline {31.8.2}Wildcards and Ambiguity}{560}{subsection.31.8.2}
+\contentsline {part}{V\hspace {1em}Appendices}{563}{part.5}
+\contentsline {chapter}{\numberline {32}Current Loaded Plugins}{565}{chapter.32}
+\contentsline {chapter}{\numberline {33}File Formats}{571}{chapter.33}
+\contentsline {section}{\numberline {33.1}Common Tools and Formats}{571}{section.33.1}
+\contentsline {section}{\numberline {33.2}Groups}{572}{section.33.2}
+\contentsline {section}{\numberline {33.3}Macros}{575}{section.33.3}
+\contentsline {section}{\numberline {33.4}Static Import File Databases - fdb}{576}{section.33.4}
+\contentsline {subsection}{\numberline {33.4.1}macmap.fdb}{576}{subsection.33.4.1}
+\contentsline {subsection}{\numberline {33.4.2}enum.fdb}{576}{subsection.33.4.2}
+\contentsline {section}{\numberline {33.5}Static Pre-Fetch Cache Databases - cdb}{577}{section.33.5}
+\contentsline {subsection}{\numberline {33.5.1}grpscache.cdb}{577}{subsection.33.5.1}
+\contentsline {subsection}{\numberline {33.5.2}statcache.cdb}{578}{subsection.33.5.2}
+\contentsline {section}{\numberline {33.6}Dynamic Runtime Cache Databases}{578}{section.33.6}
+\contentsline {section}{\numberline {33.7}Configuration Entries for ctys}{578}{section.33.7}
+\contentsline {subsection}{\numberline {33.7.1}Actual Processing vs. Administrative Display}{578}{subsection.33.7.1}
+\contentsline {subsection}{\numberline {33.7.2}Configuration File Variants}{579}{subsection.33.7.2}
+\contentsline {subsection}{\numberline {33.7.3}Keywords}{581}{subsection.33.7.3}
+\contentsline {subsection}{\numberline {33.7.4}Interface Keywords}{585}{subsection.33.7.4}
+\contentsline {subsection}{\numberline {33.7.5}MAGICID}{588}{subsection.33.7.5}
+\contentsline {subsection}{\numberline {33.7.6}VMSTATE}{589}{subsection.33.7.6}
+\contentsline {subsection}{\numberline {33.7.7}Virtual Hardware-Platform}{589}{subsection.33.7.7}
+\contentsline {subsection}{\numberline {33.7.8}Stacking Entries}{591}{subsection.33.7.8}
+\contentsline {subsection}{\numberline {33.7.9}Execution Location and Relocation}{592}{subsection.33.7.9}
+\contentsline {chapter}{\numberline {34}LDAP Formats}{593}{chapter.34}
+\contentsline {chapter}{\numberline {35}Call Input-Output Formats}{595}{chapter.35}
+\contentsline {section}{\numberline {35.1}Common Data Import/Export Options}{595}{section.35.1}
+\contentsline {section}{\numberline {35.2}ENUMERATE}{595}{section.35.2}
+\contentsline {section}{\numberline {35.3}LIST}{595}{section.35.3}
+\contentsline {section}{\numberline {35.4}INFO}{595}{section.35.4}
+\contentsline {section}{\numberline {35.5}SHOW}{595}{section.35.5}
+\contentsline {chapter}{\numberline {36}Miscellaneous}{597}{chapter.36}
+\contentsline {section}{\numberline {36.1}Basic EXEC principle}{597}{section.36.1}
+\contentsline {section}{\numberline {36.2}PATH}{598}{section.36.2}
+\contentsline {section}{\numberline {36.3}Configuration files}{599}{section.36.3}
+\contentsline {section}{\numberline {36.4}Media Access Control(MAC) Addresses - VM-NICs}{599}{section.36.4}
+\contentsline {chapter}{\numberline {37}GNU GENERAL PUBLIC LICENSE - Version 3}{605}{chapter.37}
+\contentsline {chapter}{Bibliography}{623}{chapter*.143}
+\contentsline {section}{Books}{623}{section*.144}
+\contentsline {subsection}{UNIX}{623}{section*.145}
+\contentsline {subsection}{Security}{625}{section*.146}
+\contentsline {subsection}{Networks}{626}{section*.147}
+\contentsline {subsection}{Embedded Systems}{628}{section*.148}
+\contentsline {section}{Online References}{629}{section*.149}
+\contentsline {subsection}{OSs}{629}{section*.150}
+\contentsline {subsection}{Hypervisors/Emulators}{630}{section*.151}
+\contentsline {subsubsection}{kvm}{630}{section*.152}
+\contentsline {subsubsection}{QEMU}{630}{section*.153}
+\contentsline {subsubsection}{SkyEye}{631}{section*.154}
+\contentsline {subsubsection}{VMware}{631}{section*.155}
+\contentsline {subsubsection}{Xen}{631}{section*.156}
+\contentsline {subsection}{Security}{631}{section*.157}
+\contentsline {subsection}{Specials}{632}{section*.158}
+\contentsline {subsubsection}{Dynagen/Dynamips}{632}{section*.159}
+\contentsline {subsubsection}{QEMU-Networking with VDE}{632}{section*.160}
+\contentsline {subsubsection}{PXE}{632}{section*.161}
+\contentsline {subsubsection}{Routing}{632}{section*.162}
+\contentsline {subsubsection}{Scratchbox}{633}{section*.163}
+\contentsline {subsubsection}{Serial-Console}{633}{section*.164}
+\contentsline {subsection}{Miscellanuous}{633}{section*.165}
+\contentsline {subsection}{UnfiedSessionsManager Versions}{633}{section*.166}
+\contentsline {section}{Sponsored OpenSource Projects}{634}{section*.167}
+\contentsline {section}{Commercial Support}{634}{section*.168}
