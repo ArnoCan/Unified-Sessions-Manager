@@ -1,0 +1,1003 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-install
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="Unified Sessions Manager - CLI-Installer - Stage-1"
+#
+#CALLFULLNAME:
+CALLFULLNAME="ctys-install"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_01_001b04
+#DESCRIPTION:
+#  Install script for ctys.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: keyword=value pairs.
+#       [libdir=<libdir>]
+#         DEFAULT=$HOME/lib
+#         The root path for the physical install.
+#
+#       [bindir=<bindir>]
+#         DEFAULT=$HOME/bin
+#         Path to:
+#           Symbolic link:  $bindir/ctys -> $libdir/ctys.<version>/bin/ctys
+#           Bootstrap file: $bindir/bootstrap/bootstrap.<version>
+#
+#       [force]
+#         DEFAULT:unset
+#         Checks "ctys -V -X" alphebetically/literally, normally
+#         only updates are allowed, but force installs in any case.
+#
+#       [remove<default=unset>]
+#
+#       [force<default=unset>]
+#
+#       [help|--help|-help|-h]
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+if [ ! -d "${MYHELPPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYHELPPATH=${MYHELPPATH}"
+  exit 1
+fi
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux-CentOS/RHEL(5+)"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work now):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome"
+
+#to be tested - coming soon
+TARGET_WM_SOON="fvwm"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+################################################################
+
+
+if [ -z "${HOME}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory variable:HOME"
+    gotoHell ${ABORT}
+fi
+if [ "${HOME}" == "/" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Unacceptable value:HOME=\"/\""
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  Your HOME must not be \"/\""
+    gotoHell ${ABORT}
+fi
+if [ ! -d "${HOME}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:HOME=\"${HOME}\""
+    gotoHell ${ABORT}
+fi
+
+
+
+unset DOWNGRADE
+unset REMOVE
+unset FORCE
+unset FORCEALL
+unset FORCECLEAN
+unset LINKONLY
+
+function showHelp () {
+    cat <<EOF
+
+     ctys-install [<key>[=<value>]] ...
+
+        Basic install and update-script for raw usage from 
+        CLI when installed individually from filesystem.
+
+        The basic operations could be controlled by the 
+        following options and arguments. Two basic 
+        applications could be distinguished:
+
+        1. Individual Install
+           Install by copy of configurations and 
+           lib-subdirectory(default).
+
+             "ctys-install"
+             "ctys-install force"
+             "ctys-install forceall"
+             "ctys-install forceclean"
+
+
+        2. Centralized Install
+           Install configurations and symbolic 
+           links only("linkonly"). 
+
+             "ctys-install linkonly"
+             "ctys-install linkonly force"
+             "ctys-install linkonly forceall"
+             "ctys-install linkonly forceclean"
+
+        
+
+        Following options are available:
+
+              [libdir=<default=$HOME/lib>]
+
+              [bindir=<default=$HOME/bin>]
+
+              [remove<default=unset>]
+
+              [force<default=unset>]
+                Checks "ctys -V -X" alphebetically/literally, normally
+                only updates are allowed, but force installs in any case.
+
+                Current users configuration director $HOME/.ctys will be 
+                left unchanged.
+
+              [forceall<default=unset>]
+                Checks "ctys -V -X" alphebetically/literally, normally
+                only updates are allowed, but forceall installs in any case.
+
+                Anthing, else than users configuration directory $HOME/.ctys,
+                will be removed and installed again. The users current 
+                configuration will be moved to $HOME/.ctys.bak.${DATETIME}.
+
+
+              [forceclean<default=unset>]
+                Checks "ctys -V -X" alphebetically/literally, normally
+                only updates are allowed, but force installs in any case.
+
+                Anthing, including current users configuration directory
+                $HOME/.ctys, will be removed and installed again.
+
+              [linkonly<default=unset>]
+                Supress the local copy to  $HOME/lib directory, just 
+                appropriate symbolic links are set to the given source 
+                directory determined by this call.
+
+                Anyhow, the cofiguration is copied and/or preserved as 
+                usual.
+
+
+              [version|--version|-V]
+
+              [-X]
+
+              [help|--help|-help|-h]
+
+EOF
+}
+
+function fetchInstallOpts () {
+    while [ -n "${1}" ];do
+	case $1 in
+	    [lL][iI][bB][dD][iI][rR]=*)
+                   LIBDIR=${i#*=}
+                   ;;
+            [bB][iI][nN][dD][iI][rR]=*)
+                   BINDIR=${i#*=}
+                   ;;
+            [fF][oO][rR][cC][eE])
+                   FORCE=1
+                   ;;
+            [lL][iI][nN][kK][oO][nN][lL][yY])
+                   LINKONLY=1
+                   ;;
+            [fF][oO][rR][cC][eE][aA][lL][lL])
+                   FORCEALL=1
+                   ;;
+            [fF][oO][rR][cC][eE][cC][lL][eE][aA][nN])
+                   echo
+                   echo "You have choosen \"FORCECLEAN\"."
+                   echo
+                   echo "This will destroy ALL your present ctys-configurations by removing"
+                   echo
+                   echo "  \"rm -rf  $HOME/.ctys\""
+                   echo
+                   echo "So you require to regenerate at least your mapping databases by \"ctys-vdbgen\"."
+                   echo -n "Do you want to continue[yN]: "
+                   read NORETURN;
+                   case ${NORETURN} in
+                         y|Y)
+                           REMOVE=1
+                           FORCECLEAN=1
+                           ;;
+                         *)
+                           ABORT=0;
+                           gotoHell ${ABORT}
+                           ;;
+                   esac
+                   ;;
+            [rR][eE][mM][oO][vV][eE])
+                   REMOVE=1
+                   ;;
+            -X)
+                   CTRL_TERSE=1;
+                   ;;
+            version|--version|-V)
+                   if [ -n "${CTRL_TERSE}" ];then
+                       echo -n ${VERSION}
+                   else
+                       echo "$0: VERSION=${VERSION}"
+                   fi
+                   exit 0
+                   ;;
+            help|--help|-h|-help)
+                   showHelp
+                   exit 0
+                   ;;
+            *)
+                   echo "$BASH_SOURCE:Unknown options:<$1>"
+                   exit 1
+                   ;;
+        esac
+        shift
+    done
+}
+
+fetchInstallOpts ${*//,/ }
+
+
+#LIBDIR=${LIBDIR:-$HOME/lib}
+if [ -z "${LIBDIR}" ];then
+    if [ -n "${LINKONLY}" ];then
+
+	LIBDIR=`dirname ${MYLIBPATH}`
+    else
+	LIBDIR=$HOME/lib
+    fi
+fi
+
+if [ ! -d "${LIBDIR}" ];then
+    mkdir -p "${LIBDIR}"
+    if [ ! -d "${LIBDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:LIBDIR=\"${LIBDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+BINDIR=${BINDIR:-$HOME/bin}
+if [ ! -d "${BINDIR}" ];then
+    mkdir -p "${BINDIR}"
+    if [ ! -d "${BINDIR}" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing mandatory directory:BINDIR=\"${BINDIR}\""
+	gotoHell ${ABORT}
+    fi
+fi
+
+
+LIBS="${LIBDIR}/`basename ${MYLIBPATH}`";
+BINS1=${BINDIR}/bootstrap
+VERSGEN="${LIBS}/conf/ctys/versinfo.gen";
+
+BIN1=${BINS1}/`basename ${MYBOOTSTRAP}`
+
+CTYSCALL=${BINDIR}/ctys
+CTYSPLUGINS=${BINDIR}/ctys-plugins
+
+LNKLST=${BINDIR}/ctys
+LNKLST="$LNKLST ${BINDIR}/ctys-vdbgen"
+LNKLST="$LNKLST ${BINDIR}/ctys-vhost"
+LNKLST="$LNKLST ${BINDIR}/ctys-vping"
+LNKLST="$LNKLST ${BINDIR}/ctys-extractMAClst"
+LNKLST="$LNKLST ${BINDIR}/ctys-extractARPlst"
+LNKLST="$LNKLST ${BINDIR}/ctys-genmconf"
+LNKLST="$LNKLST ${BINDIR}/ctys-macmap"
+LNKLST="$LNKLST ${BINDIR}/ctys-dnsutil"
+LNKLST="$LNKLST ${BINDIR}/ctys-smbutil"
+LNKLST="$LNKLST ${BINDIR}/ctys-plugins"
+LNKLST="$LNKLST ${BINDIR}/ctys-callVncviewer"
+LNKLST="$LNKLST ${BINDIR}/ctys-callVncserver"
+
+LNKLST="$LNKLST ${BINDIR}/ctys-install"
+LNKLST="$LNKLST ${BINDIR}/ctys-install1"
+
+LNKLST="$LNKLST ${BINDIR}/getCurOS"
+LNKLST="$LNKLST ${BINDIR}/getCurOSRel"
+LNKLST="$LNKLST ${BINDIR}/getCurDistribution"
+LNKLST="$LNKLST ${BINDIR}/getCurRelease"
+LNKLST="$LNKLST ${BINDIR}/pathlist"
+
+CTYSCONF="${HOME}/.ctys"
+CTYSCONFTEMPLATE="${LIBS}/conf/templates/ctys"
+
+VNCCONF="${HOME}/.vnc"
+VNCCONFTEMPLATE="${LIBS}/conf/vnc"
+
+TOPCONF="${HOME}/.toprc"
+TOPCONFTEMPLATE="${LIBS}/conf/toprc"
+
+
+######
+#clean
+######
+if [ -n "$REMOVE" ];then
+    if [ -d "${LIBS}" ];then    
+	cd ${LIBDIR}
+        echo
+        echo "You are going to delete:"
+        echo
+	[ -z "${LINKONLY}" ]&&echo " LIBS        = ${LIBS}"
+        for L in $LNKLST;do
+            echo " SYMLNK      = ${L}"
+	done
+        echo
+        echo " BOOTSTRAP has to be deleted manually."
+        echo "   BOOTSTRAP = ${BIN1}"
+        echo
+        echo " Has to be deleted manually:"
+        echo
+        echo "   CTYSCONF  = ${CTYSCONF}"
+        echo "   VNCCONF   = ${VNCCONF}"
+        echo
+        echo -n "Do you want to continue:[yYnN]"&&read X
+        case $X in
+            y|Y)
+		echo
+		echo "*******************************************************"
+		echo
+		echo "Files within runtime installation are not checked"
+		echo "for modification."
+                echo
+		echo "You should be sure to have backups of custom plugins."
+ 		echo
+		echo "*******************************************************"
+ 		echo
+		echo -n "Do you want still to continue? [yYnN]"&&read X2
+		case $X2 in
+		    y|Y)
+			echo
+			echo "OK, this is the point of no return - now."
+			echo
+			[ -z "${LINKONLY}" ]&&rm -rf "${LIBS}"
+			rm -rf "${LNKLST}"
+			;;
+		esac
+		;;
+	    n|N)
+                exit 0
+		;;
+        esac
+    else
+	echo "No libs($LIBS) installed, seems to be removed already."
+    fi
+    exit 0
+fi
+
+
+
+#######
+#create
+#######
+echo
+echo "Check installed vs. new version"
+echo
+NEWVER=`${MYCALLPATH}/ctys -X -V -W`
+
+if [ -f "${BINDIR}/ctys" ];then
+    OLDVER=`${BINDIR}/ctys -X -V -W`
+    echo "  Will be installed if following is true:"
+    echo
+    echo "    installed:${OLDVER} < new:$NEWVER"
+    echo
+    echo "  OR one of force-flags is set."
+else
+    OLDVER=;
+    echo "  not yet installed => install new:$NEWVER"
+fi
+echo
+
+echo
+echo
+echo
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* Runtime executables and symbolic links.                    *"
+echo "*                                                            *"
+echo "**************************************************************"
+echo
+
+if [ -z "${OLDVER}"  -o "${NEWVER}" \> "${OLDVER}" -o -n "${FORCE}" -o -n "${FORCEALL}" -o -n "${FORCECLEAN}" ];then
+    echo "install now..."
+
+    if [ -z "${LINKONLY}" ];then
+	echo "install LIBS      = ${MYLIBPATH}";  
+	install -d ${LIBDIR}; 
+	cp ${CPR} ${MYLIBPATH} ${LIBDIR};
+    fi
+
+    if [ -n "${LINKONLY}" ];then
+	echo "BOOTSTRAP has to be installed in case of LINKONLY too.";
+    fi
+    echo "install BOOTSTRAP = ${MYBOOTSTRAP}";
+    install -d ${BINS1}     
+    install ${MYBOOTSTRAP} ${BINS1}
+
+    echo
+
+    for L in $LNKLST;do
+	echo "update symbolic link: ${L}"
+	rm -f ${L}
+        echo " ->ln -s ${LIBS}/bin${L#$BINDIR}  ${L}"
+	ln -s ${LIBS}/bin${L#$BINDIR} ${L}
+    done
+fi
+
+
+echo
+echo
+echo
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* Final runtime configuration.                               *"
+echo "*                                                            *"
+echo "**************************************************************"
+echo
+
+if [ -z "${OLDVER}"  -o "${NEWVER}" \> "${OLDVER}" -o -n "${FORCE}" -o -n "${FORCEALL}" -o -n "${FORCECLEAN}" ];then
+
+    if [ -n "${LINKONLY}" ];then
+	echo "Configuration will be installed in case of LINKONLY too.";
+        echo
+    fi
+    echo "install ${CTYSCONF} directory, if not yet present..."
+    if [ ! -d "${CTYSCONF}" ];then 
+        cp ${CPR} ${CTYSCONFTEMPLATE} ${CTYSCONF}; 
+    else
+        if [ -n "${FORCEALL}" ];then
+            echo "  ...already present, but will be backuped to:${CTYSCONF}.bak.${DATETIME}"
+	    mv ${CTYSCONF} ${CTYSCONF}.bak.${DATETIME}
+            cp  ${CPR} ${CTYSCONFTEMPLATE} ${CTYSCONF}; 
+	else
+            if [ -n "${FORCECLEAN}" ];then
+		echo "  ...already present, but will be removed due to FORCEALL flag."
+		rm -rf ${CTYSCONF}
+		cp ${CPR} ${CTYSCONFTEMPLATE} ${CTYSCONF}; 
+	    else
+
+		echo "  ...already present, so kept untouched."
+		echo "  Default is located at \"${LIBS}/conf/ctys\""
+	    fi
+	fi
+    fi
+
+    echo "install $HOME/.vnc directory, if not yet present..."
+    if [ ! -d "${VNCCONF}" ];then 
+	cp ${CPR} ${VNCCONFTEMPLATE} ${VNCCONF};
+    else
+        echo "  ...already present, so kept untouched."
+        echo "  Default is located at \"${VNCCONFTEMPLATE}\""
+    fi
+
+    echo "install $HOME/.toprc, if not yet present..."
+    if [ ! -d "${TOPCONF}" ];then 
+	cp ${CPR} ${TOPCONFTEMPLATE} ${TOPCONF}; 
+    else
+        echo "  ...already present, so kept untouched."
+        echo "  Default is located at \"${TOPCONFTEMPLATE}\""
+    fi
+else
+    echo "The installed version seems to be up to date."
+    echo " -> use \"force\" or \"forceall\" for installing this version"
+    echo " -> \"remove\" for old version"
+    exit 0
+fi
+
+
+
+echo
+echo "Update generic data:"
+echo " -> \"${VERSGEN}\""
+
+#LOC
+LOC=`find ${MYINSTALLPATH} -type f -name '*[!~]'  -name '[!0-9][!0-9]*' -exec cat {} \;|wc -l`
+
+#LOC-NET
+LOCNET=`find ${MYINSTALLPATH} -type f -name '*[!~]'  -name '[!0-9][!0-9]*' -exec cat {} \;|sed -n '/^ *#.*/d;/^$/d;p'|wc -l`
+
+#LOD -Lines-Of-Documentation
+#Generated during install:
+LOD=`find ${MYINSTALLPATH} -type f -name '*[!~]'  -name '[0-9][0-9]*' -exec cat {} \;|wc -l`
+
+echo "###">${VERSGEN}
+echo "LOC=\"${LOC// }\"">>${VERSGEN}
+echo "LOCNET=\"${LOCNET// }\"">>${VERSGEN}
+echo "LOD=\"${LOD// }\"">>${VERSGEN}
+
+
+#establish PATH for search, bash-only
+echo
+echo "Check call environment:"
+if [ -n "${FORCE}" -o -n "${FORCEALL}" -o -n "${FORCECLEAN}" ];then
+    echo
+    echo "Force-flag set => append \"${BINDIR}\" to PATH in..."
+    if [ -f ${HOME}/.bashrc ];then
+	FNAME=${HOME}/.bashrc
+    else
+	if [ -f ${HOME}/.bash_profile ];then
+	    FNAME=${HOME}/.bash_profile
+	else
+	    if [ -f ${HOME}/.profile ];then
+		FNAME=${HOME}/.profile
+	    else
+		echo "...\"bash\" shell is supported only, configure PATH manually."
+	    fi
+	fi
+    fi
+    if [ -n "${FNAME}" ];then
+	grep -q "${BINDIR}" "${FNAME}"
+	if [ $? -ne 0 ];then
+	    echo "...in \"${FNAME}\""
+	    echo "###">>"${FNAME}"
+	    echo "#">>"${FNAME}"
+	    echo "#generated by \"${MYCALLNAME}\"">>"${FNAME}"
+	    echo "#">>"${FNAME}"
+	    echo "if [ -z \"\${CTYS_INI}\" ];then">>"${FNAME}"
+	    echo "  PATH=\$PATH:${BINDIR}">>"${FNAME}"
+	    echo "  CTYS_INI=1;export CTYS_INI">>"${FNAME}"
+	    echo "fi">>"${FNAME}"
+	    echo "#">>"${FNAME}"
+	    echo "###">>"${FNAME}"
+
+	    echo "  PATH=\$PATH:${BINDIR}">>"${HOME}/.ssh/environment"
+
+	    PATH=${PATH}:${BINDIR}
+	else
+	    echo "...nothing changed, already present in \"${FNAME}\""
+	fi
+    fi
+else
+    echo "...a force-flag required."
+fi
+
+echo
+echo
+echo
+echo "**************************************************************"
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* Installation finished, now some basic execution tests are  *"
+echo "* perfomed, check expected output.                           *"
+echo "*                                                            *"
+echo "**************************************************************"
+echo "**************************************************************"
+echo
+
+
+
+echo
+echo "**************************************************************"
+echo "* You should see now various version information, from call  *"
+echo "*                                                            *"
+echo "  \${CTYSCALL} -W -v => ${CTYSCALL} -W -v"
+echo "*                                                            *"
+echo "**************************************************************"
+echo
+echo
+echo
+echo "              ###################"
+echo "              # BASIC CHECK - 1 #"
+echo "              ###################"
+echo
+echo
+${CTYSCALL} -W -v 
+echo
+echo
+echo
+echo
+
+echo
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* If version information is displayed above, the             *"
+echo "* installation seems to be successful and operable.          *"
+echo "*                                                            *"
+echo "* Now a call with preload of all available plugins will be   *"
+echo "* performed, this checks almost any base-requirement and     *"
+echo "* available shell resources for maximum synchronouos usage   *"
+echo "* of plugin-types.                                           *"
+echo "*                                                            *"
+echo "  \${CTYSCALL} -W -v -T all => ${CTYSCALL} -W -v -T all"
+echo "*                                                            *"
+echo "*                                                            *"
+echo "*                                                            *"
+echo "* It could exhaust some resources which frequently leads     *"
+echo "* to some \"not very obviouos\" error messages.                *"
+echo "*                                                            *"
+echo "* Trust me, the syntax of the scripts might be in almost     *"
+echo "* any case not the reason!                                   *"
+echo "*                                                            *"
+echo "* Workaround is given after following call-results.          *"
+echo "*                                                            *"
+echo "**************************************************************"
+echo
+echo
+echo
+echo "              ###################"
+echo "              # BASIC CHECK - 2 #"
+echo "              ###################"
+echo
+echo
+${CTYSCALL} -W -v -T all
+echo
+echo
+echo
+echo
+
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* If you got some strange errors from the previous call,     *"
+echo "* your bash-environent for shell execution is probably       *"
+echo "* too small, exhausted anyhow.                               *"
+echo "*                                                            *"
+echo "* SOLUTIONs if fails:                                        *"
+echo "*                                                            *"
+echo "*  -> just use a limited number of pluging for each call,    *"
+echo "*     see options \"-t\" and \"-T\"                             *"
+echo "*                                                            *"
+echo "*  -> check your environment, e.g. with.                     *"
+echo "*        \"env|wc -c\"                                         *"
+echo "*     and reduce it(at least your exports).                  *"
+echo "*     Some kernels are limited to above 128k.                *"
+echo "*                                                            *"
+echo "*  -> use a newer with sysctl-support or a patched kernel.   *"
+echo "*                                                            *"
+echo "*  -> use an OS supporting sysctl-setting of shell-MEM.      *"
+echo "*                                                            *"
+echo "*                                                            *"
+echo "**************************************************************"
+echo
+echo
+echo
+echo
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* Display now the actual operational states of installed     *"
+echo "* plugins.                                                   *"
+echo "*                                                            *"
+echo "* These may change for next call, when missing prerequisites *"
+echo "* are installed, or vice versa.                              *"
+echo "*                                                            *"
+echo "**************************************************************"
+
+echo
+echo
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* SERVER features                                            *"
+echo "*                                                            *"
+echo "**************************************************************"
+${CTYSPLUGINS} -e -T ALL 
+
+echo
+echo
+echo "**************************************************************"
+echo "*                                                            *"
+echo "* CLIENT features                                            *"
+echo "*                                                            *"
+echo "**************************************************************"
+${CTYSPLUGINS} -T ALL 
+
+which ctys 2>/dev/null >/dev/null
+if [ $? -ne 0 ];then
+    echo
+    echo "#########################################################"
+    echo "#                                                       #"
+    echo "#  WARNING: Don't forget to update your PATH variable:  #"
+    echo "#                                                       #"
+    echo "#########################################################"
+    echo "#                                                       #"
+    echo "#  add:PATH=\${PATH}:${BINDIR}"
+    echo "#                                                       #"
+    echo "#########################################################"
+    echo "#                                                       #"
+    echo "#  For SSHD you might require some configuration.       #"
+    echo "#  For further information refer to \"sshd_config\"       #"
+    echo "#  and \"ssh_config\"                                     #"
+    echo "#                                                       #"
+    echo "#  - \$HOME/ssh/environment                             #"
+    echo "#    PATH=<expanded-PATH-no-vars>                       #"
+    echo "#  - in /etc/ssh/sshd_conf                              #"
+    echo "#    \"PermitUserEnvironment yes\"                        #"
+    echo "#                                                       #"
+    echo "#  Alternative:                                         #"
+    echo "#  - in /etc/ssh/ssh_conf                               #"
+    echo "#    \"SendEnv yes\"                                      #"
+    echo "#  - in /etc/ssh/sshd_conf                              #"
+    echo "#    \"AcceptEnv yes\"                                    #"
+    echo "#                                                       #"
+    echo "#                                                       #"
+    echo "#########################################################"
+    echo
+    splitPath 10 "  PATH" "$PATH";
+    echo
+    echo "#########################################################"
+    echo
+    checkPathElements  PATH   "$PATH";
+    echo
+else
+    echo
+    echo "OK, ctys could be accessed by \$PATH search."
+    echo
+fi
+
+echo
+echo
+echo "#########################################################"
+echo
+echo "Do not forget to change your VNC password with \"vncpasswd\""
+echo
+echo "#########################################################"
+echo
+echo
+
+
+
+cat <<EOF 
+
+
+#######################################################################
+#                                                                     #
+# HINT: Using the features of the "Unified Sesssions Manager" will be #
+#       seamless and smart, once an Sigle-Sign-On a.k.a. SSO          #
+#       environment is established. Anything else will require        #
+#       frequently manual authentication by a password challange, for #
+#       some actions even multiple requests are required. This can    #
+#       become somewhat annoying when advanced preconfigured desktops #
+#       with multiple sessions are started. So at least OpenSSH key   #
+#       based login or better a kerberos based login is strongly      #
+#       recommended.                                                  #
+#                                                                     #
+#######################################################################
+
+
+You may try now help first: 
+
+    -> ctys -h
+       Basic overview.
+
+    -> ctys -H all
+       Whole manual displayed on screen.
+
+    -> ctys -H print
+       Whole manual formatted for printing by "pr" on stdout.
+       Adapt "PR_OPTS" when required.
+    
+    -> ctys -H '-H'
+       Help on extended context-sensitive-CLI help 
+       "simple by simple means".
+       Not perfect, but efficient.
+
+    -> for help on development interfaces:
+       "-H 'funcList|funcListMod|funcHead'"
+    
+EOF
+
+

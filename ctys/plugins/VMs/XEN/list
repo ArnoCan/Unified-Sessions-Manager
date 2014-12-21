@@ -1,0 +1,135 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_XEN_LIST="${BASH_SOURCE}"
+_myPKGVERS_XEN_LIST="01.00.001a00"
+hookInfoAdd $_myPKGNAME_XEN_LIST $_myPKGVERS_XEN_LIST
+_myPKGBASE_XEN_LIST="`dirname ${_myPKGNAME_XEN_LIST}`"
+
+_XEN_LIST="${_myPKGNAME_XEN_LIST}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessionsXEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists all XEN sessions.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: C|S|B
+#     determines the filter to be applied.
+#     C: clients
+#     S: servers
+#     B: both
+# $2: 1=MACHINE|0=HUMAN
+# $*: FULLPATH|UUID
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function listMySessionsXEN () {
+    local _site=$1;shift
+    local _machine=$1;shift
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_XEN_LIST "XEN_MAGIC  =${XEN_MAGIC}"
+    local CLIENTLST=;
+    local SERVERLST=;
+
+    #controls debugging for awk-scripts
+    doDebug ${DBG_LVL_MAINT} $LINENO $_XEN_LIST
+    local D=$?
+
+    local _ugid=;
+#alright: essential access requires root-permission, so no specific
+#user owns a DomU exclusively, but root - even though someone else
+#might have created it. So let it open here, which defaults to use
+#root when action required is mandatory.
+#    _ugid=`getMyUGID`
+    _ugid=${_ugid:-;}
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_XEN_LIST "${_site} ${_site}"
+
+
+    case ${XEN_MAGIC} in
+	XEN_*)
+	    if [ "${_site}" == S -o "${_site}" == B ];then
+		if [ -n "${VIRSH}" ];then
+                    #preferred
+		    local _running=`callErrOutWrapper $LINENO $BASH_SOURCE ${VIRSHCALL} ${VIRSH} list |\
+                                    awk 'BEGIN{b=0;}/-------/{b=1;next;}b==1&&$0!~/^ *$/{print $1";"$2}'`
+		    local _l=;
+                    local _cur=;
+                    local _curid=;
+		    for _l in ${_running};do
+			_cur=`callErrOutWrapper $LINENO $BASH_SOURCE ${VIRSHCALL} ${VIRSH} dumpxml ${_l%;*}|\
+                            awk -v d="${D}" -v voffset="${VNC_BASEPORT:-0}" -v ugid="${_ugid}" \
+                            -f ${_myPKGBASE_XEN_LIST}/virshlst01.awk`
+			printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_XEN_LIST "_cur=<${_cur}>"
+			SERVERLST="${SERVERLST} ${_cur}"
+		    done
+		else
+                    #should not occur!
+		    ABORT=2
+		    printERR $LINENO $_XEN_LIST ${ABORT} "Requires VIRSH or XM"
+		    gotoHell ${ABORT}
+		fi
+	    fi
+ 	    if [ "${_site}" == C -o "${_site}" == B ];then
+		printWNG $LINENO $_XEN_LIST 0 "Sorry, LIST for clients is not supported, these are managed"
+		printWNG $LINENO $_XEN_LIST 0 "by their specific plugin:VNC|X11|CLI"
+ 		CLIENTLST=;
+ 	    fi
+  	    ;;
+	*)  #ooooops!!!!!!
+	    ABORT=2
+	    printERR $LINENO $_XEN_LIST ${ABORT} "mismatch:XEN_MAGIC=${XEN_MAGIC}"
+	    gotoHell ${ABORT}
+	    ;;
+    esac
+
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_XEN_LIST "SERVERLST(RAW)=<${SERVERLST}>"
+    printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_XEN_LIST "CLIENTLST(RAW)=<${CLIENTLST}>"
+
+    if [ -z "${SERVERLST}" -a -z "${CLIENTLST}" ];then
+        printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $_XEN_LIST "No sessions yet."
+	return
+    fi
+
+    export -f getClientTPXEN
+    export -f printVerboseDebug
+    export -f printERR
+    export -f gotoHell
+    export XEN_MAGIC
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_XEN_LIST "SERVERLST(PROCESSED)=\"${SERVERLST}\""
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_XEN_LIST "CLIENTLST(PROCESSED)=\"${CLIENTLST}\""
+    for i in ${SERVERLST} ${CLIENTLST};do
+        i="${MYHOST};${i}"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $_XEN_LIST "CURSES=${i}"
+	echo "${i}"
+    done
+}

@@ -1,0 +1,16 @@
+   9.3.2.4. ToDo
+    ------------
+
+    1. MOVE and SHIFT of sessions.
+    2. Add support of Server and Player versions 2.x.
+    3. Integrate VM-DEBUGGING, Eclipse.
+    4. Integrate into Emacs and GDB.
+    5. Support for security profiles.
+    6. Start in headless-mode.
+    7. Automatic add of new VMs to inventory list.
+    8. Implement machine-name:
+         - TCP
+         - MAC
+       ->add for RECONNECT
+
+    ...last, but not least, test and maintenance.

@@ -1,0 +1,292 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_CONFIG="${BASH_SOURCE}"
+_myPKGVERS_CONFIG="01.02.002c01"
+hookInfoAdd "$_myPKGNAME_CONFIG" "$_myPKGVERS_CONFIG"
+
+
+#default fall back
+CTYSCONF=${CTYSCONF:-/etc/ctys.d/[pv]m.conf}
+
+
+####################################################################
+#
+#ATTENTION: For SETs take FIRST-ONLY (e.g. ethX).
+#
+####################################################################
+
+
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getUUID
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getUUID () {
+    local X=$1
+    local _IP=;
+    if [ -z "${X}" ];then
+	which dmidecode 2>/dev/null >/dev/null
+	if [ $? == 0 ];then
+	    _IP=`dmidecode |awk '/UUID/{if(NF==2)print $2}'|sed 's/-//g'`
+	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from dmidecode"
+	fi
+    else
+        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+	    [ ! -f "$i" ]&&continue;
+ 	    _IP=`sed -n 's/^#@#UUID *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+            if [ "$_IP" != "" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+    fi
+    echo $_IP
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMAC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMAC () {
+    local X=$1
+    local _IP=;
+    if [ -z "${X}" ];then
+	which ifconfig 2>/dev/null >/dev/null
+	if [ $? == 0 ];then
+	    _IP=`ifconfig |awk '/HWaddr/{if(p==0){p=1;print $NF}}'`;
+	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ifconfig"
+	fi
+    else
+        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+	    [ ! -f "$i" ]&&continue;
+ 	    _IP=`sed -n 's/^#@#MAC[0]* *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+            if [ "$_IP" != "" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+    fi
+    echo $_IP
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  getIP
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getIP () {
+    local X=$1
+    local _IP=;
+    if [ -z "${X}" ];then
+	which ifconfig 2>/dev/null >/dev/null
+	if [ $? == 0 ];then
+	    _IP=`ifconfig |awk '/inet/{if(p==0){p=1;print $2}}'|awk -F':' '{print $2}'`;
+	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ifconfig"
+	fi
+    else
+        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+	    [ ! -f "$i" ]&&continue;
+	    _IP=`sed -n 's/^#@#IP[0]* *= *"\([^"]*\)"/\1/p' "${i}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+            if [ "$_IP" != "" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+    fi
+    echo $_IP
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  getDIST
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getDIST () {
+    local X=$1
+    if [ -z "${X}" ];then
+	local _IP=`cat /etc/*-release`;
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from /etc/*-release"
+    else
+        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+	    [ ! -f "$i" ]&&continue;
+	    _IP=`sed -n 's/^#@#DISTRO *= *"\([^"]*\)"/\1/p' "${i}"|\
+                   awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+            if [ "$_IP" != "" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+    fi
+    echo $_IP|sed 's/ /_/g'
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  getOS
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getOS () {
+    local X=$1
+    if [ -z "${X}" ];then
+	local _IP=${MYOS};
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from MYOS"
+    else
+        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+	    [ ! -f "$i" ]&&continue;
+	    _IP=`sed -n 's/^#@#OS *= *"\([^"]*\)"/\1/p' "${i}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+            if [ "$_IP" != "" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+    fi
+    echo $_IP|sed 's/ /_/g'
+}
+
+#FUNCBEG###############################################################
+#NAME:
+#  getVERNO
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: Name of "ID" or "PNAME" containing the configuration.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getVERNO () {
+    local X=$1
+    if [ -z "${X}" ];then
+	local _IP=${MYOSREL};
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from MYOSREL"
+    else
+        for i in "${X}" "${X%.*}.ctys" "${X%/*}.ctys" "${CTYSCONF}";do
+	    [ ! -f "$i" ]&&continue;
+	    _IP=`sed -n 's/^#@#VERNO *= *"\([^"]*\)"/\1/p' "${i}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+            if [ "$_IP" != "" ];then
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${i}"
+		break;
+	    fi
+	done
+    fi
+    echo $_IP
+}
+
+

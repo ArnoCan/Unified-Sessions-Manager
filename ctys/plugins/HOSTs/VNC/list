@@ -1,0 +1,83 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_VNC_LIST="${BASH_SOURCE}"
+_myPKGVERS_VNC_LIST="01.02.001b01"
+hookInfoAdd $_myPKGNAME_VNC_LIST $_myPKGVERS_VNC_LIST
+_myPKGBASE_VNC_LIST="`dirname ${_myPKGNAME_VNC_LIST}`"
+
+_VNC_LIST="${_myPKGNAME_VNC_LIST}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessionsVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#    output format: "host:label:id:UUID:pid:uid:gid:sessionType:clientServer"
+#
+#FUNCEND###############################################################
+function listMySessionsVNC () {
+    local _site=$1;shift
+    local _machine=${1:-0};
+
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME ${*}"
+    if [ "${CTRL_SESSIONTYPE}" != "VNC" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
+        ABORT=2
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        gotoHell ${ABORT}
+    fi
+
+    if [ "${_site}" == S -o "${_site}" == B ];then
+	    local SERVERLST=`listProcesses|grep 'Xvnc :'|grep -v grep`
+            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "SERVERLST(RAW)=${SERVERLST}"
+            SERVERLST=`echo "${SERVERLST}"|awk -v machine=$_machine -f ${_myPKGBASE_VNC}/serverlst01.${MYOS}.awk`
+    fi
+
+    if [ "${_site}" == C -o "${_site}" == B ];then
+	    local CLIENTLST=`listProcesses|grep 'vncviewer'|grep -v grep`
+            printVerboseDebug ${DBG_LVL_HAYSTACK} $LINENO $BASH_SOURCE "CLIENTLST(RAW)=${CLIENTLST}"
+
+            CLIENTLST=`echo "${CLIENTLST}"|awk -v machine=$_machine -f ${_myPKGBASE_VNC}/clientlst01.${MYOS}.awk`
+    fi
+
+    local SESLST="${CLIENTLST} ${SERVERLST}"
+
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "SESLST(PROCESSED)=\"${SESLST}\""
+    local _i=;
+    for _i in ${SESLST};do
+	_i="${MYHOST};${_i}"
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CURSES=${_i}"
+	echo "${_i}"
+    done
+}
+
+

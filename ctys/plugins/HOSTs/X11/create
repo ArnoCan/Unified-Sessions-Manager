@@ -1,0 +1,439 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_X11_CREATE="${BASH_SOURCE}"
+_myPKGVERS_X11_CREATE="01.01.001a01"
+hookInfoAdd $_myPKGNAME_X11_CREATE $_myPKGVERS_X11_CREATE
+_myPKGBASE_X11_CREATE="`dirname ${_myPKGNAME_X11_CREATE}`"
+
+_X11_CREATE="${_myPKGNAME_X11_CREATE}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  createConnectX11
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Creates a session and/or connects to the server.
+#  
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function createConnectX11 () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "${FUNCNAME}:$*"
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
+
+    function chkCtysVhost () {
+	if [ $1 != 0 ];then
+	    printERR $LINENO $_LINUX_CREATE ${ABORT} "ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} exit with error:$ret"
+ 	    gotoHell ${1}
+	fi
+    }
+
+    local i;
+    local A;
+
+    case ${OPMODE} in
+	CHECKPARAM)
+            #
+            #Just check syntax drafts, the expansion of labels etc. could just be
+            #expanded on target machine.
+            #
+            if [ -n "$CTRL_MODE_ARGS" ];then
+		A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "X11($A)"
+
+                #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		local _unambig=0;
+		local _unambigCON=0;
+		for i in $A;do
+		    KEY=`echo ${i}|awk -F':' '{print $1}'|tr '[:lower:]' '[:upper:]'`
+		    ARG=`echo ${i}|awk -F':' '{print $2}'|sed 's/%/ /g'`
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "KEY=${KEY}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "ARG=${ARG}"
+
+                    #handle keywords
+                    if [ -n "${ARG}" \
+			-o -z "${ARG}" \
+			-a \( \
+                           "${KEY}" == "DUMMY"  \
+                           -o "${KEY}" == "DH"  \
+                           -o "${KEY}" == "SH"  \
+ 	  		   -o "${KEY}" == "NOCACHE" \
+			   -o "${KEY}" == "NOPOLL" \
+                        \) \
+			];then
+			case $KEY in
+			    SHELL|S)
+                                local _shell="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "SHELL=$_shell"
+				;;
+			    CMD)
+                                local _cmd="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "CMD=$_cmd"
+				;;
+			    DH)
+                                local _dh=1;
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "DH=$_dh"
+				;;
+			    SH)
+                                local _sh=1;
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "SH=$_sh"
+				;;
+
+
+                          #####################
+                          # <call-arguments>  #
+                          #####################
+			    CALLOPTS|C)
+				local _callopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "CALLOPTS=${_callopts}"
+				;;
+			    XOPTS|X)
+				local _xopts="${ARG//\%/ }";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "XTOOLKITOPTS=${_xopts}"
+				;;
+
+
+                          #####################
+                          # <machine-address> #
+                          #####################
+			    NOCACHE)
+				local _cache=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOCACHE not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				;;
+			    NOPOLL)
+				local _poll=0;
+				printWNG $LINENO $BASH_SOURCE ${ABORT} "NOPOLL not yet implemented"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				;;
+
+
+
+# 			    BASEPATH|BASE|B)
+# 				local _base="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "BASE=${_base}"
+# 				;;
+
+# 			    TCP|T)
+# 				local _tcp="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "TCP=${_tcp}"
+# 				let _unambig+=1;
+# 				;;
+# 			    MAC|M)
+# 				local _mac="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "MAC=${_mac}"
+# 				let _unambig+=1;
+# 				;;
+# 			    UUID|U)
+# 				local _uuid="${ARG}";
+#  				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "UUID=${_uuid}"
+# 				let _unambig+=1;
+# 				;;
+			    LABEL|L)
+				local _label="${ARG}";
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "LABEL=${_label}"
+				let _unambig+=1;
+				;;
+# 			    FILENAME|FNAME|F)
+# 				local _fname="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "FILENAME=${_fname}"
+# 				let _unambig++;
+# 				;;
+# 			    ID:I)
+# 				local _id="${ARG}";
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "ID=${_id}"
+# 				local _idgiven=1;
+# 				;;
+# 			    PATHNAME|PNAME|P)
+# 				if [ -n "${ARG##/*}" ]; then
+# 				    ABORT=1;
+# 				    printERR $LINENO $_X11_CREATE ${ABORT} "PNAME has to be an absolute path, use fname else."
+# 				    printERR $LINENO $_X11_CREATE ${ABORT} " PNAME=${ARG}"
+#  				    gotoHell ${ABORT}
+# 				fi
+# 				local _pgiven=1;
+# 				printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "PATHNAME=${ARG}"
+# 				;;
+
+			    *)
+				ABORT=1;
+				printERR $LINENO $_X11_CREATE ${ABORT} "Unknown sub-opts for X11:${KEY}"
+				printERR $LINENO $_X11_CREATE ${ABORT} "Allowed values: REUSE - base|b - label|l - fname|f - pname|p"
+ 				gotoHell ${ABORT}
+				;;
+			esac
+                    else
+			ABORT=1;
+			printERR $LINENO $_X11_CREATE ${ABORT} "Erroneous KEY:<${KEY}>"
+ 			printERR $LINENO $_X11_CREATE ${ABORT} "  Required syntax :<KEY>:<ARG>";
+ 			printERR $LINENO $_X11_CREATE ${ABORT} "  Given systax    :<${KEY}>:<${ARG}>";
+ 			gotoHell ${ABORT}               
+		    fi
+		done
+
+		if [ -n "$_dh" -a -n "$_sh" ];then
+		    ABORT=1;
+		    printERR $LINENO $_X11_CREATE ${ABORT} "The suboptions DH and SH are EXOR."
+ 		    gotoHell ${ABORT}               
+		fi
+
+	    fi
+            #Eas later procesing by simple key, else not really required.
+	    if [ -z "${_label}" ];then
+		ABORT=1;
+		printERR $LINENO $_CLI_CREATE ${ABORT} "Missing mandatory parameter:\"LABEL\""
+ 		gotoHell ${ABORT}               
+	    fi
+	    ;;
+
+	ACTION)
+	    if [ -n "${R_TEXT}" ];then
+		echo "${R_TEXT}"
+	    fi
+	    if [ -z "${CTRL_EXECLOCAL}" ];then
+		assembleExeccall
+	    else
+              #
+              #Doing local semantical correctness evaluation now.
+              #
+		if [ -n "$CTRL_MODE_ARGS" ];then
+		    A=`echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "X11($A)"
+
+                  #guarantee unambiguity of EXOR: (label|l)  (fname|f)  (pname|p)
+		    local _unambig=0;
+		    for i in $A;do
+			KEY=`echo ${i}|awk -F':' '{print $1}'|tr '[:lower:]' '[:upper:]'`
+  			ARG=`echo ${i}|awk -F':' '{print $2}'|sed 's/%/ /g'`
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "KEY=${KEY}";
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "ARG=${ARG}";
+
+			if [ -n "${ARG}" \
+			    -o -z "${ARG}" -a \( \
+                                 "${KEY}" == "DUMMY" \
+                                 -o "${KEY}" == "DH"  \
+                                 -o "${KEY}" == "SH"  \
+	  		         -o "${KEY}" == "NOCACHE" \
+ 		                 -o "${KEY}" == "NOPOLL" \
+                            \) \
+			    ];then
+			    case $KEY in
+				SHELL|S)
+                                    local _shell="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "SHELL=$_shell"
+				    ;;
+				CMD)
+                                    local _cmd="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "CMD=$_cmd"
+				    ;;
+				DH)
+                                    local _dh="--";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "DH=$_dh"
+				    ;;
+				SH)
+                                    local _sh="-";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "SH=$_sh"
+				    ;;
+
+
+
+                          #####################
+                          # <call-arguments>  #
+                          #####################
+				CALLOPTS|C)
+				    local _callopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "CALLOPTS=${_callopts}"
+                                    CTRL_SESSIONIDARGS="${_callopts}"
+				    ;;
+				XOPTS|X)
+				    local _xopts="${ARG//\%/ }";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "XTOOLKITOPTS=${_xopts}"
+                                    CTRL_XTOOLKITOPTS="${_xopts}"
+				    ;;
+
+
+
+                          #####################
+                          # <machine-address> #
+                          #####################
+				NOCACHE)
+				    local _cache=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				    ;;
+				NOPOLL)
+				    local _poll=0;
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				    ;;
+
+
+				BASEPATH|BASE|B)
+                                  #can be checked now
+                                    local _base="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "BASE=${_base}"
+                                    for i in ${_base//\%/ };do
+					if [ ! -d "${i}" ];then
+					    ABORT=1;
+					    printERR $LINENO $_X11_CREATE ${ABORT} "Missing given base-path";
+					    printERR $LINENO $_X11_CREATE ${ABORT} "  i  = ${i}";
+					    printERR $LINENO $_X11_CREATE ${ABORT} "  PWD= ${PWD}";
+					    printERR $LINENO $_X11_CREATE ${ABORT} "Check your actual PWD when providing a relative base-path";
+ 					    gotoHell ${ABORT};
+					fi
+				    done
+				    ;;
+
+				TCP|T)
+				    local _tcp="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "TCP=${_tcp}"
+				    ;;
+				MAC)
+				    local _mac="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "MAC=${_mac}"
+				    ;;
+				UUID|U)
+				    local _uuid="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "UUID=${_uuid}"
+				    ;;
+
+				LABEL|L)
+                                    local _label="${ARG}";
+ 				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "LABEL=${_label}"
+				    ;;
+				FILENAME|FNAME|F)
+                                    local _fname="${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "FILENAME=${_fname}"
+				    ;;
+				ID)
+                                    local _id="${ARG}";
+                                    if [ -n "${_id}" ];then
+					ABORT=1;
+					printERR $LINENO $_X11_CREATE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+					printERR $LINENO $_X11_CREATE ${ABORT} "  ID(1)=${_pname}"
+					printERR $LINENO $_X11_CREATE ${ABORT} "  ID(2)=${ARG}"
+					printERR $LINENO $_X11_CREATE ${ABORT} "Will be extended soon."
+ 					gotoHell ${ABORT}
+                                    fi
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "ID=${_id}"
+				    ;;
+				PATHNAME|PNAME|P)
+                                    if [ -n "${_pname}" ];then
+					ABORT=1;
+					printERR $LINENO $_X11_CREATE ${ABORT} "This version supports just ONE ${KEY} for each ${ACTION}  call"
+					printERR $LINENO $_X11_CREATE ${ABORT} "  PNAME(1)=${_pname}"
+					printERR $LINENO $_X11_CREATE ${ABORT} "  PNAME(2)=${ARG}"
+					printERR $LINENO $_X11_CREATE ${ABORT} "Will be extended soon."
+ 					gotoHell ${ABORT}
+                                    fi
+                                    if [ ! -f "${ARG}" ];then
+					ABORT=1;
+					printERR $LINENO $_X11_CREATE ${ABORT} "Missing given file or access permission for ID/PNAME"
+					printERR $LINENO $_X11_CREATE ${ABORT} "  PNAME=${ARG}"
+ 					gotoHell ${ABORT}
+                                    fi
+                                    local _pname="${_pname:+$_pname|}${ARG}";
+				    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "RANGE:PATHNAME=${_pname}"
+				    ;;
+
+
+				*)
+				    ABORT=1;
+				    printERR $LINENO $_X11_CREATE ${ABORT} "Unexpected sub-opts for X11:${KEY}"
+ 				    gotoHell ${ABORT}
+				    ;;
+			    esac
+			fi
+		    done
+
+
+		    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_X11_CREATE "CombineParamaters"
+
+                    #setup "reflection" - ffs. so far
+#                     local _dbg1=${CTRL_VERBOSE:+ -d $CTRL_VERBOSE}
+#                     local _chainedFilter="${_base} ${_pname} ${_uuid} ${_label} ${_fname} ${_mac} ${_tcp}" 
+# 		    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_X11_CREATE "b:${_base};p:${_pname};u:${_uuid};l:${_label};f:${_fname};m:${_mac};t:${_tcp}" 
+# 		    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_X11_CREATE "_chainedFilter=${_chainedFilter}"
+# 		    if [ -n "${_chainedFilter// }" ];then
+# 			_myIP=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} $_dbg1 -Y MACMAP -o TCP -p ${DEFAULT_DBPATHLST} "${_chainedFilter}"`
+# 			chkCtysVhost $?
+# 		    else
+# 			_myIP=localhost
+# 		    fi
+# 		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "***"
+# 		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "Session parameters:"
+# 		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "  _myIP      = ${_myIP}"
+# 		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "  _myMAC     = ${_myMAC}"
+# 		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "***"
+
+		else
+		    local stripDummy=;
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "No user supplied parameters - set defaults"
+		fi
+
+                #set correct hypen count for x-legacy and modern WM.
+                #but anyhow, some are still intermixed, e.g. "-e" and "-x" option
+		_xp=${_dh:-$_sh}
+		_xp=${_xp:-$X11_WM_OPTPRE}
+		printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_xp=\"${_xp}\" _sh=\"${_sh}\" _dh=\"${_dh}\""
+
+
+                case "${CTRL_CLIENTLOCATION#-L }" in
+		    LocalOnly|DisplayForwarding)
+                        if [ -z "${_label}" ];then
+                            _label="DEFAULT-${DATETIME}"
+                        fi
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE "startSessionX11 \"${_label}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE " ->\"${_label}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE " ->\"${_cmd}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE " ->\"${_callopts}\""
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $_X11_CREATE " ->\"${_xopts}\""
+
+                        startSessionX11 "${_label}"  "${_cmd}" "${_shell}" "${_callopts}" "${_xopts}"
+			gotoHell 0
+			;;
+
+		    ConnectionForwarding|*)
+			ABORT=1
+			printERR $LINENO $_X11_CREATE ${ABORT} "Execution locality error:${CTRL_CLIENTLOCATION}"
+			gotoHell ${ABORT}
+			;;
+		esac
+	    fi
+	    ;;
+    esac
+
+}
+
+

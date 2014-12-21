@@ -1,0 +1,23 @@
+   9.3.2.3. Tests
+    -------------
+
+    Currently operated on:
+
+    1. VMware-Workstation
+       CURRENT-PRODUCTIVE:    6.0.2 
+       LAST-PRODUCTIVE:       6.0.0, 6.0.1
+       CURRENT-TEST-ONLY:     (2.x)
+       SHOULD-WORK:           5.x
+
+    2. VMware-Server:         
+       CURRENT-PRODUCTIVE:    1.0.4 
+       LAST-PRODUCTIVE:       1.0.3
+       CURRENT-TEST-ONLY:     (2.x)
+       SHOULD-WORK:           1.x
+
+    3. VMware-Player:         
+       CURRENT-PRODUCTIVE:    -
+       LAST-PRODUCTIVE:       -
+       CURRENT-TEST-ONLY:     1.0.5
+       SHOULD-WORK:           1.x
+

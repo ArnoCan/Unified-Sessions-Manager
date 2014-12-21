@@ -1,0 +1,550 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_VNC_CREATE="${BASH_SOURCE}"
+_myPKGVERS_VNC_CREATE="01.03.001b01"
+hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VNC_CREATE
+_myPKGBASE_VNC_CREATE="`dirname ${_myPKGNAME_VNC_CREATE}`"
+
+_VNC_CREATE="${_myPKGNAME_VNC_CREATE}"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  bulkExpand
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This is a special for VNC, which expands a number and a label to 
+#  a combined label with an enumeration as index.
+#
+#  This feature is particularly used for testing purposes of ctys 
+#  itself and local native applications within a VNC session.
+#
+#EXAMPLE:
+#  bulkcnt + <label> => <label>NNN  (N=[0-9])
+#
+#PARAMETERS:
+#  $1: #bulkcnt
+#  $2: <label>
+#      A label is required and will be used as prefix
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#    <label><id>
+#      The label is enumerated as given with #bulkcnt 
+#      (3digits with leading '0').
+#      Each entry is given as seperate line for postprocessing.
+#
+#FUNCEND###############################################################
+function bulkExpand () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME bulkcnt=<$1>"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME label  =<$2>"
+
+    local _LABEL=$2
+    local _BULKCNT=;
+    case $1 in
+	[0-9]|[0-9][0-9]|[0-9][0-9][0-9])
+	    _BULKCNT=$1;
+	    ;;
+	*)ABORT=1
+	    ;;
+    esac
+    if [ -z "${_BULKCNT}" ];then
+	_BULKCNT=1;
+        unset ABORT;
+    fi
+    if [ -n "${ABORT}" -o \( -n "${_BULKCNT}" -a -n "${_BULKCNT//[0-9]/}" \) ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:_BULKCNT=${_BULKCNT}"
+	gotoHell ${ABORT}
+    fi
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_BULKCNT = <${_BULKCNT}>"
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_LABEL   = <${_LABEL}>"
+
+    for((i=0;i<_BULKCNT&&i<R_CREATE_MAX;i++));do
+	_LABEL_OUT=${_LABEL};
+	if [ "${_BULKCNT}" != 1 -a -n "${_LABEL}" ];then
+	    _LABEL_OUT=${_LABEL_OUT}`printf "%03d" ${i}`
+	fi
+        printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_LABEL_OUT=<${_LABEL_OUT}>"
+        echo ${_LABEL_OUT}
+    done
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  createConnectVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Creates a session and/or connects to the server.
+#  
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function createConnectVNC () {
+    local OPMODE=$1;shift
+    local ACTION=$1;shift
+
+    unset _VNATIVE;
+
+    case ${OPMODE} in
+        CHECKPARAM)
+	    if [ -n "$CTRL_MODE_ARGS" ];then
+                printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+                for i in ${CTRL_MODE_ARGS//,/ };do                         
+		    KEY=`echo ${i%%:*}|tr '[:lower:]' '[:upper:]'`
+		    ARG=${i#*:}
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "KEY=${KEY}"
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "ARG=${ARG}"
+
+		    case $KEY in
+                        REUSE)
+			    local _reuse=1;
+			    ;;
+
+                        CONNECT)
+			    local _connect=1;
+			    ;;
+
+                        RECONNECT)
+			    local _reconnect=1;
+			    ;;
+
+                        RESUME)
+			    ABORT=1
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
+			    gotoHell ${ABORT}
+			    ;;
+
+
+                   #####################
+                   # <machine-address> #
+                   #####################
+			NOCACHE)
+			    local _cache=0;
+			    printWNG $LINENO $BASH_SOURCE ${ABORT} "NOCACHE not yet implemented"
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+			    ;;
+			NOPOLL)
+			    local _poll=0;
+			    printWNG $LINENO $BASH_SOURCE ${ABORT} "NOPOLL not yet implemented"
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+			    ;;
+
+
+                        L|LABEL)
+			    _LABEL="${_LABEL} ${ARG}";
+			    ;;
+
+                        I|ID)
+			    if [ -z "$_connect" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEYXS} NOT supported"
+				gotoHell ${ABORT}
+			    fi
+			    _ID="${_ID} ${ARG}";
+			    if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
+				gotoHell ${ABORT}
+			    fi
+			    ;;
+
+
+
+                   #######################
+                   # Specific attributes #  
+                   #######################
+                        BULK)
+			    case ${ACTION} in
+                                CONNECT|REUSE|RECONNECT)
+				    ABORT=1
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "${ACTION}:Suboption ${KEY} NOT supported"
+				    gotoHell ${ABORT}
+				    ;;
+			    esac
+
+                            #bulk will concatenate 3digit-leading-zero integers with current label
+			    if [ -n "${_uniqeBulk}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Suboption ${i} has to be unique."
+				gotoHell ${ABORT}
+			    fi
+                            local _uniqeBulk=1;
+			    _BULKCNT=${ARG};
+			    if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
+				gotoHell ${ABORT}
+			    fi
+			    ;;
+
+                        VBASE|VNCBASE)
+			    if [ -n "${_VNC_BASEPORT}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Suboption ${i} has to be unique."
+				gotoHell ${ABORT}
+			    fi
+                            _VNC_BASEPORT="${ARG}";
+			    if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
+				gotoHell ${ABORT}
+			    fi
+			    ;;
+
+                        V|VNC)
+			    if [ -n "${_VNATIVE}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "VNC native port is supported once per call only"
+				gotoHell ${ABORT}
+			    fi
+			    if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "VNC native port requires integers only:\"${ARG}\""
+				gotoHell ${ABORT}
+			    fi
+			    _VNATIVE="${ARG}";
+			    ;;
+
+                        VIEWERDELAY)
+			    VNCVIEWER_DELAY=${ARG};
+			    if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
+				gotoHell ${ABORT}
+			    fi
+			    ;;
+
+			*)
+			    ABORT=1
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown suboption:<${i}>"
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "  Probably the key is missing \"<key>:<arg>\""
+			    gotoHell ${ABORT}
+			    ;;
+		    esac
+                done
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_BULKCNT = <${_BULKCNT}>"
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_ID      = <${_ID}>"
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_LABEL   = <${_LABEL}>"
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_VNC     = <${_VNC}>"
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_VNCBASE = <${_VNCBASE}>"
+                printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "_VNATIVE = <${_VNATIVE}>"
+
+		if [ \( -n "${_BULKCNT}" -o -n "${_ID}" \) -a -n "${_VNATIVE}" ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Native VNC only supports combination with LABEL"
+                    gotoHell ${ABORT}
+		fi
+
+		if [ -n "${_VNATIVE}" -a  -n "${_LABEL}" ];then
+		    if [ "${_LABEL}" != "${_LABEL% */}" ];then
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Native VNC and LABEL could be just combined one by one."
+			gotoHell ${ABORT}
+		    fi
+		fi
+
+
+                if [  -n "${BULKCNT}" -a $(( _BULKCNT < R_CREATE_MAX )) -eq 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Given number too high, limit is:R_CREATE_MAX=${R_CREATE_MAX}"
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "  =>  ${CTRL_MODE_ARGS}>${R_CREATE_MAX}"                
+                fi
+
+                unset _BULKCNT;
+                unset _ID;
+                unset _LABEL;
+                unset _VNATIVE;
+	    else
+                printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Set:CTRL_MODE_ARGS=1"
+                CTRL_MODE_ARGS=1
+	    fi
+	    ;;
+        ACTION)
+	    if [ -z "${CTRL_EXECLOCAL}" ];then
+		assembleExeccall
+	    else
+		if [ -n "${R_TEXT}" ];then
+		    echo "${R_TEXT}"
+		fi
+		if [ -n "${CTRL_MODE_ARGS}" ];then
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+                    _LABEL="";
+
+		    for i in ${CTRL_MODE_ARGS//,/ };do
+			KEY=`echo ${i%%:*}|tr '[:lower:]' '[:upper:]'`
+			ARG=${i#*:}
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "KEY=${KEY}"
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "ARG=${ARG}"
+
+			case $KEY in
+
+                            REUSE)
+				local _reuse=1;
+				;;
+
+                            CONNECT)
+				local _connect=1;
+				;;
+
+                            RECONNECT)
+				hookPackage "${_myPKGBASE_VNC}/cancel"
+				local _reconnect=1;
+				;;
+
+
+                      #########
+			    NOCACHE)
+				local _cache=0;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOCACHE"
+				;;
+			    NOPOLL)
+				local _poll=0;
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "NOPOLL"
+				;;
+
+
+                            L|LABEL)
+				_LABEL="${_LABEL} ${ARG}";
+				;;
+
+                            I|ID)
+				_ID="${_ID} ${ARG}";
+                                #Yes this call saves "a real amount" of code, even though beeing redundant itself!
+   				local _IDlbl1="`fetchLabel4ID ${_ID}`"
+   				local _ID1="`fetchID4Label ${_IDlbl1}`"
+
+				if [ "${_ID// /}" != "${_ID1// /}" ];then
+				    ABORT=1
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "${_ID} seems to be ambiguous, can not be resolved"
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "."
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "  ID=${_ID} => LABEL=${_IDlbl1} => ID1=${_ID1}(first match)"
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "  => ID=${_ID} != ID1=${_ID1}"
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "."
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "Delete ambiguous processes manually, or use \"ALL\"."
+				    gotoHell ${ABORT}
+
+				fi
+
+   				local _IDlbl="${_IDlbl} ${_IDlbl1}"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_ID=${_ID}"
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_IDlbl=${_IDlbl}"
+				;;
+
+
+
+                      #########
+                            BULK)
+				_BULKCNT=${ARG};
+				if [ -n "${ARG}" -a -n "${ARG//[0-9]/}" ];then
+				    ABORT=1
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "Integers only:\"${ARG}\""
+				    gotoHell ${ABORT}
+				fi
+				;;
+
+                            VBASE|VNCBASE)
+				_VNC_BASEPORT="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "VNC_BASEPORT=${VNC_BASEPORT}"
+				;;
+
+                            V|VNC)
+				_VNATIVE="${ARG}";
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_VNATIVE=${_VNATIVE// /}"
+				;;
+
+                            VIEWERDELAY)
+				VNCVIEWER_DELAY=${ARG};
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "VNCVIEWER_DELAY=${VNCVIEWER_DELAY}"
+				;;
+
+
+                      #########
+			    *)
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown suboption:<${i}>"
+				gotoHell ${ABORT}
+				;;
+			esac
+		    done
+
+
+                    #_VNATIVE: This could only be unique, due to previous checks
+                    #if LABEL is supported, this will be used as DISPLAYNAME only,
+                    #so _VNATIVE dominates. Specific applications:
+                    #   VMW(WS6) and XEN.
+		    if [ -n "${_VNATIVE}" ];then
+			_BULKEXPAND="${_VNATIVE}"
+		    else
+                        #generate normalized set of session-ids to be created
+                        #particularly the set containing 1 element only is included
+                        #and is the default case
+			if [ -n "${_BULKCNT}" ];then
+			    local _BULKEXPAND=`bulkExpand "${_BULKCNT}" "${_LABEL}"`;
+			else
+			    local _BULKEXPAND="${_LABEL}";
+			fi
+			_BULKEXPAND="${_BULKEXPAND} ${_IDlbl}"
+		    fi
+
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${_LABEL}(${_BULKCNT}) -> _BULKEXPAND=${_BULKEXPAND}"
+                    for i in ${_BULKEXPAND}; do
+                       #perform session creation
+
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Start session=${i}"
+  			local _ID=`echo ${i}|sed 's/^.*\(...\)$/\1/'`
+			_ID=`removeLeadZeros ${_ID}`
+                        if [ -z "${_VNATIVE}" ];then
+ 			    local _LBL="${_LABEL}"
+			else
+ 			    if [ -n "${i//[0-9]}" -a "${i%%???}" == "${i%[0-9][0-9][0-9]}" ];then
+ 				local _LBL="${i%[0-9][0-9][0-9]}"
+			    else
+ 				local _LBL="${i}"
+			    fi
+			fi
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_LBL=${_LBL}"
+
+                        #check whether a mediating wormhole is required. 
+                        #In any case find the entry for peer.
+			if [ \( "${CTRL_CLIENTLOCATION}" !=  "-L ConnectionForwarding" \
+                            -a "${CTRL_CLIENTLOCATION}" !=  "-L LocalOnly" \
+			    \) \
+                            -o -n "${_VNATIVE}" \
+			    ];then
+
+                            #Might be executed on remote host, not the calling station
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+                            if [ -z "${_VNATIVE}" ];then
+                                #check for running local server
+ 				local _IDx=`fetchDisplay4Label ${i}`
+			    else
+ 				local _IDx=${_VNATIVE}
+			    fi
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_IDx=${_IDx}"
+                        else
+                            #might be accessed only on calling station
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+                            #find local entry for SSH-tunnel with generic LABEL as marker as proxy for remote server.
+ 			    local _IDx=`digGetLocalPort ${i}`
+                            if [ -n "$_IDx" ];then
+ 				printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE " VNC_BASEPORT=${VNC_BASEPORT}"
+                                let _IDx=_IDx-VNC_BASEPORT;
+			    fi
+			fi
+
+			printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE " Session-Identifier: ${i}->${_ID} ${_LBL} ->${_IDx}"
+                        #check whether server is already running(local or remote)
+                        #therfore a peer must be present
+			if [ -n "${_IDx}" ];then
+                            #Server is already running, so it is a potential CONNECT.
+
+                            #for reconnect, actually for vnc only required in shared-mode,
+                            #this one instance replaces all active clients
+			    if [ -n "${_reconnect}"  ];then
+				cancelVNC CLIENT POWEROFF "i:${_IDx}"
+			    fi
+
+                            #perform only if REUSE is present
+			    if [ "${CTRL_CLIENTLOCATION}" !=  "-L ServerOnly" ];then
+
+				if [ -n "${_reconnect}" ];then
+				    ${MYCALLNAME} -e -F ${VERSION} -t VNC -a cancel=${_IDx}
+				fi
+				if [ -n "${_reconnect}" -o -n "${_connect}" -o -n "${_reuse}" ];then
+				    if [ -n "${_VNATIVE}" ];then
+					connectSessionVNC "${_IDx}" "${_LABEL}"
+				    else
+					connectSessionVNC "${_IDx}" "${i}"
+				    fi
+				fi
+                            else
+				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+			    fi
+
+			else
+                            #Server not yet running, so it is a CREATE
+			    if [ -n "${_connect}" -o -n "${_reconnect}"  ];then
+				ABORT=1
+				printERR $LINENO $BASH_SOURCE ${ABORT} "Server not running, cannot (RE)CONNECT, use REUSE"
+				gotoHell ${ABORT}
+			    fi
+
+			    if [ "${CTRL_CLIENTLOCATION}" !=  "-L ConnectionForwarding" ];then
+                                #
+                                #So, this is executed on server site, it is a DisplayForwarding
+                                #
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+				startSessionVNC "${i}"
+			    else
+                                #
+                                #So, this is executed on the client site, different from server site,
+                                #it is ConnectionForwarding to a remote server.
+                                #So, dig the tunnel and connect myself.
+                                #
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "CTRL_CLIENTLOCATION=${CTRL_CLIENTLOCATION}"
+				if [ -z "${_VNATIVE}" ];then
+                                    digLocalPort VNC $R_HOSTS $i
+                                else
+                                    digLocalPort VNC $R_HOSTS $i $i
+				fi
+ 				local _IDx=`digGetLocalPort ${i}`
+
+                                if [ -z "$_IDx" ];then
+                                    #Something wrent wrong???                                      
+				    ABORT=1
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot allocate ConnectionForwarding"
+				    printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <VNC> <$R_HOSTS> <$i>"
+				    gotoHell ${ABORT}
+				fi
+
+				let _IDx=_IDx-VNC_BASEPORT;
+ 				printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_IDx=${_IDx} i=${i}"
+ 				connectSessionVNC "${_IDx}" "${i}"
+			    fi
+			fi
+		    done
+		fi
+		gotoHell 0
+	    fi
+	    ;;
+    esac
+}

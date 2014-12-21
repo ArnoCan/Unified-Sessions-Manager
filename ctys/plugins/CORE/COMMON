@@ -1,0 +1,100 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_COMMON="${BASH_SOURCE}"
+_myPKGVERS_COMMON="01.02.002c01"
+hookInfoAdd "$_myPKGNAME_COMMON" "$_myPKGVERS_COMMON"
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  checkVersion
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Checks the first 9 characters by default for literal match:
+#
+#
+#    AA_BB_CCC([abc]DD)
+#
+#  The postfix is ignored, implying compatibility.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function checkVersion () {
+  local _curAction=$2
+
+  if [ "${1%???}" != "${VERSION%???}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Remote and local versions seems to be incompatible"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  Requested L_VERS         = ${L_VERS}"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  Actual    VERSION        = ${VERSION}"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  Called    MYCALLPATHNAME = ${MYCALLPATHNAME}"
+
+    gotoHell ${ABORT}
+  fi
+  return 0
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  connectCheckParam
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function connectCheckParam (){
+    if [ -z "$CTRL_MODE_ARGS" ];then
+        ABORT=1
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Missing target to connect, try \"-a LIST\" for available targets."
+        gotoHell ${ABORT} 
+    fi
+}
+
+
+
+
+

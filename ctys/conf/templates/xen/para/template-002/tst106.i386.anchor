@@ -1,0 +1,81 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+#
+#Native kickstart install for DomU, fully automated.
+#
+#pre-configured anchors for the following install pattern:
+#
+#  root password is "install"
+#
+#  The VM will be named as ${MYVM} and all files - except the 
+#  virtual hdd - are prefixed with  ${MYVM}.
+#
+#  For this case only one v-hdd is created for installaton, but
+#  subpartitioned with LVM.
+#
+#  The size of v-hdd is 4G.
+#
+#  The installed set is the basic set required for full stacked-VM
+#  operations of UnifiedSessionsManager.
+#
+#  For now the following network services are required for 
+#  installation:
+#
+#    -> DHCP
+#    -> DNS
+#    -> NFS
+#    -> FTP
+#
+#
+
+
+#The name of the new DomU
+MYVM=tst106
+
+#The directory containing the runtime system for new DomU
+MYVMPATH=${HOME}/xen/${MYVM}
+
+#The runtime location for NFS access of install to kick-start file
+
+#copy target for kickstart to be used by "cp"
+MYTMPNFS=/tmpn/0
+
+#install-kernels kickstart mount source
+MYKICKINSTKS="nfs:delphi:/home2/tmp/${MYVM}.ks"
+
+#The MAC address of the first ethernet device for created VM
+MYMAC="00:50:56:13:11:47"
+
+#The UUID of the created VM
+MYUUID="6fd2438690324ce98ba3607c33bb90d7"
+
+#The disk-file for new VM, for first install just one virtual hdd
+MYDISK0=xvda
+
+
+#Kernel to be used for install, the ditribution path-part is CentOS original
+MYKERNEL=/mntn/swpool/UNIXDist/centOS/5/inst/os/i386/images/xen/vmlinuz
+
+#RAMDISK to be used for install, the ditribution path-part is CentOS original
+MYRAMDISK=/mntn/swpool/UNIXDist/centOS/5/inst/os/i386/images/xen/initrd.img
+
+#Install sources, the ditribution path-part is CentOS original
+MYFTP="ftp://delphi/UNIXDist/centOS/5/inst/os/i386"
+
+

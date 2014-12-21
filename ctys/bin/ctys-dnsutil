@@ -1,0 +1,563 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-extractMAClst
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="ctys-dnsutil"
+#
+#CALLFULLNAME:
+CALLFULLNAME="CTYS DNS Utility"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_01_001b01
+#DESCRIPTION:
+#  See manual.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+#path for various loads: libs, help, macros, plugins
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux: CentOS/RHEL(5+), SuSE-Professional 9.3"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work for any dist.):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome + fvwm"
+
+#to be tested - coming soon
+TARGET_WM_SOON="xfce"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+if [ "${*}" != "${*//-X/}" ];then
+    CTRL_TERSE=1
+fi
+
+. ${MYLIBPATH}/lib/help/help
+
+#path to directory containing the default mapping db
+if [ -d "${HOME}/.ctys/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/.ctys/db/default}
+fi
+
+#path to directory containing the default mapping db
+if [ -d "${MYCONFPATH}/conf/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
+fi
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+  . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+argLst=;
+while [ -n "$1" ];do
+    case $1 in
+	'-c')_vhost=1;shift;;
+	'-C')_VHOST=1;shift;;
+	'-d')shift;CTRL_VERBOSE=$1;shift;;
+	'-l')shift;CTYS_NETACCOUNT=$1;shift;;
+	'-i')_ip=1;shift;;
+	'-n')_name=1;shift;;
+	'-R')shift;
+            arg=${1//,/ }
+            for a in $arg;do
+		case $a in
+		    [rR][eE][vV][eE][rR][sS][eE]|[rR]|-)_reverse=1;;
+		    [pP][iI][nN][gG]*)
+			_ping=1;
+			PCNT=${a#*:};
+                        if [ -n "$PCNT" -a "${a//:/}" != "${a}"  ];then
+			    if [ "${PCNT//\%/}" != "${PCNT}" ];then
+				PTIME=${PCNT#*%}                          
+				PCNT=${PCNT%\%*}
+			    else
+				PTIME=1
+			    fi
+			else
+			    PTIME=1
+			    PCNT=1
+			fi
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:PCNT =$PCNT"
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:PTIME=$PTIME"
+			;;
+		    [sS][sS][hH])_ssh=1;;
+		    [pP][mM])_pm=1;;
+		    [vV][mM])_vm=1;;
+		    *)
+			ABORT=1;
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Unknown RuntimeState=$1"
+			gotoHell ${ABORT}
+		esac
+	    done
+	    shift
+	    ;;
+	'-X')_terse=1;shift;;
+	'-V')printVersion;exit 0;;
+	'-h')showToolHelp;exit 0;;
+        *)  #server list
+	    argLst="${argLst} $1";
+	    argLst="${argLst## }";
+	    argLst="${argLst%% }";
+	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:argLst=$argLst"
+	    shift;
+	    ;;
+    esac
+done
+
+#set defaults
+
+CTYS_NETACCOUNT=${CTYS_NETACCOUNT:-$USER}
+
+[ -z "$_ip" -a -z "$_name" ]&&_name=1;
+
+if 
+[ -n "$_ip" -a -n "$_name" -a -n "$_terse" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "In combination with TERSE(\"-X\") only IP(\"-i\") or NAME(\"-n\") is supported."
+    gotoHell ${ABORT}
+fi
+
+
+if [ -n "$_ssh" -a \( -n "$_pm" -o -n "$_vm"  \) ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "SSH or PM and/or VM can used at once."
+    gotoHell ${ABORT}
+fi
+
+
+
+export CALLFILE=$0
+function check4ret () {
+  RET=$(($?));
+  if [ "${RET}" != "0" ] ; then
+    PREFIX="ERROR:RET(${RET}):${CALLFILE:-LINENO}($1) ${2:-}";shift 2;
+    echo "${PREFIX}";
+    until [ -z "$1" ];
+    do
+      echo "${PREFIX}:$1"; shift;
+    done
+    if [ ${CONTINUE} -gt ${RET} ] ; then 
+      echo "${PREFIX}:CONTINUE=${CONTINUE}";
+    else
+      exit ${RET};
+    fi
+  fi;
+  return ${RET}
+}
+
+
+[ -z "$_terse" ]&&echo "Check DNS database..."
+
+DOMAIN=`dnsdomainname`;
+check4ret $LINENO "" "DOMAIN=${DOMAIN}"
+DOMAINLIST="`host -l $DOMAIN`"
+check4ret $LINENO "" "host:DOMAINLIST=${DOMAINLIST}"
+DOMAINLIST=`echo "${DOMAINLIST}"|sed -n -e 's/\([^.]\.'$DOMAIN'\) .*/\1/p'`
+check4ret $LINENO "" "sed:DOMAINLIST=${DOMAINLIST}"
+
+
+#build raw list
+if [ -n "$_name" ];then
+    DOMAINLIST=`echo ${DOMAINLIST}`
+else
+    DOMAINLIST=`for i in ${DOMAINLIST};do host $i;done|awk '{printf(" %s",$NF);}'`
+fi
+#unique sort applies when names are displayed for hosts with multiple interfaces
+DOMAINLIST=`for i in ${DOMAINLIST};do echo $i;done|sort -u`
+
+
+#apply constraints
+
+#ping
+if [ -n "$_ping" ];then
+    [ -z "$_terse" ]&&echo "=> ping-check"
+    TMPLST=;
+    idx=0;
+    success=0;
+    for i in ${DOMAINLIST};do
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i"
+	ping -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>&1 >/dev/null
+	if [ $? -eq 0 ];then           
+	    [ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+	    ((success++))
+	    [ -z "$_terse" ]&&echo -n "+"
+	else
+	    [ -n "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+	    [ -z "$_terse" ]&&echo -n "-"
+	fi
+	((idx++))
+	if((idx%10==0));then echo -n "|";fi
+	if((idx%50==0));then echo;fi
+    done
+    echo
+    [ -z "$_terse" ]&&echo "  => checked=$idx"
+    [ -z "$_terse" ]&&echo "  => success=$success"
+    [ -z "$_terse" ]&&echo 
+    DOMAINLIST=${TMPLST};
+fi
+
+#ssh
+if [ -n "$_ssh" -o -n "$_pm" -o -n "$_vm" ];then
+    if [ -z "$_terse" ];then
+	[ -n "$_ssh" ]&&echo "=> ssh-check"
+	[ -n "$_pm" ]&&echo "=> pm-check"
+	[ -n "$_vm" ]&&echo "=> vm-check"
+    fi
+    TMPLST=;
+    idx=0;
+    success=0;
+    ret=;
+    for i in ${DOMAINLIST};do
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i"
+        dossh=1;
+        if [ -z "${_ping}" -a -z "${_VHOST}" ];then
+	    ping -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>&1 >/dev/null
+	    [ $? -ne 0 ]&&dossh=0
+	fi
+	[ $dossh -eq 1 -a -z "${_VHOST}" ]&&( ssh ${CTYS_NETACCOUNT}@${i} echo 1 ) 2>&1 >/dev/null
+	if [ $dossh -eq 1 -a $? -eq 0 -o -n "${_VHOST}" ];then           
+	    if [ -z "$_pm" -a -z "$_vm" ];then
+                #ssh-only success
+		[ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+		[ -z "$_terse" ]&&echo -n "S"
+	    else
+                #ssh success, now check PM/VM
+		if [ -n "$_pm" ];then
+		    ret=1
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Check PM"
+
+		    if [ -z "$_vhost"  -a -z "${_VHOST}" ];then
+			ssh ${CTYS_NETACCOUNT}@${i} ls /etc/ctys.d/pm.conf 2>&1 >/dev/null
+			ret=$?
+		    else
+                        #try nodename
+			_M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '^'${i}';.\*PM' 2>/dev/null`
+			if [ -z "$_M" ];then
+                            #try IP address
+			    IP=`host $i|awk '{printf("%s",$NF);}'`
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i <-> IP=$IP"
+			    _M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '^'${IP}';.\*PM' 2>/dev/null`
+			    if [ -n "$_M" ];then
+				ret=0
+			    fi
+			else
+			    ret=0
+			fi
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_M=$_M"
+		    fi
+    	            if [ "$ret" == "0" ];then           
+			[ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+			((success++))
+			[ -z "$_terse" ]&&echo -n "P"
+		    fi
+		fi
+
+		if [ "$ret" != "0" -a -n "$_vm" ];then
+                    ret=1;
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Check VM"
+		    if [ -z "$_vhost"  -a -z "${_VHOST}" ];then
+			ssh ${CTYS_NETACCOUNT}@${i} ls /etc/ctys.d/vm.conf 2>&1 >/dev/null
+			ret=$?
+		    else
+                        #try nodename
+			_M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '.\*;'${i}';.\*VM' 2>/dev/null`
+			if [ -z "$_M" ];then
+                            #try IP address
+			    IP=`host $i|awk '{printf("%s",$NF);}'`
+			    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:i=$i <-> IP=$IP"
+			    _M=`${MYCALLPATH}/ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o V -M all '.\*;'${IP}';.\*VM' 2>/dev/null`
+			    if [ -n "$_M" ];then
+				ret=0
+			    fi
+			else
+			    ret=0
+			fi
+			printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_M=$_M"
+		    fi
+    	            if [ "$ret" == "0" ];then           
+			[ -z "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+			((success++))
+			[ -z "$_terse" ]&&echo -n "V"
+		    fi
+		fi
+		if [ "$ret" != "0" ];then
+		    [ -n "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+		    [ -z "$_terse" ]&&echo -n "."
+		fi
+	    fi
+	else
+	    [ -n "$_reverse" ]&&TMPLST="${TMPLST} ${i}"
+	    [ -z "$_terse" ]&&echo -n "-"
+	fi
+	((idx++))
+	if((idx%10==0));then echo -n "|";fi
+	if((idx%50==0));then echo;fi
+    done
+    echo
+    [ -z "$_terse" ]&&echo "  => checked=$idx"
+    [ -z "$_terse" ]&&echo "  => success=$success"
+    [ -z "$_terse" ]&&echo 
+    DOMAINLIST=${TMPLST};
+fi
+
+
+#display results
+if [ -n "$_terse" ];then
+    echo ${DOMAINLIST}
+else
+    idx=0;
+    if [ -n "$_name" -a -n "$_ip" ];then
+	for i in ${DOMAINLIST};do
+            IP=`host $i|awk '{printf("%s",$NF);}'`
+	    printf "%04d   %-15s %s\n" $idx $IP $i
+	    ((idx++))
+	done
+    else
+	for i in ${DOMAINLIST};do
+	    printf "%04d   %s\n" $idx $i
+	    ((idx++))
+	done
+    fi
+fi
+
+
+gotoHell 0
+
+

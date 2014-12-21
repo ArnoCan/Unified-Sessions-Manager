@@ -1,0 +1,164 @@
+
+    11.6. Applications of ctys-vhost
+    --------------------------------
+
+
+     11.6.1. Database Generation ctys-vdbgen and companions
+     ------------------------------------------------------
+
+
+     11.6.2. LDAP based VM-Stack Nameservices
+     ----------------------------------------
+
+
+     11.6.3. Group Addressing
+     ------------------------
+
+
+      11.6.3.1. Group Caches - The Performance Clue
+      ---------------------------------------------
+
+
+      11.6.3.2. Preconfigured Task-Groups
+      -----------------------------------
+
+
+     11.6.4. Stack Addressing
+     ------------------------
+
+
+     11.6.5. DHCP Poll
+     -----------------
+
+      The call of ctys-extractMAClst works on a dhcpd.conf as required
+      for the widely common DHCP daemon. In current version it just
+      extracts static entries for a fixed assignement of
+      MAC-to-IP-Addresses. Dynamic assigned leases for address pools
+      are not yet supported. So for using two pre-requisites have to
+      be fulfilled:
+
+       1. Any participating VM and PM has to have it's own assigned
+          fixed mapping of an DNS-Name, TCP/IP-Address, and
+          MAC-Address.
+
+       2. Access to the dhcpd.conf file, e.g. as a copy is
+          required. Another approach might be that for individual
+          users with local caches a prepared macmap.fdb could be
+          provided.
+
+      This leads to screen output:
+
+       ctys-extractMAClst /etc/dhcpd.conf
+
+      The following call generates the default target
+      "~/.ctys/db/default/macmap-fdb" mapping database:
+
+
+        ctys-extractMAClst -P /etc/dhcpd.conf
+
+
+      A second tool which is caled ctys-extractAPRlst generates a
+      macmap.fdb too, but it polls the local accessible DHCP server
+      by using ping and evaluates the arp caches. Thus it will work on
+      one segment only, which might be in the era of switched-LANs
+      not a problem. And requires the hosts to be on-line, which is
+      for the ctys-extractMAClst tool not required.
+
+      This leads to screen output:
+
+
+       ctys-extractARPlst host01 host02 group01 host03 group02
+
+
+      The following call generates the default target
+      "~/.ctys/db/default/macmap-fdb" mapping database:
+
+
+        ctys-extractARPlst -P host01 host02 group01 host03 group02
+
+
+      When the whole domain has to be scanned, which could include any
+      host, so particularly address-pools too, than the following
+      could be applied:
+
+         for i in `host -l <mydomain>|awk '{print $1;}'`;do
+           ctys-extractMAClst $i
+         done
+
+
+      Anyhow, due to the simple format of macmap.fdb, which MS-Excel
+      compatible, this mapping file-db macmap.fdb could be edited
+      manually too.
+
+
+     11.6.6. PXELinux - Address Translation
+     --------------------------------------
+
+      One example application for ctys-vhost is the resolution of PXE
+      IP entries in the required specific form for PXELinux.
+
+      Once the database is setup with ctys-vdbgen and
+      ctys-extractMAClst or ctys-extractARPlst, the generation of
+      PXELinux addresses becomes an action of 0.x seconds, check it
+      out!
+
+      The match for the regexpr should be as expected, this has to be
+      considered when choosing the searcg string. Here it is assumed,
+      that the only host/dns-names matching "inst" are of form
+      "inst00[0-9]", and are foreseen as temporary install addresses
+      for raw-templates, installed by kickstart-files.
+
+      The following shell call generates and displays for any
+      inst-machine an suitable PXELinux IP-Address. 
+
+      Let me mention, that thios requires almost only the
+      initial-overhead of 0.3seconds from an database of 120 DHCP
+      entries when using macmaponly.
+
+      When the MAC-Mapping cache is not used, instead the static cache
+      DB based on pre-cached enum.fdb is used, the performance is the
+      initial overhead of 0,5seconds from an database of about 450 VM
+      entries.
+
+      Bulk tests will follow, but even when it reaches seconds for
+      about thousand or more entries, it is "almost nothing" compared
+      to a manual search in an distributed environment intermixed with
+      shared mounts and unique local entities.
+
+
+        #!/bin/bash
+
+        for i in `ctys-vhost -C macmaponly -o m,d -M all inst`;do 
+          echo -n "${i#*;}=${i%;*}->"; 
+          gethostip ${i#*;};
+        done"
+
+
+      This results to the output:
+
+
+       inst000=00:50:56:16:11:00->inst000.soho 192.168.1.80 C0A80150
+       inst001=00:50:56:16:11:01->inst001.soho 192.168.1.81 C0A80151
+       inst002=00:50:56:16:11:02->inst002.soho 192.168.1.82 C0A80152
+       inst003=00:50:56:16:11:03->inst003.soho 192.168.1.83 C0A80153
+       inst004=00:50:56:16:11:04->inst004.soho 192.168.1.84 C0A80154
+       inst005=00:50:56:16:11:05->inst005.soho 192.168.1.85 C0A80155
+       inst006=00:50:56:16:11:06->inst006.soho 192.168.1.86 C0A80156
+       inst007=00:50:56:16:11:07->inst007.soho 192.168.1.87 C0A80157
+       inst008=00:50:56:16:11:08->inst008.soho 192.168.1.88 C0A80158
+       inst009=00:50:56:16:11:09->inst009.soho 192.168.1.89 C0A80159
+
+
+      So the MAC address could be set, the alpahnumeric IP address
+      could be configured, and the automatic configuration will be
+      performed.
+
+      ctys-vhost is more and more excessively used for address
+      translations between arbitrary keys within ctys itself. Beneath
+      it's versatelity it's - at least for small and medium networks -
+      outbursting performance for resolution of various keys is
+      e.g. an almost fixed overhead of about 0.3 to 0.6 mseconds(on a
+      medium sized reference machine), with a few additional
+      processing time for some tasks only.
+
+

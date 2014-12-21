@@ -1,0 +1,396 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-extractMAClst
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="CTYS Extract MAC-Address List from dhcpd.conf"
+#
+#CALLFULLNAME:
+CALLFULLNAME="ctys-extractMAClst"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_01_001b02
+#DESCRIPTION:
+#  Generated a sorted list of 3-column table containing:
+#
+#    <nodename>
+#    <IP-Address>
+#    <MAC-Address>
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  -n|-i|-m
+#    -n  
+#        Print sorted records: <name>;<MAC>;<IP>
+#        Required default for internal standard processing
+#        of ctys-tools.
+#
+#    -i  
+#        Print sorted records: <IP>;<name>;<MAC>
+#
+#    -m  
+#        Print sorted records: <MAC>;<name>;<IP>
+#
+#  -h
+#     Print help.
+#
+#  -p <db-dir-path>
+#     Directory for data to be stored. This is - and has to be in this version -  
+#     the same directory as used by ctys-vdbgen and ctys-vhost.
+#
+#     So each file-based ctys-DB requires it's own maping file for now.
+#     This is going to be extended when the LDAP based addressing is introduced.
+#     Anyhow, this feature will remain, because it has some advantages for daily 
+#     business when setting up small to medium networks or multiple test-environments.
+#     
+#     The hard-coded filename is "macmap.fdb"
+#
+#  -P
+#     Almost same as "-p", but takes default ctys-file-DB, provided by 
+#     DEFAULT_DBPATHLST.
+#
+#  -V
+#     Version.
+#
+#  -X
+#     Terse.
+#
+#  [<dhcp.conf-filename>]
+#    This tool requires a valid "dhcpd.conf"-Syntax.
+#
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    Standard output is screen.
+#
+#FUNCEND###############################################################
+
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+#path for various loads: libs, help, macros, plugins
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux: CentOS/RHEL(5+), SuSE-Professional 9.3"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work for any dist.):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome + fvwm"
+
+#to be tested - coming soon
+TARGET_WM_SOON="xfce"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+
+
+. ${MYLIBPATH}/lib/help/help
+
+#path to directory containing the default mapping db
+if [ -d "${HOME}/.ctys/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/.ctys/db/default}
+fi
+
+#path to directory containing the default mapping db
+if [ -d "${MYCONFPATH}/conf/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
+fi
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+  . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+
+#DO NOT CHANGE!!!
+#Default order for ctys-tools.
+sortKey='-n';
+
+for i in $*;do
+    case $1 in
+	'-n'|'-i'|'-m')sortKey=$1;shift;;
+	'-p')shift;_dbfilepath=$1;shift;;
+	'-P')shift;_dbfilepath=${DEFAULT_DBPATHLST};;
+	'-V')printVersion;exit 0;;
+	'-X')CTRL_TERSE=1;shift;;
+	'-h')showToolHelp;exit 0;;
+    esac
+done
+
+if [ -n "$1" ];then
+    infile=$*
+fi
+
+
+if [ -n "$_dbfilepath" ];then
+    if [ ! -d "$_dbfilepath" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory, required to be present."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  _dbfilepath=${_dbfilepath}"
+	gotoHell ${ABORT}
+    fi
+    _dbfilepath=${_dbfilepath}/macmap.fdb
+fi
+
+
+
+cat $infile|\
+sed -n '
+#  s/\([^#]*\)#.*$/\1/
+#  /^ *group *{/p
+  s/^ *host *\([^ \t]*\)[ \t]*{/\n_hn=\1\n<\n/p
+  s/.*hardware ethernet *\([^; \t]*\)[ \t]*;/\n\_ma=\1\n/p
+  s/.*fixed-address *\([^ \t]*\)[ \t]*;/\n_ip=\1\n/p
+  s/[^}]*}.*/\n>\n/p
+  ' $infile |\
+awk -F'=' '
+  $1~/_hn/{printf("%s;",$2);}
+  /</{block=1;}
+  />/{block=0;found=1;}
+  block==1&&$1~/_ma/{printf("%s;",$2);}
+  block==1&&$1~/_ip/{printf("%s;",$2);}
+  found==1{printf("\n");found=0;}
+'|\
+sed '/^$/d'|\
+case $sortKey in
+  '-i')awk -F';' '{printf("%s;%s;%s;\n",$3,$1,$2);}';;
+  '-m')awk -F';' '{printf("%s;%s;%s;\n",$2,$3,$1);}';;
+  '-n'|*)awk -F';' '{printf("%s;%s;%s;\n",$1,$2,$3);}';;
+esac|\
+sort|\
+{
+    if [ -n "${_dbfilepath}" ];then
+	cat >"${_dbfilepath}"
+    else
+	cat
+    fi
+}

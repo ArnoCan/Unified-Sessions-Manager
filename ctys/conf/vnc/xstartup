@@ -1,0 +1,36 @@
+#!/bin/sh
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+# Uncomment the following two lines for normal desktop:
+case `getCurOS` in
+    Linux)
+	unset SESSION_MANAGER
+	exec /etc/X11/xinit/xinitrc
+	;;
+    OpenBSD)
+	[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+	[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+	xsetroot -solid grey
+	vncconfig -iconic &
+	xterm -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+	fvwm &
+	;;
+esac
+
+

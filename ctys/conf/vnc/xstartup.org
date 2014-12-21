@@ -1,0 +1,29 @@
+#!/bin/jsh
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+
+
+#LD_LIBRARY_PATH=/opt/sfw/lib:$LD_LIBRARY_PATH ; mwm &
+#dtwm &
+#dtsession &
+Xsession &
+sleep 2
+#xset +fp tcp/samoa:7100
+xset +fp tcp/localhost:7100
+xsetroot -solid grey
+xterm -geometry 80x40+10+10 -ls -sl 1000 &

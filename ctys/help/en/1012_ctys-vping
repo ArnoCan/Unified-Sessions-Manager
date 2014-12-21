@@ -1,0 +1,57 @@
+
+
+Usage: 
+======
+
+   ctys-vping [options] <group/machine-address>
+
+
+Description:
+============
+
+   Uses ctys address resolution for resolving target addresses and
+   validates acessibility by usage of "ping" only or when requested by
+   combination of "ping" and "ssh" for assuring SSO access.
+
+   Therefore the output is presented as a table, the input parameters
+   are limited in comparison to native call of ping.
+
+   Anyhow, the TCP/IP address is listed for additional usage of native
+   ping, when extended analysis is required.
+
+   The entities will be resolved and accessed as selected by
+   options. The two methods are "ping" which assures the basic
+   TCP/IP-stack access, or the combined ssh-access, which performs a
+   "ping" check first, following an remote call of "echo" by usage of
+   ssh. 
+
+   For each successful passed entity the basic ssh access and SSO
+   configuration could be seen as validated and accessible.
+
+
+Options:
+========
+
+    -s
+       Activates additional SSH access test. When SSO is not
+       configured properly, a password challange dialog occurs.
+
+    -l <remote-user>
+
+       The remote user to be taken for ssh tests. Default is current
+       user id.
+     
+    -h
+       Print help.
+     
+    -V
+       Version.
+     
+    -X
+       Terse output format, effects "-V" when set left-of.
+     
+    
+    <group/machine-address>
+       Any target to be checked by host, will be ordinarily ping-ed
+       after ctys-name-resolution to TCP/IP-address.
+     

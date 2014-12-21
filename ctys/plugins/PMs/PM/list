@@ -1,0 +1,86 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_PM_LIST="${BASH_SOURCE}"
+_myPKGVERS_PM_LIST="01.00.001a00"
+hookInfoAdd $_myPKGNAME_PM_LIST $_myPKGVERS_PM_LIST
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listMySessionsPM
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Lists all PM sessions.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: C|S|B
+#     determines the filter to be applied.
+#     C: clients
+#     S: servers
+#     B: both
+# $2: 1=MACHINE|0=HUMAN
+# $*: FULLPATH|UUID
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function listMySessionsPM () {
+    local _site=$1;shift
+    local _machine=$1;shift
+
+    if [ "${MYOS}" != OpenBSD -a "${MYOS}" != Linux ];then
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:OS not supported by PM:${MYOS}"
+	return
+    fi
+
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "$FUNCNAME $_site <$*>"
+    if [ "${CTRL_SESSIONTYPE}" != "PM" -a "${CTRL_SESSIONTYPE}" != "ALL" ];then 
+        ABORT=2
+        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+        gotoHell ${ABORT}
+    fi
+
+    local _id=/etc/ctys.d/pm.conf
+
+    local _rec=;
+    _rec="${MYHOST}";
+    _rec="${_rec};`getLABEL ${_id}`";
+    _rec="${_rec};${_id}";
+    _rec="${_rec};`getUUID ${_id}`";
+    _rec="${_rec};`getMAC ${_id}`";
+    _rec="${_rec};";
+    _rec="${_rec};";
+    _rec="${_rec};";
+    _rec="${_rec};1";
+    _rec="${_rec};`getUID ${_id}`";
+    _rec="${_rec};`getGID ${_id}`";
+    _rec="${_rec};PM";
+    _rec="${_rec};SERVER";
+
+    echo $_rec
+}

@@ -1,0 +1,446 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_GROUPS="${BASH_SOURCE}"
+_myPKGVERS_GROUPS="01.01.001a01"
+libManInfoAdd "$_myPKGNAME_GROUPS" "$_myPKGVERS_GROUPS"
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchGroupMembers
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function looks in the path ${MYGROUPS} for the given groupname 
+#  and 
+#
+#    1. when none file with given name found, just returns the name
+#       itself as the only member
+#
+#    2. when a file found, reads in the listed members and returns the
+#       scanned list.
+#
+#
+#PARAMETERS:
+#
+#
+#  $1: <group-file-name>
+#      Will be searched in the directory ${MYGROUPPATH} only.
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    List of group members space seperated list within one line.
+#
+#FUNCEND###############################################################
+function fetchGroupMembers () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:ARGV=${*}"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH}"
+#    local _param=$1;shift
+
+    local _grpfile=;
+    local i=;
+
+    local _fetched=;
+
+    function matchFirstFile () {
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:ARGV=${*}"
+        local _fname=$1;shift
+        local _mfname;
+	for i in ${*//:/ };do
+            _mfname="${i}/$_fname"
+	    if [ -f "${_mfname}" ];then local _m=1;break;fi
+	done
+
+	if [ -z "${_m}" ];then 
+	    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:no group present:${_fname}"
+	    echo $_fname
+	    return;
+	fi
+	printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:matched:${_mfname}"
+	echo $_mfname
+    }
+
+    local MAXRECURSE=15;
+    function getIncludeTree () {
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:ARGV=${*}"
+	local _lvlcnt=${_lvlcnt:-0};
+	if((_lvlcnt++>MAXRECURSE));then
+	    ABORT=2
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Exceeding nesting level of \"#include ...\" for:$_grpfile"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "For simplicity just recursion level is checked:MAXRECURSE=${MAXRECURSE}"
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Loop conditions are within the responsibility of the caller."
+	    gotoHell ${ABORT} 
+	fi
+
+	local _infilelst=$*;
+	local _resultlst=;
+	local i=;
+	local j=;
+        local jf=;
+
+	for j in $_infilelst;do
+	    jf="`matchFirstFile $j ${CTYS_GROUPS_PATH}`";
+	    if [ ! -f "${jf}" ];then
+		if((_lvlcnt>1));then
+		    ABORT=2
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing included group:${j} => ${jf}"
+		    return ${ABORT} 
+		else
+		    echo $j
+		fi
+	    else
+		echo $jf
+#		local _inclst="`sed -n '/^#include /!d;s/\"//g;s/,/ /g;s/^#include  *\(.*\)/\1/p' $jf` ";
+		local _inclst="`sed -n '/^#[^i]/d;s/\"//g;s/,/ /g;s/^#include  *\(.*\)/\1/p' $jf` ";
+		printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_inclst=${_inclst}"
+		for i in $_inclst;do
+		    getIncludeTree $i
+		done
+	    fi
+	done
+    }
+
+
+    if [ -z "${*}" ];then
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:No input"
+	return
+    fi
+
+    if [ -z "${CTYS_GROUPS_PATH}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing variable:CTYS_GROUPS_PATH"
+	gotoHell ${ABORT} 
+    fi
+
+    for i in ${CTYS_GROUPS_PATH//:/ };do
+	if [ ! -d "${i}" ];then
+	    ABORT=1
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory:CTYS_GROUPS_PATH(${i})"
+	    gotoHell ${ABORT} 
+	fi
+    done
+
+    if [ -z "${CTRL_ALLOWAMBIGIOUS}" ];then
+	_grpfile=`getIncludeTree ${*}`
+    else
+	_grpfile=`getIncludeTree ${*}|sort -u`
+    fi
+
+    if [ -z "${_grpfile}" -o $? -ne 0 ];then 
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing include, cancel:${*}"
+	gotoHell ${ABORT} 
+    fi
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_grpfile=${_grpfile}"
+    local x=;
+    for i in ${_grpfile};do
+	if [ -f "$i" ];then
+	    x="${x} "`awk '
+		/^#.*$/          {next;} 
+		/^[[:space:]]*$/ {next} 
+                                 {printf(",%s",$0);}
+		' ${i}`
+	else
+	    x="${x},${i}"
+	fi
+    done
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:found group:\"${x}\""
+    x=${x//\"}
+    x=`echo ${x}|sed 's/  */ /g'`
+    x=${x#,}
+
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:found group:\"${x}\""
+    if [ "${x//,/}" != "${x}" ];then 
+	echo "{${x}}"
+        return
+    fi
+    echo "${x}"
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  expandGroups
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function expands all available groups within an argumentlist, 
+#  therefore context options will be permutated.
+#
+#  Chained context-options are supported, thus group members may have 
+#  any context specific option.
+#
+#  When the same option occurs multiple times, the will overwrite 
+#  any previous value and wins.
+#
+#PARAMETERS:
+#  $1: <arglist>
+#      Arguments to be expanded.
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    Expanded list, where each context block is permutated to all members.
+#
+#FUNCEND###############################################################
+function expandGroups () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:ARGV=${*}"
+    local _hostlst=$*;
+
+    #list of bare hosts
+    local _namelst=`echo ${_hostlst}|sed 's/([^(]*) */ /g'`
+    local _curglst=;
+    local i7=;
+    for i7 in $_namelst;do
+        #get groupmembers
+        _curglst=`fetchGroupMembers $i7`;
+        if [ -n "$_curglst" ];then
+            #replace members as shell expansion list
+	    _hostlst=${_hostlst//$i7/$_curglst}
+	    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_hostlst=<${_hostlst}>"
+	fi
+    done
+    if [ "${_hostlst//\}}" != "${_hostlst}"  ];then
+	_hostlst=`echo $_hostlst|sed 's/}/}"/g'`'"'
+    else
+	_hostlst=`echo $_hostlst|sed 's/(/"(/g;s/)/)"/g'`
+    fi
+
+    #let the shell permutate
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "_hostlst=<${_hostlst}>"
+    _hostlst=`eval echo "${_hostlst}"`
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "\"eval echo \$_hostlst\"=<${_hostlst}>"
+    _hostlst=`echo $_hostlst|sed 's/)(/ /g'`
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "Eliminate braces of chained context-options"
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "  => _hostlst=<${_hostlst}>"
+    echo ${_hostlst}
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listGroupMembers
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function lists the members of all available groups within the 
+#  search path "CTYS_GROUPS_PATH"
+#
+#
+#
+#PARAMETERS:
+#
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    Expanded list, where each context block is permutated to all members.
+#
+#FUNCEND###############################################################
+function listGroupMembers () {
+    local _param=$1;shift
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:<${@}>"
+
+    local i7=;
+    for i7 in ${CTYS_GROUPS_PATH//:/ };do
+        echo
+        echo "${i7}"
+
+	local _allglst="${_allglst} `find ${i7} -type f -name '*[!~]' -print`";
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:_allglst=${_allglst}"
+	local i8=;
+	for i8 in $_allglst;do
+	    case $_param in
+# 		DEEP)
+# #		    _curglst=`fetchGroupMembers $_param $i8`;
+# 		    _curglst=`fetchGroupMembers  $i8`;
+# 		    echo "       ${i8}:${_curglst}"
+# 		    ;;
+		DEEP)
+		    _curglst=`fetchGroupMembers $_param $i8`;
+#		    _curglst=`fetchGroupMembers  $i8`;
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
+		    echo "       ${i8}:${_curglst}"
+		    ;;
+		*)
+#		    _curglst=`fetchGroupMembers $_param $i8`;
+		    _curglst=`fetchGroupMembers  $i8`;
+		    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${i8}:${_curglst}"
+		    echo "       ${i8}:${_curglst}"
+		    ;;
+	    esac
+	done
+    done
+
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  listGroups
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function lists all all available groups within the search path
+#  "CTYS_GROUPS_PATH"
+#
+#
+#
+#PARAMETERS:
+#  $1:  SHORT|CONTENT|DEEP|DEEP3
+#
+#       SHORT:   output format:
+#                  "<size-kbytes> <#records>/<#includes> <group-filename>"
+#
+#       DEEP:    output format:
+#                  "<size-kbytes> <#records> <group-filename>"
+#                where <#records> is the nested sum of all includes ad levels.
+#
+#       DEEP3:   output format:
+#
+#
+#       CONTENT: output format:
+#                  "<size-kbytes> <#records> <group-filename>"
+#                where <#records> is the nested sum of all includes ad levels.
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    Expanded list, where each context block is permutated to all members.
+#
+#FUNCEND###############################################################
+function listGroups () {
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME: \$*=$*"
+    local _range=$1
+
+    function getContentCount () {
+        local _param=$1;shift
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
+
+        local _cur=;
+	local _hstcnt=0;
+	local _inccnt=0;
+	local _deepsum=0;
+
+        find ${_param} -type f -name '*[!~]' -printf "%k:%f\n"|sort |\
+        while read _cur;do
+	    local _size=${_cur%%:*}
+	    local _cur=${_param}/${_cur##*:}
+	    if [ -f "${_cur}" ];then
+		_hstcnt="`sed -n '/^#/d;s/\"//g;s/,/ /g;p' $_cur|wc -w` ";
+		_inccnt="`sed -n '/^#[^i]/d;s/\"//g;s/,/ /g;s/^#include  *\(.*\)/\1/p' $_cur|wc -w` ";
+#	        _deepsum=`fetchGroupMembers $_range $_cur|sed 's/{//g;s/}//g;s/,/ /g;'|wc -w`;
+	        _deepsum=`fetchGroupMembers $_cur|sed 's/{//g;s/}//g;s/,/ /g;'|wc -w`;
+	    fi
+            if [ -z "$CTRL_TERSE" ];then
+		local _cur=${_cur##*/}
+	    fi
+	    printf "  %4dk %4d/%-4d %4d  %s\n"  ${_size}  ${_hstcnt// } ${_inccnt// } ${_deepsum// } "$_cur"
+	done
+	return
+    }
+
+    function getContent () {
+        local _param=$1
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:\$*=$*"
+
+        local _cur=;
+        local _hstlst=;
+        local _inclst=;
+        find ${_param} -type f -name '*[!~]' -printf "%k:%f\n"|sort |\
+        while read _cur;do
+	    local _size=${_cur%%:*}
+	    local _cur=${_param}/${_cur##*:}
+	    if [ -f "${_cur}" ];then
+		case $_range in
+		    CONTENT)
+			_hstlst="`sed -n '/^#/d;s/\"//g;s/,/ /g;p' $_cur` ";
+			_inclst="`sed -n '/^#[^i]/d;s/\"//g;s/,/ /g;s/^#include  *\(.*\)/\1/p' $_cur` ";
+			;;
+		    DEEP|DEEP3)
+#			_hstlst=`fetchGroupMembers $_range $_cur|sed 's/{//g;s/}//g;s/,/ /g;'`;
+			_hstlst=`fetchGroupMembers $_cur|sed 's/{//g;s/}//g;s/,/ /g;'`;
+			;;
+		esac
+	    fi
+            if [ -z "$CTRL_TERSE" ];then
+		local _cur=${_cur##*/}
+	    fi
+	    printf "  %4dk %s\n" ${_size}  "$_cur"
+	    if [ -n "${_hstlst// }" ];then
+		_hstlst="`echo $_hstlst|sed -n 's/[^[:alnum:]]*/ /;p'` ";
+		case $_range in
+		    DEEP)
+			printf "        h{%s}\n"  "${_hstlst}"
+			;;
+		    DEEP3)
+                        local _i9=;
+                        for _i9 in ${_hstlst};do
+			    printf "        %s\n"  "${_i9}"
+			done
+			;;
+		esac
+	    fi
+	    if [ -n "${_inclst// }" ];then
+		_inclst="`echo $_inclst|sed -n 's/[^[:alnum:]]*/ /;p'` ";
+		printf "        i{%s}\n"  "${_inclst}"
+	    fi
+            echo
+	done
+	return
+    }
+
+
+    local i7=;
+    for i7 in ${CTYS_GROUPS_PATH//:/ };do
+        echo
+        echo "${i7}"
+        case $_range in
+	    SHORT)
+		getContentCount  ${i7}
+		;;
+	    CONTENT|DEEP|DEEP3)
+		getContent  ${i7}
+		;;
+	esac
+    done
+}
+
+
+

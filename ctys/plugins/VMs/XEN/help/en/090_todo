@@ -1,0 +1,13 @@
+   9.3.3.1. ToDo
+    ------------
+
+    1. Introduction of WS6 feature for using a VNC client.
+    2. MOVE and SHIFT of sessions.
+    3. Add support of Server and Player versions 2.x.
+    4. Extend ENUMERATE.
+    5. Integrate VM-DEBUGGING, Eclipse.
+    6. Integrate into Emacs and GDB.
+    7. Support for security profiles.
+    8. Start in headless-mode.
+
+    ...last, but not least, test and maintenance.

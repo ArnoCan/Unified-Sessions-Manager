@@ -1,0 +1,225 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_GENERIC_ENUM="${BASH_SOURCE}"
+_myPKGVERS_GENERIC_ENUM="01.02.002a01"
+hookInfoAdd "$_myPKGNAME_GENERIC_ENUM" "$_myPKGVERS_GENERIC_ENUM"
+_myPKGBASE_GENERIC_ENUM="`dirname ${_myPKGNAME_GENERIC_ENUM}`"
+_GENERIC_ENUM="${_myPKGBASE_GENERIC_ENUM}enumerate"
+
+_titleENUM=;
+_machineENUM=;
+
+#FUNCBEG###############################################################
+#NAME:
+#  enumerateCheckParam
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#      host;pname;type;label;id;uuid;mac;ip;vncport;vncbase;vncdisp;distro;os;verno;serno;category
+#
+#FUNCEND###############################################################
+function enumerateCheckParam () {
+    if [ "${CTRL_SCOPE}" == "DEFAULT"  ];then
+        CTRL_SCOPE=USRLST
+        CTRL_SCOPE_ARGS=ALL
+    fi
+
+    printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "${FUNCNAME}:${CTRL_SESSIONTYPE} - ${CTRL_EXECLOCAL}"
+    if [ "${CTRL_SESSIONTYPE}" == "DEFAULT" -a -n "${CTRL_EXECLOCAL}" ];then
+        CTRL_SESSIONTYPE=ALL
+    fi
+
+    if [ -n "$CTRL_MODE_ARGS" ];then
+	CTRL_MODE_ARGS=`echo ${CTRL_MODE_ARGS}|tr '[:lower:]' '[:upper:]'`
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $_GENERIC_ENUM "CTRL_MODE_ARGS=$CTRL_MODE_ARGS"
+        for i in `echo ${CTRL_MODE_ARGS}|sed 's/,/ /g'`;do
+            case $i in
+                TITLE)_titleENUM=1;;
+                MACHINE)_machineENUM=1;;
+                MAXKEY);;
+                TERSE|ALL);;
+                UUID|LABEL|PNAME|MAC|IP|TYPE);;
+                DISTRO|OS|VERNO|SERNO|CATEGORY);;
+                MAPDB|MDB);;
+                ID);;
+                VNCDISPLAY|VNCBASE|VNCPORT);;
+                B:*|BASE:*|BASEPATH:*);;
+                *)
+                    ABORT=1;
+                    printERR $LINENO $_GENERIC_ENUM ${ABORT} "Unknown sub-opts for ENUMERATE:${i}"
+		    gotoHell ${ABORT};
+                    ;;
+            esac
+        done
+    fi
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  enumerateMySessions
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Enumerates all VM sessions, therefore each VM type specific interface 
+#  will be called. The given list of options by enabler-switches is displayed 
+#  in a canonical format by each callee for it's own VMs.
+#
+#  When selected, the TYPE is added to displayed attributes for information of 
+#  caller when using it interactively, or for later processing by internal calls.
+#
+#  Multiple occurances of values are listed, even though the processing routines 
+#  currently use first entry only. For some of the values, sucha as MAC multiple
+#  settings might be OK, but for others like UUID NOT!
+#
+#  Multiple values allowed:        MAC, IP
+#  Multiple values NOT allowed:    LABEL, UUID, TYPE, PNAME
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: ([MACHINE|ALL|]([LABEL,][UUID,][MAC,][IP,][TYPE,][PNAME,])[TERSE,]<base-dir>
+#      MACHINE
+#        Display all attributes and forces TERSE.
+#      ALL
+#        Display all attributes.
+#      [LABEL,][UUID,][MAC,][IP,][TYPE,][PNAME,]
+#        Display-switches, the given order represents the order of display, 
+#        when selected.
+#
+#        Particularly TYPE is of interest of generic usage of enumeration for
+#        addressing GUESTOSs.
+#
+#      [TERSE,]
+#        Output format for postprocessing.
+#
+#      <base-dir>
+#        base directory to be used for "find".
+#
+#GLOBALS:
+#  CTRL_TERSE
+#    Where <dname> is literally equal to the result of call 
+#    "fetchLabel4ID", and <filename/ID> is literally equal to 
+#    the result of call "fetchID4Label".
+#
+#    off   Formatted display-output, format:
+#
+#          Label       =>  ID/vmx-file  
+#          --------------------------------
+#          "<dname>    =>  <filename/ID>"
+#
+#    on    Formatted machine-output, format:
+#
+#          "<dname>:<filename/ID>"
+#
+#
+#   NOREAD
+#     This value should be used for callees, when access to required VM 
+#     configurations is not permitted due to UNIX access rights.
+#
+#       NOREAD="NO-READ-PERMISSION"
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#    Enumerate-Output-Format:
+#    ========================
+#
+#    +-----------------------------+
+#      0 - h:    host              |
+#      1 - t:    type              |
+#      2 - l:    label             |
+#      3 - i:    id                | Identical to LIST
+#      4 - uu:   uuid              |
+#      5 - mac:  mac               |
+#    +-----------------------------+
+#      6 - IP
+#      7 - VNCPORT
+#      8 - VNCBASE
+#      9 - VNCDISPLAY
+#     10 - DISTRO
+#     11 - OS
+#     12 - VERNO
+#     13 - SERNO
+#     14 - CATEGORY
+#
+#
+#
+#
+#
+#FUNCEND###############################################################
+function enumerateMySessions () {
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_GENERIC_ENUM "${FUNCNAME}:·\$@=${@}"
+  local _args=${@}
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_GENERIC_ENUM "${FUNCNAME}:TYPE=${CTRL_SESSIONTYPE}"
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_GENERIC_ENUM "${FUNCNAME}:MODE=${CTRL_MODE}"
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $_GENERIC_ENUM "${FUNCNAME}:ARGS=${CTRL_MODE_ARGS}"
+
+  #This value should be used 
+  local NOREAD="NO-READ-PERMISSION"
+  local NOAPP="NOT-SUPPORTED"
+
+  ######################
+  #TEMP-WORKAROUND
+  #should be changed to flexible content like LIST.
+  enumerateCheckParam
+  if [ "${_titleENUM}" == "1" -a "${_machineENUM}" == "1" ];then
+      echo -n "ContainingMachine;SessionType;Label;ID;UUID;MAC"
+      echo ";TCP/IP;VNCAccessPort;VNCBasePort;VNCDisplay;Distribution;OS;VersionNr;SerialNr;Category"
+  fi
+  #TEMP-WORKAROUND
+  ######################
+
+  for y in ${PACKAGES_KNOWNTYPES};do
+      if [ "${CTRL_SESSIONTYPE}" == $y -o "${CTRL_SESSIONTYPE}" == "ALL" -o "${CTRL_SESSIONTYPE}" == DEFAULT ];then
+          _matched=1;
+          enumerateMySessions${y} "${*}"
+      fi
+  done
+  if [ -z "$_matched" ];then
+      ABORT=2
+      printERR $LINENO $_GENERIC_ENUM ${ABORT} "System Error, unexpected CTRL_SESSIONTYPE=${CTRL_SESSIONTYPE}"
+      printERR $LINENO $_GENERIC_ENUM ${ABORT} "  PACKAGES_KNOWNTYPES=${PACKAGES_KNOWNTYPES}"
+      gotoHell ${ABORT}
+  fi
+
+}
+
+
+
+
+

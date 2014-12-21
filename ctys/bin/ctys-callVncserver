@@ -1,0 +1,357 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-callVncserver
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="Unified Sessions Manager"
+#
+#CALLFULLNAME:
+CALLFULLNAME="Call VNC server"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_01_002c01
+#DESCRIPTION:
+#  Wrapper schript for calling vncserver.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $*: Pass throug new <VNC-options> and append missing defaults.
+#
+#OUTPUT:
+#  RETURN:
+#    state of call for vncserver
+#  VALUES:
+#    output of call of vncserver
+#
+#FUNCEND###############################################################
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+if [ ! -d "${MYHELPPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYHELPPATH=${MYHELPPATH}"
+  exit 1
+fi
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux-CentOS/RHEL(5+)"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work now):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome"
+
+#to be tested - coming soon
+TARGET_WM_SOON="fvwm"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+if [ "${*}" != "${*//-X/}" ];then
+    CTRL_TERSE=1
+fi
+if [ "${*}" != "${*//-V/}" ];then
+    if [ -n "${CTRL_TERSE}" ];then
+	echo -n ${VERSION}
+    else
+	echo "$0: VERSION=${VERSION}"
+    fi
+    exit 0
+fi
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+  . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/vnc/vnc.conf" ];then
+  . "${MYCONFPATH}/conf/vnc/vnc.conf"
+fi
+
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+################################################################
+#    Specific definitions - User-Customizable  from shell      #
+################################################################
+
+case `getCurOS` in
+    Linux)
+	if [ ! -f $HOME/.vnc/passwd ];then
+	    cp $HOME/.vnc/passwd.realVNC $HOME/.vnc/passwd
+	fi
+	;;
+    OpenBSD)
+	if [ ! -f $HOME/.vnc/passwd ];then
+	    cp $HOME/.vnc/passwd.tightVNC $HOME/.vnc/passwd
+	fi
+	;;
+esac
+
+
+. ${MYLIBPATH}/lib/cli/cli
+
+#Used only for current script, to be removed for vncviewer
+CLISERVERONLY="-d "
+
+
+#
+#Defaults fo vncserver.
+#  +kb ?
+#CLIDEFAULTS=" -name ${NAME:-VncServerDefault} -depth 16 -localhost -nolisten tcp "
+CLIDEFAULTS=" -name ${NAME:-VncServerDefault} -depth 16  "
+
+
+#
+#Reminder for solaris, so don't remove.
+#
+#
+# CALLDIR=`dirname $0`
+# CALLNAME=`basename $0`
+#
+# case `uname -s` in 
+#  Linux)   cp ${CALLDIR}/xstartup.linux ~/.vnc/xstartup;;
+#  Solaris) cp ~/.vnc/xstartup.solaris ~/.vnc/xstartup;;
+#  *)echo "ERROR:Unknown OS">&2;exit 1;;
+# esac
+
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "\$@=$@"
+X="`cliOptionsStrip REMOVE ${CLISERVERONLY} -- ${@}`"
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
+X="`cliOptionsAddMissing ${CLIDEFAULTS} -- ${X}`"
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "\$X=$X"
+
+LBL=`echo " $X "|sed -n 's/.*-name *\([^ ]*\) *.*/\1/p'`
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "LBL=${LBL}"
+
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "PATH=${PATH}"
+OUTPUT="${VNCSERVER_NATIVE} ${X}"
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "CALL=${OUTPUT}"
+
+# OUTPUT=`${OUTPUT} ${X} 2>&1`
+# printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "OUTPUT=<${OUTPUT}>"
+# RESULT=`echo ${OUTPUT}|awk -F':' -v d=${LBL} '/d/{printf("%s\n",gensub(" .*$","","g",$2))}'`
+
+#Linux-Only
+#RESULT=`${OUTPUT} ${X} 2>&1|awk -F':' -v d=${LBL} '/d/&&!/Log file/{printf("%s\n",gensub(" .*$","","g",$2))}'`
+
+#generic: Linux+OBSD
+RESULT=`${OUTPUT} ${X} 2>&1|awk -F':' -v d=${LBL} '/d/&&!/Log file/&&/^New/{id=$2;gsub(" .*$","",id);printf("%s\n",id);}'`
+RESULT="${RESULT%% *}"
+printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "RESULT=${RESULT}"
+echo $RESULT
+

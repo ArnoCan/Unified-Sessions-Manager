@@ -1,0 +1,628 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_QEMU_SESSION="${BASH_SOURCE}"
+_myPKGVERS_QEMU_SESSION="01.01.001a00pre"
+hookInfoAdd $_myPKGNAME_QEMU_SESSION $_myPKGVERS_QEMU_SESSION
+_myPKGBASE_QEMU_SESSION="`dirname ${_myPKGNAME_QEMU_SESSION}`"
+
+_QEMU_SESSION="${_myPKGNAME_QEMU_SESSION}"
+
+_VNC_CLIENT_MODE=;
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  fetchXenDomID4Label
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Onyl applicable on execution target
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: LABEL
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    <DomU-ID>
+#
+#FUNCEND###############################################################
+function fetchXenDomID4Label () {
+    local _x=`callErrOutWrapper $LINENO $BASH_SOURCE  ${VIRSHCALL} ${VIRSH} domid $1`
+    local _ret=$?
+    echo ${_x//[^0-9]/}
+    return $_ret
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  noClientServerSplitSupportedMessageQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function noClientServerSplitSupportedMessageQEMU () {
+    printWNG $LINENO $BASH_SOURCE ${ABORT} "INFO:This message Should not occur."
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  expandSessionIDQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function expandSessionIDQEMU () {
+  echo $1
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getClientTPQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+# GENERIC-IF-DESCRIPTION:
+#  Gives the termination points port number, to which a client could be 
+#  attachhed. This port is forseen to be used in port-forwarding e.g.
+#  by OpenSSH.
+#
+#  The port is the local port number, which in general has to be mapped 
+#  on remote site, when already in use. Therefore the application has
+#  to provide a port-number-independent client access protocol in order 
+#  to be used by connection forwarding. In any other case display 
+#  forwarding has to be choosen.
+#
+#  Some applications support only one port for access by multiple 
+#  sessions, dispatching and bundling the communications channels
+#  by their own protocol. 
+#
+#  While others require for each channel a seperate litenning port.
+#
+#  So it is up to the specific package to support a function returning 
+#  the required port number which could be used to attach an forwarded 
+#  port. 
+#  
+#  The applications client has to support a remapped port number.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <label>
+#       The <label> to which the client will be attached.
+#
+#  $2: <pname>
+#      The pname of the configuration file, this is required for 
+#      VNC-sessions, and given to avoid scanning for labels
+#
+#OUTPUT:
+#  RETURN:
+#    0: If OK
+#    1: else
+#
+#  VALUES:
+#    <TP-port>
+#      The TP port, to which a client could be attached.
+#
+#FUNCEND###############################################################
+function getClientTPQEMU () {
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:\$@=$@"
+    local _port=;
+
+    _port=`listMySessionsQEMU S MACHINE|awk -F';' -v l="${_label}" '$1~l{print $7;}'`
+    if [ -z "${_port}" ];then
+	_port="NO-CPORT"
+    fi
+    local _ret=$_port;  
+    printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME port number=$_ret from ID=_port"
+    echo ${_ret}
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  startSessionQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1: label
+#     For legacy reasons of inherited code, in case of Xen, Xen itself
+#     requires UNIQUE(scope=node+) DomainName=LABEL to be preconfigured
+#     in config file(pname), so must not differ!!!
+#
+# $2: ID/pname
+# $3: ConsoleType
+# $4: BootMode
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function startSessionQEMU () {
+  local _label=$1
+  local _pname=$2
+  local _console=${3:-VNC}
+  local _bootmode=${4}
+
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:LABEL   =$_label"
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:PNAME   =$_pname"
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:CONSOLE =$_console"
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:BOOTMODE=$_bootmode"
+
+  #should not happen, anyhow, once again, check it
+  if [ -z "${_label}" ];then
+      ABORT=1
+      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing LABEL"
+      gotoHell ${ABORT}
+  fi
+
+  #should not happen, anyhow, once again, check it
+  if [ -z "${_pname}" ];then
+      ABORT=1
+      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing PNAME"
+      gotoHell ${ABORT}
+  fi
+
+
+  case ${QEMU_MAGIC} in
+      QEMU_091) #verified to work
+	  ;;
+      QEMU_09x)
+	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, but any version \"0.9.x\" might work."
+	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  QEMU_VERSTRING = ${QEMU_VERSTRING}"
+	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  QEMU_MAGIC     = ${QEMU_MAGIC}"
+	  ;;
+      *)
+	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:This version is not yet tested, you cannot really expect it to work properly."
+	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  QEMU_VERSTRING = ${QEMU_VERSTRING}"
+	  printWNG $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:  QEMU_MAGIC     = ${QEMU_MAGIC}"
+	  ;;
+  esac
+
+
+  #use these in wrapper config scripts: _pname
+  export QEMUCALL
+  export QEMU
+
+  #set appropriate call
+  if [ "${CTRL_ASYNC}" == 1 ];then
+      CALLER="${_pname} ${_console} ${_bootmode}"
+  else
+      case $_console in
+	  CLI|SDL)
+	      CALLER="${_pname} ${_console} ${_bootmode}"
+	      ;;
+	  XTERM|GTERM)
+	      CALLER="${_pname} CLI ${_bootmode}"
+	      ;;
+	  *)
+	      CALLER="${_pname} ${_console} ${_bootmode}"
+	      ;;
+      esac
+  fi
+
+  #check for backgound execution when locally called, without ssh.
+  if [ "${CTRL_ASYNC}" == 1 ];then
+      if [ "${CTRL_CLIENTLOCATION}" ==  "-L ConnectionForwarding" \
+	  -o "${CTRL_CLIENTLOCATION}" ==  "-L LocalOnly" \
+ 	  ];then
+	  CALLER="${CALLER} &"
+      fi
+  fi
+
+  #bring up the VM now
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "ENABLE ${CALLER}"
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "TERM=${TERM}"
+
+  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER} 
+
+  if [ "$_console" == "CLI" -o  "$_console" == "SDL" ];then
+      return
+  fi
+
+  #anyhow, let's do it in any case - for now
+  if [ "${CTRL_ASYNC}" == 1 ];then
+      sleep ${QEMU_CONSOLE_DOMU_INIT_WAIT}
+  fi
+
+
+  #if no client required
+  if [ "${CTRL_CLIENTLOCATION}" ==  "-L ServerOnly" ];then
+      return
+  fi
+
+
+  #now check for console
+  #assuming that combination check for options has been validated!
+  local _args1=;
+  _args1="${_args1} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} "
+  _args1="${_args1} ${CTRL_ASYNC:+ -b $CTRL_ASYNC} "
+  _args1="${_args1} ${CTRL_GEOMETRY:+ -g $CTRL_GEOMETRY} "
+  _args1="${_args1} ${CTRL_XTOOLKITOPTS} "
+  local _args=;
+  case $_console in
+      GTERM)
+	  _args=" -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
+	  _args="${_args},c:\\\"${UCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}`\\\" ${_args1}"
+	  ;;
+      XTERM)
+	  _args=" -t X11 -a create=l:${_label},cmd:xterm,sh"
+	  _args="${_args},c:${QEMUCALL// /%}%${XM}%console%`fetchXenDomID4Label ${_label}` ${_args1}"
+	  ;;
+      VNC)
+	  MYVNCPORT=`${MYCALLPATH}/ctys -t xen -a list=label,cport|awk -F';' -v l=${_label} '$1==l{print $2;}'`
+	  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "MYVNCPORT=${MYVNCPORT}"
+	  _args=" -t VNC -a create=l:${_label},v:${MYVNCPORT},connect  ${_args1}"
+	  ;;
+      *)
+	  ABORT=1
+	  printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unexpected CONSOLE:${_console}"
+	  gotoHell ${ABORT}
+	  ;;
+  esac
+
+  CALLER="${MYCALLPATH}/ctys ${_args}"
+
+  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "Attach CONSOLE:${CALLER}"
+  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER} 
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  connectSessionQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  This function is the plugins local connection wrapper.
+#  The basic decisions from where the connection is established and 
+#  to which peer it has to be connected is done before calling this.
+#  But some knowledge of the connection itself is still required here.
+#
+#  So "the wrapper is in close relation to the controller", it is his  
+#  masters not so stupid paladin.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <console-type> could be
+#      CLI|X11|VNC
+#
+#  $2: <session-label>
+#      This will be used for the title of the client window.
+#
+#  $3: <session-id>
+#      This is the absolute pathname to the vmx-file.
+#
+#  $4: <actual-access-id>
+#      This will be used for actual connection, when direct acces to
+#      a ip port is provided. 
+#
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function connectSessionQEMU () {
+  local _contype=${1}
+  local _label=${2}
+  local _id=${3}
+  local _actaccessID=${4}
+
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME ${_contype} ${_label} ${_id} ${_actaccessID}"
+
+  if [ -z "${_id}" -o -z "${_label}" ];then
+      ABORT=1
+      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:At least one parameter required:<session-id> or <session-label>"
+      gotoHell ${ABORT}
+  fi
+
+
+  local _args=;
+  local _args1=;
+  _args1="${_args1} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} "
+  _args1="${_args1} ${CTRL_ASYNC:+ -b $CTRL_ASYNC} "
+  _args1="${_args1} ${CTRL_GEOMETRY:+ -g $CTRL_GEOMETRY} "
+  _args1="${_args1} ${CTRL_ALLOWAMBIGIOUS+ -A $CTRL_ALLOWAMBIGIOUS} "
+  _args1="${_args1} ${CTRL_XTOOLKITOPTS} "
+
+
+  #
+  #local native access: same as DisplayForwarding or LocalOnly
+  #
+  case $_contype in
+      CLI)
+	  ${_pname} CLI ${_bootmode}
+	  ;;
+      GTERM)
+	  _args="${_args} -t X11 -a create=l:${_label},cmd:gnome-terminal,dh"
+ 	  _args="${_args},c:${_pname// /%}%GTERM%${_bootmode}"
+          _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
+	  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "_args=${_args}"
+	  ${_args}
+	  ;;
+      XTERM)
+	  _args="${_args} -t X11 -a create=l:${_label},cmd:xterm,sh,c:${_pname// /%}%XTERM%${_bootmode}"
+          _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
+	  printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "_args=${_args}"
+	  ${_args}
+	  ;;
+      VNC)
+	  if [ -n "${_actaccessID}" ];then
+#timeout>>!20
+#	      _args=" -t VNC -a create=l:${_label},v:${_actaccessID},connect ${_args}"
+#	      _args=" -t VNC -a create=l:${_label},v:${_actaccessID},connect ${_args}"
+#              _args="${MYCALLPATH}/ctys ${_args} ${_args1} "
+#	      ${_args}
+ 	      connectSessionQEMUVNC "${_actaccessID}" "${_label}" 
+	  else
+	      ABORT=1
+	      printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing _actaccessID:${_actaccessID}"
+	      gotoHell ${ABORT}
+	  fi
+	  ;;
+      *)
+	  ABORT=1
+	  printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Unknown CONSOLE:${_contype}"
+	  gotoHell ${ABORT}
+	  ;;
+  esac
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  vmMgrQEMU
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#  Encapsulates the vmrun command with unified calls.
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+# $1:                 $2       $3         $4        $5       $6            
+#---------------------------------------------------------------------
+# REBOOT              <label> <id-pname>  <pid>     <sport>   
+# RESET               <label> <id-pname>  <pid>     <sport>   
+#
+# RS3                 <label> <id-pname>  <pid>     <sport>   
+# S3                  <label> <id-pname>  <pid>     <sport>  
+#
+# RS4                 <label> <id-pname>  <pid>     <sport>  [<tag>]
+# S4                  <label> <id-pname>  <pid>     <sport>  <statefile>
+#
+# S5                  <label> <id-pname>  <pid>     <sport>  <timeout>     
+#
+#
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function vmMgrQEMU () {
+    printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "${FUNCNAME} $*"
+    local _cmd=$1;shift
+    local _label=$1;shift
+    local _id=$1;shift
+    local _pid=$1;shift
+    local _sport=$1;shift
+    local _arg1=$1;shift
+
+    if [ -z "${_cmd}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing CMD"
+	gotoHell ${ABORT}
+    fi
+    if [ -z "${_label}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing LABEL"
+	gotoHell ${ABORT}
+    fi
+    if [ -z "${_id}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing ID"
+	gotoHell ${ABORT}
+    fi
+    if [ -z "${_pid}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing PID"
+	gotoHell ${ABORT}
+    fi
+    if [ -z "${_sport}" ];then
+	ABORT=1
+	printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Missing SPORT"
+	gotoHell ${ABORT}
+    fi
+
+
+    function callMonitorCmd () {
+	printVerboseDebug ${DBG_LVL_UIE} $LINENO $BASH_SOURCE "${FUNCNAME} ${*}"
+        local _sport=$1;shift
+        local _cmd=$*
+	local _call="echo -e -n '\001\143${_cmd}\n\001\143'|nc -U ${QEMUCTYS}.${_sport}"
+	callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} "$_call"
+    }
+
+
+    case $_cmd in
+        #CREATE######################
+	RS3)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		callMonitorCmd ${_sport} cont
+	    fi
+	    ;;
+
+	RS4)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		callMonitorCmd ${_sport} loadvm S4
+		callMonitorCmd ${_sport} delvm  S4
+	    fi
+	    ;;
+
+        #CANCEL######################
+	S3)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		callMonitorCmd ${_sport} stop
+	    fi
+	    ;;
+
+	S4)
+            #1.S3-stop
+            #2.S4-savevm
+            #3.S5-system_powerdown
+
+            if [ -z "${CTRL_NOEXEC}" ];then
+		callMonitorCmd ${_sport} stop
+		callMonitorCmd ${_sport} savevm S4
+		callMonitorCmd ${_sport} system_powerdown
+		callMonitorCmd ${_sport} '\001\170\n'
+	    fi
+	    ;;
+
+	REBOOT|RESET)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		callMonitorCmd ${_sport} system_reset
+	    fi
+	    ;;
+
+	POWEROFF)
+            if [ -z "${CTRL_NOEXEC}" ];then
+		callMonitorCmd ${_sport} '\001\170\n'
+		sleep ${_arg1:-1}
+		callErrOutWrapper $LINENO $BASH_SOURCE  ${QEMUCALL} pkill -P "$_pid"
+	    fi
+            ;;
+    esac
+}
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  connectSessionQEMUVNC
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#  $1: <display-id>|<display-port>
+#      This is calculated from the port, and is the offset to that.
+#      The base-value is normally 5900 for RealVNC+TIghtVNC.
+#      TightVNC might allow the selection of another port.
+#
+#  $2: <session-label>
+#      This will be used for the title of the client window.
+#
+#OUTPUT:
+#  RETURN:
+#
+#  VALUES:
+#
+#FUNCEND###############################################################
+function connectSessionQEMUVNC () {
+  local _id=${1}
+  local _label=${2}
+  printVerboseDebug ${DBG_LVL_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME ${_id} ${_label}"
+
+
+  #even though this condition might be impossible now, let it beeeee ...
+  if [ -z "${_label}" -a -z "${_id}" ];then
+    ABORT=1
+    printERR $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Fetch of peer entry failed:_id=${_id} - _label=${_label}"
+    gotoHell ${ABORT}
+  fi
+
+  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "OK:_id=${_id} - _label=${_label}"
+  #
+  #Now shows name+id in title, id could not be set for server as default.
+  local _vieweropt="-name ${_label}:${_id} ${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry=$CTRL_GEOMETRY} "
+
+  #old version with server-default label in title
+  #  local _vieweropt="${VNCVIEWER_OPT} ${CTRL_GEOMETRY:+ -geometry=$CTRL_GEOMETRY} "
+  local CALLER="${VNCVIEWER} ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} ${_vieweropt} :${_id}"
+  printVerboseDebug ${DBG_LVL_OVERKILL} $LINENO $BASH_SOURCE "${CALLER}"
+  export CTRL_ASYNC;
+  [ -z "${CTRL_NOEXEC}" ]&&eval ${CALLER}
+}
+
+
+
+

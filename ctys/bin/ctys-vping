@@ -1,0 +1,436 @@
+#!/bin/bash
+
+################################################################
+#                   Begin of FrameWork                         #
+################################################################
+
+
+#FUNCBEG###############################################################
+#
+#PROJECT:
+MYPROJECT="Unified Sessions Manager"
+#
+#NAME:
+#  ctys-extractMAClst
+#
+#AUTHOR:
+AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
+#
+#FULLNAME:
+FULLNAME="CTYS Extended ping for ctys <machine-address>."
+#
+#CALLFULLNAME:
+CALLFULLNAME="ctys-vping"
+#
+#LICENCE:
+LICENCE=GPL3
+#
+#TYPE:
+#  bash-script
+#
+#VERSION:
+VERSION=01_01_001a01
+#DESCRIPTION:
+#  Ping by cts-address.
+#
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#    -s
+#        Activates additional SSH access test. When SSO is not
+#        configured properly, a password challange dialog occurs.
+#
+#     -l <remote-user>
+#        The remote user to be taken for ssh tests. Default is current
+#        user id.
+#
+#  -h
+#     Print help.
+#
+#  -V
+#     Version.
+#
+#  -X
+#     Terse.
+#
+#  <group/machine-address>
+#     Any target to be checked by host, will be ordinarily ping-ed
+#     after ctys-name-resolution to TCP/IP-address.
+#
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#    Standard output is screen.
+#
+#FUNCEND###############################################################
+
+
+################################################################
+#                     Global shell options.                    #
+################################################################
+shopt -s nullglob
+
+
+
+################################################################
+#       System definitions - do not change these!              #
+################################################################
+#Execution anchor
+MYHOST=`uname -n`
+MYCALLPATHNAME=$0
+MYCALLNAME=`basename $MYCALLPATHNAME`
+
+if [ -n "${MYCALLPATHNAME##/*}" ];then
+    MYCALLPATHNAME=${PWD}/${MYCALLPATHNAME}
+fi
+MYCALLPATH=`dirname $MYCALLPATHNAME`
+###################################################
+#load basic library required for bootstrap        #
+###################################################
+MYBOOTSTRAP=${MYCALLPATH}/bootstrap
+if [ ! -d "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This directory contains the common mandatory bootstrap functions.
+  Your installation my be erroneous.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  If this does not help please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+MYBOOTSTRAP=${MYBOOTSTRAP}/bootstrap.01.01.001
+if [ ! -f "${MYBOOTSTRAP}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYBOOTSTRAP=${MYBOOTSTRAP}"
+cat <<EOF  
+
+DESCRIPTION:
+  This file contains the common mandatory bootstrap functions required
+  for start-up of any shell-script within this package.
+
+  It seems though your installation is erroneous or you detected a bug.  
+
+SOLUTION-PROPOSAL:
+  First of all check your installation, because an error at this level
+  might - for no reason - bypass the final tests.
+
+  When your installation seems to be OK, you may try to set a TEMPORARY
+  symbolic link to one of the files named as "bootstrap.<highest-version>".
+  
+    ln -s ${MYBOOTSTRAP} bootstrap.<highest-version>
+
+  in order to continue for now. 
+
+  Be aware, that any installation containing the required file will replace
+  the symbolic link, because as convention the common boostrap files are
+  never symbolic links, thus only recognized as a temporary workaround to 
+  be corrected soon.
+
+  If this does not work you could try one of the other versions.
+
+  Please send a bug-report.
+
+EOF
+  exit 1
+fi
+
+###################################################
+#Start bootstrap now                              #
+###################################################
+. ${MYBOOTSTRAP}
+###################################################
+#OK - utilities to find components of this version#
+#available now.                                   #
+###################################################
+
+#
+#set real path to install, resolv symbolic links
+_MYCALLPATHNAME=`bootstrapGetRealPathname ${MYCALLPATHNAME}`
+MYCALLPATH=`dirname ${_MYCALLPATHNAME}`
+#
+###################################################
+#Now find libraries might perform reliable.       #
+###################################################
+
+
+#current language, not really NLS
+MYLANG=${MYLANG:-en}
+
+#path for various loads: libs, help, macros, plugins
+MYLIBPATH=${CTYS_LIBPATH:-`dirname $MYCALLPATH`}
+
+#path for various loads: libs, help, macros, plugins
+MYHELPPATH=${MYLIBPATH}/help/${MYLANG}
+
+###################################################
+#Check master hook                                #
+###################################################
+bootstrapCheckInitialPath
+###################################################
+#OK - Now should work.                            #
+###################################################
+
+MYCONFPATH=${MYLIBPATH}/conf/ctys
+if [ ! -d "${MYCONFPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYCONFPATH=${MYCONFPATH}"
+  exit 1
+fi
+
+MYMACROPATH=${MYCONFPATH}/macros
+if [ ! -d "${MYMACROPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYMACROPATH=${MYMACROPATH}"
+  exit 1
+fi
+
+MYPKGPATH=${MYLIBPATH}/plugins
+if [ ! -d "${MYPKGPATH}" ];then
+  echo "${MYCALLNAME}:$LINENO:ERROR:Missing:MYPKGPATH=${MYPKGPATH}"
+  exit 1
+fi
+
+MYINSTALLPATH= #Value is assigned in base. Symbolic links are replaced by target
+
+
+##############################################
+#load basic library required for bootstrap   #
+##############################################
+. ${MYLIBPATH}/lib/base
+. ${MYLIBPATH}/lib/libManager
+#
+#Germish: "Was the egg or the chicken first?"
+#
+#..and prevent real load order for later display.
+#
+bootstrapRegisterLib
+baseRegisterLib
+libManagerRegisterLib
+##############################################
+#Now the environment is armed, so let's go.  #
+##############################################
+
+if [ ! -d "${MYINSTALLPATH}" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYINSTALLPATH=${MYINSTALLPATH}"
+    gotoHell ${ABORT}
+fi
+
+MYOPTSFILES=${MYOPTSFILES:-$MYLIBPATH/help/$MYLANG/085_base_options} 
+checkFileListElements "${MYOPTSFILES}"
+if [ $? -ne 0 ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing:MYOPTSFILES=${MYOPTSFILES}"
+    gotoHell ${ABORT}
+fi
+
+
+################################################################
+# Main supported runtime environments                          #
+################################################################
+#release
+TARGET_OS="Linux: CentOS/RHEL(5+), SuSE-Professional 9.3"
+
+#to be tested - coming soon
+TARGET_OS_SOON="OpenBSD+Linux(might work for any dist.):Ubuntu+OpenSuSE"
+
+#to be tested - might be almsot OK - but for now FFS
+#...probably some difficulties with desktop-switching only?!
+TARGET_OS_FFS="FreeBSD+Solaris/SPARC/x86"
+
+#release
+TARGET_WM="Gnome + fvwm"
+
+#to be tested - coming soon
+TARGET_WM_SOON="xfce"
+
+#to be tested - coming soon
+TARGET_WM_FORESEEN="KDE(might work now)"
+
+################################################################
+#                     End of FrameWork                         #
+################################################################
+
+#assure for append...
+if [ -n "$CTYS_GROUPS_PATH" ];then
+    mstr=$HOME/.ctys/groups
+    CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH//$mstr}
+    mstr=$MYCONFPATH/groups
+    CTYS_GROUPS_PATH=${CTYS_GROUPS_PATH//$mstr}
+fi
+
+if [ -n "$CTYS_GROUPS_PATH" ];then
+    checkPathElements CTYS_GROUPS_PATH ${CTYS_GROUPS_PATH}
+fi
+
+if [ ! -d "${HOME}/.ctys/groups" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing standard directory:${HOME}/.ctys/groups"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Has to be present at least, check your installation"
+    gotoHell ${ABORT}
+fi
+
+if [ ! -d "${MYCONFPATH}/groups" ];then
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing standard directory:${MYCONFPATH}/groups"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Has to be present at least, check your installation"
+    gotoHell ${ABORT}
+fi
+
+CTYS_GROUPS_PATH="${HOME}/.ctys/groups:${MYCONFPATH}/groups${CTYS_GROUPS_PATH:+:$CTYS_GROUPS_PATH}"
+
+
+
+. ${MYLIBPATH}/lib/help/help
+. ${MYLIBPATH}/lib/groups
+
+
+#path to directory containing the default mapping db
+if [ -d "${HOME}/.ctys/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/.ctys/db/default}
+fi
+
+#path to directory containing the default mapping db
+if [ -d "${MYCONFPATH}/conf/db/default" ];then
+    DEFAULT_DBPATHLST=${DEFAULT_DBPATHLST:-$HOME/conf/db/default}
+fi
+
+
+#Source pre-set environment from user
+if [ -f "${HOME}/.ctys/ctys.conf" ];then
+  . "${HOME}/.ctys/ctys.conf"
+fi
+
+#Source pre-set environment from installation 
+if [ -f "${MYCONFPATH}/conf/ctys.conf" ];then
+  . "${MYCONFPATH}/conf/ctys.conf"
+fi
+
+
+#system tools
+if [ -f "${HOME}/.ctys/systools.conf" ];then
+    . "${HOME}/.ctys/systools.conf"
+else
+
+    if [ -f "${MYCONFPATH}/conf/ctys/systools.conf" ];then
+	. "${MYCONFPATH}/conf/ctys/systools.conf"
+    else
+	if [ -f "${MYCALLPATH}/../conf/ctys/systools.conf" ];then
+	    . "${MYCALLPATH}/../conf/ctys/systools.conf"
+	else
+	    ABORT=1;
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing system tools configuration file:\"systools.conf\""
+	    printERR $LINENO $BASH_SOURCE ${ABORT} "Check your installation."
+	    gotoHell ${ABORT}
+	fi
+    fi
+fi
+
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+
+#DO NOT CHANGE!!!
+#Default order for ctys-tools.
+sortKey='-n';
+
+for i in $*;do
+    case $1 in
+#	'-q')shift;_quiet=1;;
+	'-X')CTRL_TERSE=1;shift;;
+	'-s')shift;_ssh=1;;
+	'-l')shift;_user=$1;shift;;
+	'-V')printVersion;exit 0;;
+	'-h')showToolHelp;exit 0;;
+    esac
+done
+
+
+if [ -n "$*" ];then
+    _x=" ${*} "
+    if [ "${_x// -}" != "${_x}"  ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Invalid host-list, seems to have an \"late-option\""
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  remaining-args=${*}"
+	gotoHell ${ABORT}
+    fi
+else
+    ABORT=1;
+    printERR $LINENO $BASH_SOURCE ${ABORT} "Missing hostname arguments"
+    gotoHell ${ABORT}
+fi
+
+
+#OK-first let's expand ctys-groups
+printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
+hostlist=`expandGroups ${*}`
+
+#OK-second let's resolve ctys <machine-address>-es
+#printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
+#hostlist=`resolveMachineAddresses TCP ... ${hostlist}`
+
+#NOW-That's it, this should be a pure TCP/IP-List
+#printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "hostlist=$hostlist"
+
+if [ -n "$_dbfilepath" ];then
+    if [ ! -d "$_dbfilepath" ];then
+	ABORT=1;
+	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory, required to be present."
+	printERR $LINENO $BASH_SOURCE ${ABORT} "  _dbfilepath=${_dbfilepath}"
+	gotoHell ${ABORT}
+    fi
+    _dbfilepath=${_dbfilepath}/macmap.fdb
+fi
+
+
+##########################
+_STAT=6;
+_PING=6;
+_SSH=6;
+_TCP=25;
+_MACH=;
+_FRM1="%-${_TCP}s %-${_PING}s %-${_SSH}s %${_MACH}s\n"
+
+
+_user=${_user:-$USER}
+echo
+echo -n "Check access permission by: \"ping"
+if [ -n "${_ssh}" ];then
+    echo -n "+ssh(SSO)\" "
+else
+    echo -n "\" "
+fi
+echo "  for USER=${_user}"
+echo
+
+printf "${_FRM1}"  "TCP/IP"  "ping"  "ssh"  "<machine-address>(ctys-vhost first-match!)"
+echo "----------------------------------------------------------------------------------"
+for i in ${hostlist};do
+    M=`ctys-vhost -o CTYS $i`
+    ping -c ${PCNT:-1} -w ${PTIME:-1} ${i} 2>/dev/null >/dev/null
+    if [ $? -eq 0 ];then
+	if [ -n "${_ssh}" ];then
+	    ssh ${_user}@${i} echo 2>/dev/null >/dev/null
+	    if [ $? -eq 0 ];then
+		printf "${_FRM1}" "${i}" "+"  "+"  "${M}"
+	    else
+		printf "${_FRM1}" "${i}" "+"  "-"  "${M}"
+	    fi
+	else
+            printf "${_FRM1}" "${i}" "+"  "?"  "${M}"
+	fi
+    else
+        printf "${_FRM1}"  "${i}" "-"  "?"  "${M}"
+    fi
+done
+echo

@@ -1,0 +1,171 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+_myPKGNAME_XEN_CONFIG="${BASH_SOURCE}"
+_myPKGVERS_XEN_CONFIG="01.01.001a01"
+hookInfoAdd $_myPKGNAME_XEN_CONFIG $_myPKGVERS_XEN_CONFIG
+_myPKGBASE_XEN_CONFIG="`dirname ${_myPKGNAME_XEN_CONFIG}`"
+
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getLABEL_XEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getLABEL_XEN () {
+    local X=$1
+    local _IP=;
+
+    if [ -f "${X}" ];then
+	_IP=`awk -F '=' '$1~/^ *name */{printf($2);}' ${X}`
+        _IP="${_IP//[\"\']}"
+    fi
+    if [ "$_IP" != "" ];then
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${X}"
+    fi
+    echo $_IP
+}
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getUUID_XEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getUUID_XEN () {
+    local X=$1
+    local _IP=;
+
+    if [ -f "${X}" ];then
+	_IP=`awk -F '=' '$1~/^ *uuid */{printf($2);}' ${X}`
+        _IP="${_IP//[\"\']}"
+    fi
+    if [ "$_IP" != "" ];then
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${X}"
+    fi
+    echo $_IP
+}
+
+
+
+#FUNCBEG###############################################################
+#NAME:
+#  getMAC_XEN
+#
+#TYPE:
+#  bash-function
+#
+#DESCRIPTION:
+#
+#EXAMPLE:
+#
+#PARAMETERS:
+#
+#GLOBALS:
+#
+#OUTPUT:
+#  RETURN:
+#  VALUES:
+#
+#FUNCEND###############################################################
+function getMAC_XEN () {
+        #might be cached already, don't forget to reset for each record!!!
+    if [ -n "$_curMACCache" ];then
+	echo $_curMACCache
+	return
+    fi
+
+    local X=$1
+    local _IP=;
+
+    if [ -f "${X}" ];then
+	_IP=`sed -n '
+        s/\t//g;
+        /^#/d;
+        s/.*mac *=[^[:xdigit:]]*//;
+        s/[^[:xdigit:]]*\([[:xdigit:]][[:xdigit:]]\:[[:xdigit:]][[:xdigit:]]\:[[:xdigit:]:]*\).*/\1/p
+            ' "${X}"|\
+                 awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+        _curMACCache=$_IP
+    fi
+    if [ "$_IP" != "" ];then
+	printVerboseDebug ${DBG_LVL_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${_IP} from ${X}"
+    fi
+    echo $_IP
+}
+
+
+
+
+
+
+
+
+
+#     #avoids of multiple rescans when MAPDB enabled.
+#     local _curMACCache=;
+
+#     function getIP_XEN () {
+# 	local X=$1
+# 	local _IP=;
+
+#         if [ -f "${X}" ];then
+# 	    _IP=`sed -n 's/#@#IP[0-9]* *= *"\([^"]*\)"/\1/p' "${X}"|\
+#                  awk '{if(x){printf(" %s",$0);}else{printf("%s",$0);}x=1;}'`;
+#         fi
+#         #check macmap requirement
+#         if [ -z "$_IP" -a -n "$_mapdb" ];then
+# 	    local _m=`getMAC_XEN ${X}`
+#             _IP=`ctys-vhost ${CTRL_VERBOSE:+ -d $CTRL_VERBOSE} -o TCP -S macmap -M first $_m`
+# 	fi
+# 	echo $_IP
+#     }
+
+
