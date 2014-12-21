@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_VNC_LIST="${BASH_SOURCE}"
-_myPKGVERS_VNC_LIST="01.06.001a13"
+_myPKGVERS_VNC_LIST="01.07.001b05"
 hookInfoAdd $_myPKGNAME_VNC_LIST $_myPKGVERS_VNC_LIST
 _myPKGBASE_VNC_LIST="`dirname ${_myPKGNAME_VNC_LIST}`"
 
@@ -51,12 +51,6 @@ function listMySessionsVNC () {
     #controls debugging for awk-scripts
     doDebug $S_GEN  ${D_MAINT} $LINENO $BASH_SOURCE
     local D=$?
-
-    if [ "${C_SESSIONTYPE}" != "VNC" -a "${C_SESSIONTYPE}" != "ALL" ];then 
-        ABORT=2
-        printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected session type:C_SESSIONTYPE=${C_SESSIONTYPE}"
-        gotoHell ${ABORT}
-    fi
 
     if [ "${_site}" == S -o "${_site}" == B ];then
 	case ${MYDIST} in

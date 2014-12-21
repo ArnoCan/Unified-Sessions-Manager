@@ -247,7 +247,7 @@ function printHelpEx () {
 #
 #FUNCEND###############################################################
 function showToolHelp () {
-    local _myhlp=`echo ${MYHELPPATH}/*_${MYCALLNAME}`
+    local _myhlp=`echo ${MYHELPPATH}/${MYCALLNAME}`
     if [ -n "${_myhlp}" -a -f "${_myhlp}" ];then
 	cat ${_myhlp}
     else

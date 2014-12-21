@@ -1,0 +1,135 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_07_001a01
+#
+########################################################################
+#
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+
+
+
+Release Notes:
+==============
+
+01.07.001b05 / 20080825
+-----------------------
+  1. Minor editorial changes of documents.
+  2. VMW:
+     - WS+Player start was broken, fixed.
+     - Added initial VNCviewer as CONSOLE, 
+       without required frontend.
+     - CONNECT:VNC
+     - RECONNECT: Clear mixed clients.
+  3. QEMU:
+     - Fixed VNCviewer as initial CONSOLE.
+     - RECONNECT.
+  4. Fixed filenames for online-help.
+
+01.07.001b04 / 20080817
+-----------------------
+  1. Minor editorial changes on documents.
+  2. Additional short-documents extracted from the User-Manual
+     for installation and first usage.
+
+
+01.07.001b03 / 20080812
+-----------------------
+  1. Minor editorial changes on documents.
+  2. Withdrawn website, due to problems with generated HTML-Code.
+
+
+01.07.001b02 / 20080806
+-----------------------
+
+  1. First beta-version to be used publicly for non-critical production
+     environments for flat sessions.
+  2. The usage with stacked sessions as a group by VMSTACK requires
+     some more efforts, but anyhow, could already used for simple
+     tasks.
+     The future versions will support more validation-checks for stack
+     consistency, allow implicit start of partial stacks, reuse of
+     partial stacks, and provide a more user-friendly Stack-Addressing
+     schema.
+  3. Some effort will be spend for the definition of a common
+     configuration syntax to be mapped to the various hypervisor
+     calls. PArticularly the configuration syntax for QEMU is a draft,
+     but fully functioning version.
+  4. Service reallaocation, suspend/resume, and online-reallocation
+     is not yet supported.
+  5. Emulated environments for embedded devices are for now just draftly
+     tested by usage of debian for arm9.
+  6. The basic functionality is quite stable and widely tested.
+  7. Documentation is still in production, but should be absolutely
+     helpful.
+ 
+
+01.07.001a01 / 20080803
+-----------------------
+
+  1. This version is almost contains almost completely tested base
+     functionality.
+     Currently missing some VMSTACK constellations with QEMU within a
+     VMware VM, due to difficulties with configuration of a VDE-Switch
+     within a VMware based GuestOS. Xen works fined.
+
+  2. Several performance issues solved, a considerable number of bugs
+     corrected.
+
+  3. The manual is extended from about 200 pages to more than 600
+     pages. It is expected to add about 100-200 more pages.
+
+  4. The next version is expected to be the base for CVS as a stable
+     version. A minor bugfix version is foreseen to be released close
+     to current version.
+
+
+01.03.03a01
+-----------
+
+  1. This is the first public release, so called a pre-release.
+
+     Even though stable and on daily business within the local
+     environment, for the first step it might suffer from some
+     errors within the various environments. 
+
+     So some minor format errors might cause severe operational errors
+     at the end, what hopefully will not happen.
+
+     The thoroughly tested environment is CentOS-5.0, for gwhich it
+     works perfectly.
+
+  2. The main distribution site is sourceforge.net, whereas some
+     additional documentation, particularly some standard office tools
+     based documents and quick-patches will be first distributed via
+     the project site "UnifiedSessionsManager.org".
+
+  3. Some recent changes to the VM stack might not work for now, but
+     will be available within the couple of days or few weeks. 
+
+     This should not influence the management and usage of "flat" VMs.
+
+
+
+

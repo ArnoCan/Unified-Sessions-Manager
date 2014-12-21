@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a15
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_06_001a15
+VERSION=01_07_001b05
 #DESCRIPTION:
 #  Install script for ctys.
 #

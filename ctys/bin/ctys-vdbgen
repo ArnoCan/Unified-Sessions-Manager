@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a09
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_01_001a01
+VERSION=01_07_001b05
 #DESCRIPTION:
 #  Main untility of project ctys for generation of nameservice DB.
 #
@@ -339,7 +339,7 @@ fi
 DEFAULT_C_SESSIONTYPE=${DEFAULT_C_SESSIONTYPE:-VNC}
 DEFAULT_C_SCOPE=${DEFAULT_C_SCOPE:-USER}
 DEFAULT_KILL_DELAY_POWEROFF=${DEFAULT_KILL_DELAY_POWEROFF:-20}
-DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,FULLPATH,BOTH}
+DEFAULT_LIST_CONTENT=${DEFAULT_LIST_CONTENT:-ALL,BOTH}
 
 
 ###################
@@ -574,16 +574,19 @@ echo "Prepare execution-call:"
 echo
 _cliorg=${*};
 
+case " ${*} " in
+    *" -h "*|*" -help "*|*" --help "*)
+	showToolHelp
+	gotoHell 0
+	;;
+esac
 
-if [ "${*}" != "${*//-h}" ];then
-    showToolHelp
-    gotoHell 0
-fi
-
-if [ "${*}" != "${*//-V}" ];then
-    printVersion
-    gotoHell 0
-fi
+case " ${*} " in
+    *" -V "*)
+	printVersion
+	gotoHell 0
+	;;
+esac
 
 #
 #

@@ -8,11 +8,11 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
@@ -277,23 +277,26 @@ function startSessionVMW () {
     case ${VMW_MAGIC} in
 	VMW_S*)
 	    if [ -n "${VMWMGR}" ];then
-		callErrOutWrapper $LINENO $BASH_SOURCE ${VMWMGR} -l|grep -q ${_pname} 
+		callErrOutWrapper $LINENO $BASH_SOURCE ${VMWCALL} ${VMWMGR} -l|grep -q ${_pname} 
 		if [ $? -ne 0 ];then
 		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:add to inventory:<$_pname>"
-		    callErrOutWrapper $LINENO $BASH_SOURCE ${VMWMGR} -s register "${_pname}"
+		    callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} ${VMWMGR} -s register "${_pname}"
+		    if [ $? -ne 0 ];then
+                        ABORT=1;
+			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:failed to add inventory:<$_pname>"
+			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:check access permissions for:"
+			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}: ->\"${VMWMGR}\""
+		    fi
 		fi
 	    fi
 	    ;;
     esac
-
-
 
     local CALLER=;
     case ${VMW_MAGIC} in
 	VMW_P105)
 	    CALLCLIENT="${VMWEXE}  ${C_SESSIONIDARGS:-$VMW_DEFAULTOPTS} \"${_pname}\""
 	    CALLSERVER=;
-	    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} No additional arguments supported for ${VMWEXE}"
 	    ;;
 	VMW_S*)
 	    CALLCLIENT="${VMWEXE} "
@@ -318,6 +321,7 @@ function startSessionVMW () {
 
 	    case "${_conty}" in
 		VNC)
+		    CALLCLIENT=;
 		    CALLSERVER="${VMWMGR} start \"${_pname}\" nogui"
 		    ;;
 		NONE)
@@ -325,7 +329,6 @@ function startSessionVMW () {
 		    CALLSERVER="${VMWMGR} start \"${_pname}\" nogui"
 		    ;;
 	    esac
-
 	    ;;
     esac
 
@@ -365,7 +368,20 @@ function startSessionVMW () {
 	else
             #non-stack only
 	    if [ -n "${CALLCLIENT}" ];then
-		eval ${CALLCLIENT} &>/dev/null&
+		case ${VMW_MAGIC} in
+		    VMW_WS*)
+			eval ${CALLCLIENT} &
+			;;
+		    VMW_P*)
+			eval ${CALLCLIENT} &
+			;;
+		    VMW_S*)
+			eval ${CALLCLIENT} &>/dev/null&
+			;;
+		    *)
+			eval ${CALLCLIENT} &
+			;;
+		esac
 		sleep ${_waitcVMW};
 	    else
 		ABORT=3
@@ -417,8 +433,18 @@ function startSessionVMW () {
         #
         #assume pre-checked appropriate content
 	if [ -n "${CALLSERVER}" -a -n "${CALLCLIENT}" ];then
-	    eval ${CALLCLIENT} &
-	    sleep ${_waitcVMW};
+		    eval ${CALLCLIENT} &
+		    sleep ${_waitcVMW};
+	else
+	    case "${_conty}" in
+		VNC)
+		    _VNC_CLIENT_MODE=`getVNCport "${_pname}"`
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:VNCviewer:"
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_VNC_CLIENT_MODE=<${_VNC_CLIENT_MODE}>"
+		    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_label=<${_label}>"
+		    connectSessionVMWVNC "${_VNC_CLIENT_MODE}" "${_label}"
+		    ;;
+	    esac
 	fi
 
 	local _myAttrLst="JOBID=${CALLERJOB}:$((JOB_IDXSUB++));"

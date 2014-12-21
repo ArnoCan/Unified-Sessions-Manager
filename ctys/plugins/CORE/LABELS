@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_07_001b05
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_LABELS="${BASH_SOURCE}"
-_myPKGVERS_LABELS="01.02.002c01"
+_myPKGVERS_LABELS="01.07.001b05"
 hookInfoAdd "$_myPKGNAME_LABELS" "$_myPKGVERS_LABELS"
 _myPKGBASE_LABELS="`dirname ${_myPKGNAME_LABELS}`"
 
@@ -78,7 +78,7 @@ CACHE1=""
 function fetchID4Label () {
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:${1}"
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:CACHE1=\"${CACHE1}\""
-  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE`;fi
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:CACHE1=\"${CACHE1}\""
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:MYHOST=\"${MYHOST}\""
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:\$1=\"$1\""
@@ -136,7 +136,7 @@ function fetchID4Label () {
 #FUNCEND###############################################################
 function fetchLabel4ID () {
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE`;fi
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   for i in ${CACHE1}; do
     printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
@@ -184,7 +184,7 @@ function fetchLabel4ID () {
 #FUNCEND###############################################################
 function fetchLabel4PID () {
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions BOTH,TERSE,MACHINE,FULLPATH`;fi
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions BOTH,TERSE,MACHINE`;fi
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   for i in ${CACHE1}; do
       printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
@@ -250,7 +250,7 @@ function fetchLabel4PID () {
 #FUNCEND###############################################################
 function fetchID4PID () {
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions BOTH,TERSE,MACHINE,FULLPATH`;fi
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions BOTH,TERSE,MACHINE`;fi
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   for i in ${CACHE1}; do
     printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
@@ -301,21 +301,29 @@ function fetchID4PID () {
 #    <ID>
 #FUNCEND###############################################################
 function fetchDisplay4Label () {
-  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
-  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
-  printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
-  for i in ${CACHE1}; do
-    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
-    local MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s&&$15!~ji{print $8;}'`
-    if [ -n "${MATCH}" ];then
-      echo ${MATCH};
-      return 0;
-    fi
-  done 
-  return 1;
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME:\$@=${@}"
+    case "${1}" in
+	ALL)local _scope=1;shift;;
+	CHILD)local _scope=2;shift;;
+    esac
+    if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE`;fi
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
+    printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
+    for i in ${CACHE1}; do
+	printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "i=${i}"
+	local MATCH=;
+	case "$_scope" in
+	    2)MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s&&$15~ji{print $8;}'`;;
+	    1)MATCH=`echo $i|awk -F';' -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s{print $8;}'`;;
+	    *)MATCH=`echo $i|awk -F';' -v ji="${CALLERJOB}" -v _h="${MYHOST}" -v _s="${1// }" '$1~_h&&$3==_s&&$15!~ji{print $8;}'`;;
+	esac
+	if [ -n "${MATCH}" ];then
+	    echo ${MATCH};
+	    return 0;
+	fi
+    done 
+    return 1;
 }
-
 
 
 
@@ -358,7 +366,7 @@ function fetchDisplay4Label () {
 #FUNCEND###############################################################
 function fetchCport4Label () {
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "$FUNCNAME ${1}"
-  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE,FULLPATH`;fi
+  if [ -z "$CACHE1" -o "$C_CACHEDOPMEM" == 0 ];then CACHE1=`listMySessions TERSE,MACHINE`;fi
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "CACHE1=${CACHE1}"
   printDBG $S_CORE ${D_BULK} $LINENO $_LABELS "MYHOST=${MYHOST} - \$1=\"${1}\""
   for i in ${CACHE1}; do

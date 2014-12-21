@@ -14,7 +14,7 @@
 #
 ########################################################################
 
-function perror(inp){
+function ptrace(inp){
     if(!d){
         print line ":" inp | "cat 1>&2"
     }
@@ -22,7 +22,7 @@ function perror(inp){
 
 BEGIN{
     line=0;
-    perror("Start record with AWK:VMW:CLIENTLST-PLAYER");
+    ptrace("Start record with AWK:VMW:CLIENTLST-PLAYER");
 }
 
 {
