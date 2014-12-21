@@ -1,0 +1,63 @@
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_06_001a03
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+#@#MAGICID-IGNORE
+
+#@#-----------------------------------------------------------
+#@#Created by      = "MANUAL-PATCH"
+#@#DATE            = "20080602230000"
+#@#-----------------------------------------------------------
+
+#@#The next entry is required as literally "#@#MAGICID-<plugin>"
+#@#where <plugin> is the enumerating plugin name.
+#@#MAGICID-XEN
+##@#HOST            = "tst153.soho"
+##@#LABEL           = "tst153"
+##@#ID              = 
+##@#UUID            = "f5503123-f325-47e0-96c4-ffe349a4300b"
+##@#MAC             = "00:50:56:13:11:75"
+#@#IP               = "192.168.1.107"
+#@#VNCPORT          = 
+#@#VNCBASE          = 
+#@#VNCDISPLAY       = 
+#@#DISTRO           = "OpenSUSE"
+#@#DISTROREL        = "10.2"
+#@#OS               = "Linux"
+#@#OSREL            = "2.6.18"
+#@#VERNO            = "01.01.001"
+#@#SERNO            = "20080427002900"
+#@#CATEGORY         = "VM"
+#@#USRSTRG          = "Hypevisor%removes%after%shutdown%the%ramdisk.\nMem-Map%error?"
+
