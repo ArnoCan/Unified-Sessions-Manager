@@ -1,0 +1,106 @@
+#!/bin/bash
+
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_02_007a17
+#
+########################################################################
+#
+# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+
+########################################################################
+#
+#     Copyright (C) 2007,2008 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+#     This program is free software: you can redistribute it and/or modify
+#     it under the terms of the GNU General Public License as published by
+#     the Free Software Foundation, either version 3 of the License, or
+#     (at your option) any later version.
+#
+#     This program is distributed in the hope that it will be useful,
+#     but WITHOUT ANY WARRANTY; without even the implied warranty of
+#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#     GNU General Public License for more details.
+#
+#     You should have received a copy of the GNU General Public License
+#     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+########################################################################
+
+printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
+
+################################################################
+#    Default definitions - User-Customizable  from shell       #
+################################################################
+
+
+#Keeps the tunnel open for connection, but reserves the port!
+VMW_SSH_ONESHOT_TIMEOUT=${SSH_ONESHOT_TIMEOUT:-40}
+
+
+#
+#Base path, where the vmw packages for initial tests are stored
+VMW_BASE=${VMW_BASE:-$HOME/vmware}
+
+
+#
+#Exe-File(common for client and server): vmplayer or vmware(server or ws)
+#
+#Can do this with any user, so sould be the same for the following
+#access-permissions too.
+#
+if [ -z "$VMWEXE" ];then
+    VMWEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vmware /usr/bin`
+    if [ -n "$VMWEXE" ];then
+        #server: vmware-cmd first, it contains vmrun too!
+	VMWMGR=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vmware-cmd /usr/bin`
+	if [ -z "$VMWMGR" ];then
+            #ws: just has vmrun, but does not manage inventory
+	    VMWMGR=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vmrun /usr/bin`
+	fi
+        #vmplayer has none
+    else
+	VMWEXE=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vmplayer /usr/bin`
+    fi
+fi
+
+
+
+
+#
+#For products with combined start the server-wait+client-wait is performed.
+#
+#Timeout after execution of client/server.
+VMW_INIT_WAITC=${VMW_INIT_WAITC:-1}
+VMW_INIT_WAITS=${VMW_INIT_WAITS:-2}
+
+
+#
+#Timeout for polling the base IP stack mainly after initial start.
+#WAIT unit is seconds, REPEAT unit is #nr.
+CTYS_PING_DEFAULT_VMW=${CTYS_PING_DEFAULT_VMW:-1};
+CTYS_PING_ONE_MAXTRIAL_VMW=${CTYS_PING_ONE_MAXTRIAL_VMW:-20};
+CTYS_PING_ONE_WAIT_VMW=${CTYS_PING_ONE_WAIT_VMW:-2};
+
+
+#
+#Timeout for polling the base SSH access, requires preconfigured permissions.
+#WAIT unit is seconds, REPEAT unit is #nr.
+CTYS_SSHPING_DEFAULT_VMW=${CTYS_SSHPING_DEFAULT_VMW:-0};
+CTYS_SSHPING_ONE_MAXTRIAL_VMW=${CTYS_SSHPING_ONE_MAXTRIAL_VMW:-20};
+CTYS_SSHPING_ONE_WAIT_VMW=${CTYS_SSHPING_ONE_WAIT_VMW:-2};
+
+#
+#individual VMW defaults for STACKCHECK parameter
+#0:OFF, 1:ON
+_stackChkContextVMW=1;
+_stackChkHWCapVMW=1;
+_stackChkStacCapVMW=1:
