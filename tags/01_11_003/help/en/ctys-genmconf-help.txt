@@ -1,0 +1,64 @@
+
+NAME
+====
+
+ctys-genmconf -  generates the configuration entry
+
+SYNTAX
+======
+
+ctys-genmconf
+
+
+   [-d <debug-options>]
+   [-h]
+   [-H <help-options>]
+   [-I <TCP-address>]
+   [-k <ctys-vhost-search-key>]
+   [-l <remote-user>]
+   [-L <remote-user>]
+   [-M <MAC-address>]
+   [-P]
+   [--progress]
+   [-R <remote-host>]
+   [-r [(WITHIP|WITHMAC|ALL)]]
+   [--rounds=<rounds>%<cpu-cycles>%<hdd-cache-cycles>%<hdd-write-through-cycles>]
+   [--testfs=<test-directory-storage>]
+   [-u]
+   [-U <UUID>]
+   [-V]
+   [-X]
+   [-x (PM|VM)]
+   <execution-target-list>
+
+
+
+DESCRIPTION
+===========
+
+Refer to documentation or use following option for
+extended help:
+
+     ctys -H help
+
+     displays available online help options.
+
+COPYRIGHT
+=========
+
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+
+This is software and documentation from BASE package,
+
+- for software see GPL3 for license conditions,
+- for documents  see GFDL-1.3 with invariant sections for license conditions.
+
+The whole document - all sections - is/are defined as invariant.
+
+For additional information refer to enclosed Releasenotes and License files.
+
+
+
+
+
+

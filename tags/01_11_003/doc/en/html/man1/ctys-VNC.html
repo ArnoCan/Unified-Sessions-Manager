@@ -1,0 +1,382 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#efefef ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-VNC</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-VNC</H1>
+<FONT SIZE="4">
+May, 2010
+</FONT></CENTER>
+
+<P></P>
+<P>
+.
+</P>
+<H1>NAME</H1>
+<P>
+<B>ctys-VNC - Virtual Network Console Interface</B>
+</P>
+<H1>SYNTAX</H1>
+<P>
+<B>ctys-VNC</B> 
+</P>
+<P>
+<PRE>
+
+   ctys -t VNC -a action[=&lt;suboptions&gt;] ...
+   ctys -T VNC -a action[=&lt;suboptions&gt;] ...
+   ctys -T ALL -a action[=&lt;suboptions&gt;] ...
+
+</PRE>
+</P>
+<H1>DESCRIPTION</H1>
+<P>
+This plugin manages VNC sessions to LINUX/UNIX OS.
+It encapsulates and handles the complete interaction with the local and remote
+components provided by the VNC variants <B>RealVNC</B> and <B>TightVNC</B>.
+</P>
+<P>
+SSH based connections are the only one supported. The sessions are generally categorized 
+into two basic configurations, the coallocated client and server 
+component - <B>DISPLAYFORWARDING</B> - and the distributed client and server component - <B>CONNECTIONFORWARDING</B>.
+In the latter case an intermediary SSH tunnel is created.
+Therefore a vncserver is started and managed on the target server, whereas a vncviewer could
+be started on the target host or on any client by "Display Forwarding" or "Connection Forwarding".
+Another feature offers the intermixed usage of VNC, where the vncviewer is connected to a VM,
+this is the case e.g. for Xen or VMware-WS.
+</P>
+<P>
+A particular advance is the introduction of a generic addressing schema based on the
+&lt;machine-address&gt;.
+This offers the definition of dynamic LABELs as an alias to an arbitrary session. 
+This LABEL is from than on a fully valid address identifier which could be used
+within the whole ctys toolset.
+The management of distributed port numbers as well as e.g. the multiplexing of VNC connections into
+one SSH tunnel is handled by this module.
+</P>
+<H1>OPTIONS</H1>
+<DL>
+<DT><B>-a action[=&lt;suboptions&gt;]</B></DT><DD>
+<P></P>
+<DT><B>CANCEL</B></DT><DD>
+<PRE>
+  
+  CANCEL=(&lt;machine-address&gt;)\{1,n\}
+    |ALL
+    (
+      [FORCE|STACK][,]
+      [SELF][,]
+      [
+        RESET|REBOOT
+        |(INIT:&lt;init-state&gt;)
+        |(PAUSE|S3)|(SUSPEND|S4)
+        |((POWEROFF|S5)[:&lt;timeoutBeforeKillVM&gt;]
+      ][,]
+    [CLIENT|SERVER|BOTH]
+    )
+  
+</PRE>
+<P></P>
+<DT></DT><DD>
+<B>&lt;machine-address&gt;</B>
+For VNC the following parts of a &lt;machine-address&gt; are applicable:
+ID|I, LABEL|L
+<P></P>
+When the VNCviewer/VNCserver is used in the default shared-mode,
+the address applies to all sharing VNCclients/vncviewer are handled
+as one logical unit and CANCEL is applied to all at once.
+<P></P>
+The address could be supported with multiple instances.
+<P></P>
+<DT></DT><DD>
+<B>ALL|BOTH|CLIENT|SERVER</B>
+<P></P>
+ALL and BOTH kill clients and servers on local machine.
+Remote clients by CONNECTIONFORWARDING might be exiting
+when server-loss is detected.
+ <UL>
+ <LI>The <B>SERVER</B> scope 
+is actually for VNC the same as ALL or
+BOTH, this is due to the default (non-server) behaviour
+of attached clients, which exit when detecting a
+server-loss.
+ <LI>The <B>CLIENT</B> scope 
+just kills all client processes by
+means of OS, which is simply calling kill on their
+PID. The server processes remain untouched.
+ <P></P>
+ </UL>
+<DT></DT><DD>
+<B>REBOOT|RESET|INIT|SUSPEND</B>
+These methods just behave as a "soft-kill" which is a
+more or less soft shutdown, for VNC only! Application
+shutdown is not supported.
+So in this case first all clients are killed, following
+a call to "vncserver -kill :&lt;id&gt;"
+for all matched. No additional action is performed in case of a
+failure.
+<P></P>
+<DT></DT><DD>
+<B>POWEROFF</B>
+These method could be seen as a "hard-kill" which is a
+trial to "soft-kill" and an immediate following process
+kill by means of native OS. Thus there might be
+definetly no difference to a controlled shutdown of VNC
+managing unprepared applications.
+<P></P>
+The session(s) are basically just killed, so the caller
+is resposible for appropriate handling of contained jobs.
+<P></P>
+<DT><B>CREATE</B></DT><DD>
+<PRE>
+  CREATE=[&lt;machine-address&gt;]
+     [REUSE|CONNECT|RECONNECT|RESUME]
+     [CONSOLE:&lt;&gt;]
+     [(CALLOPTS|C):&lt;callopts&gt;]
+     [(XOPTS|X):&lt;xopts&gt;]
+     [(SHELL|S):&lt;shell&gt;]
+     [(CMD):&lt;cmd&gt;]
+     [(VNCDESKIDLIST|VDIL):&lt;list-of-xstartup-custom-ids&gt;]
+</PRE>
+</DL>
+
+<UL>
+<LI><B>&lt;machine-address&gt;</B>
+For VNC the following parts of a \mbox{&lt;machine-address&gt;} are applicable:
+LABEL|L
+<P></P>
+When the VNCviewer/VNCserver is used in shared-mode, the
+address applies to all sharing VNCclients/vncviewers.
+The LABEL suboption is here mandatory.
+<P></P>
+<LI><B>BOOTMODE</B>
+    Not applicable.
+<P></P>
+<LI><B>CONNECT</B>
+Almost the same as \mbox{REUSE}, but no new server will be
+started if missing.
+<P></P>
+<LI><B>CONSOLE</B>
+    Not applicable.
+<P></P>
+<LI><B>PING</B>
+    Not applicable.
+<P></P>
+<LI><B>RECONNECT</B>
+    Similiar to REUSE, with the difference, that any
+    previous active client will be killed before attaching
+    ONE new client. Therefore in shared mode, when multiple
+    clients could simultaneously share one server, all
+    sharing clients are handled as one logical unit and will
+    be thus killed together.
+    Specific exchange of a single client is not supported.
+<P></P>
+<LI><B>RESUME</B>
+    Not applicable.
+<P></P>
+<LI><B>REUSE</B>
+When a server process with matching ID or LABEL is
+already running it will be used, else a new one will be
+started.
+In case of non-shared-mode operations of VNC any running
+vncviewer will be killed by disconnecting through the
+VNCserver. This is almost the same behaviour as for
+RECONNECT.
+When running in shared-mode, just an additional
+vncviewer will be attached to the server.
+<P></P>
+<LI><B>SSHPING</B>
+    Not applicable.
+<P></P>
+<LI><B>USER</B>
+    Not applicable.
+</UL>
+
+<UL>
+<LI><B>VNCDESKIDLIST</B>
+<P></P>
+A list of custom IDs, which could be preconfigured desktops and/or 
+destop-parts within the <B>$HOME/.vnc/xstartup</B> file of VNC.
+The list defines parts of a pre-configured desktop to be actually started
+so it is possible to start specific GUI environments.
+For an realworld example refer to the installed file, either in the installed package 
+<PRE>
+  ${CTYS_LIBPATH}/ctys-01_10_013/conf/vnc/xstartup
+</PRE>
+or when actually installed in 
+<PRE>
+  $HOME/.vnc/xstartup.
+</PRE>
+<P></P>
+Various desktops within the VNC session could be pre-configured
+and utilized call-by-call at runtime.
+<P></P>
+This option is supported for VNC sessions only, pre-requisite 
+is the execution of the <B>xstartup</B> file, which is by now not
+performed for KVM, QEMU, XEN and VMW-WS sessions.
+Currently pre-configured values are:
+ <UL>
+ <LI>demo1
+ <LI>demo2
+ <LI>demo3
+ <LI>demo4
+ <LI>demo5
+ <P></P>
+The seperator is the standard seperator character '%'.
+ </UL>
+</UL>
+
+<UL>
+<LI><B>VNCBASE</B>
+Base port as new offset for port calculations from the
+DISPLAY number. Standard value is 5900.
+<P></P>
+ <UL>
+ <LI><B>VNCPORT</B>
+Port to be used literally, required for several VMs with
+fixed Server-Ports.
+ <P></P>
+ <LI><B>WAITC:&lt;delay-after-viewer-call&gt;</B>
+Delay after start of vncviewer, internally used as delay before
+check of PID for JOBDATA.
+Might not be really required to be varied, but provided for
+completeness.
+ <P></P>
+ <LI><B>WAITS:&lt;delay-before-viewer-call&gt;</B>
+Delay for start of vncviewer, required when the
+execution is too fast for the \mbox{VNCserver} to finish it's init.
+ <P></P>
+The practical application could be the usage within a GROUP and/or
+MACRO, where for security reasons a password based access to
+multiple &lt;exec-targets&gt; is provided, e.g. for root accounts within
+a admin group.
+With setting of this parameter the initial output of VNCviewer is
+delayed due to it's own delay, thus a series of password requests
+occur without beeing poisoned by trace messages of the parallel
+executed VNCviewer.
+ <P></P>
+ </UL>
+<B>WM:&lt;window-manager-enum&gt;</B><LI>
+A single window manager to be used for current session.
+The values are preconfigured for specific distributions and operating systems
+within the <B>xstartup</B> file of VNC. 
+The provided examples could be customized as required.
+Currently pre-configured values are:
+ <UL>
+ <LI>DTWM
+ <LI>FVWM
+ <LI>FVWM2
+ <LI>GNOME
+ <LI>KDE
+ <LI>TWM
+ <LI>X11
+ <LI>XFCE
+ </UL>
+</UL>
+
+<P>
+The appropriate software packages are required to be pre-installed before application.
+</P>
+ <UL>
+ <LI><B>BULK:[0-9]{1,3}</B>
+This is a bulk counter for automatic handling of given
+number of sessions.
+Mainly used for test purposes.
+It extends automatically the supported standard &lt;label&gt;
+with three leading-zero-digits, for each instance. 
+Which could be DEFAULT.
+The default limiting maximum is set to 20.
+&lt;bulk&gt; could be used for CREATE only.
+ </UL>
+
+<DL>
+<DT><B>ENUMERATE</B></DT><DD>
+Not applicable.
+<P></P>
+<DT><B>LIST</B></DT><DD>
+Almost the same output as common standard, with following
+changes in semantics.
+<P></P>
+<B>id</B>: The DISPLAY used by the vncviewer and/or vncserver.
+For the actual display of the server two cases has to be
+distinguished:
+<P></P>
+  <UL>
+  <LI><B>DISPLAYFORWARDING</B>
+The DISPLAY of vncviewer and vncserver are identical.
+  <LI><B>CONNECTIONFORWARDING</B>
+The DISPLAY of vncviewer and vncserver are different, this is due to
+the intermediate tunnel, which handles the port-forwarfing and an has
+to do a remapping due to ambiguity within the network scope.
+The following values are not applicable:
+<PRE>
+  uuid, mac, tcp
+</PRE>
+  </UL>
+</DL>
+
+<H1>SEE ALSO</H1>
+<P>
+<I>ctys(1)</I>, <I>ctys-uc-VNC(7)</I>, <I>ctys-plugins(1)</I>, <I>vncpasswd(1)</I>, <I>vncviewer(1)</I>, <I>vncserver(1)</I>
+</P>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+</UL>
+
+<P>
+The whole document - all sections - is/are defined as invariant.
+</P>
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<img src="../../images/60px-Official-gnu.png" />  
+<br />
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -i ctys-VNC.t2t -o /tmpn/0/ctys/bld/01.11.003/doc-tmp/BASE/en/html/man1/ctys-VNC.html -->
+</BODY></HTML>
