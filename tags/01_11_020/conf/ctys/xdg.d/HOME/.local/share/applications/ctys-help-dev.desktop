@@ -1,0 +1,32 @@
+#  -*- mode: conf; -*-
+#
+########################################################################
+#
+#PROJECT:      Unified Sessions Manager
+#AUTHOR:       Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org
+#MAINTAINER:   Arno-Can Uestuensoez - acue_sf1@sourceforge.net
+#SHORT:        ctys
+#CALLFULLNAME: Commutate To Your Session
+#LICENCE:      GPL3
+#VERSION:      01_11_011
+#
+########################################################################
+#
+# Copyright (C) 2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+#
+########################################################################
+#
+[Desktop Entry]
+Type=Application
+Version=1.0
+Encoding=UTF-8
+Name=ctys-help-on-dev
+Comment=Online-Help and User-Manuals
+Comment[de]=Online-Hilfe und Benutzer-Manuale
+Name[de]=ctys-help-on-dev
+TryExec=_MYHOME_/utils/setDoc.sh
+Exec=bash -c ". _MYHOME_/utils/setDoc.sh && _MYHOME_/bin/ctys.sh -H _ONLINEHELP_"
+#Exec=_MYHOME_/utils/setDoc.sh _MYHOME_/bin/ctys -H _ONLINEHELP_
+Icon=help
+Terminal=false
+Categories=X-USM;

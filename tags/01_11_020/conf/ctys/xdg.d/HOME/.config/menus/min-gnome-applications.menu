@@ -1,0 +1,26 @@
+<!DOCTYPE Menu
+  PUBLIC '-//freedesktop//DTD Menu 1.0//EN'
+  'http://www.freedesktop.org/standards/menu-spec/1.0/menu.dtd'>
+<!-- File created by desktop-file-utils version 0.8 -->
+<Menu>
+	<Name>Applications</Name>
+	<MergeFile>/etc/xdg/menus/applications.menu</MergeFile>
+<!-- add this patch-line with your appropriate HOME-prefix -->
+<!--	<MergeFile>${HOME}/.config/menus/applications-merged/ctys-UnifiedSessionsManager.menu</MergeFile> --
+  --	but variables might eventually not suffice! -->
+
+	<MergeFile>_MYHOME_/.config/menus/applications-merged/ctys-UnifiedSessionsManager.menu</MergeFile>
+
+	<Menu>
+		<Name>Development</Name>
+		<Menu>
+			<Name>tst1</Name>
+			<Directory>tst1.directory</Directory>
+			<DirectoryDir>_MYHOME_/.local/share/desktop-directories</DirectoryDir>
+			<Include>
+				<Filename>EasyEclipse.desktop</Filename>
+			</Include>
+			<Deleted/>
+		</Menu>
+	</Menu>
+</Menu>

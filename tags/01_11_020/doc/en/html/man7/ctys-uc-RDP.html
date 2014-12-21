@@ -1,0 +1,380 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+<STYLE TYPE="text/css">
+body { margin:3em               ;background-color:#dcd0bc ;} 
+a    { text-decoration:none     ;} 
+pre  { background-color:#d6bc8f ;} 
+</STYLE>
+<META NAME="generator" CONTENT="http://txt2tags.sf.net">
+<TITLE>ctys-uc-RDP</TITLE>
+</HEAD><BODY BGCOLOR="white" TEXT="black">
+<P ALIGN="center"><CENTER><H1>ctys-uc-RDP</H1>
+<FONT SIZE="4">
+June, 2010
+</FONT></CENTER>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+  <UL>
+  <LI><A HREF="#toc1">NAME</A>
+  <LI><A HREF="#toc2">USE-CASES</A>
+    <UL>
+    <LI><A HREF="#toc3">General</A>
+    <LI><A HREF="#toc4">Start a Local Desktop Session</A>
+    <LI><A HREF="#toc5">Start a Remote Desktop with a Local Client</A>
+    <LI><A HREF="#toc6">Start Remote Desktop Sessions by Native-RDP</A>
+    </UL>
+  <LI><A HREF="#toc7">SEE ALSO</A>
+  <LI><A HREF="#toc8">AUTHOR</A>
+  <LI><A HREF="#toc9">COPYRIGHT</A>
+  </UL>
+
+<P></P>
+<HR NOSHADE SIZE=1>
+<P></P>
+<P></P>
+<P>
+.
+</P>
+<A NAME="toc1"></A>
+<H1>NAME</H1>
+<P>
+<B>ctys-uc-RDP - Use-Cases for RDP - Remote Desktop Protocol</B>
+<br />
+<br />
+<br />
+</P>
+<A NAME="toc2"></A>
+<H1>USE-CASES</H1>
+<A NAME="toc3"></A>
+<H2>General</H2>
+<P>
+The RDP plugin supports access to remote desktops by the RDP protocol.
+The access could be an application, terminal server, or hypervisor 
+supporting the RDP protocol.
+</P>
+<P>
+<br />
+</P>
+<A NAME="toc4"></A>
+<H2>Start a Local Desktop Session</H2>
+<P>
+This opens a local session, where the server as well as the
+RDP client are executed locally.
+</P>
+<PRE>
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389
+  
+</PRE>
+<P></P>
+<P>
+The "localhost" is hard-coded to behave as a sub-shell call too, thus
+the following call is internally handled identical to the previous
+</P>
+<PRE>
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389  $USER@localhost
+  
+</PRE>
+<P></P>
+<P>
+This case is called <B>DISPLAYFORWARDING</B> which is almost the same as the X11 display forwarding.
+<br />
+<br />
+<a href="../../images/dispforwarding.png" >
+<center><img src="../../images/dispforwarding.png" width="25%"  /> </center>
+</a>
+</P>
+<TABLE ALIGN="center" CELLPADDING="4">
+<TR>
+<TH>DISPLAYFORWARDING</TH>
+</TR>
+</TABLE>
+
+<P>
+<br />
+</P>
+<P>
+<br />
+</P>
+<A NAME="toc5"></A>
+<H2>Start a Remote Desktop with a Local Client</H2>
+<P>
+In case of a "Remote Desktop with Local Client" the server is running 
+on the given &lt;execution-target&gt;, whereas the client is locally started
+on the caller's machine. 
+This structure is called CONNECTIONFORWARDING and requires beneath the
+client and server processes a third, the connecting encrypted tunnel.
+The tunnel is established by means of OpenSSH and used as the local
+peer for the Client. 
+This whole procedure of starting the  processes and the
+establishment of the tunnel is controlled and preformed by ctys.
+The user has nothing else to do than setting the option
+<B>'-L CONNECTIONFORWARDING'</B> or for short <B>'-L CF'</B>.
+</P>
+<P>
+<br />
+<br />
+<a href="../../images/connforwarding.png" >
+<center><img src="../../images/connforwarding-pre.png" width="25%"  /> </center>
+</a>
+</P>
+<TABLE ALIGN="center" CELLPADDING="4">
+<TR>
+<TH>DISPLAYFORWARDING</TH>
+</TR>
+</TABLE>
+
+<P>
+<br />
+<br />
+</P>
+<P>
+The scenario performed behind the scene by ctys varies slightly from
+the previous.
+In case of CONNECTIONFORWARDING the whole process is set up in two
+steps.
+</P>
+<OL>
+<LI>establishment of the encrypted tunnel
+<LI>start and connect the client process to the tunnel
+</OL>
+
+<P>
+The tunnel is established in the so
+called <B>one-shot mode</B>, where the connection is opened for an inital time
+period and closes automatically when the life-time threshhold is reached
+without an actual usage,
+or afterwards, when the client and server are disconnected. 
+The period of the initial timeout for is defined by the variable
+"SSH_ONESHOT_TIMEOUT", which is by default set to 20seconds.
+</P>
+<P>
+The following call starts a local client for a remote server.
+</P>
+<PRE>
+  
+  ctys -t rdp -a create=l:tst -L CF lab00
+  
+</PRE>
+<P></P>
+<P>
+The instances could be listed by the LIST action in several variants.
+The basic call with default selection executed on the caller
+workstation is:
+</P>
+<PRE>
+  
+  ctys -t rdp -a list ws2
+  
+</PRE>
+<P></P>
+<P>
+The standard assignment to LIST call is "tab_tcp,both", which
+displays:
+</P>
+<PRE>
+  
+  TCP-container|TCP-guest|label |sesstype|c|user|group    
+  -------------+---------+------+--------+-+----+---------
+  ws2.soho     |-        |tst000|RDP     |C|acue|ldapusers
+  ws2.soho     |-        |tst001|RDP     |C|acue|ldapusers
+  ws2.soho     |ws2.soho.|ws2   |PM      |S|-   |-        
+  ws2.soho     |-        |tst000|SSH(RDP)|T|acue|ldapusers
+  ws2.soho     |-        |tst001|SSH(RDP)|T|acue|ldapusers
+  
+</PRE>
+<P></P>
+<P>
+Here the two tunnels could be identified as "sesstype=SSH(RDP)", and
+"c=T". This indicates, that the tunnels are created for the subsystem
+RDP with  the session label "tst000" and "tst001".
+</P>
+<P>
+The following call displays the same table, but with IDs instead of
+LABELs.
+</P>
+<PRE>
+  
+  ctys -t rdp -a list=tab_tcp,id ws2
+  
+</PRE>
+<P></P>
+<P>
+Which results to the display:
+</P>
+<PRE>
+  
+  TCP-cont|TCP-guest|id        |sesstype|c|user|group    
+  --------+---------+----------+--------+-+----+---------
+  ws2.soho|-        |3389      |RDP     |C|acue|ldapusers
+  ws2.soho|-        |3390      |RDP     |C|acue|ldapusers
+  ws2.soho|-        |../pm.conf|PM      |S|-   |-        
+  ws2.soho|-        |5950-3389 |SSH(VNC)|T|acue|ldapusers
+  ws2.soho|-        |5951-3390 |SSH(VNC)|T|acue|ldapusers
+  
+</PRE>
+<P></P>
+<P>
+Indicating by the default ID of tunnels, that these are tunnels
+forwarding the ports "5950" to "3389" and "5951" to "3390".
+</P>
+<P>
+The display could be changed as required by usage of specific
+free-customized tables, e.g. displaying LABEL and ID columns once.
+</P>
+<P>
+The call with the whole set of involved machines as one call results to:
+</P>
+<PRE>
+  
+  ctys -t rdp -a list=tab_tcp,id ws2 lab00 lab01
+  
+</PRE>
+<P></P>
+<PRE>
+  
+  ctys -t rdp -a list=tab_tcp,id ws2 lab00 lab01
+  
+    
+  TCP-contai|TCP-guest|id        |sesstype|c|user|group    
+  ----------+---------+----------+--------+-+----+---------
+  ws2.soho  |-        |3389      |RDP     |C|acue|ldapusers
+  ws2.soho  |-        |3390      |RDP     |C|acue|ldapusers
+  ws2.soho  |-        |d/pm.conf |PM      |S|-   |-        
+  ws2.soho  |-        |5950-3389 |SSH(RDP)|T|acue|ldapusers
+  ws2.soho  |-        |5951-3390 |SSH(RDP)|T|acue|ldapusers
+  lab00.soho|-        |3784      |CLI     |C|acue|ldapusers
+  lab00.soho|-        |31206     |CLI     |C|acue|ldapusers
+  lab00.soho|-        |1         |VNC     |S|root|root     
+  lab00.soho|-        |2         |VNC     |S|acue|ldapusers
+  lab00.soho|-        |          |XEN     |S|-   |-        
+  lab00.soho|-        |e/xen/tst1|XEN     |S|-   |-        
+  lab00.soho|-        |d/pm.conf |PM      |S|-   |-        
+  lab01.soho|-        |          |XEN     |S|-   |-        
+  lab01.soho|-        |d/pm.conf |PM      |S|-   |-        
+  
+</PRE>
+<P></P>
+<P>
+<br />
+</P>
+<A NAME="toc6"></A>
+<H2>Start Remote Desktop Sessions by Native-RDP</H2>
+<P>
+This opens a remote session by using the RDP protocol via a
+remote connection to a boxed application or a terminal server.
+In this case actually the RDP client is  attached 'from-outside'
+to an access port.
+This differs from the preferred 'localhost-access', where a
+pre-authorisation by SSH access is performed.
+Thus it is an exception to the common philosopy and therefore
+called 'INSECURE'.
+</P>
+<P>
+The main application is the access to appliance-boxes when these
+provide an RDP access only, or to MS-Windows(TM) based OS.
+</P>
+<PRE>
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389,INSECURE:lab02
+  
+</PRE>
+<P></P>
+<P>
+Same could be applied in a relay-configuration.
+</P>
+<PRE>
+  
+  ctys -t RDP -a create=l:tst1,RDPPORT:3389,INSECURE:lab02 lab05
+  
+</PRE>
+<P>
+<br />
+<br />
+</P>
+<A NAME="toc7"></A>
+<H1>SEE ALSO</H1>
+<P>
+<I><A HREF="../man1/ctys.html"> ctys(1)</A></I>
+,
+<I><A HREF="../man1/ctys-plugins.html"> ctys-plugins(1)</A></I>
+,
+<I><A HREF="../man1/ctys-RDP.html"> ctys-RDP(1)</A></I>
+</P>
+<P>
+<B>For System Tools:</B>
+<br />
+<I>rdesktop</I>: [ <A HREF="http://www.rdesktop.org">http://www.rdesktop.org</A> ]
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<A NAME="toc8"></A>
+<H1>AUTHOR</H1>
+<P>
+Written and maintained by Arno-Can Uestuensoez:
+</P>
+<TABLE CELLPADDING="4">
+<TR>
+<TD>Maintenance:</TD>
+<TD>&lt;&lt;acue_sf1 (a) sourceforge net&gt;&gt;</TD>
+</TR>
+<TR>
+<TD>Homepage:</TD>
+<TD>&lt;<A HREF="http://www.UnifiedSessionsManager.org">http://www.UnifiedSessionsManager.org</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Sourceforge.net:</TD>
+<TD>&lt;<A HREF="http://sourceforge.net/projects/ctys">http://sourceforge.net/projects/ctys</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Berlios.de:</TD>
+<TD>&lt;<A HREF="http://ctys.berlios.de">http://ctys.berlios.de</A>&gt;</TD>
+</TR>
+<TR>
+<TD>Commercial:</TD>
+<TD>&lt;<A HREF="http://www.i4p.com">http://www.i4p.com</A>&gt;</TD>
+</TR>
+</TABLE>
+
+<P></P>
+<P>
+<A HREF="http://www.fsf.org"><IMG ALIGN="middle" SRC="../../images/8673.png" BORDER="0" ALT=""></A>
+</P>
+<P>
+<br />
+<br />
+<br />
+</P>
+<A NAME="toc9"></A>
+<H1>COPYRIGHT</H1>
+<P>
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno-Can Uestuensoez
+</P>
+<P>
+This is software and documentation from <B>BASE</B> package,
+</P>
+<UL>
+<LI>for software see GPL3 for license conditions,
+<LI>for documents  see GFDL-1.3 with invariant sections for license conditions.
+<br />  
+The whole document - all sections - is/are defined as invariant.
+</UL>
+
+<P>
+For additional information refer to enclosed Releasenotes and License files.
+</P>
+<P>
+<A HREF="http://www.gnu.org"><IMG ALIGN="middle" SRC="../../images/60px-Official-gnu.png" BORDER="0" ALT=""></A>
+<br />
+</P>
+
+<!-- html code generated by txt2tags 2.3 (http://txt2tags.sf.net) -->
+<!-- cmdline: txt2tags -t html -\-toc -i ctys-uc-RDP.t2t -o /tmpn/0/ctys/bld/01.11.020/doc-tmp/BASE/en/html/man7/ctys-uc-RDP.html -->
+</BODY></HTML>

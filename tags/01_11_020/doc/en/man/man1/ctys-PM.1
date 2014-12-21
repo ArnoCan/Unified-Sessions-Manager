@@ -1,0 +1,426 @@
+.TH "ctys-PMs" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-PM - Physical Machine Interface\fR
+
+.SH SYNTAX
+
+   ctys -t PM  -a action[=<suboptions>] ...
+   ctys -T PM  -a action[=<suboptions>] ...
+   ctys -T ALL -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+The \fBPM\fR plugin adds support for sessions to
+\fBPhysicalMachines\fR with plugins of type
+\fBHOSTs\fR for console access.
+
+.P
+The management of the physical machines include particularly
+the support of boot and shutdown for local and remote machines.
+The supported interfaces comprise the local system interfaces,
+"Wake\-on\-LAN/\fBWoL\fR" and "Intelligent Platform Management Interface/\fBIPMI\fR".
+The remote check of the Health\-Status of the physical machines is based on
+the "\fBlm_sensors\fR" package.
+
+.P
+The PM plugin is "\fBVM\-STACK safe\fR" as it handles running virtual machines 
+by propagating state change events(e.g. SHUTDOWN) of the physical platform to 
+contained hypervisors and emulators.
+
+.P
+Additional information containing use\-cases with application examples is available from
+\fBctys\-uc\-PM\fR.
+,
+\fBctys\-uc\-IPMI\fR.
+, and 
+\fBctys\-uc\-WoL\fR.
+\&.
+
+.SH OPTIONS
+.TP
+\fB\-a action[=<suboptions>]\fR
+
+.TP
+\fB\-a CANCEL\fR
+.nf
+  
+  CANCEL=(<machine-address>)\e{1\e}
+    (
+      [FORCE|STACK]
+      [SELF]
+      [
+        RESET|REBOOT
+        |(INIT:<init-state>)
+        |(PAUSE|S3)|(SUSPEND|S4)
+        |(POWEROFF|S5)[:<timeoutBeforeKillVM>]
+      ]
+      [TIMEOUT:<timeout-value>]
+      [WOL]
+      [IF:<if-for-wol>]
+    )
+  
+.fi
+
+
+.RS
+.IP \(bu 3
+\fBSELF\fR
+
+Self cancels the hosting machine for the call after cancel operations
+on the stack, if not provided the stack is canceld only.
+This is due to conformity with the CANCEL operations of VMs, where the
+hosting system for the hypervisor is addressed.
+This suboption basically should be applied as default
+and only behaviour for a PM.
+But it seems to be somewhat smart, just to target
+anything within a PM, e.g. when bringing the PM into
+maintenance mode, without changing the operational state
+of the PM itself.
+Due to the main targeted user as a systems administrator, 
+the simplicity of the UI was in this case below the
+advantage.
+So sadly accepting some irritation with this suboption
+here, making it "not default". When SELF is required, it
+has to provided.
+
+.IP \(bu 3
+\fBWOL\fR
+
+WOL flag is supported for NIC drivers supporting the
+ethtool interface, which are e.g. 
+e1000, tg3 or 8139too, e100.
+For cards with configuration by modprobe\-interface this
+flag is not applicable.
+
+WOL enables the later call of "CREATE=WOL,..." by setting 
+the volatile registers of the NIC via the call of 
+"ethtool \-s <ifX> wol g"
+thus WoL via MagicPacket(tm) is enabled after "halt \-p" call.
+
+For successful execution root permissions for operations on the
+interface by "ethertool" is required and should be configured vi
+sudoers or .k5users.
+
+This state change request is not propagated to the
+VM\-stack, the PM plugin itself is the only one
+evaluating it.
+
+When the WoL feature is set persistently by means of the
+OS, the WOL flag is not required.
+
+.IP \(bu 3
+\fBIF:<if\-for\-wol>\fR
+
+The interface to be parared for WoL. 
+Access permission for "ethtool" is required.
+If this suboption is not provided, than the first detected valid
+interface is used. Therefore each plugin is called by the ctys
+specific init\-mechanism in order to prepare the shutdown, though the
+prepare the interfaces too.
+
+This is particularly for bridged networks required, where the bridged
+interfaces not propagate the "wol g" flag properly in each case.
+Thus the detection of the valid interfaces is performed after the
+completed plugin shutdown actions.
+
+.RE
+.TP
+\fB\-a CREATE\fR
+.nf
+  
+  CREATE=<machine-address>
+    [,(REUSE|CONNECT|RECONNECT|RESUME)]
+    [,WOL[:<wol-delay>]
+    [
+      (
+        ,BROADCAST:<broadcast-dest-address>
+        [,PORT:<broadcast-dest-port>]
+        [,BMAC:<broadcast-MAC-address>]
+      )
+      |
+      (IF:<broadcast-interface>)
+    ]
+    [,CONSOLE:(CLI|GTERM|XTERM|EMACS|VNC)]
+    [,USER:<user>]
+    [,PING:(OFF|<#repetition>%<sleep>)]
+    [,SSHPING:(OFF|<#repetition>%<sleep>)]
+  
+.fi
+
+
+For information on 
+USER,
+PING, and 
+SSHPING
+refer to common options.
+
+.RS
+.IP \(bu 3
+\fB<machine\-address>\fR
+
+The address of the machine to be activated. 
+The usage of <machine\-address> implies an exact target to be
+addressed explicitly.
+
+For multihomed machines a minor limit occurs, when the
+NIC to be used for WoL is different from the NIC for
+usage of CONSOLE access.
+Currently CONSOLE suboption is applied to the target
+<machine\-address>, which is also used as target for the
+WoL activation.
+This can cause difficulties, e.g. when a board is used,
+where \- due to BIOS limits \- a low rate NIC has to be
+used for WoL activation, whereas the normal traffic is
+performed by the remaining NICs with channel bonding.
+The same principle could be applied due to security reasons when
+multiple NICs are available.
+Anyhow, the workaround is to use two calls, one for the
+WOL packet without a CONSOLE, and a second one for the
+CONSOLE only, addressing the access port.
+
+.IP \(bu 3
+\fBBMAC:<broadcast\-MAC\-address>\fR
+
+The MAC address to be inserted into the broadcast packet, which
+is defined to be the MAC address of the receiving NIC.
+In difference to the <machine\-address>, which is strongly checked for
+consitency, the broadcast target is not checked for consitency.
+This is due to various remote application cases, where the actual data
+might noct be locally available, or a relay with port\-forwarding
+and/or protocol\-forwarding might be involved.
+
+.IP \(bu 3
+\fBBROADCAST:<broadcast\-address>\fR
+
+For machines not within the callers subnet, an arbitrary
+broadcast address could be set. A UDP package containing
+a \fBMagicPacket(TM)\fR is sent to the given address with port
+"DISCARD=9" set by default.
+This parameter forces the usage of native script for
+generating and sending of the WoL packet and cannot
+be combined with the "IF" suboption.
+An example is provided within the following
+chapter containing additional examples.
+
+The Address has to be of one of the following types:
+.RS
+.IP \(bu 3
+An 
+arbitrary defined address with an optional port:<ip\-address>
+
+This will require the final router for the target
+subnet to redirect the packet from the destined
+address to a local broadcast message on the subnet.
+Thus some additional configuration on the router is required.
+
+.IP \(bu 3
+A 
+directed broadcast address, where all subnet bits
+are set. The user has to be aware of the netmask for
+the target subnet.
+
+.RE
+.IP \(bu 3
+\fBCONNECT\fR
+
+Opens just a new CONSOLE, requires therefore the PM in
+operational state.
+
+.IP \(bu 3
+\fBCONSOLE:(CLI|XTERM|GTERM|EMACS|VNC)\fR
+
+If given a console will be opened on the site of
+caller. This will be performed in addition to the
+standard console, which may be attached to the
+KVM\-connectors.
+
+Default is CLI, which is based on a complete subcall with type CLI.
+
+The "\-b" option will be set for the types of consoles as:
+.nf
+  
+  CLI    => "-b 0"
+  XTERM  => "-b 1"
+  GTERM  => "-b 1"
+  EMACS  => "-b 1"
+  VNC    => "-b 1"
+  
+.fi
+
+
+.IP \(bu 3
+\fBIF:<broadcast\-interface>\fR
+
+This defines the local interface where an ethernet
+broadcast is to be sent. Therefore the tool
+"ether\-wake" is utilized.
+
+This is the default behaviour when neither the
+BROADCAST nor the IF parameter is supported. 
+
+For the default case the first interface will be
+evaluated from a "ifconfig" call, which depends on the
+current OS and possible custom configuration.
+
+This parameter cannot be combined with BROADCAST.
+
+.IP \(bu 3
+\fBPORT:<broadcast\-dest\-port>\fR
+
+A port to be used on the remote site.
+A UDP package containing a
+\fBMagicPacket(TM)\fR is sent to the given BROADCAST address with port
+"DISCARD=9" set by default.
+
+.IP \(bu 3
+\fBRECONNECT\fR
+
+All current \embox{CONSOLEs} of the user are CANCELed, and a new one is started.
+The CANCEL just ignores any child process of the enumerated CONSOLEs,
+thus the user is responsible for proper shutdown of running subtatsks.
+Specific exchange of a single client is not supported.
+
+When PM is yet running, it will be rebooted, else just
+booted and connected with the choosen CONSOLE.
+
+.IP \(bu 3
+\fBRESUME\fR
+
+In this version the same as create only.
+
+.IP \(bu 3
+\fBREUSE\fR
+
+When a nachine is already active just a connect is performed.
+In case of a required new session, first the machine is booted, if
+an appropriate activation method is defined, which is WoL only in
+this version. When the machine is available, a CONSOLE is
+opened is requested.
+
+.IP \(bu 3
+\fBWOL[:<wol\-delay>]\fR
+
+The addressed PM will be activated by Wake\-On\-LAN, which
+is in current version the only supported
+method. Therefore the default "ether\-wakeup" tool is
+utilized by default. This could be changed by setting
+the environment variable CONSOLE_WOL, to which the
+MAC\-address of the target will be appended. The current
+implementation expects all PMs within one subnet.
+
+The timer <wol\-delay> is the time period to be delayed the execution
+after sending the WoL packet. This timer is waited for once
+before starting the periodical poll with shorter timeout.
+.RE
+
+.TP
+\fB\-a ENUMERATE\fR
+This is specific for PM, just the local configuration
+information is displayed.
+
+.TP
+\fB\-a LIST\fR
+This is specific for PM, just the local configuration
+information is listed.
+
+.SH SEE ALSO
+.TP
+\fBctys use\-cases\fR
+\fIctys\-uc\-IPMI(7)\fR
+,
+\fIctys\-uc\-WoL(7)\fR
+
+.TP
+\fBctys plugins\fR
+.TP
+  \fBPMs\fR
+\fIctys\-PM(1)\fR
+
+.TP
+  \fBVMs\fR
+\fIKVM(1)\fR
+,
+\fIctys\-QEMU(1)\fR
+,
+\fIctys\-VBOX(1)\fR
+,
+\fIctys\-VMW(1)\fR
+,
+\fIctys\-XEN(1)\fR
+
+.TP
+  \fBHOSTS\fR
+\fIctys\-CLI(1)\fR
+,
+\fIctys\-RDP(1)\fR
+,
+\fIctys\-VNC(1)\fR
+,
+\fIctys\-X11(1)\fR
+
+.TP
+\fBctys executables\fR
+\fIctys(1)\fR
+,
+\fIctys\-distribute(1)\fR
+,
+\fIctys\-extractARPlst(1)\fR
+,
+\fIctys\-extractMAClst(1)\fR
+,
+\fIctys\-genmconf(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-vping(1)\fR
+,
+\fIctys\-vhost(1)\fR
+,
+\fIctys\-vhost(1)\fR
+,
+\fIctys\-wakeup(1)\fR
+
+.TP
+\fBsystem executables\fR
+\fIdmidecode(8)\fR, \fIether\-tool(8)\fR, \fIether\-wake(8)\fR, \fInc(1)<a.k.a. netcat>\fR
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010, 2011 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+
+The whole document \- all sections \- is/are defined as invariant.
+.RE
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-PM.t2t -o /tmpn/0/ctys/bld/01.11.020/doc-tmp/BASE/en/man/man1/ctys-PM.1
+
