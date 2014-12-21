@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_013
+#VERSION:      01_11_002
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_10_013
+VERSION=01_11_002
 #DESCRIPTION:
 #  Wrapper schript for calling vncviewer.
 #
@@ -416,22 +416,15 @@ if [ "${C_ASYNC}" == 0 ];then
 	eval ${OUTPUT}  
     fi
 else
-#KEEP4REMINDER
-#    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "${BASHEXE} -c \"${OUTPUT}\""
-    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "${OUTPUT}"
+    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC-CALL:callVncviewer" "exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&"
     if [ -z "${C_CHECK}" ];then
 	OUTPUT="${OUTPUT}"
-#	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "EXEC:${BASHEXE} -c ${OUTPUT} &"
 	printDBG $S_BIN ${D_MAINT} $LINENO $BASH_SOURCE "EXEC:${OUTPUT} &"
 
 #KEEP4REMINDER
 #OK-but CL-sync:	exec ${BASHEXE} -c "${OUTPUT}"
 #	exec ${BASHEXE} -c "${OUTPUT}"&
-	${OUTPUT}&
-
-#KEEP4REMINDER
-        #OK:best, but maybe proc-analysis will be broken, do it later: exec  ${OUTPUT}&
-        #ERR-REMINDER-Broken in CentOS-5.4+..: exec ${BASHEXE} -c "\"${OUTPUT}\"" &
-        #                                      exec ${BASHEXE} -c "${OUTPUT} " &
+#eval	${OUTPUT}&
+	exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
     fi
 fi

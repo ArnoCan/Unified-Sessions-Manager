@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a15
+#VERSION:      01_11_002
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VNC_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VNC_SESSION="01.06.001a15"
+_myPKGVERS_VNC_SESSION="01.11.002"
 hookInfoAdd $_myPKGNAME_VNC_SESSION $_myPKGVERS_VNC_SESSION
 _myPKGBASE_VNC_SESSION="`dirname ${_myPKGNAME_VNC_SESSION}`"
 
@@ -227,7 +227,7 @@ function startSessionVNC () {
 		    export DISPLAY=":${C_DISPLAY}";
 		    ;;
 	    esac
-	    eval ${CALLER} &
+	    eval ${CALLER} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
 	    sleep ${WAITS:-1}
  	    cacheStoreWorkerPIDData CLIENT VNC "${CURSES}" "${_name}" 0 "" 
 	    if [ $? -ne 0 ];then
@@ -330,15 +330,16 @@ function connectSessionVNC () {
     esac
 
 
-#change 01.10.013
-#    [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
+    [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
+    return
 
-    if [ -z "${C_NOEXEC}" ];then
-	eval ${CALLER} &
-	if [ "${C_ASYNC}" == 0 ];then
-	    wait
-	fi
-    fi
+#KEEP4REMINDER:
+#     if [ -z "${C_NOEXEC}" ];then
+# 	eval ${CALLER} &
+#  	if [ "${C_ASYNC}" == 0 ];then
+#  	    wait
+#  	fi
+#     fi
 }
 
 
