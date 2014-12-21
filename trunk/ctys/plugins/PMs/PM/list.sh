@@ -98,7 +98,7 @@ function listMySessionsPM () {
     local CSTR=";"
     local EXEP=";${MYOS}-${MYOSREL}"
     local HRX=";${PM_PRODVERS}"
-    local ACC=";$(getACCELLERATOR_PM)"
+    local ACC=";$(getACCELERATOR_PM)"
     local ARCH=";$(getCurArch)"
     local post="${RES1}${CSTR}${EXEP}${HRX}${ACC}${ARCH}"
 

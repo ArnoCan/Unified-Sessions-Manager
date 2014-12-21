@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_003
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -59,7 +59,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_11_003
+VERSION=01_11_007
 #DESCRIPTION:
 #  Main untility of project ctys for manging sessions.
 #
@@ -1036,37 +1036,53 @@ function myFetchOptions () {
 				_allStat="`dirname ${_dl}` ${_allStat}"
 			    done
 
-                            echo
-			    echo "Current file-databases for \"${USER}\":"
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current file-databases for \"${USER}\":"
+			    fi
  			    find ${MYTMP}    -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
 			    find ${_allStat} -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+			    fi
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
 			    listGroups SHORT
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+			    fi
                             gotoHell 0;
 			    ;;
 
 			[[lL][iI][sS][tT])
-                            local _allStat="${DBPATHLST//:/ }"
-                            echo
-			    echo "Current file-databases for \"${USER}\":"
+			    if [ -z "$C_TERSE" ];then
+				local _allStat="${DBPATHLST//:/ }"
+				echo
+				echo "Current file-databases for \"${USER}\":"
+			    fi
  			    find ${MYTMP}    -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
 			    find ${_allStat} -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+			    fi
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
 			    listGroups SHORT
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+			    fi
                             gotoHell 0;
 			    ;;
 
@@ -1082,17 +1098,23 @@ function myFetchOptions () {
 				_allStat="`dirname ${_dl}` ${_allStat}"
 			    done
 
-                            echo
-			    echo "Current file-databases for \"${USER}\":"
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current file-databases for \"${USER}\":"
+			    fi
  			    find ${MYTMP}    -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
 			    find ${_allStat} -type f -name '*.fdb' -printf "  %4kk  " -exec wc -l {} \;
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
                             gotoHell 0;
 			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][dD][bB])
-                            echo
-			    echo "MEMBERSDB - ctys stack- addresses."
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "MEMBERSDB - ctys stack- addresses."
+				echo 
+			    fi
                             ${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -s \
                                 -p "${DBPATHLST}" -C OFF -o ctys -M all .|sort
                             gotoHell 0;
@@ -1104,103 +1126,148 @@ function myFetchOptions () {
                         #
 			[lL][iI][sS][tT][gG][rR][oO][uU][pP]*)
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:${iS}"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:${iS}"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
                             if [ "${iS//:/}" == "${iS}" ];then
 				listGroups SHORT
 			    else
 				listGroups SHORT "${iS#*:}"
                             fi
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+			    fi
                             gotoHell 0;
 			    ;;
 			[cC][oO][nN][tT][eE][nN][tT][gG][rR][oO][uU][pP])
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
 			    listGroups CONTENT
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
+                            gotoHell 0;
+			    ;;
+#			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]6*)
+			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP][67]*)
+                            setGroupsFeature
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
+                            if [ "${iS//:/}" == "${iS}" ];then
+				local allgrp=$(C_TERSE_OLD=$C_TERSE;C_TERSE=1;listGroups SHORT;C_TERSE=$C_TERSE_OLD;)
+				fetchGroupMemberHosts "$allgrp"
+			    else
+				fetchGroupMemberHosts  "${iS#*:}"
+                            fi
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
                             gotoHell 0;
 			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]5*)
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
                             if [ "${iS//:/}" == "${iS}" ];then
 				listGroupMembers DEEP5CALL
 			    else
 				listGroupMembers DEEP5CALL "${iS#*:}"
                             fi
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
                             gotoHell 0;
 			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]4*)
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
                             if [ "${iS//:/}" == "${iS}" ];then
 				listGroupMembers DEEP4CALL
 			    else
 				listGroupMembers DEEP4CALL "${iS#*:}"
                             fi
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
                             gotoHell 0;
 			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]3*)
                             setGroupsFeature
-                            echo
+			    echo
 			    echo "Current group files of:"
-                            echo
+			    echo
 			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    echo
                             if [ "${iS//:/}" == "${iS}" ];then
 				listGroups DEEP3
 			    else
 				listGroups DEEP3 "${iS#*:}"
                             fi
-                            echo 
+			    echo 
                             gotoHell 0;
 			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]2*)
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
                             if [ "${iS//:/}" == "${iS}" ];then
 				listGroupMembers DEEP
 			    else
 				listGroupMembers DEEP "${iS#*:}"
                             fi
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
                             gotoHell 0;
 			    ;;
 			[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]|[mM][eE][mM][bB][eE][rR][sS][gG][rR][oO][uU][pP]:*)
                             setGroupsFeature
-                            echo
-			    echo "Current group files of:"
-                            echo
-			    splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
-                            echo
+			    if [ -z "$C_TERSE" ];then
+				echo
+				echo "Current group files of:"
+				echo
+				splitPath 20 "CTYS_GROUPS_PATH" "$CTYS_GROUPS_PATH"
+				echo
+			    fi
                             if [ "${iS//:/}" == "${iS}" ];then
 				listGroups DEEP
 			    else
 				listGroups DEEP "${iS#*:}"
                             fi
-                            echo 
+			    if [ -z "$C_TERSE" ];then
+				echo 
+			    fi
                             gotoHell 0;
 			    ;;
 

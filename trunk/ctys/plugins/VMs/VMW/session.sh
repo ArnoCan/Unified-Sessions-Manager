@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_SESSION="${BASH_SOURCE}"
-_myPKGVERS_VMW_SESSION="01.11.005"
+_myPKGVERS_VMW_SESSION="01.11.007"
 hookInfoAdd $_myPKGNAME_VMW_SESSION $_myPKGVERS_VMW_SESSION
 _myPKGBASE_VMW_SESSION="`dirname ${_myPKGNAME_VMW_SESSION}`"
 
@@ -186,6 +186,14 @@ function getClientTPVMW () {
 	printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_port=$_port"
     fi
 
+    #for s2
+    if [ -z "$_port" -a -f "/etc/vmware/hostd/proxy.xml" ];then
+	_port=`cat /etc/vmware/hostd/proxy.xml |sed -n 's@<httpsPort>\([0-9]*\)</httpsPort>@\1@p'`
+	if [ -z "$_port" ];then
+	    _port=`cat /etc/vmware/hostd/proxy.xml |sed -n 's@<httpPort>\([0-9]*\)</httpPort>@\1@p'`
+	fi
+    fi
+
     #for ws and server
     if [ -z "$_port" -a -f "/etc/vmware/config" ];then
 	_port=`cat /etc/vmware/config |sed -n 's/authd.client.port *= *"\([0-9]*\)"/\1/p'`
@@ -296,7 +304,8 @@ function startSessionVMW () {
 	    VMW_S1*)
 		local x=`${PS} ${PSEF}|awk -v id="${1}" '$0!~/awk/&&$0~/\/bin\/vmware/&&$0!~/wrapper/&&$0~/displayName/&&$3!="1"&&$0~id{printf("%s",$2);}'`
 		;;
-	    VMW_S20*)
+#	    VMW_S20*)
+	    VMW_S20*|VMW_RC)
 		local x=`${PS} ${PSEF}|awk -v id="${1}" '$0!~/awk/&&$0~/\/bin\/vmware/&&$0!~/wrapper/&&$0~/displayName/&&$3!="1"&&$0~id{printf("%s",$2);}'`
 		;;
 	    VMW_WS*)
@@ -371,6 +380,10 @@ function startSessionVMW () {
 	    fi
 	    ;;
 	VMW_S2*)
+###########################
+#4TEST:VMW_RC: later add remote evaluation
+#	VMW_S2*|VMW_RC)
+###########################
 	    if [ -n "${VMWMGR}" ];then
 		_oid=$(ctysVMWS2FetchVMWObjID4Path ${_pname})
 		printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:_oid=<${_oid}>"
@@ -391,7 +404,8 @@ function startSessionVMW () {
 			printERR $LINENO $BASH_SOURCE ${ABORT} "as  :<$_store>"
  			printERR $LINENO $BASH_SOURCE ${ABORT} "Create the entry manually and/or check access permissions for:"
 			printERR $LINENO $BASH_SOURCE ${ABORT} "<${_mycall}>"
-			printINFO 1 $LINENO $BASH_SOURCE 0 "HINT:vmware-2.0 requires a valid USER(-u) and PASSWD(-p)"
+			printINFO 1 $LINENO $BASH_SOURCE 0 "HINT:vmware-2.0 inventory addition requires a valid USER(-u) and PASSWD(-p)"
+			printINFO 1 $LINENO $BASH_SOURCE 0 "HINT:Use suboption:ctys -create=user:${USER}%<passwd>,..."
  			gotoHell ${ABORT}
 		    else
 			printINFO 1 $LINENO $BASH_SOURCE 0 "path : <$_pname>"
@@ -430,6 +444,34 @@ function startSessionVMW () {
 		    ;;
 	    esac
 	    ;;
+	VMW_RC)
+	    case "${_conty}" in
+		VMWRC)
+		    CALLCLIENT="cd ${CTYS_VMW_VMRC%/*}&&"
+		    CALLCLIENT="${CALLCLIENT}${CTYS_VMW_VMRC}";
+
+		    if [ -n "${VMW_SESSION_USER}" ];then
+			CALLCLIENT="${CALLCLIENT} -u ${VMW_SESSION_USER} ";
+			if [ -n "${VMW_SESSION_CRED}" ];then
+			    CALLCLIENT="${CALLCLIENT} -p ${VMW_SESSION_CRED} ";
+			fi
+		    fi
+
+		    if [ -n "${CTYS_VMW_VMRC_ACCESS_HOST}" ];then
+			CALLCLIENT="${CALLCLIENT} -h ${CTYS_VMW_VMRC_ACCESS_HOST} ";
+		    fi
+		    CALLCLIENT="${CALLCLIENT} -M ${_oid} ";
+		    CALLSERVER=
+		    ;;
+		*)
+		    CALLCLIENT="${VMWEXE}";
+		    CALLSERVER=
+		    ;;
+	    esac
+	    printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:_conty=\"${_conty}\""
+	    printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:CALLCLIENT=\"${CALLCLIENT}\""
+	    printDBG $S_VMW ${D_FLOW} $LINENO $BASH_SOURCE "$FUNCNAME:CALLSERVER=\"${CALLSERVER}\""
+            ;;
 	VMW_S2*)
 	    local _oid=$(ctysVMWS2FetchVMWObjID4Path ${_pname})
 	    case "${_conty}" in
@@ -490,7 +532,7 @@ function startSessionVMW () {
 
 
     case ${VMW_MAGIC} in
-	VMW_S2*)
+	VMW_S2*|VMW_RC)
 	    ;;
 	*)
 	    if [ -n "${CALLSERVER}" ];then
@@ -529,7 +571,7 @@ function startSessionVMW () {
  	    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VMW_MAGIC}-CALLSERVER=${CALLSERVER}"
  	    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VMW_MAGIC}-CALLSERVER=${_store}"
 	    case ${VMW_MAGIC} in
-		VMW_S2*)
+		VMW_S2*|VMW_RC)
 		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLSERVER} \"${_store}\""
 		    eval ${CALLSERVER} "\"${_store}\""&>/dev/null&
 		    ;;
@@ -555,6 +597,10 @@ function startSessionVMW () {
 		    VMW_S1*)
 			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT}"
 			eval ${CALLCLIENT} &>/dev/null&
+			;;
+		    VMW_RC)
+			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
+			eval ${CALLCLIENT} "${CALLCLIENTARGS}"&>/dev/null&
 			;;
 		    VMW_S2*)
 			printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS}"
@@ -618,7 +664,8 @@ function startSessionVMW () {
 	if [ -n "${CALLSERVER}" -a -n "${CALLCLIENT}" ];then
  	    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${VMW_MAGIC}"
 	    case ${VMW_MAGIC} in
-		VMW_S2*)
+#		VMW_S2*)
+		VMW_S2*|VMW_RC)
  		    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:${CALLCLIENT} ${CALLCLIENTARGS}"
 		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-WRAPPER-SCRIPT-CALL" "${CALLCLIENT} ${CALLCLIENTARGS:+\"$CALLCLIENTARGS\"}&"
 		    eval ${CALLCLIENT} ${CALLCLIENTARGS:+"$CALLCLIENTARGS"}&
@@ -790,7 +837,7 @@ function connectSessionVMW () {
 		startSessionVMW "${_label}" "${_id}" "${_myVM}" "${_myCon}"
  		;;
 
-	    VMW_S20)
+	    VMW_S20|VMW_RC)
                 #Yes, the connect-call for a session gwhich is - as PRE-REQUIRED - in 
                 #background-continue-mode - is identical to the create-call.
                 #=> CONNECT-CLI-IF of vmware is identical to CREATE-CLI-IF
@@ -823,13 +870,14 @@ function connectSessionVMW () {
         #servers and workstations with VMW_S103 and WMW_WS6,
         #and installed RealVNC.
 
+
 	if [ -n "${_VNC_CLIENT_MODE}" ];then
             #Let client "beeee a WS6+", let's go
 	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:VNCviewer"
 	    connectSessionVMWVNC "${_VNC_CLIENT_MODE}" "${_label}" 
 	else
 	    case ${VMW_MAGIC} in
-		VMW_S20)
+		VMW_S20|VMW_RC)
 
                     #Yes, the connect for a session gwhich is - as PRE-REQUIRED - in 
                     #background-continue-mode - CONNECT-CLI-IF of vmware is identical 

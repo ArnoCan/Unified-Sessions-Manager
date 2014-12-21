@@ -120,7 +120,9 @@ function infoXEN4Action () {
 #FUNCEND###############################################################
 function infoXEN4MACHINE () {
     local _out=;
-    _out="XEN"
+    _out="$MYACCOUNT"
+    _out="${_out};XEN"
+    _out="${_out};$XEN_ACCELERATOR"
     _out="${_out};${_myPKGVERS_XEN}"
     _out="${_out};${XEN_MAGIC}"
     _out="${_out};${XEN_STATE}"

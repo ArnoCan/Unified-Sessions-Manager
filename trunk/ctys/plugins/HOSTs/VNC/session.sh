@@ -317,7 +317,6 @@ function connectSessionVNC () {
 	export DISPLAY;
     fi
     printFINALCALL $LINENO $BASH_SOURCE "FINAL-VNC-CONSOLE:STARTER(${_label})-DISPLAY=\"${DISPLAY}\"" "${CALLER}"
-
     case ${C_DISPLAY// /} in
 	*[a-z][A-Z]*)
 	    export DISPLAY=":$(C_SESSIONTYPE=ALL fetchDisplay4Label ALL ${C_DISPLAY})";
@@ -328,7 +327,6 @@ function connectSessionVNC () {
 	    export DISPLAY=":${C_DISPLAY}";
 	    ;;
     esac
-
 
     [ -z "${C_NOEXEC}" ]&&eval ${CALLER}
     return

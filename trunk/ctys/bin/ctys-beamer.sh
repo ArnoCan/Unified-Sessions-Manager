@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_005
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -53,7 +53,7 @@ LICENCE=GPL3
 #  sh-script
 #
 #VERSION:
-VERSION=01_11_005
+VERSION=01_11_007
 #DESCRIPTION:
 #  Remote execution script.
 #
@@ -388,7 +388,10 @@ function beamMeUp0 () {
     _MYLBL=${MYCALLNAME}-${MYUID}-${DATETIME}
 
     if [ "$C_TERSE" != 1 ];then
-	printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_rh}"
+ 	printINFO 1 $LINENO $BASH_SOURCE 1 "Use either '-X' or '-d i:0' to suppress these startup $(setFontAttrib FGREEN INFO) messages"
+ 	printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution by  $(setFontAttrib BOLD SSH-CHAIN) on:${_rh}"
+ 	printINFO 1 $LINENO $BASH_SOURCE 1 "."
     fi
 
     _ARGS="${_ARGS:+ --%--$_ARGS}"
@@ -402,7 +405,44 @@ function beamMeUp0 () {
     _TRANSFORM=${_TRANSFORM// /\%}
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_TRANSFORM=<$_TRANSFORM>"
 
-    _call="ctys ${C_DARGS} -t cli ${_BYPASSARGS} -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_TRANSFORM:+%$_TRANSFORM}"
+    _call="ctys ${C_DARGS} -t cli "
+    if [ -n "$_SET_B" ];then
+	_call="${_call}  -b $_SET_B "
+	if [ "$C_TERSE" != 1 ];then
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "Current background mode is $(setFontAttrib BOLD \"-b ${_SET_B}\")"
+	fi
+    else
+	if [ "$C_TERSE" != 1 ];then
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "Current background mode is $(setFontAttrib BOLD default)"
+	fi
+    fi
+    if [ "$C_TERSE" != 1 ];then
+	printINFO 1 $LINENO $BASH_SOURCE 1 "The $(setFontAttrib BOLD default) background mode $(setFontAttrib BOLD \"-b SYNC,SEQ\") is $(setFontAttrib BOLD SYNCHRONOUS) and $(setFontAttrib BOLD SEQUENTIAL) "
+	printINFO 1 $LINENO $BASH_SOURCE 1 "recommended for single CLI dialogue actions."
+	printINFO 1 $LINENO $BASH_SOURCE 1 "Use generic option $(setFontAttrib BOLD '-b ASYNC,PAR')  for $(setFontAttrib BOLD 'remote desktops'), $(setFontAttrib BOLD servers),"
+	printINFO 1 $LINENO $BASH_SOURCE 1 "and $(setFontAttrib BOLD 'parallel actions')."
+ 	printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	printINFO 1 $LINENO $BASH_SOURCE 1 "Display resulting execution call by usage of common debugging option '-d pf'."
+ 	printINFO 1 $LINENO $BASH_SOURCE 1 "."
+    fi
+
+
+    if [ "$C_TERSE" != 1 ];then
+	case $_MODE in
+	    CTYS-HOPS|CH|0)
+		printINFO 1 $LINENO $BASH_SOURCE 1 "Local Hold-Timeout for CTYS-HOPS connection is:${CTYS_PREDETACH_TIMEOUT:-10}"
+ 		printINFO 1 $LINENO $BASH_SOURCE 1 "."
+		;;
+
+	    SSH-CHAIN|SC|1)
+		printINFO 1 $LINENO $BASH_SOURCE 1 "Local Hold-Timeout for SSH-CHAIN connection is:${_HOPHOLD:-60}"
+ 		printINFO 1 $LINENO $BASH_SOURCE 1 "."
+		;;
+	esac
+    fi
+
+
+    _call="${_call} ${_BYPASSARGS} -a create=l:${_MYLBL},cmd:${MYCALLNAME}${_TRANSFORM:+%$_TRANSFORM}"
     _call="${_call} ${_AGENTFORW:+-Y} ${_RUSER0:+-l $_RUSER0} ${_rh}"
     _call="${_call}${_HOPHOLD:+&&sleep $_HOPHOLD} "
 
@@ -637,18 +677,18 @@ function setupTunnels () {
 
 	local _hi=;
 	local sshaccess=;
-	echo -n "Search free ports "
+	[ "$C_TERSE" != 1 ]&&echo -n "Search free ports "
 	for _hi in ${_h//%/ };do
 	    _hnam=${_hi%:*}
 	    _port=${_hi#*:}
-
 	    [ "$_hnam" == "$_port" ]&&_port=;
 
-	    echo -n "."
+	    [ "$C_TERSE" != 1 ]&&echo -n "."
 	    sshaccess="${sshaccess} ssh ${_RUSER0:+-l $_RUSER0} ${_AGENTFORW:+-A} $_hnam "
 	    if [ -n "$_port" -a "$_port" != "$_hnam" ];then
 		_nport=$_port
 	    else
+		printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "$sshaccess  $MYCALLNAME --getfreeport"
 		_nport=$($sshaccess  $MYCALLNAME --getfreeport)
 		_port=;
 	    fi
@@ -658,7 +698,7 @@ function setupTunnels () {
 		_lport=$_nport
 	    fi
 	done
-	echo
+	[ "$C_TERSE" != 1 ]&&echo
 	tun="${tun} ${_AGENTFORW:+-A} -L $_lport:localhost:${_port:-22} $_hnam sleep ${_TUNHOLD:-60};"
     done
 
@@ -667,7 +707,7 @@ function setupTunnels () {
 	_h=${_h//_-_/ }
 	_h=${_h## }
 	if [ -z "$_NOXEC" ];then
-	    echo "...establish circuit"
+	    [ "$C_TERSE" != 1 ]&&echo "...establish circuit"
 	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_h}"
 	    eval $_h
 	fi
@@ -693,6 +733,8 @@ _AGENTFORW=;
 _MODE=0;
 argLst=;
 
+_SET_B=;
+
 _X11=;
 while [ -n "$1" ];do
     if [ -z "${_ARGS}" ];then
@@ -716,13 +758,15 @@ while [ -n "$1" ];do
 	    '-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
 	    '-h'|'--help'|'-help')_showToolHelp=1;;
 	    '-V')_printVersion=1;;
-	    '-X')C_TERSE=1;;
+	    '-X')C_TERSE=1;_BYPASSARGS="${_BYPASSARGS} $1";;
             '--%--')_ARGS=" ";;
             '--'|'--beam-this')_ARGS=" ";;
 	    '-'*)
 		_BYPASSARGS="${_BYPASSARGS} $1";
 		case $1 in
-		    '-a'|'-A'|'-b'|'-d'|'-D'|'-c'|'-C'|'-F'|'-g'|'-j')shift;_BYPASSARGS="${_BYPASSARGS} $1";;
+ 		    '-b')shift;_BYPASSARGS="${_BYPASSARGS} $1";_SET_B=$(echo "$1"|tr 'a-z' 'A-Z');;
+
+ 		    '-a'|'-A'|'-b'|'-d'|'-D'|'-c'|'-C'|'-F'|'-g'|'-j')shift;_BYPASSARGS="${_BYPASSARGS} $1";;
 		    '-p'|'-r'|'-s'|'-S'|'-k'|'-l'|'-L'|'-M'|'-o'|'-O')shift;_BYPASSARGS="${_BYPASSARGS} $1";;
 		    '-t'|'-T'|'-W'|'-x'|'-z'|'-Z')                    shift;_BYPASSARGS="${_BYPASSARGS} $1";;
 
@@ -759,30 +803,6 @@ printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_ARGS =<$_ARGS>"
 printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "$FUNCNAME:_RARGS=<$_RARGS>"
 
 
-if [ -z "${_RHOSTS0}" ];then
-    echo "ERROR:Missing remote host/relay chain: \"-R\"">&2
-    echo "  $0 ">&2
-    echo "  Call options = <${_ARGSCALL}>">&2
-    exit 1
-fi
-
-
-if [ -n "${_RUSER0}" -a "${_RHOSTS0//@}" != "${_RHOSTS0}" ];then
-    echo "ERROR:\"-L\" option and EMail style addresses \"<USER>@<HOST>\"">&2
-    echo "ERROR:cannot be used intermixed.">&2
-    echo "  _RUSER0   = ${_RUSER0}">&2
-    echo "  _RHOSTS0  = ${_RHOSTS0}">&2
-    exit 1
-fi
-
-
-if [ -z "${_ARGS}" ];then
-    echo "ERROR:Missing remote call">&2
-    echo "  _ARGSCALL     = <${_ARGSCALL}>">&2
-    exit 1
-fi
-
-
 if [ -n "$_HelpEx" ];then
     printHelpEx "${_HelpEx}";
     exit 0;
@@ -798,6 +818,32 @@ fi
 if [ -n "$_printVersion" ];then
     printVersion;
     exit 0;
+fi
+
+if [ -z "${_RHOSTS0}" ];then
+    ABORT=1
+    printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:Missing remote host/relay chain: \"-R\""
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  $0 "
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  Call options = <${_ARGSCALL}>"
+    gotoHell ${ABORT}
+fi
+
+
+if [ -n "${_RUSER0}" -a "${_RHOSTS0//@}" != "${_RHOSTS0}" ];then
+    ABORT=1
+    printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:\"-L\" option and EMail style addresses \"<USER>@<HOST>\""
+    printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:cannot be used intermixed."
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  _RUSER0   = ${_RUSER0}"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  _RHOSTS0  = ${_RHOSTS0}"
+    gotoHell ${ABORT}
+fi
+
+
+if [ -z "${_ARGS}" ];then
+    ABORT=1
+    printERR $LINENO $BASH_SOURCE ${ABORT} "ERROR:Missing remote call"
+    printERR $LINENO $BASH_SOURCE ${ABORT} "  _ARGSCALL     = <${_ARGSCALL}>"
+    gotoHell ${ABORT}
 fi
 
 
@@ -819,9 +865,33 @@ case $_MODE in
 	_ARGSx=${_ARGS}
 	_HOPHOLD=${_HOPHOLD:-60}
 	_ARGS="sleep ${_HOPHOLD}"
+
+	if [ "$C_TERSE" != 1 ];then
+ 	    printINFO 1 $LINENO $BASH_SOURCE 1 "Use either '-X' or '-d i:0' to suppress these startup $(setFontAttrib FGREEN INFO) messages"
+ 	    printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution by  $(setFontAttrib BOLD SSH-CHAIN)."
+	    if [ -n "${_SET_B}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE 1 "Current background mode is $(setFontAttrib BOLD \"-b ${_SET_B}\")."
+	    fi
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "The $(setFontAttrib BOLD default) background mode $(setFontAttrib BOLD \"-b SYNC,SEQ\") is $(setFontAttrib BOLD SYNCHRONOUS) and $(setFontAttrib BOLD SEQUENTIAL) "
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "recommended for single CLI dialogue actions."
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "Use generic option $(setFontAttrib BOLD '-b ASYNC,(SEQ|PAR)')  for $(setFontAttrib BOLD 'remote desktops'), $(setFontAttrib BOLD servers),"
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "and $(setFontAttrib BOLD 'parallel actions'). The modes $(setFontAttrib BOLD 'SEQ') and $(setFontAttrib BOLD 'PAR') are the same for SSH-CHAIN."
+ 	    printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "Display resulting execution call by usage of common debugging option '-d pf'."
+ 	    printINFO 1 $LINENO $BASH_SOURCE 1 "."
+
+	    printINFO 1 $LINENO $BASH_SOURCE 1 "Local Hold-Timeout for SSH-CHAIN connection is:${_HOPHOLD}"
+ 	    printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	fi
+
 	for _p in ${_RHOSTS0//,/ };do
 	    _tlst=$(resolveTunnels "" "${_p}")
 	    setupTunnels "${_tlst}"
+	    if [ "$C_TERSE" != 1 ];then
+		printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution through SSH tunnel:${_tlst}"
+ 		printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	    fi
 	done
 
 	CONNECT_DELAY=${CONNECT_DELAY:-5}
@@ -833,7 +903,24 @@ case $_MODE in
 		    _RUSER0=${_RUSER0x##*\%}
 		fi
 	    fi
-	    _call="ssh  ${_X11:+ -f -X} -p ${AP[$i]} ${_AGENTFORW:+-A} ${_RUSER0:+-l $_RUSER0} localhost ${_ARGSx}"
+
+	    if [ "$C_TERSE" != 1 -a -n "${_RUSER0}" ];then
+		printINFO 1 $LINENO $BASH_SOURCE 1 "Remote execution${_RUSER0:+ as \"$_RUSER0\"} on:${_tlst}"
+ 		printINFO 1 $LINENO $BASH_SOURCE 1 "."
+	    fi
+
+#4TEST:keep-temp-4-reminder:  _call="ssh  ${_X11:+ -f -X} -p ${AP[$i]} ${_AGENTFORW:+-A} ${_RUSER0:+-l $_RUSER0} localhost ${_ARGSx}"
+
+	    _call="ssh  "
+	    if [ -n "$_SET_B" ];then
+		case "$_SET_B" in
+		    ASYNC|ASYNC,*|*,ASYNC|1|1,*|*,1)
+			_call="${_call}  -f "
+			;;
+		esac
+	    fi
+	    _call="$_call ${_X11:+  -X} -p ${AP[$i]} ${_AGENTFORW:+-A} ${_RUSER0:+-l $_RUSER0} localhost ${_ARGSx}"
+
 	    printFINALCALL $LINENO $BASH_SOURCE "FINAL-REMOTE-CALL:" "${_call}"
 	    eval ${_call}
 	done

@@ -121,7 +121,9 @@ function infoQEMU4Action () {
 #FUNCEND###############################################################
 function infoQEMU4MACHINE () {
     local _out=;
-    _out="QEMU"
+    _out="$MYACCOUNT"
+    _out="${_out};QEMU"
+    _out="${_out};${QEMU_ACCELERATOR}"
     _out="${_out};${_myPKGVERS_QEMU}"
     _out="${_out};${QEMU_MAGIC}"
     _out="${_out};${QEMU_STATE}"

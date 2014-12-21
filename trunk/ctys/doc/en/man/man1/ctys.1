@@ -1,4 +1,4 @@
-.TH "ctys" 1 "June, 2010" ""
+.TH "ctys" 1 "July, 2010" ""
 
 
 .P
@@ -21,34 +21,59 @@
 
 .P
 The utility \fBctys\fR is the core interface to be used within the UnifiedSessionsManager.
-\fBctys\fR encapsulates the user interfaces of the whole set of supported hypervisors and native sessions into a common syntax with a single call interface.
+\fBctys\fR encapsulates the user interfaces of the whole set of supported hypervisors and
+native sessions into a common syntax with a single call interface.
 
 .P
-The installation and configuration is descibed within the examples chapter of the manual.
+The installation and configuration is descibed within the HowTo manual and the specific 
+configuration guides.
 The basic installation should work almost from the box, once the prerequisites are present.
 The most valuable tool for verifying the setup of ctys is \fBctys\-plugins\fR which performs 
-a validation of local and remote installations with an comprehensive report.
-Further details are available in the man page as well as within the manual.
+a validation of local and remote installations and displays a detailed report.
 
 .P
-The most of preset default values could be changed by setting and
-exporting environment variables and editing the configuration files.
-These are installed by default within \fB$HOME/.ctys\fR directory tree.
-The sources are documented inline.
+The majority  of the preset default values could be changed by configuration files
+and environment variables.
+The configuration files are installed by default within \fB$HOME/.ctys\fR directory tree.
 
 .P
-The most important aspect for the unification of the interface is the common 
-namenbinding for addressing the user sessions and  the supported hypervisors and OS.
-The session in this case is a representation of the lifetime for the online\-presence of 
-the peer\-host.
+The most important aspect for the introduction of a common interface is the 
+unique namenbinding for addressing the user sessions to physical machines, supported hypervisors
+and guest OSs.
+The session in this case is defined as a representation of the lifetime for the active state
+of the runtime entity.
 
 .P
 Each session could span multiple logins from multiple users, dependent from the individual setup.
-Thus the namebinding of the sessions and their related attributes becomes the most important 
+Thus the namebinding of the sessions and their related attributes becomes the most important
 feature for the management of the distributed user environments.
 
 .P
-Two basic access\-approaches are provided:
+The specific actions required for the evaluation of the sessions namebinding are
+distinguished by their types:
+
+.RS
+.IP \(bu 3
+\fBHOSTs\fR: 
+HOSTs are pure dynamic sessions, without persistent data.
+Thus for the namebinding the calculation of dynamic values, or in case of present instances
+the mapping of values and instances is required.
+
+.IP \(bu 3
+\fBVMs\fR:
+VMs are based on persistent configuration data. Thus stored data from configuration 
+files is evaluated.
+
+.IP \(bu 3
+\fBPMs\fR:
+PMs are accessed by a two folded approach. First the external access to the box is performed
+by the addressing schema of the provided access protocol. Second, when configuration data of
+physical host and/or the performed guest OS is required, a single data set positioned at specific
+locations is evaluated.
+.RE
+
+.P
+Two basic access\-approaches are provided for VMs:
 
 .RS
 .IP \(bu 3
@@ -58,9 +83,10 @@ Two basic access\-approaches are provided:
 .RE
 
 .P
-The scanning approach does not require additional preparation, just some basic setup.
-The caching approach is covered by the automated scan of a list of targets and the
-storage of their inventory data into a local cacheDB
+The scanning approach does not require additional preparation, 
+just some basic setup like the root\-directory to start.
+The caching approach requires the previous scan of a list of targets and the
+storage of their resulting inventory data into a so called local cacheDB
 \&.
 
 .P
@@ -68,9 +94,9 @@ The supported core utilities are:
 
 .RS
 .IP \(bu 3
-\fBctys\-vdbgen\fR
+\fBctys\-vdbgen\fR \- for automated scans
 .IP \(bu 3
-\fBctys\-vhost\fR
+\fBctys\-vhost\fR \- as a database front\-end for the cacheDB
 .RE
 
 .P
@@ -82,14 +108,13 @@ The options are grouped into two sections:
 
 .TP
 \fBACTIONS\fR
-These are the options directly related to the supported plugins.
+These are options directly related to specific plugins.
 ACTIONS are suboptions to the \fB\-a\fR option and are preset by the actual 
 loaded plugin controlled by \fB\-t\fR and \fB\-T\fR options.
 
 .TP
 \fBGeneric Attributes\fR
 These are the options which are mostly generic within the whole set of utilities.
-
 They influence the ACTIONS, but are related to the runtime environment.
 
 .P
@@ -132,7 +157,7 @@ static details about ENABLED VMs
 .TP
 
 \fBLIST\fR:
-dynamic information about running VMs
+dynamic information about active VMs
 
 .TP
 
@@ -148,7 +173,7 @@ Internal helper\-methods using the official interface:
 
 .SS CANCEL
 .nf
-  CANCEL=(<machine-address>)\e{1\e}|ALL
+  CANCEL=(<machine-address>){1}|ALL
     (
       [FORCE|STACK][,]
       [SELF][,]
@@ -193,11 +218,10 @@ Cancels stack by forward propagation of CANCEL request.
 If supported, a kill call is performed after a timeout.
 
 When handling stacks of nested PMs and VMs, the application of CANCEL
-action on a lower level will naturally force contained instances to be
+action on a lower level will force contained instances to be
 terminated too.
-
-Thus a behaviour has to be selected, whether a top\-down soft shutdown
-has to be performed, or a "bottom\-up" behaviour of instances, by killing the
+Thus the behaviour has to be pre\-selected, whether a 'top\-down' soft shutdown
+has to be performed, or a 'bottom\-up' behaviour of instances, by killing the
 assigned level without recognition of contained instances.
 This might be appropriate e.g. in emergency cases.
 Two basic directions are defined:
@@ -292,10 +316,8 @@ only difference is the state S4.
 .TP
 \fBPOWEROFF|S5[:<timeoutBeforeKillVM>])\fR
 POWEROFF or ACPI state S5, switches into offline
-mode, which is actually a stand\-by mode. 
-
-Within
-UnifiedSessionsManager the configuration of WoL is
+mode, which is actually a stand\-by mode.
+Within UnifiedSessionsManager the configuration of WoL is
 pre\-required in order to activate systems from state S5.
 
 .TP
@@ -646,6 +668,7 @@ mode only, else may have internal influence only.
     (
       (
         (
+          [ACCELERATOR|ACCEL][,]
           [ARCH][,]
           [CATEGORY|CAT][,]
           [CONTEXTSTRING|CSTRG][,]
@@ -653,15 +676,18 @@ mode only, else may have internal influence only.
           [DIST][,]
           [DISTREL][,]
           [EXECLOCATION][,]
+          [EXEPATH|EXEP][,]
           [GATEWAY][,]
           [HWCAP][,]
           [HWREQ][,]
           [HYPERREL|HYREL][,]
+          [HYPERRELRUN|HRELRUN|HRELX|HRX][,]
           [IDS|ID][,]
-          [IFNAME][,]
+          [IFNAME|IF][,]
           [LABEL|L][,]
           [MAC|M][,]
           [NETMASK][,]
+          [NETNAME][,]
           [OS][,]
           [OSREL][,]
           [PLATFORM|PFORM][,]
@@ -689,11 +715,13 @@ mode only, else may have internal influence only.
         [TITLE|TITLEIDX|TITLEIDXASC][,]
         [MACHINE|MAXKEY][,]
       )
-      | (REC_GEN|REC):<tab-args>
+    )
+    [
+      (REC_GEN|REC):<tab-args>
       | (SPEC_GEN|SPEC):<tab-args>
       | (TAB_GEN|TAB):<tab-args>
       | (XML_GEN|XML):<tab-args>
-    )
+    ]
     [IP|DNS][,]
   
     [,conf-man.t2tVSTAT:
@@ -803,9 +831,9 @@ center, allbox, tab(^); llll.
  26^RELOCCAP^Defines LOCATION behaviour.^\-
  27^SSHPORT^Alternative port for p option of SSH.^\-
  28^NETNAME^DNS name of current interface.^\-
- 29^RESERVED07^For future use.^\-
- 30^RESERVED08^For future use.^\-
- 31^RESERVED09^For future use.^\-
+ 29^HYPERRELRUN^Release of present hypervisor.^\-
+ 30^ACCELERATOR^Present accelerator.^\-
+ 31^EXEPATH^Pathname for execution frontend.^\-
  32^RESERVED10^For future use.^\-
  33^IFNAME^Interface within the GuestOS.^\-
  34^CTYSRELEASE^MAGICID of the originator for each record.^\-
@@ -867,7 +895,7 @@ Particularly the HW\-Virtualization flags are shown.
 For now the Display is given as:
 
 .nf
-  bash-3.1\e$ ctys -a info -W delphi
+  bash-3.1$ ctys -a info -W delphi
   #############################
   Node:delphi.soho
   System      :Linux
@@ -875,9 +903,9 @@ For now the Display is given as:
   RELEASE     :2.6.21.6-delphi-005
   MACHINE     :i686
   KERNEL#CPU  :SMP-KERNEL
-  CPU-INFO    
+  CPU-INFO
   processor:0
-  vendor\e_id           :GenuineIntel
+  vendor_id           :GenuineIntel
   cpu family          :6
   model               :11
   model name          :Intel(R) Pentium(R) III CPU ...
@@ -894,12 +922,12 @@ For now the Display is given as:
   cache size          :512 KB
   
   Flags assumed equal for all processors on same machine:
-  flags               
+  flags
   vmx(VT-x - Pacifica)    = 0
   svm(AMD-V - Vanderpool) = 0
   PAE                     = 1
   
-  MEM-INFO    
+  MEM-INFO
   MemTotal               :  4018 G
   SwapTotal              : 24579 G
   
@@ -907,7 +935,7 @@ For now the Display is given as:
   wmctrl      :wmctrl is on this machine not available
   
   ------------
-  ctys:       :01\e_02\e_003a10
+  ctys:       :01_02_003a10
   Plugings:   :   VNC
 .fi
 
@@ -918,13 +946,12 @@ For now the Display is given as:
     (
       (
         (
-          [ (TUNNEL) |(CLIENTS|C)|(SERVER|S)|(BOTH|B)][,]
-  
+          [TUNNEL | (CLIENTS|C) | (SERVER|S) | (BOTH|B)][,]
           [CPORT][,]
           [DISPLAY][,]
           [GROUP|GID][,]
           [ID][,]
-          [(JOBID|JID)][,]
+          [JOBID|JID][,]
           [LABEL][,]
           [MAC][,]
           [PID][,]
@@ -935,15 +962,23 @@ For now the Display is given as:
           [TYPE][,]
           [UUID][,]
           [USER|UID][,]
+          [IFNAME|IF][,]
+          [CONTEXTSTRG|CSTRG][,]
+          [EXECPATH|EXEP][,]
+          [HYPERRELRUN|HRELRUN|HRX][,]
+          [ACCELERATOR|ACCEL][,]
+          [ARCH][,]
         )
         [TITLE|TITLEIDX|TITLEIDXASC][,]
         [MACHINE|MAXKEY][,]
       )
-      | (REC_GEN|REC):<tab-args>
+    )
+    [
+      (REC_GEN|REC):<tab-args>
       | (SPEC_GEN|SPEC):<tab-args>
       | (TAB_GEN|TAB):<tab-args>
       | (XML_GEN|XML):<tab-args>
-    )
+    ][,]
     [IP|DNS][,]
     [,SORT[:[ALL|EACH][%UNIQUE][%<sort-key>]]][,]
     [PKG:<pkg-list>][,]
@@ -964,7 +999,7 @@ For changing the selection scope of listed users refer to "\-s" option.
 .P
 The LIST action is deeply influenced by the setting of the option "\-b"
 concerning the performance, and the option "\-C" concerning the way the output data is displayed.
-The basic influence on the display is described in "Parallel And dBackgroundOperations" 
+The basic influence on the display is described in "Parallel And Background Operations" 
 the perfomance repercussion is presented in "Performance Measures".
 
 .P
@@ -977,72 +1012,71 @@ the assigned keyword.
 
 The tables mode supports semi\-fixed and generic tables.
 The tables are stored as macros and could be listed by call of \fBctys\-macros\fR.
-.TP
 
-\fBsemi\\-fixed tables\fR: 
-
+.RS
+.IP \(bu 3
+\fBsemi\-fixed tables\fR: 
 These tables have a fixed number of displayed columns with limited content variation, but fully
 resizable column\-widths.
 
 The most important view is the TAB_TCP, which shows the following columns:
 
-.RS
-.IP \(bu 3
-TCP\-Container: PM
-.IP \(bu 3
-TCP\-guest: (MAC|TCP|DNS)
-.IP \(bu 3
-Variable:
-.IP \(bu 3
-Label: label
-.IP \(bu 3
-ID: ids|id
-.IP \(bu 3
-Sesstype: (PM|CLI|X11|VNC|VMW|XEN|QEMU)
-.IP \(bu 3
-C: (C|S)
-.IP \(bu 3
-User: $USER
-.IP \(bu 3
-Group: <group>
+.RE
+
+.TS
+center, allbox, tab(^); ll.
+ \fBField\-Name\fR^\fBContent\fR
+ TCP\-Container^PM
+ TCP\-guest^(MAC|TCP|DNS)
+ Label^<label>
+ ID^<ids>|<id>
+ Sesstype^(PM|CLI|X11|VNC|VMW|XEN|QEMU)
+ C^(C|S)
+ User^$USER
+ Group^<group>
+.TE
+
+.TP
+_
 
 The sizes could be defined by providing an integer
 width for each column seperated by "%". Contents
 will be truncated righthand when they extend the size
 of the column.
-```"TAB_TCP:7%%6%%3%%"
+.nf
+  "TAB_TCP:7%%6%%3%%"
+.fi
+
 
 This defines the following sizes:
-.IP \(bu 3
-TCP\-Container(1): 7         (default=17)
-.IP \(bu 3
-TCP\-guest(7):     default   (default=17)
-.IP \(bu 3
-Label(3):         6         (default=20)
-.IP \(bu 3
-Sesstype(2):      default   (default=8)
-.IP \(bu 3
-C(14):            3         (default=1)
-.IP \(bu 3
-User(12):         default   (default=10)
-.IP \(bu 3
-Group(13):        default   (default=10)
 
-.RE
-.TP
 
+.TS
+center, allbox, tab(^); lll.
+ \fBField\-Name(index)\fR^\fBSize\fR^\fBDefault\fR
+ TCP\-Container(1)^7^17
+ TCP\-guest(7)^default^17
+ Label(3)^6^20
+ Sesstype(2)^default^8
+ C(14)^3^1
+ User(12)^default^10
+ Group(13)^default^10
+.TE
+
+
+.RS
+.IP \(bu 3
 \fBgeneric tables\fR
 
-Generic tables are completely customizable.
-
+Generic tables are fully customizable.
 Each table has to contain at least one mandatory
 column. The number, order, and repetition is free
 to be defined. But no semantics check or display
 format validation is performed on the results.
-MACRO files for storage and repetitive call are supported.
+MACRO files are supported for storage and repetitive call.
 
 .nf
-  TAB_GEN:<idx>_<colname>_<width>[%<idx>_<colname>_<width>]\e{0,n\e}
+  TAB_GEN:<idx>_<colname>_<width>[%<idx>_<colname>_<width>]{0,n}
 .fi
 
 
@@ -1081,24 +1115,8 @@ the border marker, which will has to be
 added for size calculations. each file
 has one additional marker, minus one
 from the total sum.
-The number of columns is "unlimited", has to fit the
-screen, of course.
+The number of columns is 'unlimited' and could contain repetitions.
 
-.RS
-.IP 1. 3
-"nonterse"
-Displays a listing, which partly "terse", but listed
-with some structure and ordering for different targets.
-
-.IP 2. 3
-"terse"
-Displays a listing, which is a neatless sum of selected
-fields for each record on one line, with fileds
-seperated by a semicolon ";". 
-This format could be imported to various office tools unchanged. 
-When the option "MACHINE" is provided additionally, the
-full set of information is listed. Non\-present values
-are just displayed as empty fields.
 .RE
 .RE
 
@@ -1121,6 +1139,13 @@ center, allbox, tab(^); llll.
  13^GID^GID^\-
  14^CSTYPE^C/S\-Type^\-
  15^JOBID^JobID^\-
+ 16^IFNAME^IFNAME^\-
+ 17^RESERVED^RESERVED1^\-
+ 18^CONTEXTSTRG^CONTEXTSTRG^\-
+ 19^EXECPATH^EXECPATH^\-
+ 20^HYPERRELRUN^HYPERRELRUN^\-
+ 21^ACCELERATOR^ACCELERATOR^\-
+ 22^ARCH^ARCH^\-
 .TE
 
 
@@ -1153,14 +1178,33 @@ center, tab(^); l.
 .TE
 
 
-.RS
-.IP 1. 3
-\fBgeneric records\fR
+.TP
+\fBGENERIC RECORDS\fR
+
 Generic recors are similar to generic tables, just present a line\-oriented format instead.
-The formats are SPEC, REC, and XML.
+Current supported formats are SPEC, REC, and XML.
 
-=== SHOW ===
+.RS
+.IP \(bu 3
+\fBSPEC\fR \- Useful format for exploration and validation of specifications.
+.IP \(bu 3
+\fBREC\fR \- A proprietary record format.
+.IP \(bu 3
+\fBXML\fR \- XML based record format.
+.RE
 
+.TP
+\fBRaw\-Output \- TERSE/MACHINE\fR
+
+The \fBTERSE\fR mode displays a specified subset, whereas the \fBMACHINE\fR mode 
+displays the complete set in a semicolon seperated raw format.
+This is particularly forseen either to be postprocessed or imported to a
+database or spreadsheet application.
+The \fBTITLE\fR and \fBTITLEIDX\fR keywords additionally display the fields contained in 
+current record format.
+
+.SS SHOW
+.P
 Displays dynamic information for the given hosts. 
 For now the Display is given as:
 
@@ -1211,7 +1255,6 @@ For now the Display is given as:
   Total ALARMs=0
 .fi
 
-.RE
 
 .SS Generic Options
 .TP
@@ -2487,5 +2530,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.006/doc-tmp/BASE/en/man/man1/ctys.1
+.\" cmdline: txt2tags -t man -i ctys.t2t -o /tmpn/0/ctys/bld/01.11.007/doc-tmp/BASE/en/man/man1/ctys.1
 

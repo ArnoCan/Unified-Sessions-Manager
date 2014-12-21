@@ -7,7 +7,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_012
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -57,7 +57,7 @@ LICENCE=GPL3
 #  bash-script
 #
 #VERSION:
-VERSION=01_10_012
+VERSION=01_11_007
 #DESCRIPTION:
 #  Install script for ctys.
 #
@@ -81,6 +81,12 @@ shopt -s nullglob
 ################################################################
 #       System definitions - do not change these!              #
 ################################################################
+#
+#Deactivate CTYS_INI check
+#
+export CTYS_INSTALLER=1;
+
+#
 #Execution anchor
 MYCALLPATHNAME=$0
 MYCALLNAME=`basename $MYCALLPATHNAME`
@@ -777,6 +783,7 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getFSinfo.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getPerfIDX.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getVMinfo.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getGeometry.sh"
 
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/getCurGID.sh"
 

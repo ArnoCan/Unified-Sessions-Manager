@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_009
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VMW_CREATE="${BASH_SOURCE}"
-_myPKGVERS_VMW_CREATE="01.10.009"
+_myPKGVERS_VMW_CREATE="01.11.007"
 hookInfoAdd $_myPKGNAME_VMW_CREATE $_myPKGVERS_VMW_CREATE
 _myPKGBASE_VMW_CREATE="`dirname ${_myPKGNAME_VMW_CREATE}`"
 
@@ -215,6 +215,11 @@ function createConnectVMW () {
 					;;
 
 				    VMWRC)
+					if [ "${C_CLIENTLOCATION}" ==  "-L CONNECTIONFORWARDING" ];then
+					    printWNG 1 $LINENO $BASH_SOURCE 0 "CONNECTIONFORWARDING for VMRC is currently ALPHA."
+					    printWNG 1 $LINENO $BASH_SOURCE 0 "Due to VMRC the final login may fail for CONNECTIONFORWARDING."
+					    printWNG 1 $LINENO $BASH_SOURCE 0 "If so, use DISPLAYFORWARDING."
+					fi
 					;;
 
 				    FIREFOX)
@@ -619,6 +624,10 @@ function createConnectVMW () {
 				    case $VMW_MAGIC in
 					VMW_S20*)
 					    ;;
+
+					VMW_RC*)
+					    ;;
+
 					*)
 					    ABORT=1;
 					    printERR $LINENO $BASH_SOURCE ${ABORT} "CONSOLE=${_conty} not supported for:VMW_VERSTRING=${VMW_VERSTRING}"
@@ -853,7 +862,6 @@ function createConnectVMW () {
 		fi
 	    done
 
-
             if [ -z "${_pname}" -a "${C_NSCACHEONLY}" == 1 -a "${C_NSCACHELOCATE}" == 0 ];then
 		ABORT=1;
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing PNAME, required from client due to \"-c LOCAL,ONLY...\""
@@ -1080,7 +1088,6 @@ function createConnectVMW () {
             #    So, ... let's go!    #
            ###########################
 
-
             #check whether a mediating wormhole is required. 
             #In any case find the entry for peer.
 	    if [ "${C_CLIENTLOCATION}" !=  "-L CONNECTIONFORWARDING" \
@@ -1107,7 +1114,12 @@ function createConnectVMW () {
 		if [ "$_vnc" == 1 -a -n "$_IDx" ];then
 		    _VNC_CLIENT_MODE=$_IDx
 		fi
+		if [ "$VMW_MAGIC" == VMW_RC -a -n "$_IDx" ];then
+		    _VNC_CLIENT_MODE=$_IDx
+#		    _VMWRC_CLIENT_MODE=$_IDx
+		fi
 	    fi
+
 	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE " Session-Identifier: ${_label} ->${_IDx}($_pname)"
 
             #check whether server is already running(local or remote)
@@ -1191,10 +1203,12 @@ function createConnectVMW () {
 			printERR $LINENO $BASH_SOURCE ${ABORT} "  digLocalPort <VMW> <${R_HOSTS//(*)/}> <$i>"
 			gotoHell ${ABORT}
 		    fi
-
  		    printDBG $S_VMW ${D_UID} $LINENO $BASH_SOURCE "_lport=${_lport} i=${i}"
 		    if [ -n "${_vnc}" ];then
 			_VNC_CLIENT_MODE=${_lport}
+		    fi
+		    if [ "$VMW_MAGIC"  == VMW_RC ];then
+			CTYS_VMW_VMRC_ACCESS_HOST=localhost:$_lport
 		    fi
 		    connectSessionVMW "${_pname}" "${_label}" "${_lport}"  "${_tcp}" "${_conty}"
 		fi

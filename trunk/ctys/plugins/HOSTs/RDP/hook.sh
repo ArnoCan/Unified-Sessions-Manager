@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_007alpha
 #
 ########################################################################
 #
@@ -34,7 +34,7 @@ export RDPC_OPT=;
 
 
 _myPKGNAME_RDP="${BASH_SOURCE}"
-_myPKGVERS_RDP="01.11.005alpha"
+_myPKGVERS_RDP="01.11.007alpha"
 hookInfoAdd $_myPKGNAME_RDP $_myPKGVERS_RDP
 _myPKGBASE_RDP="${_myPKGNAME_RDP%/hook.sh}"
 
@@ -352,8 +352,8 @@ function setVersionRDP () {
     if [ -z "${RDPC}" ];then
 	ABORT=2
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Missing supported executables for RDP client"
-	printERR $LINENO $BASH_SOURCE ${ABORT} "can not find:"
-	printERR $LINENO $BASH_SOURCE ${ABORT} " -> rddesktop"
+	printERR $LINENO $BASH_SOURCE ${ABORT} "cannot find:"
+	printERR $LINENO $BASH_SOURCE ${ABORT} " -> $(setFontAttrib FRED "rdesktop")"
 # 	printERR $LINENO $BASH_SOURCE ${ABORT} " -> tsclient"
 	printERR $LINENO $BASH_SOURCE ${ABORT} ""
 	printERR $LINENO $BASH_SOURCE ${ABORT} "Check your PATH"

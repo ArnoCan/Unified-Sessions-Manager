@@ -212,7 +212,7 @@ function getXENMAGIC () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_XEN
+#  getACCELERATOR_XEN
 #TYPE:
 #  bash-function
 #
@@ -236,7 +236,7 @@ function getXENMAGIC () {
 #      Paravirtualization only.
 #
 #FUNCEND###############################################################
-function getACCELLERATOR_XEN () {
+function getACCELERATOR_XEN () {
     local _syscap=/sys/hypervisor/properties/capabilities
     local _cap=;
     if [ -e "${_syscap}" ];then
@@ -329,7 +329,7 @@ function getHYPERRELRUN_XEN4CONF () {
 
 #FUNCBEG###############################################################
 #NAME:
-#  getACCELLERATOR_XEN4CONF
+#  getACCELERATOR_XEN4CONF
 #TYPE:
 #  bash-function
 #
@@ -347,8 +347,8 @@ function getHYPERRELRUN_XEN4CONF () {
 #   1: NOK
 #  VALUES:
 #FUNCEND###############################################################
-function getACCELLERATOR_XEN4CONF () {
-    getACCELLERATOR_XEN
+function getACCELERATOR_XEN4CONF () {
+    getACCELERATOR_XEN
 }
 
 

@@ -423,8 +423,9 @@ else
 
 #KEEP4REMINDER
 #OK-but CL-sync:	exec ${BASHEXE} -c "${OUTPUT}"
+#exec ${BASHEXE} -c "${OUTPUT}"
 #	exec ${BASHEXE} -c "${OUTPUT}"&
-#eval	${OUTPUT}&
+#
 	exec ${OUTPUT} &sleep ${CTYS_PREDETACH_TIMEOUT:-10}>/dev/null&
     fi
 fi

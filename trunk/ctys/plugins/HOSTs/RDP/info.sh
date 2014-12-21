@@ -123,7 +123,9 @@ function infoRDP4Action () {
 #FUNCEND###############################################################
 function infoRDP4MACHINE () {
     local _out=;
-    _out="RDP"
+    _out="$MYACCOUNT"
+    _out="${_out};RDP"
+    _out="${_out};"
     _out="${_out};${_myPKGVERS_RDP}"
     _out="${_out};${RDP_MAGIC}"
     _out="${_out};${RDP_STATE}"

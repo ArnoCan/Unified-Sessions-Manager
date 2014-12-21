@@ -108,9 +108,9 @@ function startSessionX11 () {
 
     if [ "$_label" != NOTITLE ];then
 	if [ "${_xp}" == "-"  ];then
-	    _xopts="${_xopts} ${_xp}${_titlekey:-title} CTYS-X11-${CALLERJOBID}-${_label} "
+	    _xopts="${_xopts} ${_xp}title ${_titlekey:-CTYS-X11-${CALLERJOBID}-${_label}} "
 	else
-	    _xopts="${_xopts} ${_xp}${_titlekey:-title}=CTYS-X11-${CALLERJOBID}-${_label} "
+	    _xopts="${_xopts} ${_xp}title=${_titlekey:-CTYS-X11-${CALLERJOBID}-${_label}} "
 	fi
     fi
 

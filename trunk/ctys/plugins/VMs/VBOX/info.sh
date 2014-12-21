@@ -122,7 +122,9 @@ function infoVBOX4Action () {
 #FUNCEND###############################################################
 function infoVBOX4MACHINE () {
     local _out=;
-    _out="VBOX"
+    _out="$MYACCOUNT"
+    _out="${_out};VBOX"
+    _out="${_out};$VBOX_ACCELERATOR"
     _out="${_out};${_myPKGVERS_VBOX}"
     _out="${_out};${VBOX_MAGIC}"
     _out="${_out};${VBOX_STATE}"

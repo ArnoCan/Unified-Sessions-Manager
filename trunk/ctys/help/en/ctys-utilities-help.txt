@@ -16,8 +16,9 @@ ctys-utilities
    getCurArch
    getCurCTYSRel
    getCurDistribution
-   getFSinfo
    getCurGID
+   getFSinfo
+   getGeometry
    getHDDinfo
    getHDDtemp
    getMEMinfo

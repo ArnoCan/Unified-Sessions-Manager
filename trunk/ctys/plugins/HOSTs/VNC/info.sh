@@ -122,7 +122,9 @@ function infoVNC4Action () {
 #FUNCEND###############################################################
 function infoVNC4MACHINE () {
     local _out=;
-    _out="VNC"
+    _out="$MYACCOUNT"
+    _out="${_out};VNC"
+    _out="${_out};"
     _out="${_out};${_myPKGVERS_VNC}"
     _out="${_out};${VNC_MAGIC}"
     _out="${_out};${VNC_STATE}"

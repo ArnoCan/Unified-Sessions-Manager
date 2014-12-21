@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006
+#VERSION:      01_11_007
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_CLI="${BASH_SOURCE}"
-_myPKGVERS_CLI="01.11.006"
+_myPKGVERS_CLI="01.11.007"
 hookInfoAdd "$_myPKGNAME_CLI" "$_myPKGVERS_CLI"
 
 
@@ -371,7 +371,14 @@ function fetchOptions () {
 		fi 
                 if((C_STACK==0)); then 
 		    local _rx=;
+		    local _n=0;
 		    for i in ${OPTARG//,/ };do
+			let _n++;
+			if [ $_n -gt 2 ];then
+			    ABORT=1; 
+			    printERR $LINENO $BASH_SOURCE ${ABORT} "More than 2 arguments:\"-b ${OPTARG}\""
+			    gotoHell ${ABORT}       
+			fi
 			case ${i} in 
 			    [sS][tT][aA][cC][kK])C_ASYNC=0;C_PARALLEL=0;C_STACK=1;_rx="${_rx},STACK";;
 			    [sS][yY][nN][cC]|0|[oO][fF][fF])C_ASYNC=0;_rx="${_rx},SYNC";;
@@ -505,12 +512,27 @@ function fetchOptions () {
 		    ABORT=1;         
 		fi
 		export C_DISPLAY="${OPTARG}";
-		if [ "${C_DISPLAY}" != "${C_DISPLAY//:*/}" ];then
-		    ABORT=1;         
-		    printERR $LINENO $BASH_SOURCE ${ABORT} "Localhost is supported for DISPLAY redirection only"
-		    printERR $LINENO $BASH_SOURCE ${ABORT} "  C_DISPLAY=<${C_DISPLAY}>"
-		    gotoHell 1
-		fi
+		case ${C_DISPLAY} in
+		    [lL][oO][cC][aA][lL][hH][oO][sS][tT]:*)
+			;;
+		    127.[0-9].[0-9].[0-9]:*)
+			;;
+		    :[0-9]|:[0-9][0-9]|:[0-9][0-9][0-9])
+			;;
+		    [0-9]:[0-9]|[0-9][0-9]:[0-9])
+			;;
+		    [0-9]:[0-9][0-9]|[0-9][0-9]:[0-9][0-9])
+			;;
+		    [0-9]|[0-9][0-9]|[0-9][0-9][0-9])
+			;;
+		    *)
+			ABORT=1;         
+			printERR $LINENO $BASH_SOURCE ${ABORT} "Numeric DISPLAY is supported only."
+			printERR $LINENO $BASH_SOURCE ${ABORT} "  C_DISPLAY=<${C_DISPLAY}>"
+			printINFO 1 $LINENO $BASH_SOURCE 0     "Format: [localhost:|[0-9]{1,2}:][0-9]{1,2}"
+			gotoHell 1
+			;;
+		esac
 		;;
 
 	    E) #[-E]
@@ -884,7 +906,7 @@ function fetchOptions () {
                     desktopsCheckDesk ${C_WMC_DESK}
 		    if [ $? -ne 0 ]; then
 			ABORT=1; 
-			printERR $LINENO $BASH_SOURCE ${ABORT} "given desktop is not available:-D <${C_WMC_DESK}>"
+			printERR $LINENO $BASH_SOURCE ${ABORT} "given desktop is not available:-W <${C_WMC_DESK}>"
 			printERR $LINENO $BASH_SOURCE ${ABORT} "  due to reliability desktops has to be pre-created manually."
 			gotoHell ${ABORT}       
 		    fi
@@ -1271,7 +1293,7 @@ function getActionResulting () {
     esac
 
     if [ -z "${_action}" ];then
-	local _action=`echo " $* "|sed -n 's/^.*[ ]*-a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
+	local _action=`echo " $* "|sed -n 's/^.* [ ]*-a[ "]*//;s/\([^ ="]*\)[= "].*$/\1/p'`
 	if [ "${_action//=/}" != "${_action}" ];then
 	    _action=SYNTAX-ERROR;
 	fi

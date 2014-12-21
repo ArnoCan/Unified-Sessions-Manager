@@ -17,6 +17,8 @@
    [-h]
    [-H <help-options>]
    [-l <remote-user>]
+   [--quick-list]
+   [--quick-tab]
    [-t <plugin-type>]
    [-T <plugin-preload-typelist>]
    [-V]
@@ -172,7 +174,189 @@ For additional help refer to the documents or type \fBctys \-H help\fR.
 
 .TP
 \fB\-l <remote\-user>\fR
-Refer to "ctys" generic options for additional information.
+The remote user.
+
+.TP
+\fB\-\-quick\-list\fR
+Displays a short list of overall states for selected plugins on each target.
+
+.nf
+  
+  ctys-plugins -E -T all --quick-list localhost
+  
+.fi
+
+
+.nf
+  Hostname    Plugin   Accelerator  Version          MAGIC-ID     State     
+  ------------------------------------------------------------------------------
+  acue@ws2    CLI                   01.06.001a09     CLIBASH      ENABLED   
+  acue@ws2    RDP                   01.11.007alpha   RDPRD        ENABLED   
+  acue@ws2    VNC                   01.10.013        VNCR4        ENABLED   
+  acue@ws2    X11                   01.06.001a09     X11          ENABLED   
+  acue@ws2    QEMU     QEMU         01.10.013        QEMU_091     DISABLED  
+  acue@ws2    VBOX                  01.11.006alpha   NOLOC        DISABLED  
+  acue@ws2    VMW                   01.11.005        VMW_GENERIC  DISABLED  
+  acue@ws2    XEN                   01.10.013        DISABLED     DISABLED  
+  acue@ws2    PM       VMX          01.10.008        PM_Linux     ENABLED   
+.fi
+
+
+.TP
+\fB\-\-quick\-tab\fR
+Displays a short table  of overall states for selected plugins.
+
+The following call contains the 'ctys\-groups' call for stripping off
+context arguments, which in some cases are valid, thus could not
+be dropped in general.
+When this is not done, some might be detected as valid and lead to execution.
+In future releases a new scanner and parser are foreseen to be provided, 
+which will clear this specific.
+
+.nf
+  
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all)
+  
+.fi
+
+
+.P
+For limitation of error messages and some ssh info the error channel should be redirected.
+
+.nf
+  
+  ctys-plugins -T all -E --quick-tab $(ctys-groups -X -m 8 netscan/all) 2>/dev/null
+  
+.fi
+
+.P
+This results to the following list, where the output order may vary call\-by\-call
+due to parallel execution.
+
+.nf
+  
+  Hostname              | PM     | CLI  X11  VNC  RDP  | KVM    QEMU   VBOX   VMW    XEN 
+  ----------------------+--------+---------------------+---------------------------------
+  root@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
+  root@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
+  root@hydra.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
+  root@olymp.soho       | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@app1.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@app2.soho        | VMX    | x    x    x    x    | -      -      -      -      -   
+  root@lab04            | VMX    | x    x    x    x    | -      -      -      W7     -   
+  acue@lab04            | VMX    | x    x    x    x    | -      QEMU   -      W7     -   
+  vadmin@delphi.soho    | VMX    | x    x    x    x    | -      -      -      S1     -   
+  acue@lab05.soho       | PAE    | x    x    x    x    | -      -      -      S2     -   
+  acue@lab02.soho       | VMX    | x    x    x    x    | -      QEMU   V      -      -   
+  acue@delphi.soho      | VMX    | x    x    x    x    | -      -      -      S1     -   
+  root@lab03            | PAE    | x    x    x    x    | -      -      -      -      HVM 
+  root@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      PARA
+  5000@lab01.soho       | PAE    | x    x    x    -    | -      -      -      -      -   
+  acue@lab03            | PAE    | x    x    x    x    | -      -      -      -      -   
+  acue@app1.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  acue@app2.soho        | VMX    | x    x    x    x    | KVM    KVM    -      -      -   
+  
+.fi
+
+
+.P
+Where the fields have the semantics as given by following list, the values are forseen to be
+expanded for more details:
+
+.RS
+.IP 1. 3
+PM: Type of CPU support
+.RS
+.IP \(bu 3
+VMX: Intel VT\-X
+.IP \(bu 3
+SVN: AMD SVN
+.IP \(bu 3
+PAE: Extended Mem by PAE
+
+.RE
+.IP 2. 3
+HOSTS: CLI, X11, VNC, RDP
+.RS
+.IP \(bu 3
+x: ENABLED
+.IP \(bu 3
+else: DISABLED
+
+.RE
+.IP 3. 3
+VMs: KVM, QEMU, VBOX, VMW, XEN
+.RS
+.IP \(bu 3
+Common: 
+.RS
+.IP \(bu 3
+V: ENABLED
+.IP \(bu 3
+\-: DISABLED
+.RE
+.IP \(bu 3
+KVM: Fully ENABLED, else check
+.RS
+.IP \(bu 3
+Module
+.IP \(bu 3
+VDE\-Switch
+.RE
+.IP \(bu 3
+QEMU: ENABLED without KVM\-Support, else check
+.RS
+.IP \(bu 3
+Module
+.IP \(bu 3
+VDE\-Switch
+.RE
+.IP \(bu 3
+VMW
+.RS
+.IP \(bu 3
+P[123]: Player
+.IP \(bu 3
+S[12]:  Server
+.IP \(bu 3
+W[67]:  Workstation
+.RE
+.IP \(bu 3
+XEN
+.RS
+.IP \(bu 3
+HVM: Fully ENABLED, else check
+.RS
+.IP \(bu 3
+Kernel
+.IP \(bu 3
+Access: sudo, ksu
+.RE
+.IP \(bu 3
+PARA: ENABLED with para\-virtualisation only, else check
+.RS
+.IP \(bu 3
+Kernel
+.IP \(bu 3
+Access: sudo, ksu
+.RE
+.RE
+.RE
+.RE
+
+.P
+The output displays that e.g. 
+
+.RS
+.IP \(bu 3
+On app1+app2: The user acue has access to KVM and QEMU, but not root.
+This is due to missing VDE\-switch for root, which has to be setup 
+by 'ctys\-setupVDE' 
+.IP \(bu 3
+On lab03: The user acue has no access to XEN, but root has.
+This is due to access permission by sudo for user acue.
+.RE
 
 .TP
 \fB\-t <plugin\-type>\fR
@@ -281,5 +465,5 @@ For additional information refer to enclosed Releasenotes and License files.
 
 
 .\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
-.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.006/doc-tmp/BASE/en/man/man1/ctys-plugins.1
+.\" cmdline: txt2tags -t man -i ctys-plugins.t2t -o /tmpn/0/ctys/bld/01.11.007/doc-tmp/BASE/en/man/man1/ctys-plugins.1
 

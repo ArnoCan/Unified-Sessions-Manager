@@ -187,7 +187,7 @@ function enumerateMySessionsPM () {
                 local _out4=;
 		#NETNAME:_out4="${_out4};";
 		_out4="${_out4};";
-		_out4="${_out4};";
+		_out4="${_out4};$PM_ACCELERATOR";
 		_out4="${_out4};";
 		_out4="${_out4};";
                  #_out="${_out};`getGUESTIFNAME ${X}`";

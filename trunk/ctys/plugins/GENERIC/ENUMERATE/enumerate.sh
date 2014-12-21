@@ -247,7 +247,7 @@ function enumerateMySessions () {
       local _ssumtime=`getCurTime`;
       printDBG $S_GEN ${D_FLOW} $LINENO $BASH_SOURCE "${FUNCNAME}:START-machine-${_ssumtime}--"
       for y in ${PACKAGES_KNOWNTYPES};do
-	  [ "$y" == "CLI" -o "$y" == "X11" -o "$y" == "VNC" ]&&continue;
+	  [ "$y" == "CLI" -o "$y" == "X11" -o "$y" == "RDP" -o "$y" == "VNC" ]&&continue;
 	  if [ -n "`typeset -f enumerateMySessions${y}`" ];then
 	      printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "C_SESSIONTYPE=${C_SESSIONTYPE} => ${y}"
 	      if [ "${C_SESSIONTYPE}" == "${y}" -o "${C_SESSIONTYPE}" == "ALL" -o "${C_SESSIONTYPE}" == "DEFAULT" ];then
@@ -366,7 +366,6 @@ function enumerateMySessions () {
 	  EPILOGUE)         _epilogue=1;;
 
 	  VMSTATE|VSTAT)    _vmstate=1;;
-	  HYPERREL|HYREL)   _hyperrel=1;;
 	  STACKCAP|SCAP)    _stackcap=1;;
 	  STACKREQ|SREQ)    _stackreq=1;;
 
@@ -383,7 +382,7 @@ function enumerateMySessions () {
           EXECLOCATION)     _execloc=1;;
           RELOCCAP)         _reloccap=1;;
           NETNAME)          _netname=1;;
-          IFNAME)           _ifname=1;;
+          IFNAME|IF)        _ifname=1;;
           CTYSRELEASE)      _ctysrel=1;;
           NETMASK)          _netmask=1;;
           GATEWAY)          _gateway=1;;
@@ -423,8 +422,9 @@ function enumerateMySessions () {
           SERIALNUMBER|SERNO)_ser=1;;
           CATEGORY|CAT)      _cat=1;;
 
-          EXEPATH)           _exep=1;;
-          ACCELLERATOR)      _acc=1;;
+          EXEPATH|EXEP)      _exep=1;;
+          ACCELERATOR|ACCEL)_acc=1;;
+	  HYPERREL|HYREL)   _hyperrel=1;;
           HYPERRELRUN|HRELRUN|HRELX|HRX)
                              _hrx=1;;
 
@@ -473,7 +473,7 @@ function enumerateMySessions () {
 			       *)
 				   if [ -z "$_custom" ];then
 				       ABORT=2
-				       printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected MATCHVSTAT key:${i1}"
+				       printERR $LINENO $BASH_SOURCE ${ABORT} "Unexpected MATCHVSTAT key:<${i1}>"
 				       printERR $LINENO $BASH_SOURCE ${ABORT} "If used intentionally, set CUSTOM on the left"
 				       printERR $LINENO $BASH_SOURCE ${ABORT} " \"...MATCHVSTAT:CUSTOM%${i1}..."
 				       gotoHell ${ABORT}
@@ -929,7 +929,7 @@ function enumerateCheckParam () {
 
                 TYPE|STYPE|ST)_argsX1="${_argsX1},${KEY}";;
                 EXEPATH)_exep="${_argsX1},${KEY}";;
-		ACCELLERATOR)_acc="${_argsX1},${KEY}";;
+		ACCELERATOR)_acc="${_argsX1},${KEY}";;
 		HYPERRELRUN|HRELRUN|HRELX|HRX)_hrx="${_argsX1},${KEY}";;
 
 		HWCAP|HWREQ|EXECLOCATION|RELOCCAP)_argsX1="${_argsX1},${KEY}";;

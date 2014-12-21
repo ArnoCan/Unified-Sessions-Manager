@@ -14,6 +14,7 @@ ctys-macros
    [-c]
    [-d <debug-level>*]
    [-D <deepness-level>]
+   [-e [<macro-file-list>|<path-list>]]
    [-E]
    [-F]
    [-f <macro-file>]

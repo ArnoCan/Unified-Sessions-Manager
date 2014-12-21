@@ -122,7 +122,9 @@ function infoPM4Action () {
 #FUNCEND###############################################################
 function infoPM4MACHINE () {
     local _out=;
-    _out="PM"
+    _out="$MYACCOUNT"
+    _out="${_out};PM"
+    _out="${_out};$PM_ACCELERATOR"
     _out="${_out};${_myPKGVERS_PM}"
     _out="${_out};${PM_MAGIC}"
     _out="${_out};${PM_STATE}"

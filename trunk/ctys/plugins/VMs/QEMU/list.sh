@@ -130,7 +130,7 @@ function listMySessionsQEMU () {
 	    exep="${exep##*;}";
 	    exep=$(PATH=${PATH}:${QEMU_PATHLIST}&&gwhich ${exep} 2>/dev/null);
 	    hrx=$(getHYPERRELRUN_QEMU ${exep});
-	    acc=$(getACCELLERATOR_QEMU ${exep});
+	    acc=$(getACCELERATOR_QEMU ${exep});
 	    arch=;
 	    i="${i%;*;}${_myJobID};${reserved01}${cstrg};${exep};${hrx};${acc};${arch}";
  	fi

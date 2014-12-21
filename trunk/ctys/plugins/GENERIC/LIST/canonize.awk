@@ -178,7 +178,7 @@ titleidx==1{
     if(cstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CONTEXTSTRG(18)";       }
     if(exep>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"EXECPATH(19)";          }
     if(hrx>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HYPERRELRUN(20)";       }
-    if(acc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELLERATOR(21)";      }
+    if(acc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELERATOR(21)";      }
     if(arch>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ARCH(22)";              }
     printf("%s\n",outbuf);
     exit;        
@@ -206,7 +206,7 @@ titleidx==2{
     if(cstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CONTEXTSTRG(R-18)";       }
     if(exep>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"EXECPATH(S-19)";          }
     if(hrx>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HYPERRELRUN(T-20)";       }
-    if(acc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELLERATOR(U-21)";      }
+    if(acc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELERATOR(U-21)";      }
     if(arch>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ARCH(22)";                }
     printf("%s\n",outbuf);
     exit;        
@@ -235,7 +235,7 @@ title==1{
     if(cstrg>0){ if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CONTEXTSTRG";       }
     if(exep>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"EXECPATH";          }
     if(hrx>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HYPERRELRUN";       }
-    if(acc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELLERATOR";      }
+    if(acc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ACCELERATOR";      }
     if(arch>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ARCH";              }
     printf("%s\n",outbuf);
     exit;        
