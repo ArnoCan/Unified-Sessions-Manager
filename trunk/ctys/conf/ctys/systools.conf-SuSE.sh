@@ -216,3 +216,69 @@ EXECSHELLWRAPPERNOPTY="${CLISHELL} -c "
 [ -z "$CTYS_HTMLVIEWER" ]&&CTYS_HTMLVIEWER=`getPathName $LINENO $BASH_SOURCE WARNINGEXT firefox /usr/bin`
 
 [ -z "$CTYS_MANVIEWER" ]&&CTYS_MANVIEWER=`getPathName $LINENO $BASH_SOURCE WARNINGEXT man /usr/bin`
+
+
+
+#
+#ctys-scripts editor
+#
+#Emacs
+[ -z "$CTYS_SCRIPTEDIT" ]&&CTYS_SCRIPTEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+#
+#vi
+[ -z "$CTYS_SCRIPTEDIT" ]&&CTYS_SCRIPTEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gvim /usr/bin`
+[ -z "$CTYS_TERMINAL" ]&&CTYS_TERMINAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_SCRIPTEDIT" ]&&CTYS_VIM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vim /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -n "$CTYS_VIM" -a -z "$CTYS_SCRIPTEDIT" ]&&CTYS_SCRIPTEDIT="$CTYS_TERMINAL -e $CTYS_VIM"
+#
+[ -z "$CTYS_SCRIPTEDIT" ]&&CTYS_SCRIPTEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT konqueror /usr/bin`
+[ -z "$CTYS_SCRIPTEDIT" ]&&CTYS_SCRIPTEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nautilus /usr/bin`
+
+
+#
+#ctys-macros editor
+#
+#Emacs
+[ -z "$CTYS_MACROSEDIT" ]&&CTYS_MACROSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+#
+#vi
+[ -z "$CTYS_MACROSEDIT" ]&&CTYS_MACROSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gvim /usr/bin`
+[ -z "$CTYS_TERMINAL" ]&&CTYS_TERMINAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_MACROSEDIT" ]&&CTYS_VIM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vim /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -n "$CTYS_VIM" -a -z "$CTYS_MACROSEDIT" ]&&CTYS_MACROSEDIT="$CTYS_TERMINAL -e  $CTYS_VIM"
+#
+[ -z "$CTYS_MACROSEDIT" ]&&CTYS_MACROSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT konqueror /usr/bin`
+[ -z "$CTYS_MACROSEDIT" ]&&CTYS_MACROSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nautilus /usr/bin`
+
+
+#
+#ctys-groups editor
+#
+#Emacs
+[ -z "$CTYS_GROUPSEDIT" ]&&CTYS_GROUPSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+#
+#vi
+[ -z "$CTYS_GROUPSEDIT" ]&&CTYS_GROUPSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gvim /usr/bin`
+[ -z "$CTYS_TERMINAL" ]&&CTYS_TERMINAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_GROUPSEDIT" ]&&CTYS_VIM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vim /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_GROUPSEDIT" ]&&CTYS_GROUPSEDIT="$CTYS_TERMINAL -e $CTYS_VIM"
+#
+[ -z "$CTYS_GROUPSEDIT" ]&&CTYS_GROUPSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT konqueror /usr/bin`
+[ -z "$CTYS_GROUPSEDIT" ]&&CTYS_GROUPSEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nautilus /usr/bin`
+
+
+#
+#ctys-config editor
+#
+[ -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT konqueror /usr/bin`
+#
+#Emacs
+[ -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT emacs /usr/bin`
+#
+#vi
+[ -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gvim /usr/bin`
+[ -z "$CTYS_TERMINAL" ]&&CTYS_TERMINAL=`getPathName $LINENO $BASH_SOURCE WARNINGEXT gnome-terminal /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_CONFIGEDIT" ]&&CTYS_VIM=`getPathName $LINENO $BASH_SOURCE WARNINGEXT vim /usr/bin`
+[ -n "$CTYS_TERMINAL" -a -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT="$CTYS_TERMINAL -e $CTYS_VIM"
+#
+[ -z "$CTYS_CONFIGEDIT" ]&&CTYS_CONFIGEDIT=`getPathName $LINENO $BASH_SOURCE WARNINGEXT nautilus /usr/bin`

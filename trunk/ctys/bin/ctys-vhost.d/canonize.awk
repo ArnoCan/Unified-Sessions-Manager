@@ -6,7 +6,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_008
+#VERSION:      01_11_009
 #
 ########################################################################
 #
@@ -108,6 +108,7 @@ function fetchMacMap(td,mx){
 }
 BEGIN{mx=0;
  perror("Start record with AWK:vhost-canonize.awk");
+ perror("acc      ="acc);
  perror("arch     ="arch);
  perror("callp    ="callp);
  perror("cat      ="cat);
@@ -116,10 +117,13 @@ BEGIN{mx=0;
  perror("cstr     ="cstr);
  perror("ctysrel  ="ctysrel);
  perror("d        ="d);
+ perror("defcon   ="defcon);
+ perror("defhosts ="defhosts);
  perror("dist     ="dist);
  perror("distrel  ="distrel);
  perror("dns      ="dns);
  perror("dsp      ="dsp);
+ perror("exep     ="exep);
  perror("execloc  ="execloc);
  perror("gateway  ="gateway);
  perror("gid      ="gid);
@@ -127,7 +131,9 @@ BEGIN{mx=0;
  perror("hwcap    ="hwcap);
  perror("hwreq    ="hwreq);
  perror("hyrel    ="hyrel);
+ perror("hyrelrun ="hyrelrun);
  perror("i        ="i);
+ perror("index    ="count);
  perror("ifname   ="ifname);
  perror("ip       ="ip);
  perror("l        ="l);
@@ -157,21 +163,7 @@ BEGIN{mx=0;
  perror("ver      ="ver);
  perror("vram     ="vram);
  perror("vstat    ="vstat);
- perror("rsrv1    ="rsrv1);
- perror("rsrv2    ="rsrv2);    
- perror("rsrv3    ="_rsrv3);
- perror("rsrv4    ="rsrv4);
- perror("rsrv5    ="rsrv5);
- perror("rsrv6    ="rsrv6);
- perror("rsrv7    ="rsrv7);
- perror("rsrv8    ="rsrv8);
- perror("rsrv9    ="rsrv9);
- perror("rsrv10   ="rsrv10);
- perror("rsrv11   ="rsrv11);
- perror("rsrv12   ="rsrv12);
- perror("rsrv13   ="rsrv13);
- perror("rsrv14   ="rsrv14);
- perror("rsrv15   ="rsrv15);
+ perror("rsrv     ="rsrv);
  line=0;
 }
 {line++;perror("RECORD="$0);}
@@ -204,11 +196,11 @@ titleidx==1{
  if(execloc>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ExecLocation(25)";   }
  if(reloccap>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RelocationCapability(26)";   }
  if(sshport>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"SSHport(27)";}
- if(netname>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netname(28)";}
- if(rsrv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(29)";   }
- if(rsrv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(30)";   }
- if(rsrv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(31)";   }
- if(rsrv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(32)";   }
+ if(netname>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Netname(28)";}
+ if(hyrelrun>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HyperrelRun(29)";   }
+ if(acc>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accelerator(30)";   }
+ if(exep>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ExePath(31)";   }
+ if(count>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Index(32)";   }
  if(ifname>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ifname(33)";   }
  if(ctysrel>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSrelease(34)";   }
  if(netmask>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask(35)";   }
@@ -222,6 +214,8 @@ titleidx==1{
  if(ustr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(43)";      }
  if(uid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(44)";      }
  if(gid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(45)";      }
+ if(defhosts>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs(46)";      }
+ if(defcon>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE(47)";      }
  printf("%s\n",outbuf);
  exit;        
 }
@@ -255,10 +249,10 @@ titleidx==2{
  if(reloccap>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RelocationCapability(Z-26)";   }
  if(sshport>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"SSHport(AA-27)";   }
  if(netname>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netname(AB-28)";   }
- if(rsrv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AC-29)";   }
- if(rsrv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AD-30)";   }
- if(rsrv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AE-31)";   }
- if(rsrv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv(AF-32)";   }
+ if(hyrelrun>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HyperrelRun(AC-29)";   }
+ if(acc>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accelerator(AD-30)";   }
+ if(exep>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ExePath(AE-31)";   }
+ if(count>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Index(AF-32)";   }
  if(ifname>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ifname(AG-33)";   }
  if(ctysrel>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSrelease(AH-34)";   }
  if(netmask>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask(AI-35)";   }
@@ -272,6 +266,8 @@ titleidx==2{
  if(ustr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg(AQ-43)";      }
  if(uid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID(AR-44)";      }
  if(gid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID(AS-45)";      }
+ if(defhosts>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs(AT-46)";      }
+ if(defcon>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE(AU-47)";      }
  printf("%s\n",outbuf);
  exit;        
 }
@@ -305,10 +301,10 @@ title==1{
  if(reloccap>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"RelocationCapability";   }
  if(sshport>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"SSHport";   }
  if(netname>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netname";   }
- if(rsrv7>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
- if(rsrv8>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
- if(rsrv9>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
- if(rsrv10>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"rsrv";   }
+ if(hyrelrun>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"HyperrelRun";   }
+ if(acc>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Accelerator";   }
+ if(exep>0)    { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ExePath";   }
+ if(count>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"Index";   }
  if(ifname>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"ifname";   }
  if(ctysrel>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"CTYSrelease";   }
  if(netmask>0)  { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"netmask";   }
@@ -322,6 +318,8 @@ title==1{
  if(ustr>0)     { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UserStrg";      }
  if(uid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"UID";      }
  if(gid>0)      { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"GID";      }
+ if(defhosts>0) { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefHOSTs";      }
+ if(defcon>0)   { if(mx==1)outbuf=outbuf";"; mx=1; outbuf=outbuf"DefCONSOLE";      }
  printf("%s\n",outbuf);
  exit;        
 }
@@ -383,10 +381,10 @@ $0~/^$/{exit;}
  if(reloccap>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $26;}
  if(sshport>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $27;}
  if(netname>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $28;}
- if(rsrv7>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $29;}
- if(rsrv8>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $30;}
- if(rsrv9>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $31;}
- if(rsrv10>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $32;}
+ if(hyrelrun>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $29;}
+ if(acc>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $30;}
+ if(exep>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $31;}
+ if(count>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $32;}
  if(ifname>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $33;}
  if(ctysrel>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $34;}
  if(netmask>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $35;}
@@ -400,6 +398,8 @@ $0~/^$/{exit;}
  if(ustr>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $43;}
  if(uid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $44;}
  if(gid>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $45;}
+ if(defhosts>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $46;}
+ if(defcon>0){if(mx==1)outbuf=outbuf";";mx=1;outbuf=outbuf $47;}
  perror("output="outbuf);
  printf("%s\n",outbuf);
 }

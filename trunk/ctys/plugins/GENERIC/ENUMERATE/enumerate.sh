@@ -25,7 +25,7 @@ _titleENUM=;
 _machineENUM=;
 
 #NF of internal record-if
-C_ENUMNF=45;
+C_ENUMNF=47;
 #
 #This is the currently processed ENUMERATE configuration, gwhich
 #has been detected as valid.
@@ -224,21 +224,10 @@ function enumerateMySessions () {
   local _exep=0;
 
 
-  local _reserv1=0;
-  local _reserv2=0;
-  local _reserv3=0;
-  local _reserv4=0;
-  local _reserv5=0;
-  local _reserv6=0;
-  local _reserv7=0;
-  local _reserv8=0;
-  local _reserv9=0;
-  local _reserv10=0;
-  local _reserv11=0;
-  local _reserv12=0;
-  local _reserv13=0;
-  local _reserv14=0;
-  local _reserv15=0;
+  local _defhosts=0;
+  local _defcon=0;
+
+  local _reserv=0;
 
   #controls debugging for awk-scripts
   doDebug $S_GEN  ${D_MAINT} $LINENO $BASH_SOURCE
@@ -342,9 +331,7 @@ function enumerateMySessions () {
       fi
 
       awk -F';' -v vb="$_VB" -v ip="$_IP" -v dist="$_dist" -v os="$_os" -v ver="$_ver" -v ser="$_ser" \
-	  -v reserv1="$_reserv1" -v reserv2="$_reserv2"   -v reserv3="$_reserv3" -v reserv4="$_reserv4" \
-	  -v reserv5="$_reserv5" -v reserv6="$_reserv6"   -v reserv7="$_reserv7" -v reserv8="$_reserv8" \
-	  -v reserv9="$_reserv9" -v reserv10="$_reserv10" -v reserv11="$_reserv11" -v reserv12="$_reserv12" \
+	  -v reserv="$_reserv"\
 	  -v acc="$_acc" -v hrx="$_hrx" -v exep="$_exep" \
 	  -v vmstate="$_vmstate" -v hyperrel="$_hyperrel" -v stackcap="$_stackcap" -v stackreq="$_stackreq" \
           -v arch="$_arch" -v platform="$_platform" -v vram="$_vram" -v vcpu="$_vcpu"  \
@@ -356,6 +343,8 @@ function enumerateMySessions () {
           -v cat="$_cat" -v l=$_L -v i=$_ID -v t=$_T -v uu=$_UU  \
 	  -v mac=$_MAC  -v dsp=$_VDSP -v cp=$_VCP  \
 	  -v uid=$_uid  -v gid=$_gid \
+	  -v defhosts=$_defhosts  -v defcon=$_defcon \
+	  -v reserv=$_reserv \
 	  -v h=$MYHOST -v tcp=$_tcp -v dns=$_dns \
 	  -v enumnf=$C_ENUMNF \
 	  -v d=$D  -v dargs="${C_DARGS}" -v callp="${MYLIBEXECPATH}/" \
@@ -376,6 +365,11 @@ function enumerateMySessions () {
       case $KEY in
 	  PROLOGUE)         _prologue=1;;
 	  EPILOGUE)         _epilogue=1;;
+
+	  DEFAULTCONSOLE|DEFCON|DEFC)
+	                    _defcon=1;;
+	  DEFAULTHOSTS|DEFHOSTS|DEFH)
+	                    _defhosts=1;;
 
 	  VMSTATE|VSTAT)    _vmstate=1;;
 	  STACKCAP|SCAP)    _stackcap=1;;
@@ -635,6 +629,9 @@ function enumerateMySessions () {
       _acc=1;
       _uid=1;
       _gid=1;
+      _reserv=1;
+      _defcon=1;
+      _defhosts=1;
   fi
 
   if((_none==1));then
@@ -681,6 +678,9 @@ function enumerateMySessions () {
       _acc=0;
       _uid=0;
       _gid=0;
+      _defcon=0;
+      _defhosts=0;
+      _reserv=0;
   fi
 
   if((_maxkey==1));then
@@ -707,15 +707,12 @@ function enumerateMySessions () {
       _sshport=1; _hwcap=1; _hwreq=1; _execloc=1; _reloccap=1;
       _netname=1; _ifname=1; _ctysrel=1; _netmask=1; _gateway=1;
       _relay=1; _exep=1; _hrx=1; _acc=1;
-      _uid=1; _gid=1;
-
-      _reserv1=1; _reserv2=1; _reserv3=1; _reserv4=1; _reserv5=1; _reserv6=1; 
-      _reserv7=1; _reserv8=1; _reserv9=1; _reserv10=1; _reserv11=1; 
-      _reserv12=1; _reserv13=1; _reserv14=1; _reserv15=1; 
+      _uid=1; _gid=1;_defcon=1;_defhosts=1;
+      _reserv=1;
   fi
 
   #set content default
-  if((_SPORT+_VCP+_VB+_VDSP+_L+_ID+_UU+_MAC+_T+_dist+_distrel+_os+_osrel+_ver+_ser+_cat+_IP+_vmstate+_hyperrel+_stackcap+_stackreq+_arch+_platform+_vram+_vcpu+_contextstrg+_userstr+_sshport+hwcap+hwreq+execloc+reloccap+netname+ifname+ctysrel+netmask+gateway+relay+_exep+_acc+_hrx+_gid+_uid));then
+  if((_SPORT+_VCP+_VB+_VDSP+_L+_ID+_UU+_MAC+_T+_dist+_distrel+_os+_osrel+_ver+_ser+_cat+_IP+_vmstate+_hyperrel+_stackcap+_stackreq+_arch+_platform+_vram+_vcpu+_contextstrg+_userstr+_sshport+hwcap+hwreq+execloc+reloccap+netname+ifname+ctysrel+netmask+gateway+relay+_exep+_acc+_hrx+_gid+_uid+_reserv+_defcon+_defhosts));then
       printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "Force of ID"
       _ID=1;
   fi
@@ -735,6 +732,7 @@ function enumerateMySessions () {
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "reloccap=$_reloccap netname=$_netname ifname=$_ifname"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "ctysrel=$_ctysrel netmask=$_netmask gateway=$_gateway"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "uid=$_uid _gid=$_gid"
+  printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "reserv=$_reserv defhosts=$_defhosts defcon=$_defcon"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "relay=$_relay _exep=$_exep _acc=$_acc _hrx=$_hrx"
   printDBG $S_GEN ${D_BULK} $LINENO $BASH_SOURCE "mstat=$_mstat"
 
@@ -942,6 +940,9 @@ function enumerateCheckParam () {
 
                 USERID|UID)_argsX1="${_argsX1},${KEY}";;
                 GROUPID|GID)_argsX1="${_argsX1},${KEY}";;
+
+		DEFAULTCONSOLE|DEFCON|DEFC)_argsX1="${_argsX1},${KEY}";;
+		DEFAULTHOSTS|DEFHOSTS|DEFH)_argsX1="${_argsX1},${KEY}";;
 
                 TITLE|TITLEIDXASC|TITLEIDX)_argsX1="${_argsX1},${KEY}";;
                 TERSE|MACHINE|MAXKEY)_argsX1="${_argsX1},${KEY}";;

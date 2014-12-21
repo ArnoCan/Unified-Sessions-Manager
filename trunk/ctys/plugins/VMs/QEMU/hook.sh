@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_10_008
+#VERSION:      01_10_009
 #
 ########################################################################
 #
@@ -36,7 +36,7 @@ QEMU_EXELIST_BASENAME=;
 
 
 _myPKGNAME_QEMU="${BASH_SOURCE}"
-_myPKGVERS_QEMU="01.10.013"
+_myPKGVERS_QEMU="01.11.009"
 hookInfoAdd $_myPKGNAME_QEMU $_myPKGVERS_QEMU
 
 QEMU_VERSTRING="${_myPKGVERS_QEMU}"
@@ -298,7 +298,7 @@ function setVersionQEMU () {
 	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_VERSTRING   = ${QEMU_VERSTRING}"
 	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_PREREQ      = ${QEMU_PREREQ}"
 	printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "QEMU_DEFAULTOPTS = ${QEMU_DEFAULTOPTS}"
-	return
+	return 0
     fi
 
     printDBG $S_QEMU ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:QEMU     = ${QEMU}"
@@ -420,6 +420,10 @@ function setVersionQEMU () {
 	    QEMU_PREREQ="${QEMU_PREREQ} <LocalXserverDISPLAY>"
 	    QEMU_PREREQ="${QEMU_PREREQ} <delayedValidationOnFinalTarget>"
 	    QEMU_PREREQ="${QEMU_PREREQ} <GenericClientCapabilityOnly>"
+	    if [ -n "$C_EXECLOCAL" ];then
+		QEMU_MAGIC=NOLOC;
+		QEMU_PREREQ="${QEMU_PREREQ} <`setStatusColor ${QEMU_STATE} QEMU-Exe`:CANNOT-EVALUATE>"
+	    fi
 	    ABORT=2
 	    local _myLoc=`getLocation ${C_CLIENTLOCATION}`
 	    if [ "${C_SESSIONTYPE}" == "QEMU" -a -z "${_checkonly}" -a "${_myLoc}" != CONNECTIONFORWARDING -a "${_myLoc}" != CLIENTONLY  ];then

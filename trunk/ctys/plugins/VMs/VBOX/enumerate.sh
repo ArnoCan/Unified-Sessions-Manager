@@ -8,7 +8,7 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_11_006alpha
+#VERSION:      01_11_009alpha
 #
 ########################################################################
 #
@@ -17,7 +17,7 @@
 ########################################################################
 
 _myPKGNAME_VBOX_ENUMERATE="${BASH_SOURCE}"
-_myPKGVERS_VBOX_ENUMERATE="01.11.006alpha"
+_myPKGVERS_VBOX_ENUMERATE="01.11.009alpha"
 hookInfoAdd $_myPKGNAME_VBOX_ENUMERATE $_myPKGVERS_VBOX_ENUMERATE
 _myPKGBASE_VBOX_ENUMERATE="`dirname ${_myPKGNAME_VBOX_ENUMERATE}`"
 
@@ -184,6 +184,8 @@ function enumerateMySessionsVBOX () {
 	    _out="${_out};";
 	    _out="${_out};";
 	    _out="${_out};";
+	    _out="${_out};";
+	    _out="${_out};";
 	    echo ${_out}
 	else
 	    local _cont="";
@@ -271,6 +273,12 @@ function enumerateMySessionsVBOX () {
 
 	    _out7="${_out7};`getUSERSTRING ${X}`";
 
+	    _out8=;
+	    _out8="${_out8};${MYUID}";
+	    _out8="${_out8};${MYGID}";
+	    _out8="${_out8};${VBOX_DEFAULT_HOSTS}";
+	    _out8="${_out8};${VBOX_DEFAULT_CONSOLE}";
+
 	    local i=0;
 	    _myMAC=`getMAClst_VBOX ${X}`;
 	    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_myMAC=${_myMAC}";
@@ -309,12 +317,12 @@ function enumerateMySessionsVBOX () {
 
 		    local _myNetName=$(netGetNetName "${A[0]}")
 
-		    _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7};${MYUID};${MYGID}"
+		    _out="${_out};${A[0]}${_out3};${A[4]};${_myNetName}${_out4};${A[3]}${_out5};${A[1]};${A[5]};${A[2]}${_out7}${_out8}"
 		    printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		    echo -e "${_out}"
 		done
 	    else
-		_out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7};${MYUID};${MYGID}"
+		_out="${_out1};${_out2};${_out3};;${_out4};${_out5};;;${_out7}${_out8}"
   		printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:_out=<${_out}>";
 		echo -e "${_out}"
 	    fi

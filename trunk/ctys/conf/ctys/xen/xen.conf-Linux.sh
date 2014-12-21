@@ -205,3 +205,14 @@ CTYS_SSHPING_ONE_WAIT_XEN=${CTYS_SSHPING_ONE_WAIT_XEN:-2};
 _stackChkContextXEN=1;
 _stackChkHWCapXEN=1;
 _stackChkStacCapXEN=1:
+
+
+#
+#default HOSTs for login
+#
+XEN_DEFAULT_HOSTS=VNC
+
+#
+#default for CONSOLE
+#
+XEN_DEFAULT_CONSOLE=X11

@@ -108,3 +108,13 @@ _stackChkHWCapVBOX=1;
 _stackChkStacCapVBOX=1:
 
 
+
+#
+#default HOSTs for login
+#
+VBOX_DEFAULT_HOSTS=VNC
+
+#
+#default HOSTs for CONSOLE
+#
+VBOX_DEFAULT_CONSOLE=RDP

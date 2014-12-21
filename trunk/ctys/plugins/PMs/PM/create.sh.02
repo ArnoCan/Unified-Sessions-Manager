@@ -91,18 +91,12 @@ function createConnectPM () {
 
 
     function checkPMAddressConsistency () {
-
 	function getMACFromCache () {
-	    local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o MAC -p ${DBPATHLST} -s "
+	    local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -C MACMAP -o MAC -p ${DBPATHLST} -s "
 	    if [ -n "$DBREC" ];then
-		_myMAC=`${_VHOST} R:${DBREC}`
+		_VHOST=`${_VHOST} R:${DBREC}`
 	    else
-		_VHOST="${_VHOST}  -C MACMAP "
 		_VHOST="${_VHOST} E:28:1  ${_actionuserPM:+ F:44:$_actionuserPM}"
-	    fi
-
-	    if [ -n "${_myMAC}" ];then
-		return 0;
 	    fi
 
 	    if [ -n "${_tcp}" ];then
@@ -139,18 +133,12 @@ function createConnectPM () {
 
 
 	function getTCPFromCache () {
-	    local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o TCP -p ${DBPATHLST} -s "
+	    local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -C MACMAP -o TCP -p ${DBPATHLST} -s "
 	    if [ -n "$DBREC" ];then
-		_myIP=`${_VHOST} R:${DBREC}`
+		_VHOST=`${_VHOST} R:${DBREC}`
 	    else
-		_VHOST="${_VHOST}  -C MACMAP "
 		_VHOST="${_VHOST} E:28:1  ${_actionuserPM:+ F:44:$_actionuserPM}"
 	    fi
-
-	    if [ -n "${_myIP}" ];then
-		return 0;
-	    fi
-
 	    if [ -n "${_mac}" ];then
 		_myIP=`${_VHOST} "${_mac}"`
 	    else
@@ -165,52 +153,6 @@ function createConnectPM () {
 			else
 			    if [ -n "${_fname}" ];then
 				_myIP=`${_VHOST} "${_fname}"`
-			    else
-				ABORT=1;
-				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing a TCP/IP address for WoL target."
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  PNAME =${_pname}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  UUID  =${_uuid}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  LABEL =${_label}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  FNAME =${_fname}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  TCP   =${_tcp}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "  MAC   =${_mac}"
-				printERR $LINENO $BASH_SOURCE ${ABORT} "Verify your nameservice database with \"ctys-vhost.sh\""
- 				gotoHell ${ABORT}
-			    fi
-			fi
-		    fi
-		fi
-	    fi
-	}
-
-	function getTCPDNSFromCache () {
-	    local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o DNS -p ${DBPATHLST} -s "
-	    if [ -n "$DBREC" ];then
-		_myDN=`${_VHOST} R:${DBREC}`
-		_myDN=${_myDN%.}
-	    else
-		_VHOST="${_VHOST}  -C MACMAP "
-		_VHOST="${_VHOST} E:28:1  ${_actionuserPM:+ F:44:$_actionuserPM}"
-	    fi
-
-	    if [ -n "${_myDN}" ];then
-		return 0;
-	    fi
-
-	    if [ -n "${_mac}" ];then
-		_myDN=`${_VHOST} "${_mac}"`
-	    else
-		if [ -n "${_pname}" ];then
-		    _myDN=`${_VHOST} "${_pname}"`
-		else
-		    if [ -n "${_uuid}" ];then
-			_myDN=`${_VHOST} "${_uuid}"`
-		    else
-			if [ -n "${_label}" ];then
-			    _myDN=`${_VHOST} "${_label}"`
-			else
-			    if [ -n "${_fname}" ];then
-				_myDN=`${_VHOST} "${_fname}"`
 			    else
 				ABORT=1;
 				printERR $LINENO $BASH_SOURCE ${ABORT} "Missing a TCP/IP address for WoL target."
@@ -278,34 +220,8 @@ function createConnectPM () {
 	    esac
 	fi
 
-        #
-        #TCP/IP-DN/Name required for poll(ping/sshping) when local operations and/or CONSOLE
-	if [ -z "${_myDN}" ];then
-	    case ${C_NSCACHELOCATE} in
-		0)#off
-		    ;;
-		1)#both
-		    getTCPDNSFromCache
-		    ;;
-		2)#local
-		    if [ "${C_EXECLOCAL}" != 1 ];then
-			getTCPDNSFromCache
-		    fi
-		    ;;
-		3)#remote
-		    if [ "${C_EXECLOCAL}" == 1 ];then
-			getTCPDNSFromCache
-		    fi
-		    ;;
-	    esac
-	fi
-	if [ -z "${_myDN}" ];then
-	    _myDN=$_tcp
-	fi
-
 	printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_label=${_label}"
 	printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_myIP=${_myIP}"
-	printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_myDN=${_myDN}"
 	printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_myMAC=${_myMAC}"
 
         if [ -z "${_myMAC}" -o -z "${_myIP}" ];then
@@ -316,7 +232,6 @@ function createConnectPM () {
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "1. supply TCP and MAC address on command line"
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "   MAC=\"${_myMAC}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "   TCP=\"${_myIP}\""
-	    printERR $LINENO $BASH_SOURCE ${ABORT} "   DN =\"${_myDN}\""
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "2. use local cache only"
 	    printERR $LINENO $BASH_SOURCE ${ABORT} "3. create a cacheDB on the remote target"
  	    gotoHell ${ABORT}
@@ -395,8 +310,8 @@ function createConnectPM () {
                           # <machine-address> #
                           #####################
 			    DBRECORD|DBREC|DR)
-				local DBREC="${ARG}";
-				printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				local _dbrec="${ARG}";
+				printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${_dbrec}"
 				local _idgiven=1;
 				;;
 			    BASEPATH|BASE|B)
@@ -713,13 +628,14 @@ function createConnectPM () {
 		    printERR $LINENO $BASH_SOURCE ${ABORT} "PORT is only supported with BROADCAST"
  		    gotoHell ${ABORT}
 		fi
- 		if [ -z "$CALLERJOB"  -a -n "${DBREC}" -a -z "${_pname}" ];then
+ 		if [ -z "$CALLERJOB"  -a -n "${_dbrec}" -a -z "${_pname}" ];then
 		    if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
 			-o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
 			printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
-			printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remaining address parameters are ignored"
+			printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
 		    fi
 		fi
+#4TEST
 		    fi
 		    ;;
 
@@ -787,8 +703,8 @@ function createConnectPM () {
                   # <machine-address> #
                   #####################
 			DBRECORD|DBREC|DR)
-			    local DBREC="${ARG}";
-			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    local _dbrec="${ARG}";
+			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${_dbrec}"
 			    local _idgiven=1;
 			    ;;
 			BASEPATH|BASE|B)
@@ -1069,115 +985,112 @@ function createConnectPM () {
 
  	    local _myPM=${_myIP}
 
-	    if [ "$MYHOST" != "$_myDN" -a "$MYHOST" != "$_myIP"  ];then
-                #now TCP/IP address is available, short it up now if REUSE
-		local _pingok=1;
-   		printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myPM}\" \"3\" \"1\""
-		netWaitForPing "${_myPM}" 3 1
-		_pingok=$?
-		if [ $_pingok -eq 0 ];then
-		    if [ "$_reuse" == 1 ];then
-			printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "REUSE of running machine:${_myPM}(${_myIP})"
-		    else
-			ABORT=1;
-			printERR $LINENO $BASH_SOURCE ${ABORT} "Remote machine is already running, try \"REUSE\" if you want so."
-			printERR $LINENO $BASH_SOURCE ${ABORT} " => ${_myPM}(${_myIP})"
- 			gotoHell ${ABORT}
-		    fi
+            #now TCP/IP address is available, short it up now if REUSE
+	    local _pingok=1;
+	    netWaitForPing "${_myPM}" 3 1
+	    _pingok=$?
+	    if [ $_pingok -eq 0 ];then
+		if [ "$_reuse" == 1 ];then
+		    printINFO 1 $LINENO $BASH_SOURCE ${ABORT} "REUSE of running machine:${_myPM}(${_myIP})"
+		else
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Remote machine is already running, try \"REUSE\" if you want so."
+		    printERR $LINENO $BASH_SOURCE ${ABORT} " => ${_myPM}(${_myIP})"
+ 		    gotoHell ${ABORT}
 		fi
+	    fi
 
-                #Not yet running
-		if [ $_pingok -ne 0 ];then
-                    #wake-up remote PM
-		    local _wolret=0;
-		    local _callDbg=;
-		    if [ -n "${_broadcast}" ];then
-			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "BROADCAST=${_broadcast}"
-			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "PORT     =${_broadcastPort}"
-			if [ -n "${_broadcastPort}" ];then
- 			    _callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${_broadcastPort} ${C_NOEXEC:+ -n} ${_bmac}"
-			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
-			    ${_callDbg}
-			    _wolret=$?
-			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
-			else
- 			    _callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${C_NOEXEC:+ -n} ${_bmac}"
-			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
-			    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
-			    ${_callDbg}
-			    _wolret=$?
-			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
-			fi
+            #Not yet running
+	    if [ $_pingok -ne 0 ];then
+                #wake-up remote PM
+		local _wolret=0;
+		local _callDbg=;
+		if [ -n "${_broadcast}" ];then
+		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "BROADCAST=${_broadcast}"
+		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "PORT     =${_broadcastPort}"
+		    if [ -n "${_broadcastPort}" ];then
+ 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${_broadcastPort} ${C_NOEXEC:+ -n} ${_bmac}"
+			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
+			printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
+			${_callDbg}
+			_wolret=$?
+			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
 		    else
-			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -i ${CTYS_WOL_WAKEUPIF} ${C_NOEXEC:+ -n} ${_myMAC}"
+ 			_callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -t ${_broadcast} ${C_NOEXEC:+ -n} ${_bmac}"
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
 			printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
 			${_callDbg}
 			_wolret=$?
 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
 		    fi
-		    if [ "${_wolret}" != "0" ];then
-			ABORT=1
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Error for WOL"
-			gotoHell ${ABORT}
-		    fi
-
-		    if [ -n "${C_NOEXEC}" ];then
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "NOEXEC \"-n\" is set, terminating."
-			gotoHell 0
-		    fi
-
-		    if [ -n "${_woldelay}" ];then
-			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_woldelay=${_woldelay}"
-			sleep ${_woldelay};
-		    fi
-
-
-                    #wait for basic network stack - remember, it's not sufficient!!!
-   		    printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myPM}\" \"${_pingcntPM}\" \"${_pingsleepPM}\""
-		    netWaitForPing "${_myPM}" "${_pingcntPM}" "${_pingsleepPM}"
-		    if [ $? != 0 ];then
-			ABORT=1
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForPing"
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  PM =${_myPM}"
-
-			printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
-			printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myPM}> <${_pingcntPM}> <${_pingsleepPM}>"
-
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  IP =${_myIP}"
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
-
-			gotoHell ${ABORT}
-		    else
- 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ping:${_myPM}"
-		    fi
+		else
+		    _callDbg="${CTYS_WOL_WAKEUP} ${C_DARGS} -i ${CTYS_WOL_WAKEUPIF} ${C_NOEXEC:+ -n} ${_myMAC}"
+		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=${_callDbg}"
+		    printFINALCALL $LINENO $BASH_SOURCE "FINAL-EXEC:WOL-WAKEUP(${_label})" "${_callDbg}"
+		    ${_callDbg}
+		    _wolret=$?
+		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_callDbg=>${_wolret}"
+		fi
+		if [ "${_wolret}" != "0" ];then
+                    ABORT=1
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Error for WOL"
+		    gotoHell ${ABORT}
 		fi
 
-                #
-                #wait for ssh login. requires access permissions - remember, this is sufficient!
-                #
-		if [ "${_sshpingPM}" == 1 ];then
-   		    printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_SSHPING_ONE_MAXTRIAL_PM,CTYS_SSHPING_ONE_WAIT_PM)" "netWaitForSSH \"${_myPM}\" \"${_sshpingcntPM}\" \"${_sshpingsleepPM}\" \"${_actionuserPM}\""
-		    netWaitForSSH "${_myPM}" "${_sshpingcntPM}" "${_sshpingsleepPM}" "${_actionuserPM}"
-		    if [ $? != 0 ];then
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  PM =${_myPM}"
+		if [ -n "${C_NOEXEC}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "NOEXEC \"-n\" is set, terminating."
+		    gotoHell 0
+		fi
 
-			printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
-			printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myPM}> <${_sshpingcntPM}> <${_sshpingsleepPM}>"
+		if [ -n "${_woldelay}" ];then
+		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "_woldelay=${_woldelay}"
+		    sleep ${_woldelay};
+		fi
 
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  IP =${_myIP}"
-			printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
-			gotoHell 0
-		    else
- 			printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ssh:${_myPM}"
-		    fi
+
+                #wait for basic network stack - remember, it's not sufficient!!!
+
+   		printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_PING_ONE_MAXTRIAL_PM,CTYS_PING_ONE_WAIT_PM)" "netWaitForPing \"${_myVM}\" \"${_pingcntPM}\" \"${_pingsleepPM}\""
+		netWaitForPing "${_myPM}" "${_pingcntPM}" "${_pingsleepPM}"
+		if [ $? != 0 ];then
+		    ABORT=1
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForPing"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  PM =${_myPM}"
+
+		    printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
+		    printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myPM}> <${_pingcntPM}> <${_pingsleepPM}>"
+
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  IP =${_myIP}"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
+
+		    gotoHell ${ABORT}
+		else
+ 		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ping:${_myPM}"
+		fi
+	    fi
+
+            #wait for ssh login. requires access permissions - remember, this is sufficient!
+            #
+            #
+	    if [ "${_sshpingPM}" == 1 ];then
+   		printFINALCALL $LINENO $BASH_SOURCE "WAIT-TIMER:DomU(${_label},CTYS_SSHPING_ONE_MAXTRIAL_PM,CTYS_SSHPING_ONE_WAIT_PM)" "netWaitForSSH \"${_myVM}\" \"${_sshpingcntPM}\" \"${_sshpingsleepPM}\" \"${_actionuserPM}\""
+		netWaitForSSH "${_myPM}" "${_sshpingcntPM}" "${_sshpingsleepPM}" "${_actionuserPM}"
+		if [ $? != 0 ];then
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "Start timed out:netWaitForSSH"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  PM =${_myPM}"
+
+		    printWNG 1 $LINENO $BASH_SOURCE 0 "${_VHOST}  <${_label}> <${MYHOST}>  <${_pname}>"
+		    printWNG 1 $LINENO $BASH_SOURCE 0 "<${_myPM}> <${_sshpingcntPM}> <${_sshpingsleepPM}>"
+
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  IP =${_myIP}"
+		    printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "  MAC=${_myMAC}"
+		    gotoHell 0
+		else
+ 		    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:Accessible by ssh:${_myPM}"
 		fi
 	    fi
 
             #OK, PM seems to be running and accessible soon, now establish a console if requested.
-
             if [ -n "${_console}" ];then
 		printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_WOL_WAKEUP_WAIT    =$CTYS_WOL_WAKEUP_WAIT"
 		printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "$FUNCNAME:CTYS_WOL_WAKEUP_MAXTRIAL=$CTYS_WOL_WAKEUP_MAXTRIAL"
@@ -1251,7 +1164,7 @@ function createConnectPM () {
 			else
 			    _args1="${_args1} ${C_ASYNC:+ -b $C_ASYNC} "
 			fi
-			_args="${_args} -t VNC -a create=l:CONSOLE,waits:5"
+			_args="${_args} -t VNC -a create=l:CONSOLE,viewerdelay:5"
 			if [ -n "$C_DARGS" ];then
 			    _args="${MYLIBEXECPATH}/ctys.sh ${_args} ${_args1} ${_myPM}($C_DARGS)"
 			else
@@ -1315,4 +1228,3 @@ function createConnectPM () {
     fi
     return $_ret
 }
-

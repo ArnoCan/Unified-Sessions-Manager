@@ -8,16 +8,16 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_06_001a13
+#VERSION:      01_11_009
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myLIBNAME_misc="${BASH_SOURCE}"
-_myLIBVERS_misc="01.06.001a12"
+_myLIBVERS_misc="01.11.009"
 libManInfoAdd "${_myLIBNAME_misc}" "${_myLIBVERS_misc}"
 
 _myLIBNAME_miscBASE="`dirname ${_myLIBNAME_misc}`"
@@ -267,14 +267,10 @@ function replaceMacro () {
     if [ -z "${_myPostfix}" ];then
 	_myPostfix=`echo -e " $* "|sed -n 's/^.*[mM][aA][cC][rR][oO]:\([^,% ]*\)\(.*\)$/\2/p'`
     fi
-    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:_myPostfix=<${_myPostfix}>"
-
-
-
-
     local _myArgs=${_myPostfix%%[, \}]*}
+    _myArgs=${_myArgs%%\%\%*}
+    printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:_myPostfix=<${_myPostfix}>"
     printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "${FUNCNAME}:_myArgs=<${_myArgs}>"
-
     if [ "$_myArgs" != "${_myPostfix}" ];then
 	_myPostfix="${_myPostfix#$_myArgs}"
     else
@@ -334,8 +330,8 @@ function replaceMacro () {
     if((_recurLvl==1));then
         #alternative MACRO file db
 	local _myFile=${_myArgs#%}
-	local _myFile=${_myFile#%}
-	local _myFile=${_myFile%% }
+	_myFile=${_myFile#%}
+	_myFile=${_myFile%% }
 	printDBG $S_LIB ${D_BULK} $LINENO $BASH_SOURCE "_myFile=<${_myFile}> _myMacro=<${_myMacro}>"
 	local _myFilePath=;
 	if [ -n "${_myFile// /}" -a "$_myFile" != "${_myMacro}" ];then

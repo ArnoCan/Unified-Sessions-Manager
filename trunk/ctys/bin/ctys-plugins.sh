@@ -637,7 +637,12 @@ function 0_initPlugins ()  {
     echoX "Perform:${MYROOTHOOK}"
     echoX "------------------------------>>>"
     . ${MYROOTHOOK}
+
+    ODBG=$DBG;
+    [ -z "$DBG" -o "$DBG" == 0 ]&&DBG=1;
     initPackages "${MYROOTHOOK}"
+    DBG=$ODBG;
+
     echoX "<<<------------------------------"
     echoX "...results on:${MYHOST} to:"
     echoX

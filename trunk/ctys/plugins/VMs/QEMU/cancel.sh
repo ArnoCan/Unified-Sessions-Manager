@@ -8,18 +8,21 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_009
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_QEMU_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_QEMU_CANCEL="01.01.001a00pre"
+_myPKGVERS_QEMU_CANCEL="01.11.009"
 hookInfoAdd $_myPKGNAME_QEMU_CANCEL $_myPKGVERS_QEMU_CANCEL
 _myPKGBASE_QEMU_CANCEL="`dirname ${_myPKGNAME_QEMU_CANCEL}`"
+
+#specifies a record index
+export DBREC=;
 
 #FUNCBEG###############################################################
 #NAME:
@@ -179,6 +182,10 @@ function cutCancelSessionQEMU () {
               #####################
               # <machine-address> #
               #####################
+			    DBRECORD|DBREC|DR)
+				local DBREC="${ARG}";
+				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+				;;
 			    BASEPATH|BASE|B)
 				local _base="${ARG}";
 				printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -291,6 +298,13 @@ function cutCancelSessionQEMU () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing address parameter."
  		gotoHell ${ABORT}
             fi
+	    if [ -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -391,6 +405,10 @@ function cutCancelSessionQEMU () {
             #####################
             # <machine-address> #
             #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
                             local _base="${ARG}";
 			    printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -476,6 +494,7 @@ function cutCancelSessionQEMU () {
 	    local _CSB=SERVER;
 
 
+
     #####
      #####
       #So basic isolated parameters seem to be OK, let's put them together.
@@ -490,6 +509,20 @@ function cutCancelSessionQEMU () {
             #Lists extended pname(1-awk-increment):LABEL,ID,PID,SITE,SPORT
             #                                      #3    #4 #11 #14  #10
             ################################
+
+            #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -n "${DBREC// /}" -a -z "${_pname}" ];then
+		printDBG $S_QEMU ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o PNAME -p ${DBPATHLST} -s "
+		_pname=`${_VHOST}  R:${DBREC}`
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
 
             #
             #expand given only.

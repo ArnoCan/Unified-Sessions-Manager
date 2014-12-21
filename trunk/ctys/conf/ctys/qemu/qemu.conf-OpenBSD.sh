@@ -38,6 +38,11 @@
 printDBG $S_CONF  ${D_FRAME} $LINENO $BASH_SOURCE "LOAD-CONFIG:${BASH_SOURCE}"
 
 
+#protect multiple inclusion
+if [ -z "$__QEMU_INCLUDED__" ];then
+__QEMU_INCLUDED__=1
+
+
 
 #Extend this when required, 
 #e.g. PATH=${PATH}:/usr/sbin
@@ -180,3 +185,18 @@ QEMU_RETRYVNCCLIENTTIMEOUT=3;  #numerical, integer - seconds
 _stackChkContextQEMU=0;
 _stackChkHWCapQEMU=1;
 _stackChkStacCapQEMU=1:
+
+
+#
+#default HOSTs for login
+#
+QEMU_DEFAULT_HOSTS=VNC
+
+#
+#default HOSTs for CONSOLE
+#
+QEMU_DEFAULT_CONSOLE=VNC
+
+
+#protect multiple inclusion
+fi

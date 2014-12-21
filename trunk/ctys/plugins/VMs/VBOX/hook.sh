@@ -446,7 +446,14 @@ function setVersionVBOX () {
     printDBG $S_VBOX ${D_MAINT} $LINENO $BASH_SOURCE "$FUNCNAME:verified pre-requisites:RDP"
 
     if [ "$C_EXECLOCAL" == 1 ];then
-	if  [ -z "$VBOXMGR" -o -z "$VBOXMGR" -o -z "$VBOXHEADLESS" -o -z "$VBOXSDL" ];then
+	if  [ -z "$VBOXEXE" -o -z "$VBOXMGR" -o -z "$VBOXHEADLESS" -o -z "$VBOXSDL" ];then
+	    ABORT=1;
+	    VBOX_STATE=DISABLED;
+	    VBOX_MAGIC=NOLOC;
+	    [ -z "$VBOXEXE" ]&&VBOX_PREREQ="${VBOX_PREREQ} <`setStatusColor ${VBOX_STATE} VirtualBox`:CANNOT-EVALUATE>"
+	    [ -z "$VBOXMGR" ]&&VBOX_PREREQ="${VBOX_PREREQ} <`setStatusColor ${VBOX_STATE} VBoxManage`:CANNOT-EVALUATE>"
+	    [ -z "$VBOXHEADLESS" ]&&VBOX_PREREQ="${VBOX_PREREQ} <`setStatusColor ${VBOX_STATE} VBoxHeadless`:CANNOT-EVALUATE>"
+	    [ -z  "$VBOXSDL" ]&&VBOX_PREREQ="${VBOX_PREREQ} <`setStatusColor ${VBOX_STATE} VBoxSDL`:CANNOT-EVALUATE>"
 	    return ${ABORT}
 	fi
     else
@@ -470,7 +477,7 @@ function setVersionVBOX () {
 
 	if [ $_creq -eq 0 ];then
 	    ABORT=2
-	    VBOX_PREREQ="<`setStatusColor ${VBOX_STATE} VERSION`:CANNOT-EVALUATE>"
+	    VBOX_PREREQ="${VBOX_PREREQ} <`setStatusColor ${VBOX_STATE} VERSION`:CANNOT-EVALUATE>"
 
 	    if [ "${C_SESSIONTYPE}" == "VBOX" -a -z "${_checkonly}" ];then
 		if [ -z "${VBOXEXE}" ];then

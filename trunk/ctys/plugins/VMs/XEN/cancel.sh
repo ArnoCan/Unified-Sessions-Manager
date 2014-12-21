@@ -8,18 +8,22 @@
 #SHORT:        ctys
 #CALLFULLNAME: Commutate To Your Session
 #LICENCE:      GPL3
-#VERSION:      01_02_007a17
+#VERSION:      01_11_009
 #
 ########################################################################
 #
-# Copyright (C) 2007 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
+# Copyright (C) 2007,2010 Arno-Can Uestuensoez (UnifiedSessionsManager.org)
 #
 ########################################################################
 
 _myPKGNAME_XEN_CANCEL="${BASH_SOURCE}"
-_myPKGVERS_XEN_CANCEL="01.01.001a00"
+_myPKGVERS_XEN_CANCEL="01.11.009"
 hookInfoAdd $_myPKGNAME_XEN_CANCEL $_myPKGVERS_XEN_CANCEL
 _myPKGBASE_XEN_CANCEL="`dirname ${_myPKGNAME_XEN_CANCEL}`"
+
+#specifies a record index
+export DBREC=;
+
 
 #FUNCBEG###############################################################
 #NAME:
@@ -167,6 +171,10 @@ function cutCancelSessionXEN () {
                #####################
                # <machine-address> #
                #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
 			    local _base="${ARG}";
 			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "RANGE:BASE=${_base}"
@@ -281,6 +289,14 @@ function cutCancelSessionXEN () {
 		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing address parameter."
  		gotoHell ${ABORT}
             fi
+
+	    if [ -n "${DBREC}" -a -z "${_pname}" ];then
+		if [ -n "${_base}" -o -n "${_tcp}" -o -n "${_mac}" -o -n "${_uuid}" \
+                    -o -n "${_label}" -o -n "${_fname}" -o -n "${_pname}" ];then
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "The provided DB index has priority for address"
+		    printWNG 1 $LINENO $BASH_SOURCE 1 "if matched the remeining address parameters are ignored"
+		fi
+	    fi
 	    ;;
 
 	ASSEMBLE)
@@ -379,6 +395,10 @@ function cutCancelSessionXEN () {
                #####################
                # <machine-address> #
                #####################
+			DBRECORD|DBREC|DR)
+			    local DBREC="${ARG}";
+			    printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "DBRECORD=${DBREC}"
+			    ;;
 			BASEPATH|BASE|B)
                             #can be checked now
 			    local _base="${ARG}";
@@ -475,6 +495,20 @@ function cutCancelSessionXEN () {
             #Lists extended pname(1-awk-increment):LABEL,ID,PID,SITE
             #                                      3     4  11  14
             ################################
+
+            #
+            #0. Try cache - DB-INDEX
+            #
+            if [ -z "${_pname// /}" -a -n "${DBREC// /}" ];then
+		printDBG $S_XEN ${D_UID} $LINENO $BASH_SOURCE "PNAME-EVALUATE-CACHE-DBINDEX"
+		local _VHOST="${MYLIBEXECPATH}/ctys-vhost.sh ${C_DARGS} -o PNAME -p ${DBPATHLST} -s "
+		_pname=`${_VHOST} R:${DBREC}`
+		if [ $? -ne 0 ];then
+		    ABORT=1;
+		    printERR $LINENO $BASH_SOURCE ${ABORT} "Cannot fetch indexed DB-RECORD:${DBREC}"
+ 		    gotoHell ${ABORT}
+		fi
+	    fi
 
             #
             #expand given only.

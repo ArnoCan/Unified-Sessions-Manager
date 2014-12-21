@@ -615,6 +615,17 @@ QEMU=${QEMUKVM:-$QEMUBASE};
 PATH=$PATH:$QEMU_PATHLIST
 
 
+#
+#default HOSTs for login
+#
+QEMU_DEFAULT_HOSTS=VNC
+
+#
+#default HOSTs for CONSOLE
+#
+QEMU_DEFAULT_CONSOLE=VNC
+
 
 #protect multiple inclusion
 fi
+

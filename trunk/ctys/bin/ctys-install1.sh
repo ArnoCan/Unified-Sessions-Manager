@@ -770,6 +770,7 @@ if [ -n "${BINDIR}" ];then
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncserver.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-callVncviewer.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-createConfVM.sh"
+    LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-config.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-distribute.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-dnsutil.sh"
     LNKLSTBIN="$LNKLSTBIN ${BINDIR}/ctys-extractARPlst.sh"

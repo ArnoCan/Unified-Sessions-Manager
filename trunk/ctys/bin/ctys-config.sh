@@ -47,10 +47,10 @@ MYPROJECT="Unified Sessions Manager"
 AUTHOR="Arno-Can Uestuensoez - acue@UnifiedSessionsManager.org"
 #
 #FULLNAME:
-FULLNAME="ctys-scripts.sh"
+FULLNAME="ctys-config.sh"
 #
 #CALLFULLNAME:
-CALLFULLNAME="CTYS Scripts Utility"
+CALLFULLNAME="CTYS Configuration File Utility"
 #
 #LICENCE:
 LICENCE=GPL3
@@ -380,12 +380,15 @@ TREELEVEL=;
 _listscripts=;
 _display=;
 
+#set for later list "-l"
+_mySearchPath="${MYCONFPATH}:${HOME}/.ctys"
+
 argLst=;
 while [ -n "$1" ];do
     case $1 in
 	'-e')
 	    if [ -z "${2}" -o "${2#-}" != "${2}" ];then
-		_edit="${CTYS_SCRIPT_PATH//:/ }"
+		_edit="${_mySearchPath//:/ }"
 	    else
 		shift;
 		for i in ${*//%/ };do
@@ -407,23 +410,37 @@ while [ -n "$1" ];do
 	    fi
             ;;
 
-	'-m')
-	    case "$2" in
-		[0])
-		    shift;_display=${1};
-		    ;;
-		'')
-		    _display=0;
-		    ;;
-		*)
-		    _display=0;
-		    ;;
-	    esac
-            ;;
-
-	'-l')_listscripts=1;;
-
 	'-d')shift;;
+
+	'-D')shift;TREELEVEL=$1;
+	    if [ -z "${TREELEVEL// /}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Missing directory tree deepness-level."
+		gotoHell ${ABORT}
+	    fi
+	    if [ -n "${TREELEVEL//[0-9]/}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Non-numeric directory tree level:<${TREELEVEL}>"
+		gotoHell ${ABORT}
+	    fi
+	    ;;
+	'-F')_filetree=1;
+	    if [ -z "${CTYS_TREE}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Required command \"tree\" not available."
+		gotoHell ${ABORT}
+
+	    fi
+	    ;;
+
+	'-S')_dirtree=1;
+	    if [ -z "${CTYS_TREE}" ];then
+		ABORT=1;
+		printERR $LINENO $BASH_SOURCE ${ABORT} "Required command \"tree\" not available."
+		gotoHell ${ABORT}
+	    fi
+	    ;;
+
 
 	'-H'|'--helpEx'|'-helpEx')shift;_HelpEx="${1:-$MYCALLNAME}";;
 	'-h'|'--help'|'-help')_showToolHelp=1;;
@@ -436,7 +453,7 @@ while [ -n "$1" ];do
 	    gotoHell ${ABORT}
 	    ;;
 
-        *)  #macro list
+        *)  #config list
 	    argLst="${argLst} $1";
 	    argLst="${argLst## }";
 	    argLst="${argLst%% }";
@@ -464,16 +481,56 @@ fi
 
 if [ -z "$_display" -a -z "$_listscripts" ];then
     _listscripts=1;
-#    _atom=1;
-#    _combined=1;
 fi
 
-#set for later list "-l"
-_mySearchPath="${CTYS_SCRIPT_PATH}";
+
+if [ -n "${TREELEVEL}" -a \( -z "$_filetree" -a -z "$_dirtree" \) ];then
+    printERR $LINENO $BASH_SOURCE 1 "Option \"-D\" requires either \"-F\" or \"-S\""
+    exit $?
+fi
+
+
+if [ "$_dirtree" == "1" -o "$_filetree" == "1" ];then
+    if [ -z "${argLst}" ];then
+	argLst=.
+    fi
+    if [ "$_dirtree" == "1" ];then
+	echo "----------------------------------------"
+	echo "List of Configuration Directroy Trees:"
+	echo "----------------------------------------"
+	for j in ${argLst//\%/ };do
+	    if [ "${j#/}" != "${j}" ];then
+		${CTYS_TREE} -C -A -d ${TREELEVEL:+-L $TREELEVEL} $j
+	    else
+		p=${_mySearchPath}
+
+		for i in ${p//:/ };do
+		    if [ -e "$i/$j" ];then
+			${CTYS_TREE} -C -A -d ${TREELEVEL:+-L $TREELEVEL} $i/$j
+		    fi
+		done
+	    fi
+	done
+    fi
+
+    if [ "$_filetree" == "1" ];then
+	echo "----------------------------------------"
+	echo "List of Configuration File Trees:"
+	echo "----------------------------------------"
+	for j in ${argLst//\%/ };do
+	    for i in ${_mySearchPath//:/ };do
+		if [ -e "$i/$j" ];then
+		    ${CTYS_TREE}  -C -A ${TREELEVEL:+-L $TREELEVEL} $i/$j
+		fi
+		done
+	    done
+	fi
+    exit $?
+fi
 
 
 if [ -n "$_edit" ];then
-    if [  -z "$CTYS_SCRIPTEDIT" ];then
+    if [  -z "$CTYS_CONFIGEDIT" ];then
 	ABORT=2
 	printERR $LINENO $BASH_SOURCE $ABORT "Cannot evaluate Emacs for edit."
 	exit $?
@@ -488,7 +545,7 @@ if [ -n "$_edit" ];then
 	fi
     done
 
-    $CTYS_SCRIPTEDIT ${_editX//%/ }&
+    $CTYS_CONFIGEDIT ${_editX//%/ }&
     exit $?
 fi
 
@@ -497,11 +554,11 @@ function listScripts () {
     if [ -z "$C_TERSE" ];then
 	echo 
 	echo "---------------------------------------------------------"
-	echo "available files - Standalone Macro Files"
+	echo "available files - Configuration Files"
 	echo "---------------------------------------------------------"
 
 	echo
-	echo "Current macros files of:"
+	echo "Current configuration files of:"
 	echo
 	splitPath 20 "SearchPath" "${_mySearchPath}"
 	echo
@@ -547,7 +604,7 @@ fi
 if [ -n "$_display" ];then
     if [ -z "$C_TERSE" ];then
 	echo "----------------------------------------"
-	echo "Script Sources:"
+	echo "Configuration Sources:"
 	echo "----------------------------------------"
     fi
 
@@ -557,7 +614,7 @@ if [ -n "$_display" ];then
 	    LOFFSET1="       "
 
 	    if [ -z "${argLst}" ];then
-		argLst=$(C_TERSE=1 listScripts)
+		argLst="${MYCONFPATH} ${HOME}/.ctys"
 	    fi
 
 	    for j in ${argLst};do

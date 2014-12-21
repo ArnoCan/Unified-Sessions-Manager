@@ -446,7 +446,7 @@ function startSessionVMW () {
 	    ;;
 	VMW_RC)
 	    case "${_conty}" in
-		VMWRC)
+		VMWRC|VMRC)
 		    CALLCLIENT="cd ${CTYS_VMW_VMRC%/*}&&"
 		    CALLCLIENT="${CALLCLIENT}${CTYS_VMW_VMRC}";
 
@@ -480,7 +480,7 @@ function startSessionVMW () {
 		    CALLCLIENTARGS="\"https://127.0.0.1:8333/ui/?wsUrl=http://localhost:8222/sdk&mo=VirtualMachine|${_oid}&inventory=none&tabs=hide_#{e:%22VirtualMachine|${_oid}%22,w:{t:false,i:0}}\""
 		    CALLSERVER="${VMWMGR} start "
 		    ;;
-		VMWRC)
+		VMWRC|VMRC)
 		    CALLCLIENT="cd ${CTYS_VMW_VMRC%/*}&&"
 		    CALLCLIENT="${CALLCLIENT}${CTYS_VMW_VMRC}";
 
@@ -691,7 +691,7 @@ function startSessionVMW () {
 	local _myAttrLst="JOBID=${CALLERJOB}:$((JOB_IDXSUB++));"
 	cacheStoreWorkerPIDData SERVER VMW "${_pname}" "${_label}" 0 "" REPLACE "${_myAttrLst}"
 	case "${_conty}" in
-	    VMWRC)
+	    VMWRC|VMRC)
 		cacheStoreWorkerPIDData CLIENT VMW "${_pname}" "${_label}" 0 "" REPLACE "${_myAttrLst}"
 		;;
 	    VMW)
@@ -958,6 +958,7 @@ function vmMgrVMW () {
     #
     case $VMW_MAGIC in
 	VMW_S2*)
+	    ABORT=2;
 	    _store=$(ctysVMWS2ConvertToDatastore ${_id})
 	    printDBG $S_VMW ${D_MAINT} $LINENO $BASH_SOURCE "${FUNCNAME}:_store=<$_store>"
 	    if [ -z "$_store" ];then
@@ -967,6 +968,16 @@ function vmMgrVMW () {
 		return 1;
 	    fi
 	    CALLSERVER="callErrOutWrapper $LINENO $BASH_SOURCE ${CALLSERVER}"
+	    if [ -z "${VMW_SESSION_USER// /}" ];then
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Server-2/VMMGR requires a USER"
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:CANCEL may fail"
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:So add USER or use the web-interface."
+	    fi
+	    if [ -z "${VMW_SESSION_CRED// /}" ];then
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:Server-2/VMMGR requires a USER+CREDENTIALS/PASSWORD"
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:CANCEL may fail"
+		printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME}:So add USER+PASSWD or use the web-interface."
+	    fi
 	    ;;
     esac
 
@@ -1146,7 +1157,7 @@ function vmMgrVMW () {
 			    sleep $_timeout
 			    if [ "`fetchID4PID ${_pid}`" == "${_id}" ];then
 				printWNG 1 $LINENO $BASH_SOURCE ${ABORT} "${FUNCNAME} Have to use \"-9\" now:${_pid}==${_id}"
-				callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} kill $_pid
+				callErrOutWrapper $LINENO $BASH_SOURCE  ${VMWCALL} kill -9 $_pid
 			    else
 				printINFO 1 $LINENO $BASH_SOURCE $ABORT "${FUNCNAME}   \"-9\" was not required."
 			    fi

@@ -444,7 +444,7 @@ function cutCancelSessionPM () {
 				let _unambig+=1;
 				;;
 
- 			    BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|ID|I|PATHNAME|PNAME|P)
+ 			    DBRECORD|DBREC|DR|BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|ID|I|PATHNAME|PNAME|P)
  				;;
 
 
@@ -639,7 +639,7 @@ function cutCancelSessionPM () {
                             local _label="${ARG}";
  			    printDBG $S_PM ${D_UID} $LINENO $BASH_SOURCE "RANGE:LABEL=${_label}"
 			    ;;
- 			BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|ID|I|PATHNAME|PNAME|P)
+ 			DBRECORD|DBREC|DR|BASEPATH|BASE|B|TCP|T|MAC|M|UUID|U|FILENAME|FNAME|F|ID|I|PATHNAME|PNAME|P)
  			    ;;
 
 
