@@ -1,0 +1,273 @@
+.TH "ctys-uc-CLI" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-uc-CLI - Use-Cases for CLI\fR
+
+.SH USE-CASES
+.SS General
+.P
+The CLI plugin itself is a pure command line interface, but due to the
+default activation of X11 forwarding any X11 command could be executed
+within a CLI session, thus any of the following examples could be used
+as a XTerm starter.
+
+.P
+E.g. the interactive call of "xclock" will display
+correctly. This is particularly also true for the whole
+login\-chain, when CLI is used for cascaded logins.
+
+.P
+So, basically any firewall could be pierced in a secure manner by an
+SSH gateway in the DMZ. Which depends on the security facility of the
+gateway itself, of course.
+Particularly the 
+\fB\-Y\fR
+option which is mapped to the
+\fB\-A\fR
+option
+of ssh for key\-forwarding could be used to chain execution of X11 based 
+applications.
+
+.P
+\fBHINT\fR:
+Spaces within options, including suboptions, have to be masked by
+the reserved character '%'. 
+This means just replace any SPACE with a '%' within any
+options/suboptions. The '%' itself is provided as '%%'.
+
+.SS Start a Local Interactive Session
+.P
+This opens a second shell executed  as login, almost the same as
+an ordinary shell call.
+
+.nf
+  
+  ctys -t CLI -a create=l:test
+  
+.fi
+
+
+.P
+The "localhost" is hard\-coded to behave as sub\-shell call too.
+
+.nf
+  
+  ctys -t CLI -a create=l:test localhost
+  
+.fi
+
+
+.P
+\fBREMARK\fR:
+Due to the implemented ambiguity\-check for uniqueness of LABELs, only
+one localhost session is supported by the same label, when the label
+has to be non\-altered, the usage of 
+\fB\-A 1\fR
+disables ambiguity\-checks.
+
+.SS Start a Remote Interactive Session
+.P
+This opens a second shell as a remote executed login.
+
+.nf
+  
+  ctys -t CLI -a create=l:test lab00
+  
+.fi
+
+
+.SS Execute a Remote Command
+.P
+This opens a remote shell and executes the provided command only
+before termination. The connection will be kept open during the
+whole session, thus this is not executed in background mode by default.
+
+.nf
+  
+  ctys -t CLI -a create=l:test,cmd:uname%-a lab00
+  
+.fi
+
+
+.P
+The same forced to perform in background mode.
+
+.nf
+  
+  ctys -t CLI -a create=l:test,cmd:uname%-a -b 1 lab00
+  
+.fi
+
+
+.SS Execute Multiple Remote Commands
+.P
+The full scope of addressing of ctys is supported, thus the
+addressing of multiple targets, where each target could be a
+single host of a preconfigured hosts\-group, is applicable. 
+Intermixed addressing is supported too.
+
+.nf
+  
+  ctys -t CLI -a create=cmd:uname%-a lab00 lab01
+  
+.fi
+
+
+.P
+The same with parallel background execution:
+
+.nf
+  
+  ctys -t CLI -a create=cmd:uname%-a -b 1 lab00 lab01
+  
+.fi
+
+
+.P
+or 
+
+.nf
+  
+  ctys -t CLI -a create=cmd:uname%-a <host1> <group1> <host2> <group2> 
+  
+.fi
+
+
+.P
+The full scope of "include" files for group definitions  and
+macros is applicable, thus e.g. tree\-like reuse of groups could
+be applied.
+
+.P
+Beginning with the current version path\-based addressing of groups
+is supported, this allows for addressing like:
+
+.nf
+  
+  ctys -t CLI -a create dir0/subdir1/sbudir2/group-file 
+  
+.fi
+
+
+.P
+In combination with the enhanced features of 
+\fBctys\-groups\fR
+for tree\-views
+this allows for management of structured groups.
+Typical applications are the management of task\-based destops for office 
+applications, development environments, and
+the management of test\-cases for Major\-Projects.
+
+.P
+Due to security reasons root\-permission should be configured and
+handled properly, of course.
+It might be recognized that there is currently a chance (?) for
+users with appropriate skills and permissions to intercept the
+communications, when on the intermediate hops the message flow
+has to be re\-encrypted after decryption.
+
+.P
+The following call opens a session hop1 to lab01 via the intermediate
+relay lab00 by the session hop0.
+
+.nf
+  
+  ctys -t cli -a create=l:hop0cmd:ctys%-t%cli%-a%create=l:hop1%lab00 lab01
+  
+.fi
+
+
+.P
+The following call opens a session hop1 to lab01 via the intermediate
+relay lab00 by the session hop0 and starts a Xterm on lab01.
+
+.nf
+  
+  ctys -t cli -a create=l:hop0cmd:ctys%-t%cli%-a%create=l:hop1,cmd:xterm%lab00 lab01
+  
+.fi
+
+
+.P
+This approach is very similar to the equivalent usage of
+OpenSSH, and could be used in same manner to bypass routing as
+well as firewalls, when access and execution permissions on gateways are
+available.
+
+.P
+\fBREMARK:\fR The utility 
+\fBctys\-beamer\fR
+as a call\-transformer eases the transformation
+of any call to a remote node via an arbitrary number of intermediate hops.
+
+.SS Start Xterm with tcsh
+.P
+This call starts an interactive XTerm session running tcsh inside.
+
+.nf
+  
+  ctys -t cli -a create=l:tstcall,s:tcsh%-c,cmd:xterm%-e%tcsh -b 1 lab00
+  
+.fi
+
+
+.SS Start gnome-terminal
+.P
+This call starts an interactive gnome\-terminal session running tcsh inside.
+
+.nf
+  
+  ctys -t cli -a create=l:tstcall,s:tcsh%-c,cmd:gnome-xterminal%-e%tcsh -b 1 lab00
+  
+.fi
+
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR
+,
+\fIctys\-beamer(1)\fR
+,
+\fIctys\-groups(1)\fR
+,
+\fIctys\-uc\-CLI(7)\fR
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+
+The whole document \- all sections \- is/are defined as invariant.
+.RE
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-uc-CLI.t2t -o /tmpn/0/ctys/bld/01.11.016/doc-tmp/BASE/en/man/man7/ctys-uc-CLI.7
+

@@ -1,0 +1,396 @@
+.TH "ctys-VMW" 1 "June, 2010" ""
+
+
+.P
+\&.
+
+.SH NAME
+.P
+\fBctys-VMW - VMware(TM) Interface\fR
+
+.SH SYNTAX
+
+   ctys -t VMW  -a action[=<suboptions>] ...
+   ctys -T VMW  -a action[=<suboptions>] ...
+   ctys -T ALL  -a action[=<suboptions>] ...
+
+.SH DESCRIPTION
+.P
+The \fBVMW\fR plugin adds support for sessions to
+\fBVirtualMachines\fR of type 
+\fBVMware(TM)\fR.
+
+.P
+The management of the virtual machines include particularly 
+the support of boot and shutdown for local and remote virtual machines
+including an inventory with accessible machines.
+Stored machines on network devices could be accessed by multiple worker\-machines,
+providing a multipath\-registration within the inventory.
+The inventory is populated automatically by scanning the local
+and remote filesystems and collecting the information of detected 
+VMs into a local ASCII file\-database.
+
+.P
+The access to VMs is supported by the full scope of the 
+\fB<machine\-address>\fR,
+thus e.g. a user defined LABEL as a shortcut\-alias could be used.
+The VMW plugin is "\fBVM\-STACK safe\fR" as it handles running embedded virtual machines
+and emulators by propagating state change events(e.g. SHUTDOWN) of the execution platform to
+contained hypervisors and emulators.
+
+.P
+The scope comprises for now the products
+WMware\-Workstation, WMware\-Server, and VMware\-Player,
+which are all TradeMarks of VMware Inc.
+The supported product versions are automatically detected, 
+thus no furter parameters for version distinction are required.
+Current version supports the \fBServer(1.x, 2.x)\fR and \fBPlayer(1.x, 2.x, 3.x)\fR and
+the \fBWorkstation(6.x, 7.x)\fR variants.
+
+.P
+Additional information for installation is available from 
+\fBctys\-configuration\-VMW\fR,
+information containing use\-cases with application examples is available from
+\fBctys\-uc\-VMW\fR.
+
+.SH OPTIONS
+.TP
+\fB\-a action[=<suboptions>]\fR
+
+.P
+For the complete Syntax refer to the depicted generic superset 
+within the call\-framework 
+\fBctys(1)\fR
+\&.
+
+.TP
+\fB\-a CANCEL\fR
+
+Following applies to the generic framework interface:
+
+.RS
+.IP \(bu 3
+\fBCLIENT\fR
+
+The client server communications is handeled by a proprietary
+frontend, which implements the sharing of a single port, by
+default 904.
+This requires some specific treatment particularly for the case
+of CONNECTIONFORWARDING.
+
+The headless\-mode(NONE) for CONSOLE is not supported as initial
+call, the console could be detached without shutting down the
+server component later, when background\-mode is preconfigured. 
+
+This is not applicable for VMplayer.
+
+.IP \(bu 3
+\fBSERVER\fR
+
+This is not applicable for VMplayer.
+
+.IP \(bu 3
+\fBBOTH\fR
+
+When this keyword is present the server and client
+processes of the previous set are filtered.
+
+Particularly the wildcard\-attribute \fBALL\fR is provided for application on all sessions of selected and permissive user\-scope.
+.RE
+
+.TP
+\fB\-a CREATE\fR
+
+VM or Team to be loaded and options passed through.
+For additional information refer to the related documentation
+from VMware. E.g. "Workstation User's Manual " Workstation
+6.0 Appendix A "Workstation  Command\-Line Reference"; pg. 403.
+
+.RS
+.IP \(bu 3
+\fB<callopts>\fR
+
+When <callopts> are given, these will be passed through to the call:
+.nf
+  vmware <callopts> <vmx-path>
+.fi
+
+
+The "\-\-" double hyphen is inserted as required.
+
+Be aware, that some of these such as "\-geometry" and
+"\-name" are already implicitly utilized by other
+options, thus use this if, than CAREFULLY.
+
+.IP \(bu 3
+\fBCONSOLE\fR
+
+All available console types for the supported VMware versions could be used,
+but the specific support of the versions may vary.
+An overview of provided
+\fBCONSOLE types\fR
+is listed within the description of the standard call for CREATE.
+
+Particularly  the following console types are available for VMW:
+
+.IP \(bu 3
+\fBVMW\fR
+
+The standard frontend, is available for all.
+When configured within the VM a detach and re\-attach to the running VM
+is possible.
+The background mode is required here, which is not available for at
+least some versions of the Player.
+For the newer versions beginning with Server/Player\-2.x the browser interface 
+is opened.
+
+.IP \(bu 3
+\fBVMWRC\fR
+
+This is the remote console standalone starter for \fBvmware\-vmrc\fR, which is available within the Server package.
+For additional descrition refer to the ctys\-HOWTO/Examples.
+The login requires proper authentication, thus the USER\-parameter should be used 
+in companion. Othewise a login dialogue occurs.
+
+The following paths are probed for the executable in given order for a custom installed copy.
+.RS
+.IP 1. 3
+${MYADDONSPATH}/vmware\-rc\-x64
+.IP 2. 3
+${HOME}/vmware/vmware\-rc\-x64
+.IP 3. 3
+/opt/vmware/vmware\-rc\-x64
+.IP 4. 3
+/usr/bin
+.IP 5. 3
+/usr/local/bin
+.IP 6. 3
+/usr/share/vmware\-rc
+.IP 7. 3
+/usr/share/vmware\-rc\-x64
+.IP 8. 3
+/usr/share/vmware\-rc\-x86
+.IP 9. 3
+/opt/bin
+.IP 10. 3
+/opt/vmware/vmware\-rc
+.RE
+.RE
+
+.RS
+.IP \(bu 3
+\fBFIREFOX\fR
+
+This is the starter for the remote console as standard plugin.
+
+.IP \(bu 3
+\fBNONE\fR
+
+The initial headless mode, available for Server and Workstation,
+requires some specific configuration of the VM.
+
+.IP \(bu 3
+\fBVNC\fR
+
+The use of VNCviewer as frontend, available for Workstation\-Version\-6,
+requires configuraition of VM.
+The port has to be configured statically within the VM, but is
+evaluated dynamically by mapping of the
+\fB<machine\-address>\fR,
+.RE
+
+.TP
+\fB\-a ENUMERATE\fR
+Enumerates all VMW sessions, therefore the vmx\-files will
+be scanned and the matched attributes displayed.
+Therefore the following order of files will be scanned for values,
+in each case the searched key is expected to have the
+prefix \fB#@#\fR within the file.
+
+.RS
+.IP \(bu 3
+\fB<pname>\fR
+
+The standard configuration file for VM, as given.
+
+.IP \(bu 3
+\fB<pname\-prefix>.ctys\fR
+
+The prefix of given filename with the \fB.ctys\fR suffix.
+
+.IP \(bu 3
+\fB<pname\-dirname>.ctys\fR
+
+The dirname of given file with \fB.ctys\fR suffix.
+.RE
+
+.TP
+\fB\-g <geometry>|<geometryExtended>\fR
+The geometry has a slightly different behaviour to the standard
+when specific options of proprietary WS\-CONSOLE are switched  on.
+
+.RS
+.IP \(bu 3
+The positioning parts of parameters of <geometryExtended>
+seem to work in any case correctly. 
+.IP \(bu 3
+The offset of <geometry> seems to work proper in any case too.
+.IP \(bu 3
+The size of <geometry> seems to work proper when
+\fBAutofitWindow\fR and \fBAutofitGuest\fR are switched off. 
+.RE
+
+.TP
+_
+As could be seen, shortly after start of CONSOLE it will 
+resize itself, if previous parameters are set.
+Which is indeed a pretty well behaviour. What else should
+that options of CONSOLE control?
+
+.TP
+\fB\-L <execution\-location>\fR
+.nf
+  
+  <execution-location>=(
+     (LOCALONLY|LO)
+     | (CONNECTIONFORWARDING|CF)
+     | (DISPLAYFORWARDING|DF)
+     | (SERVERONLY|SO)
+    )
+  
+.fi
+
+
+Currently the following selections are supported:
+
+
+.TS
+center, allbox, tab(^); lllll.
+ \fBProduct/Version\fR^\fBLO\fR^\fBCF\fR^\fBDF\fR^\fBSO\fR
+ VMware\-WS^ ^no^yes^1)
+ VMware\-Server^ ^yes^yes^1)
+ VMware\-Player^ ^ ^ ^ 
+.TE
+
+
+.TS
+center, tab(^); l.
+ \fBForwarding modes and call locations for VMW versions\fR
+.TE
+
+.TP
+\&.
+
+1)The background\-server\-mode is currently implicitly
+supported only.
+
+This requires the options to be selected within the
+products \- which are slightly different, but are almost
+commonly supported \- and will be implicitly started only
+when starting the whole product.
+
+The server component continues execution when the client
+is canceled, but could not be started separately.
+A CONNECT to a running server is supported.
+
+.SH PREREQUISITES
+.TP
+\fBSupported products:\fR
+
+
+.TS
+center, allbox, tab(^); ll.
+ \fBProduct\fR^\fBTested Versions\fR
+ VMware\-WS^6.x, 7.0.1
+ VMware\-Server^1.0.3\-1.0.10, 2.0.2
+ VMware\-Player^1.0.5\-1.0.6, 2.5.1, 3.0.1
+.TE
+
+
+.TS
+center, tab(^); l.
+ \fBSupported products\fR
+.TE
+
+
+.TP
+\fBbackground operations\fR
+The background operations for the server component of the VM
+has to be set explicitly for some variants.
+This is not required for server\-products,
+but should be done for workstation products.
+
+Not setting this leads to an immediate termination of the
+server, when client closes. Not necessarily with a 
+soft\-shutdown!!!
+
+.TP
+\fBtabs\-mode\fR
+The tabs\-mode for the proprietary CONSOLE should be set off.
+Even though a tabbed\-view could be used too.
+
+Due to the embedded dispatcher for the display the CONSOLE
+requires here a user interaction for selecting the target
+display in any case(by tabs, or by menu "tabs"), but when
+only one display per window is assigned it appears to be
+little more straight\-forward.
+
+.TP
+\fBauthentication\fR
+User authentication is for \fB\-P <port>\fR access even for 
+\fB\-h localhost\fR required, so for CONNECTIONFORWARDING in any case
+the user seems to have to perform a login. In addition, it
+seems that the user has to be a local user on that machine.
+
+As far as I can say for now, only in case of
+DISPLAYFORWARDING SSO has an effect on sessions. Let me
+please know, when this is wrong, and don't forget to explain
+how.
+
+.TP
+\fBHeadless\-Start\fR
+Found a "nogui" param for vmrun, will be introduced asap.
+
+.SH SEE ALSO
+.P
+\fIctys(1)\fR
+,
+\fIctys\-plugins(1)\fR
+,
+\fIctys\-VMW(1)\fR
+, \fIvmware(1)\fR
+
+.SH AUTHOR
+.TS
+tab(^); ll.
+ Maintenance:^<acue_sf1@sourceforge.net>
+ Homepage:^<http://www.UnifiedSessionsManager.org>
+ Sourceforge.net:^<http://sourceforge.net/projects/ctys>
+ Berlios.de:^<http://ctys.berlios.de>
+ Commercial:^<http://www.i4p.com>
+.TE
+
+
+.SH COPYRIGHT
+.P
+Copyright (C) 2008, 2009, 2010 Ingenieurbuero Arno\-Can Uestuensoez
+
+.P
+This is software and documentation from \fBBASE\fR package,
+
+.RS
+.IP \(bu 3
+for software see GPL3 for license conditions,
+.IP \(bu 3
+for documents  see GFDL\-1.3 with invariant sections for license conditions.
+
+The whole document \- all sections \- is/are defined as invariant.
+.RE
+
+.P
+For additional information refer to enclosed Releasenotes and License files.
+
+
+.\" man code generated by txt2tags 2.3 (http://txt2tags.sf.net)
+.\" cmdline: txt2tags -t man -i ctys-VMW.t2t -o /tmpn/0/ctys/bld/01.11.016/doc-tmp/BASE/en/man/man1/ctys-VMW.1
+
